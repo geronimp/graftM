@@ -20,7 +20,11 @@ intro = '''
 
 import argparse
 import re
-from Bio import SeqIO
+try:
+  from Bio import SeqIO
+except ImportError:
+  print "Please install Biopython first"
+  exit(1)
 import glob
 import subprocess
 from datetime import datetime
@@ -215,20 +219,23 @@ def csv_to_titles(hmm_table_list, type_):
   return output_file_name
 
 def extract_from_raw_reads(raw_seq_file, hmm, name_file):
-  sequence_file_name = name_file.replace('_readnames.txt', '.fna')
-  if raw_seq_file.endswith(('.fa','.faa','.fna')):
-    message('Extracting reads..')
+  ## Run fxtract to obtain reads form original sequence file
+  sequence_file_name = name_file.replace('_readnames.txt', '.fna') # Set the new output file name
+  message('Extracting reads..') # Send an update
+  if raw_seq_file.endswith(('.fa','.faa','.fna')): # Check the file type
     subprocess.check_call("fxtract -H -f " +replace_name(raw_seq_file, '_readnames.txt')+ " " +raw_seq_file+ " > " +sequence_file_name+ " ", shell=True)
   if raw_seq_file.endswith(('.fq.gz', 'fastq.gz')):
-    message('Extracting reads..')
     subprocess.check_call("fxtract -H -f " +replace_name(raw_seq_file, '_readnames.txt')+ " " +raw_seq_file+ " | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > " +sequence_file_name+ " ", shell=True)
+
   alt_title_file_name = replace_name(raw_seq_file, '.fna.fasta')
   fasta_file_open = open(alt_title_file_name, 'w')
-
   for sequence in list(SeqIO.parse(open(sequence_file_name, 'r'), 'fasta')):
     sequence.id = sequence.id.replace(':', '_')
     SeqIO.write(sequence, fasta_file_open, "fasta")
   fasta_file_open.close()
+
+  if cl.t[0] == 'dna': # Stop here if the pipeline is DNA
+    return
 
   raw_orf_title = replace_name(raw_seq_file, '.orf')
   subprocess.check_call('getorf -sequence ' +alt_title_file_name+ ' -outseq ' +raw_orf_title+ ' -minsize 98 2>/dev/null', shell=True)
@@ -260,6 +267,7 @@ def replace_name(old_title,new_suffix):
     return nt.split('.')[0] + new_suffix # Split, and return the base with whatever suffix is wanted.
   else:
     return old_title.split('.')[0] + new_suffix # Split, and return the base with whatever suffix is wanted.
+
 
  ##### Running Script #####
 print intro
@@ -359,7 +367,7 @@ placed = []
 
 for x,y in d.iteritems():
   if x not in placed:
-    classifications.append(';'.join(y))
+    classifications.append(';'.join(y)))
     placed.append(x)
   else:
     continue

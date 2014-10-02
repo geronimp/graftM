@@ -359,7 +359,7 @@ placed = []
 
 for x,y in d.iteritems():
   if x not in placed:
-    classifications.append(';'.join(x[1:]))
+    classifications.append(';'.join(y))
     placed.append(x)
   else:
     continue

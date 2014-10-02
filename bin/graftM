@@ -261,16 +261,6 @@ def replace_name(old_title,new_suffix):
   else:
     return old_title.split('.')[0] + new_suffix # Split, and return the base with whatever suffix is wanted.
 
-def gg_formatter(read_name, classification):
-  ids = ['k_','p_','c_','o_','f_','g_','s_','i_']
-  classification.remove(classification[0])
-  for x in range(0, 7):
-    try:
-      classification[x] = ids[x]+classification[x]
-    except:
-      classification.append(ids[x])
-  return classification
-
  ##### Running Script #####
 print intro
 seq_file_title = replace_name(cl.f[0], '') # Define base name for sequence file
@@ -369,7 +359,7 @@ placed = []
 
 for x,y in d.iteritems():
   if x not in placed:
-    classifications.append(';'.join(gg_formatter(x,y)))
+    classifications.append(';'.join(y))
     placed.append(x)
   else:
     continue

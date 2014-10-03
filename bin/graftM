@@ -132,16 +132,25 @@ def title_cleaner(title):
   return '_'.join(d)
 
 # run nhmmer
-def nhmmer(hmm, seq_file_list):
+def nhmmer(hmm, seq_file_list, input_file_format)):
   suffix = ['_for', '_rev']
   table_title_list = []
   for seq_file in seq_file_list:
     hmmout_table_title = replace_name(seq_file, suffix[0]+'.hmmout.csv')
     table_title_list.append(hmmout_table_title)
-    if seq_file.endswith(('.fa','.faa','.fna')):
-      subprocess.check_call(["/bin/bash", "-c", " nhmmer "+cl.jhmm[0]+" "+cl.e[0]+" --tblout " +hmmout_table_title+ " " +hmm+ " <(sed 's/:/$/g' " +seq_file+ ") 2>&1 > /dev/null"])
-    elif seq_file.endswith(('.fq.gz', 'fastq.gz')):
-      subprocess.check_call(["/bin/bash", "-c", " nhmmer "+cl.jhmm[0]+" "+cl.e[0]+" --tblout " +hmmout_table_title+ " " +hmm+ " <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat " +seq_file+ " | sed 's/:/$/g')) 2>&1 > /dev/null"])
+    nhmmer_cmd = "nhmmer "+cl.jhmm[0]+" "+cl.e[0]+" --tblout " +hmmout_table_title+ " " +hmm
+    if input_file_format == FORMAT_FASTA:
+      subprocess.check_call(["/bin/bash", "-c", nhmmer_cmd+ " <(sed 's/:/$/g' " +seq_file+ ") 2>&1 > /dev/null"])
+    elif input_file_format == FORMAT_FASTQ_GZ:
+      subprocess.check_call(["/bin/bash", "-c", nhmmer_cmd+ " <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat " +seq_file+ " | sed 's/:/$/g')) 2>&1 > /dev/null"])
+    elif input_file_format == FORMAT_SRA:
+      subprocess.check_call("fastq-dump --fasta --stdout "+
+                            seq_file+
+                            " 2>/dev/null"+
+                            " | "+
+                            nhmmer_cmd+
+                            " /dev/stdin &>/dev/null",
+                            shell=True)
     else:
       message('ERROR: Suffix on %s not recegnised. Please submit an .fq.gz or .fa file\n' % (seq_file))
       exit(1)

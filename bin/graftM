@@ -85,12 +85,26 @@ else:
   pass
 
 
-
+# Constants - don't change them evar.
+FORMAT_FASTA = 'FORMAT_FASTA'
+FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'
+FORMAT_SRA = 'FORMAT_SRA'
 
 ##### Functions #####
 
-# Corrects sequence alignments by removing lower case insertions
 
+# Given a Return the guessed file format, or raise an Exception if
+def guess_sequence_file_format(sequence_file_path):
+  if sequence_file_path.endswith(('.fa','.faa','.fna')): # Check the file type
+    return FORMAT_FASTA
+  elif sequence_file_path.endswith(('.fq.gz', '.fastq.gz')):
+    return FORMAT_FASTQ_GZ
+  elif sequence_file_path.endswith(('.sra')):
+    return FORMAT_SRA
+  else:
+    raise Exception("Unable to guess file format of sequence file: %s" % sequence_file_path)
+
+# Corrects sequence alignments by removing lower case insertions
 def alignment_correcter(alignment_file, output_file_name):
   rm_list = [] # Define positions to be removed (lower case characters)
   for sequence in list(SeqIO.parse(open(alignment_file, 'r'), 'fasta')): # For each sequence in the alignment
@@ -135,18 +149,28 @@ def nhmmer(hmm, seq_file_list):
   return table_title_list
 
 # run hmmsearch
-def hmmsearch(hmm, seq_file_list):
+def hmmsearch(hmm, seq_file_list, input_file_format):
   suffix = ['_for', '_rev']
   table_title_list = []
   for seq_file in seq_file_list:
     hmmout_table_title = replace_name(seq_file, suffix[0]+'.hmmout.csv')
     table_title_list.append(hmmout_table_title)
-    if seq_file.endswith(('.fa','.faa','.fna')):
-      subprocess.check_call(["/bin/bash", "-c", " hmmsearch "+cl.jhmm[0]+" "+cl.e[0]+" --domtblout " +hmmout_table_title+ " " +hmm+ " <(getorf -sequence  <(sed 's/:/$/g' " +seq_file+ ") -outseq >(cat) -minsize 98 2>/dev/null) 2>&1 > /dev/null"])
-    elif seq_file.endswith(('.fq.gz', 'fastq.gz')):
-      subprocess.check_call(["/bin/bash", "-c", " hmmsearch "+cl.jhmm[0]+" "+cl.e[0]+" --domtblout " +hmmout_table_title+ " " +hmm+ " <(getorf -sequence <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat " +seq_file+ " | sed 's/:/$/g')) -outseq >(cat) -minsize 98 2>/dev/null) 2>&1 > /dev/null"])
+    hmmsearch_cmd = " hmmsearch "+cl.jhmm[0]+" "+cl.e[0]+" -o /dev/null --domtblout " +hmmout_table_title+ " " +hmm+ " "
+    #TODO: capture stderr and report if the check_call fails
+    if input_file_format == FORMAT_FASTA:
+      subprocess.check_call(["/bin/bash", "-c", hmmsearch_cmd+" <(getorf -sequence  <(sed 's/:/$/g' " +seq_file+ ") -outseq >(cat) -minsize 98 2>/dev/null) 2>&1 > /dev/null"])
+    elif input_file_format == FORMAT_FASTQ_GZ:
+      subprocess.check_call(["/bin/bash", "-c", hmmsearch_cmd+" <(getorf -sequence <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat " +seq_file+ " | sed 's/:/$/g')) -outseq >(cat) -minsize 98 2>/dev/null) 2>&1 > /dev/null"])
+    elif input_file_format == FORMAT_SRA:
+      subprocess.check_call("fastq-dump --fasta --stdout "+
+                            seq_file+
+                            " 2>/dev/null"+
+                            " |getorf -sequence /dev/stdin -outseq /dev/stdout -minsize 98 2>/dev/null |"+
+                            hmmsearch_cmd+
+                            " /dev/stdin &>/dev/null",
+                            shell=True)
     else:
-      message('ERROR: Suffix on %s not recegnised. Please submit an .fq.gz or .fa file\n' % (seq_file))
+      message('ERROR: Suffix on %s not recegnised\n' % (seq_file))
       exit(1)
     del suffix[0]
   return table_title_list
@@ -226,14 +250,25 @@ def csv_to_titles(hmm_table_list, type_):
 
   return output_file_name
 
-def extract_from_raw_reads(raw_seq_file, hmm, name_file):
+def extract_from_raw_reads(raw_seq_file, hmm, name_file, input_file_format):
   ## Run fxtract to obtain reads form original sequence file
   sequence_file_name = name_file.replace('_readnames.txt', '.fna') # Set the new output file name
   message('Extracting reads..') # Send an update
-  if raw_seq_file.endswith(('.fa','.faa','.fna')): # Check the file type
-    subprocess.check_call("fxtract -H -f " +replace_name(raw_seq_file, '_readnames.txt')+ " " +raw_seq_file+ " > " +sequence_file_name+ " ", shell=True)
-  if raw_seq_file.endswith(('.fq.gz', 'fastq.gz')):
-    subprocess.check_call("fxtract -H -f " +replace_name(raw_seq_file, '_readnames.txt')+ " " +raw_seq_file+ " | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > " +sequence_file_name+ " ", shell=True)
+  fxtract_cmd = "fxtract -H -X -f " +replace_name(raw_seq_file, '_readnames.txt')+ " "
+  if input_file_format == FORMAT_FASTA:
+    subprocess.check_call(fxtract_cmd+ " " +raw_seq_file+ " > " +sequence_file_name+ " ", shell=True)
+  elif input_file_format == FORMAT_FASTQ_GZ:
+    subprocess.check_call(fxtract_cmd +raw_seq_file+ " | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > " +sequence_file_name+ " ", shell=True)
+  elif input_file_format == FORMAT_SRA:
+    subprocess.check_call("fastq-dump --fasta --stdout "+
+                          seq_file+" | "+
+                          fxtract_cmd+
+                          "/dev/stdin > "+
+                          sequence_file_name,
+                          shell=True)
+  else:
+    raise Exception("Programming error")
+
 
   alt_title_file_name = replace_name(raw_seq_file, '.fna.fasta')
   fasta_file_open = open(alt_title_file_name, 'w')
@@ -358,11 +393,13 @@ try:
 except AttributeError:
   out_file_name = replace_name(cl.f[0], '')
 
+input_file_format = guess_sequence_file_format(seq_file_list[0])
+
 if cl.t[0] == 'prot': # If the protein pipeline was specified
   message(datetime.now().strftime('%Y/%m/%d')) # print starting date & time
   message('Searching %s using %s..' % (seq_file_title, hmm_file_title)) # First message, searching the reads
-  name_file = csv_to_titles(hmmsearch(cl.m[0], seq_file_list), cl.t[0]) # Create list of names that hit from the hmm search
-  extract_from_raw_reads(cl.f[0], cl.m[0], name_file) # And extract from the original file
+  name_file = csv_to_titles(hmmsearch(cl.m[0], seq_file_list, input_file_format), cl.t[0]) # Create list of names that hit from the hmm search
+  extract_from_raw_reads(cl.f[0], cl.m[0], name_file, input_file_format) # And extract from the original file
   message('Aligning to hmm..') # Tell user that the reads are extracted, and the alignment is proceeding
   hmmalign(cl.m[0], replace_name(cl.f[0], '.orf.fasta')) # And align
   alignment_correcter(seq_file_title+ '_conv_.fa', seq_file_title+'.aln.fasta') # And fix up the alignment file by removing the insertions
@@ -380,8 +417,8 @@ if cl.t[0] == 'dna':
   date = datetime.now().strftime('%Y-%m-%d')
   message(date)
   message('Searching %s using %s..' % (seq_file_title, hmm_file_title))
-  name_file = csv_to_titles(nhmmer(cl.m[0], seq_file_list), cl.t[0])
-  extract_from_raw_reads(cl.f[0], cl.m[0], name_file)
+  name_file = csv_to_titles(nhmmer(cl.m[0], seq_file_list, input_file_format), cl.t[0])
+  extract_from_raw_reads(cl.f[0], cl.m[0], name_file, input_file_format)
   message('Aligning to database..')
   pynast(cl.f[0], cl.g[0])
   if not hasattr(cl,'c'):

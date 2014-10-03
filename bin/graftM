@@ -132,7 +132,7 @@ def title_cleaner(title):
   return '_'.join(d)
 
 # run nhmmer
-def nhmmer(hmm, seq_file_list, input_file_format)):
+def nhmmer(hmm, seq_file_list, input_file_format):
   suffix = ['_for', '_rev']
   table_title_list = []
   for seq_file in seq_file_list:
@@ -269,12 +269,15 @@ def extract_from_raw_reads(raw_seq_file, hmm, name_file, input_file_format):
   elif input_file_format == FORMAT_FASTQ_GZ:
     subprocess.check_call(fxtract_cmd +raw_seq_file+ " | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > " +sequence_file_name+ " ", shell=True)
   elif input_file_format == FORMAT_SRA:
-    subprocess.check_call("fastq-dump --fasta --stdout "+
-                          seq_file+" | "+
-                          fxtract_cmd+
-                          "/dev/stdin > "+
-                          sequence_file_name,
-                          shell=True)
+    # There's no good way to extract sequences directly from the sra
+    # file by specifying their ID. So first dump to a temp fasta file,
+    # then fxtract from that.
+    with tempfile.NamedTemporaryFile() as tmp:
+      subprocess.check_call("fastq-dump --fasta --stdout %s > %s " % (raw_seq_file, tmp.name))
+      subprocess.check_call(fxtract_cmd+
+                            " "+tmp.name+" >"+
+                            sequence_file_name,
+                            shell=True)
   else:
     raise Exception("Programming error")
 

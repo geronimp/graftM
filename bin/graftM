@@ -283,10 +283,7 @@ else:
 # Defining a list of the reads to be searched & checking the file names match.
 
 try: # If there are forward and reverse reads
-  if replace_name(cl.f[0], '') != replace_name(cl.r[0], ''): # Check if thebase names of the forward and reverse reads match
-    message("Looks like the forward reads don't match the reverse reads. Please make sure you're using the right ones!") # If not, throw a warning
-    exit(1) # And fail
-  seq_file_list = [cl.f[0], cl.r[0]] # Otherwise, make a list of the names of sequences
+  seq_file_list = [cl.f[0], cl.r[0]] # Make a list of the names of sequences
 except AttributeError: # And if just forward reads are present
   seq_file_list = [cl.f[0]] # Make a list of just the forward reads
 

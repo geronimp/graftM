@@ -387,7 +387,7 @@ if cl.t[0] == 'dna':
   name_file = csv_to_titles(nhmmer(cl.m[0], seq_file_list), cl.t[0])
   extract_from_raw_reads(cl.f[0], cl.m[0], name_file)
   message('Aligning to database..')
-  pynast(cl.f[0], cl.g[0])
+  pynast(cl.f[0], cl.g)
   if not hasattr(cl,'c'):
     message('No refpkg found! Stopping at alignment')
     exit(1)

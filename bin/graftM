@@ -55,34 +55,12 @@ parser.add_argument('-jpplacer', metavar = 'threads', type = str, nargs = 1, hel
 parser.add_argument('-jhmm', metavar = 'threads', type = str, nargs = 1, help = 'number of threads to use when hmmsearching (default = 5)', default = [5])
 parser.add_argument('-d', metavar = 'confidence', type = str, nargs = 1, help = 'Cutoff of placement confidence level (0.5 - 1), default = 0.75', default = [0.75])
 parser.add_argument('-c', metavar = 'reference_package', type = str, nargs = 1, help = 'Reference package of gene family', default =argparse.SUPPRESS)
-parser.add_argument('-g', metavar = 'gg_database', type = str, nargs = 1, help = 'Aligned gg database for pynast alignment (dna sequences only)', default = argparse.SUPPRESS)
+parser.add_argument('-g', metavar = 'gg_database', type = str, help = 'Aligned gg database for pynast alignment (dna sequences only)', default = argparse.SUPPRESS)
 parser.add_argument('-o', metavar = 'output directory', type = str, nargs = 1, help = 'Specify an output directory (default is the file name) If you are looking for more than one marker gene in the same directory, you will definitely need this flag to avoid clobbering.', default = argparse.SUPPRESS)
 parser.add_argument('-v', action = 'version', version = 'graftM v.0.2.1')
 
 cl=parser.parse_args()
 
-if float(cl.d[0]) < float(0.5):
-  message('Please specify a confidence level (-d) between 0.5 and 1.0!')
-  exit(1)
-elif float(cl.d[0]) > float(1.0):
-  message('Please specify a confidence level (-d) between 0.5 and 1.0!')
-  print cl.d[0]
-  exit(1)
-
-if cl.e[0]:
-  cl.e[0] = '-E '+cl.e[0]
-else:
-  pass
-
-if cl.jpplacer[0]:
-  cl.jpplacer[0] =  '-j '+str(cl.jpplacer[0])
-else:
-  pass
-
-if cl.jhmm[0]:
-  cl.jhmm[0] = '--cpu '+str(cl.jhmm[0])
-else:
-  pass
 
 
 # Constants - don't change them evar.
@@ -90,8 +68,8 @@ FORMAT_FASTA = 'FORMAT_FASTA'
 FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'
 FORMAT_SRA = 'FORMAT_SRA'
 
-##### Functions #####
 
+##### Functions #####
 
 # Given a Return the guessed file format, or raise an Exception if
 def guess_sequence_file_format(sequence_file_path):
@@ -378,6 +356,34 @@ def dictionary_builder(gup_file):
 
  ##### Running Script #####
 print intro
+
+# Check parameters are in sensible land
+if float(cl.d[0]) < float(0.5) or float(cl.d[0]) > float(1.0):
+  message('Please specify a confidence level (-d) between 0.5 and 1.0! Found: %s' % cl.d[0])
+  exit(1)
+
+if cl.e[0]:
+  cl.e[0] = '-E '+cl.e[0]
+else:
+  pass
+
+if cl.jpplacer[0]:
+  cl.jpplacer[0] =  '-j '+str(cl.jpplacer[0])
+else:
+  pass
+
+if cl.jhmm[0]:
+  cl.jhmm[0] = '--cpu '+str(cl.jhmm[0])
+else:
+  pass
+
+try:
+  cl.g
+except AttributeError:
+  message("The -g/--gg_database option is required in dna mode")
+  exit(1)
+
+
 seq_file_title = replace_name(cl.f[0], '') # Define base name for sequence file
 hmm_file_title = replace_name(cl.m[0], '.hmm') # Define base name for hmm file
 
@@ -428,7 +434,7 @@ if cl.t[0] == 'dna':
   name_file = csv_to_titles(nhmmer(cl.m[0], seq_file_list, input_file_format), cl.t[0])
   extract_from_raw_reads(cl.f[0], cl.m[0], name_file, input_file_format)
   message('Aligning to database..')
-  pynast(cl.f[0], cl.g[0])
+  pynast(cl.f[0], cl.g)
   if not hasattr(cl,'c'):
     message('No refpkg found! Stopping at alignment')
     exit(1)
@@ -441,4 +447,3 @@ if cl.t[0] == 'dna':
 
 
 message('Finshed! Thank you for using graftM!\n')
-exit(1)

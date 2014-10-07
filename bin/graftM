@@ -400,4 +400,3 @@ if cl.t[0] == 'dna':
 
 
 message('Finshed! Thank you for using graftM!\n')
-exit(1)

@@ -39,7 +39,7 @@ from datetime import datetime
 import cPickle as pickle
 import code
 from collections import OrderedDict
-
+import tempfile
 
 
 ##### Input Files #####
@@ -144,13 +144,11 @@ def nhmmer(hmm, seq_file_list, input_file_format):
     elif input_file_format == FORMAT_FASTQ_GZ:
       subprocess.check_call(["/bin/bash", "-c", nhmmer_cmd+ " <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat " +seq_file+ " | sed 's/:/$/g')) 2>&1 > /dev/null"])
     elif input_file_format == FORMAT_SRA:
-      subprocess.check_call("fastq-dump --fasta --stdout "+
-                            seq_file+
-                            " 2>/dev/null"+
-                            " | "+
-                            nhmmer_cmd+
-                            " /dev/stdin &>/dev/null",
-                            shell=True)
+      cmd = "fastq-dump --fasta --stdout %s 2>/dev/null | %s /dev/stdin 2>&1 > /dev/null" % (
+        seq_file,
+        nhmmer_cmd
+      )
+      subprocess.check_call(cmd, shell=True)
     else:
       message('ERROR: Suffix on %s not recegnised. Please submit an .fq.gz or .fa file\n' % (seq_file))
       exit(1)
@@ -171,13 +169,12 @@ def hmmsearch(hmm, seq_file_list, input_file_format):
     elif input_file_format == FORMAT_FASTQ_GZ:
       subprocess.check_call(["/bin/bash", "-c", hmmsearch_cmd+" <(getorf -sequence <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat " +seq_file+ " | sed 's/:/$/g')) -outseq >(cat) -minsize 98 2>/dev/null) 2>&1 > /dev/null"])
     elif input_file_format == FORMAT_SRA:
-      subprocess.check_call("fastq-dump --fasta --stdout "+
-                            seq_file+
-                            " 2>/dev/null"+
-                            " |getorf -sequence /dev/stdin -outseq /dev/stdout -minsize 98 2>/dev/null |"+
-                            hmmsearch_cmd+
-                            " /dev/stdin &>/dev/null",
-                            shell=True)
+      cmd = "fastq-dump --fasta --stdout %s 2>/dev/null |getorf -sequence /dev/stdin -outseq /dev/stdout -minsize 98 2>/dev/null | %s /dev/stdin &>/dev/null" % (
+        seq_file,
+        hmmsearch_cmd
+        )
+      subprocess.check_call(cmd)
+
     else:
       message('ERROR: Suffix on %s not recegnised\n' % (seq_file))
       exit(1)
@@ -273,11 +270,10 @@ def extract_from_raw_reads(raw_seq_file, hmm, name_file, input_file_format):
     # file by specifying their ID. So first dump to a temp fasta file,
     # then fxtract from that.
     with tempfile.NamedTemporaryFile() as tmp:
-      subprocess.check_call("fastq-dump --fasta --stdout %s > %s " % (raw_seq_file, tmp.name))
-      subprocess.check_call(fxtract_cmd+
-                            " "+tmp.name+" >"+
-                            sequence_file_name,
-                            shell=True)
+      cmd = "fastq-dump --fasta --stdout %s 2>/dev/null > %s " % (raw_seq_file, tmp.name)
+      subprocess.check_call(cmd, shell=True)
+      cmd = "%s %s > %s" % (fxtract_cmd, tmp.name, sequence_file_name)
+      subprocess.check_call(cmd, shell=True)
   else:
     raise Exception("Programming error")
 

@@ -11,9 +11,18 @@
 #                                             #
 ##### ##### ##### ##### ##### ##### ##### #####
 
+__author__ = "Joel Boyd, Ben Woodcroft"
+__copyright__ = "Copyright 2014"
+__credits__ = ["Joel Boyd","Ben Woodcroft"]
+__license__ = "GPL3"
+__maintainer__ = "Joel Boyd, Ben Woodcroft"
+__email__ = "joel.boyd near uq.net.au, b.woodcroft near uq.edu.au"
+__status__ = "Development"
+__version__ = "0.3.1"
+
 ##### Messsages #####
 intro = '''
-    ## graftM  v0.3.1                    ##
+    ## graftM  %s                    ##
     ## Searches raw sequences for genes  ##
     ## Joel Boyd, Honours 2014           ##
                                               __/__
@@ -24,7 +33,7 @@ intro = '''
 _-  -          -             |_____|
   - _  	    	                   |______
 -
-'''
+''' % __version__
 
 import argparse
 import re
@@ -50,7 +59,7 @@ import nhmmer3_text
 
 ##### Input Files #####
 
-parser = argparse.ArgumentParser(description='''--- graftM  v.0.2.1 --- Searches reads for genes using hmms, and places them into a tree with pplacer to classify them phylogenetically.'''
+parser = argparse.ArgumentParser(description='''--- graftM  %s --- Searches reads for genes using hmms, and places them into a tree with pplacer to classify them phylogenetically.''' % __version__
                           , epilog='Joel Boyd - Honours 2014.')
 parser.add_argument('-f', metavar = 'forward read (or single read file)', type = str, nargs = 1 , help = 'Forward raw sequence file in .fa, or .fq.gz format.', required = True)
 parser.add_argument('-r', metavar = 'reverse read', type = str, nargs = 1, help = 'Optional reverse raw sequence file in .fa, or .fq.gz format.', default = argparse.SUPPRESS)
@@ -64,7 +73,7 @@ parser.add_argument('-c', metavar = 'reference_package', type = str, nargs = 1, 
 parser.add_argument('--extract_alignment_from_nhmmer', action="store_true", help = 'Use nhmmer\'s alignment output, rather than doing a separate alignment step (currently ignores reverse reads)', default = False)
 parser.add_argument('-g', metavar = 'gg_database', type = str, help = 'Aligned gg database for pynast alignment (dna sequences only)', default = argparse.SUPPRESS)
 parser.add_argument('-o', metavar = 'output directory', type = str, nargs = 1, help = 'Specify an output directory (default is the file name) If you are looking for more than one marker gene in the same directory, you will definitely need this flag to avoid clobbering.', default = argparse.SUPPRESS)
-parser.add_argument('-v', action = 'version', version = 'graftM v.0.2.1')
+parser.add_argument('-v', action = 'version', version = 'graftM v%s'%__version__)
 
 cl=parser.parse_args()
 

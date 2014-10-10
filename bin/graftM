@@ -3,7 +3,7 @@
 
 ##### ##### ##### ##### ##### ##### ##### #####
 #                                             #
-#                graftM v.0.2.1               #
+#                graftM                       #
 #                                             #
 #        This is a script for doing the       #
 #       gene centric analyses in Joel's       #
@@ -13,7 +13,7 @@
 
 ##### Messsages #####
 intro = '''
-    ## graftM  v.0.2.1                   ##
+    ## graftM  v0.3.1                    ##
     ## Searches raw sequences for genes  ##
     ## Joel Boyd, Honours 2014           ##
                                               __/__
@@ -158,7 +158,7 @@ def hmmsearch(hmm, seq_file_list, input_file_format):
         seq_file,
         hmmsearch_cmd
         )
-      subprocess.check_call(cmd)
+      subprocess.check_call(['bash','-c',cmd])
 
     else:
       message('ERROR: Suffix on %s not recegnised\n' % (seq_file))

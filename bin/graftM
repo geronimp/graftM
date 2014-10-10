@@ -40,6 +40,12 @@ import cPickle as pickle
 import code
 from collections import OrderedDict
 import tempfile
+import os
+import sys
+import StringIO
+
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','lib'))
+import nhmmer3_text
 
 
 ##### Input Files #####
@@ -55,6 +61,7 @@ parser.add_argument('-jpplacer', metavar = 'threads', type = str, nargs = 1, hel
 parser.add_argument('-jhmm', metavar = 'threads', type = str, nargs = 1, help = 'number of threads to use when hmmsearching (default = 5)', default = [5])
 parser.add_argument('-d', metavar = 'confidence', type = str, nargs = 1, help = 'Cutoff of placement confidence level (0.5 - 1), default = 0.75', default = [0.75])
 parser.add_argument('-c', metavar = 'reference_package', type = str, nargs = 1, help = 'Reference package of gene family', default =argparse.SUPPRESS)
+parser.add_argument('--extract_alignment_from_nhmmer', action="store_true", help = 'Use nhmmer\'s alignment output, rather than doing a separate alignment step (currently ignores reverse reads)', default = False)
 parser.add_argument('-g', metavar = 'gg_database', type = str, help = 'Aligned gg database for pynast alignment (dna sequences only)', default = argparse.SUPPRESS)
 parser.add_argument('-o', metavar = 'output directory', type = str, nargs = 1, help = 'Specify an output directory (default is the file name) If you are looking for more than one marker gene in the same directory, you will definitely need this flag to avoid clobbering.', default = argparse.SUPPRESS)
 parser.add_argument('-v', action = 'version', version = 'graftM v.0.2.1')
@@ -143,11 +150,11 @@ def hmmsearch(hmm, seq_file_list, input_file_format):
     hmmsearch_cmd = " hmmsearch "+cl.jhmm[0]+" "+cl.e[0]+" -o /dev/null --domtblout " +hmmout_table_title+ " " +hmm+ " "
     #TODO: capture stderr and report if the check_call fails
     if input_file_format == FORMAT_FASTA:
-      subprocess.check_call(["/bin/bash", "-c", hmmsearch_cmd+" <(getorf -sequence  <(sed 's/:/$/g' " +seq_file+ ") -outseq >(cat) -minsize 98 2>/dev/null) 2>&1 > /dev/null"])
+      subprocess.check_call(["/bin/bash", "-c", hmmsearch_cmd+" <(getorf -sequence  <(sed 's/:/$/g' " +seq_file+ ") -outseq >(cat) -minsize 98 2>/dev/null)"])
     elif input_file_format == FORMAT_FASTQ_GZ:
-      subprocess.check_call(["/bin/bash", "-c", hmmsearch_cmd+" <(getorf -sequence <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat " +seq_file+ " | sed 's/:/$/g')) -outseq >(cat) -minsize 98 2>/dev/null) 2>&1 > /dev/null"])
+      subprocess.check_call(["/bin/bash", "-c", hmmsearch_cmd+" <(getorf -sequence <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat " +seq_file+ " | sed 's/:/$/g')) -outseq >(cat) -minsize 98 2>/dev/null)"])
     elif input_file_format == FORMAT_SRA:
-      cmd = "fastq-dump --fasta --stdout %s 2>/dev/null |getorf -sequence /dev/stdin -outseq /dev/stdout -minsize 98 2>/dev/null | %s /dev/stdin &>/dev/null" % (
+      cmd = "fastq-dump --fasta --stdout %s 2>/dev/null |getorf -sequence /dev/stdin -outseq /dev/stdout -minsize 98 2>/dev/null | %s /dev/stdin" % (
         seq_file,
         hmmsearch_cmd
         )
@@ -162,6 +169,43 @@ def hmmsearch(hmm, seq_file_list, input_file_format):
 # run pynast
 def pynast(ts_file, gg_db_path):
   subprocess.check_call('pynast -l 0 -i ' +replace_name(ts_file, '.fna.fasta')+ ' -t ' +gg_db_path+ ' -a ' +replace_name(ts_file, '.aln.fasta'), shell=True)
+
+
+def nhmmerToAlignment(hmm, seq_file, input_file_format):
+  # Run nhmmer
+  nhmmer_cmd = 'nhmmer %s %s %s ' % (cl.e[0], cl.jhmm[0], hmm)
+  if input_file_format == FORMAT_FASTA:
+    nhmmer_out = subprocess.check_output(['bash','-c', nhmmer_cmd+" <(sed 's/:/$/g' " +seq_file+ ")"])
+  elif input_file_format == FORMAT_FASTQ_GZ:
+    nhmmer_out = subprocess.check_output(['bash','-c', nhmmer_cmd+"  <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat " +seq_file+ " | sed 's/:/$/g'))"])
+  elif input_file_format == FORMAT_SRA:
+    cmd = "fastq-dump --fasta --stdout %s 2>/dev/null | %s /dev/stdin" % (
+      seq_file,
+      nhmmer_cmd
+    )
+    nhmmer_out = subprocess.check_output(['bash','-c',cmd])
+  else:
+    raise Exception("Programming error")
+
+  # Extract the alignments from the output file, and pad them
+  seq_cleaner = re.compile(r'[a-z\.\*]')
+  queries = list(nhmmer3_text.Nhmmer3TextParser(StringIO.StringIO(nhmmer_out)))
+  assert len(queries) == 1
+  query = queries[0]
+  hmm_length = query.seq_len
+
+  with open(replace_name(seq_file,'.aln.fasta'), 'w') as alignment_fh:
+    for hit in query.hits:
+      alignment_fh.write(">"+hit.id+"\n")
+      # Only write the first HSP, and remove the indels so the alignment is correct
+      hsp = hit.hsps[0].fragments[0]
+      alignment_fh.write('-'*hsp.query_start)
+      alignment_fh.write(seq_cleaner.sub('',str(hsp.hit.seq)))
+      alignment_fh.write('-'*(hmm_length-hsp.query_end))
+      alignment_fh.write("\n")
+
+
+
 
 # run pplacer
 def pplacer(refpkg, ts_file):
@@ -377,13 +421,6 @@ if cl.jhmm[0]:
 else:
   pass
 
-try:
-  cl.g
-except AttributeError:
-  message("The -g/--gg_database option is required in dna mode")
-  exit(1)
-
-
 seq_file_title = replace_name(cl.f[0], '') # Define base name for sequence file
 hmm_file_title = replace_name(cl.m[0], '.hmm') # Define base name for hmm file
 
@@ -428,13 +465,25 @@ if cl.t[0] == 'prot': # If the protein pipeline was specified
   dictionary_builder(replace_name(cl.f[0], '.guppy'))
 
 if cl.t[0] == 'dna':
+  if cl.extract_alignment_from_nhmmer is not True:
+    try:
+      cl.g
+    except AttributeError:
+      message("The -g/--gg_database option is required in dna mode, unless --extract_alignment_from_nhmmer is specified")
+      exit(1)
+
   date = datetime.now().strftime('%Y-%m-%d')
   message(date)
-  message('Searching %s using %s..' % (seq_file_title, hmm_file_title))
-  name_file = csv_to_titles(nhmmer(cl.m[0], seq_file_list, input_file_format), cl.t[0])
-  extract_from_raw_reads(cl.f[0], cl.m[0], name_file, input_file_format)
-  message('Aligning to database..')
-  pynast(cl.f[0], cl.g)
+  if cl.extract_alignment_from_nhmmer:
+    message('Searching and extracting alignments of %s against %s..' % (seq_file_title, hmm_file_title))
+    nhmmerToAlignment(cl.m[0], cl.f[0], input_file_format)
+  else:
+    message('Searching %s using %s..' % (seq_file_title, hmm_file_title))
+    name_file = csv_to_titles(nhmmer(cl.m[0], seq_file_list, input_file_format), cl.t[0])
+    extract_from_raw_reads(cl.f[0], cl.m[0], name_file, input_file_format)
+    message('Aligning to database..')
+    pynast(cl.f[0], cl.g)
+
   if not hasattr(cl,'c'):
     message('No refpkg found! Stopping at alignment')
     exit(1)

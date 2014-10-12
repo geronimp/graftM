@@ -323,7 +323,7 @@ def extract_from_raw_reads(raw_seq_file, hmm, name_file, input_file_format):
   subprocess.check_call('getorf -sequence ' +alt_title_file_name+ ' -outseq ' +raw_orf_title+ ' -minsize 98 2>/dev/null', shell=True)
 
   hmm_out_title = replace_name(raw_seq_file, '.tmp.csv')
-  subprocess.check_call("hmmsearch --tblout "+hmm_out_title+" "+hmm+" "+raw_orf_title+" 2>&1 > /dev/null", shell=True)
+  subprocess.check_call("hmmsearch -o /dev/null --tblout "+hmm_out_title+" "+hmm+" "+raw_orf_title, shell=True)
 
   raw_titles = []
   for line in open(hmm_out_title):
@@ -473,12 +473,12 @@ if cl.t[0] == 'prot': # If the protein pipeline was specified
   message('Building OTU table..')
   dictionary_builder(replace_name(cl.f[0], '.guppy'))
 
-if cl.t[0] == 'dna':
-  if cl.extract_alignment_from_nhmmer is not True:
+elif cl.t[0] == 'dna':
+  if hasattr(cl,'c') and cl.extract_alignment_from_nhmmer is not True:
     try:
       cl.g
     except AttributeError:
-      message("The -g/--gg_database option is required in dna mode, unless --extract_alignment_from_nhmmer is specified")
+      message("The -g/--gg_database option is required in dna mode with -c is specified, unless --extract_alignment_from_nhmmer is specified")
       exit(1)
 
   date = datetime.now().strftime('%Y-%m-%d')
@@ -490,8 +490,9 @@ if cl.t[0] == 'dna':
     message('Searching %s using %s..' % (seq_file_title, hmm_file_title))
     name_file = csv_to_titles(nhmmer(cl.m[0], seq_file_list, input_file_format), cl.t[0])
     extract_from_raw_reads(cl.f[0], cl.m[0], name_file, input_file_format)
-    message('Aligning to database..')
-    pynast(cl.f[0], cl.g)
+    if hasattr(cl,'c'):
+      message('Aligning to database..')
+      pynast(cl.f[0], cl.g)
 
   if not hasattr(cl,'c'):
     message('No refpkg found! Stopping at alignment')
@@ -502,6 +503,9 @@ if cl.t[0] == 'dna':
   guppy_class(cl.c[0], replace_name(cl.f[0], '.aln.jplace'))
   message('Building OTU table..')
   dictionary_builder(replace_name(cl.f[0], '.guppy'))
+
+else:
+  raise Exception("Programming error")
 
 
 message('Finshed! Thank you for using graftM!\n')

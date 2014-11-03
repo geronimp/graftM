@@ -189,7 +189,7 @@ def csv_to_titles(hmm_table_list, type_):
       title_count += 1
       title = str(line.split(' ', 1)[0])
       if type_ == 'dna':
-        if 'FCC' in line:
+        if line.startswith('FCC'):
           titles_list.append(title.replace('$',':').replace('_', '/')[:-2])
         else:
           titles_list.append(title.replace('$',':'))
@@ -324,12 +324,9 @@ def dictionary_builder(gup_file):
       otu_table.write(line+'\n')
     else: otu_table.write('\t'.join(line)+'\n')
   otu_table.close()
-
-  try:
-    str(cl.o[0])
-    subprocess.call("mv "+replace_name(cl.f[0], '')+"* "+cl.o[0]+"/ 2> /dev/null", shell = True)
-  except:
-    subprocess.call("mv "+replace_name(cl.f[0], '')+"* "+replace_name(cl.f[0], '')+"/ 2> /dev/null", shell = True)
+  
+  subprocess.call("rm , "+replace_name(cl.f[0], '')+".orf.* "+replace_name(cl.f[0], '')+".hmmout.* ", shell = True)
+  subprocess.call("mv "+replace_name(cl.f[0], '')+"* "+cl.o[0]+"/ 2> /dev/null", shell = True)
 
 
 
@@ -343,7 +340,6 @@ if hasattr(cl,'o'): # Check if an output directory has been specified
 else:
   setattr(cl, 'o', [str(seq_file_title)]) # If not, just make it the base name
 
-
 # Defining a list of the reads to be searched & checking the file names match.
 
 try: # If there are forward and reverse reads
@@ -351,12 +347,6 @@ try: # If there are forward and reverse reads
 except AttributeError: # And if just forward reads are present
   seq_file_list = [cl.f[0]] # Make a list of just the forward reads
 
-# Check if there is an output folder name specified
-try:
-  str(cl.o[0])
-  out_file_name = cl.o[0]
-except AttributeError:
-  out_file_name = replace_name(cl.f[0], '')
 
 if cl.t[0] == 'prot': # If the protein pipeline was specified
   message(datetime.now().strftime('%Y/%m/%d')) # print starting date & time

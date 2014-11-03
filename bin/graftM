@@ -85,26 +85,24 @@ else:
   pass
 
 
-
-
 ##### Functions #####
 
 # Corrects sequence alignments by removing lower case insertions
 
 def alignment_correcter(alignment_file, output_file_name):
-  rm_list = [] # Define positions to be removed (lower case characters)
+  insert_list = [] # Define inserted positions to be removed (lower case characters)
   for sequence in list(SeqIO.parse(open(alignment_file, 'r'), 'fasta')): # For each sequence in the alignment
     for idx, nt in enumerate(list(sequence.seq)): # For each nucleotide in the sequence
       if nt.islower(): # Check for lower case character
-        rm_list.append(idx) # Add to list if it is
-  rm_list = list(OrderedDict.fromkeys(sorted(rm_list, reverse = True))) # Reverse the list and remove duplicate positions
-  o = open(output_file_name, 'w')
+        insert_list.append(idx) # Add to the insert list if it is
+  insert_list = list(OrderedDict.fromkeys(sorted(insert_list, reverse = True))) # Reverse the list and remove duplicate positions
+  corrected_alignment = open(output_file_name, 'w')
   for sequence in list(SeqIO.parse(open(alignment_file, 'r'), 'fasta')): # For each sequence in the alignment
     new_seq = list(sequence.seq)
-    for position in rm_list: # For each position in the removal list
-      del new_seq[position] # Delete that position in every sequence
-    o.write('>'+sequence.id+'\n')
-    o.write(''.join(new_seq)+'\n')
+    for position in insert_list: # For each position in the removal list
+      del new_seq[position] # Delete that inserted position in every sequence
+    corrected_alignment.write('>'+sequence.id+'\n')
+    corrected_alignment.write(''.join(new_seq)+'\n')
 
 # Displays message with time in brackets before the message.
 def message(message):
@@ -177,10 +175,11 @@ def hmmalign(hmm, sequencefile):
   subprocess.check_call('seqmagick convert '+base_name+'.sto ' +base_name+ '_conv_.fa', shell=True)
 
 # process hmmsearch/nhmmer results into ts_files
-def csv_to_titles(hmm_table_list, type_):
+def csv_to_titles(hmm_table_list, typ):
   titles_list = []
   reads_list = []
   write_list = []
+  suffix = ['_for', '_rev']
   title_count = 0
   for hmm_table in hmm_table_list:
     for line in open(hmm_table):
@@ -188,12 +187,12 @@ def csv_to_titles(hmm_table_list, type_):
         continue
       title_count += 1
       title = str(line.split(' ', 1)[0])
-      if type_ == 'dna':
+      if typ == 'dna':
         if line.startswith('FCC'):
           titles_list.append(title.replace('$',':').replace('_', '/')[:-2])
         else:
           titles_list.append(title.replace('$',':'))
-      if type_ == 'prot':
+      if typ == 'prot':
         if line.startswith('FCC'):
           titles_list.append(title_cleaner(title).replace('$',':')[:-2])
         else:
@@ -208,13 +207,13 @@ def csv_to_titles(hmm_table_list, type_):
     message('Found %s read(s) in %s.' % (str(title_count), replace_name(hmm_table_list[0], ''))) # Otherwise, report the count.
 
   if len(reads_list) == 2:
-    for_r = set(reads_list[0])
-    for read in reads_list[1]:
-      if read in for_r:
-        write_list.append(read)
+    write_list.append(reads_list[0])
+    write_list.append(reads_list[1])
   elif len(reads_list) == 1:
     write_list = reads_list[0]
-
+  for l in write_list:
+      
+      
   output_file_name = replace_name(hmm_table_list[0], '')[:-3]+'readnames.txt'
   output_file = open(output_file_name, 'w')
   for name in write_list:
@@ -276,7 +275,7 @@ def replace_name(old_title,new_suffix):
   else:
     return old_title.split('.')[0] + new_suffix # Split, and return the base with whatever suffix is wanted.
 
-def dictionary_builder(gup_file):
+def otu_builder(gup_file):
   d = {
   }
   test = 1
@@ -325,7 +324,6 @@ def dictionary_builder(gup_file):
     else: otu_table.write('\t'.join(line)+'\n')
   otu_table.close()
   
-  subprocess.call("rm , "+replace_name(cl.f[0], '')+".orf.* "+replace_name(cl.f[0], '')+".hmmout.* ", shell = True)
   subprocess.call("mv "+replace_name(cl.f[0], '')+"* "+cl.o[0]+"/ 2> /dev/null", shell = True)
 
 
@@ -364,7 +362,7 @@ if cl.t[0] == 'prot': # If the protein pipeline was specified
   message('Creating Guppy file..')
   guppy_class(cl.c[0], replace_name(cl.f[0],'.aln.jplace'))
   message('Building OTU table..')
-  dictionary_builder(replace_name(cl.f[0], '.guppy'))
+  otu_builder(replace_name(cl.f[0], '.guppy'))
 
 if cl.t[0] == 'dna':
   date = datetime.now().strftime('%Y-%m-%d')
@@ -382,7 +380,7 @@ if cl.t[0] == 'dna':
   message('Creating Guppy file..')
   guppy_class(cl.c[0], replace_name(cl.f[0], '.aln.jplace'))
   message('Building OTU table..')
-  dictionary_builder(replace_name(cl.f[0], '.guppy'))
+  otu_builder(replace_name(cl.f[0], '.guppy'))
 
 
 message('Finshed! Thank you for using graftM!\n')

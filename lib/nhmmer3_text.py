@@ -283,8 +283,19 @@ class Nhmmer3TextParser(object):
                 frag.alphabet = generic_protein
 
                 # adjust 'from' and 'to' coordinates to 0-based ones
-                frag.hit_start = int(parsed[7]) - 1
-                frag.hit_end = int(parsed[8])
+
+                print parsed
+                # hack - to get around the biopython assert error, ensure the end is after the start
+                # this code may very well be wrong - untested.
+                hit_end = int(parsed[8]) - 1
+                hit_start = int(parsed[7]) - 1
+                if hit_end > hit_start:
+                  frag.hit_start = hit_start
+                  frag.hit_end = hit_end
+                else:
+                  frag.hit_start = hit_end
+                  frag.hit_end = hit_start
+
                 frag.query_start = int(parsed[4]) - 1
                 frag.query_end = int(parsed[5])
 

@@ -152,12 +152,10 @@ def hmmsearch(hmm, seq_file_list, input_file_format):
         table_title_list.append(hmmout_table_title)
         hmmsearch_cmd = " hmmsearch " + cl.jhmm[0] + " " + cl.e[0] + " -o /dev/null --domtblout " + hmmout_table_title + " " + hmm + " "
         # TODO: capture stderr and report if the check_call fails
-        if input_file_format == FORMAT_FASTA:
-            subprocess.check_call(["/bin/bash", "-c", hmmsearch_cmd + " <(getorf -sequence <(sed 's/:/$/g' " + seq_file + ") -outseq >(cat) -minsize 98 2>/dev/null)"])
-        elif input_file_format == FORMAT_FASTQ_GZ:
-            subprocess.check_call(["/bin/bash", "-c", hmmsearch_cmd + " <(getorf -sequence <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat " + seq_file + " | sed 's/:/$/g')) -outseq >(cat) -minsize 98 2>/dev/null)"])
+        if input_file_format == FORMAT_FASTA or input_file_format == FORMAT_FASTQ_GZ:
+            subprocess.check_call(["/bin/bash", "-c", 'orfm '+seq_file+' |'+hmmsearch_cmd + "/dev/stdin"])
         elif input_file_format == FORMAT_SRA:
-            cmd = "fastq-dump --fasta --stdout %s 2>/dev/null |getorf -sequence /dev/stdin -outseq /dev/stdout -minsize 98 2>/dev/null | %s /dev/stdin" % (
+            cmd = "fastq-dump --fasta --stdout %s 2>/dev/null |orfm | %s /dev/stdin" % (
                 seq_file,
                 hmmsearch_cmd
                 )
@@ -231,12 +229,14 @@ def hmmalign(hmm, sequencefile):
     subprocess.check_call('hmmalign --trim -o ' + base_name + '.sto ' + hmm + ' ' + cl.o[0] + '/' + sequencefile, shell=True)
     subprocess.check_call('seqmagick convert ' + base_name + '.sto ' + base_name + '_conv_.fa', shell=True)
 
-# process hmmsearch/nhmmer results into ts_files
 def csv_to_titles(hmm_table_list, type_):
+    '''process hmmsearch/nhmmer results into a list of matching reads/ORFs for dna/prot respectively, to *_readnames.txt
+    '''
     titles_list = []
     reads_list = []
     write_list = []
     title_count = 0
+    orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
     for hmm_table in hmm_table_list:
         for line in open(hmm_table):
             if line.startswith('#'):
@@ -248,11 +248,20 @@ def csv_to_titles(hmm_table_list, type_):
                     titles_list.append(title.replace('$', ':').replace('_', '/')[:-2])
                 else:
                     titles_list.append(title.replace('$', ':'))
-            if type_ == 'prot':
-                if line.startswith('FCC'):
-                    titles_list.append(title_cleaner(title).replace('$', ':')[:-2])
+            elif type_ == 'prot':
+                # The original reads file contains sequences like
+                # >eg and comment
+                # where orfm gives orfs in the form of
+                # >eg_1_2_3 and comment
+                # The title here is the orfm style, we want to add to the titles_list
+                # the original form
+                regex_match = orfm_regex.match(title)
+                if regex_match is not None:
+                    titles_list.append(regex_match.groups(0)[0])
                 else:
-                    titles_list.append(title_cleaner(title).replace('$', ':'))
+                    raise Exception("Unexpected form of ORF name found: %s" % title)
+            else:
+                raise Exception("Programming error")
         reads_list.append(titles_list)
         titles_list = []
 
@@ -282,12 +291,13 @@ def csv_to_titles(hmm_table_list, type_):
     return output_file_name
 
 def extract_from_raw_reads(raw_seq_file, hmm, name_file, input_file_format):
-    # # Run fxtract to obtain reads form original sequence file
+    # Run fxtract to obtain reads form original sequence file
     sequence_file_name = name_file.replace('_readnames.txt', '.fna')  # Set the new output file name
     message('Extracting reads..')  # Send an update
     fxtract_cmd = "fxtract -H -X -f " + replace_name(raw_seq_file, '_readnames.txt') + " "
     if input_file_format == FORMAT_FASTA:
         subprocess.check_call(fxtract_cmd + " " + raw_seq_file + " > " + sequence_file_name + " ", shell=True)
+        print fxtract_cmd + " " + raw_seq_file + " > " + sequence_file_name + " "
     elif input_file_format == FORMAT_FASTQ_GZ:
         subprocess.check_call(fxtract_cmd + raw_seq_file + " | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > " + sequence_file_name + " ", shell=True)
     elif input_file_format == FORMAT_SRA:
@@ -314,7 +324,7 @@ def extract_from_raw_reads(raw_seq_file, hmm, name_file, input_file_format):
         return
 
     raw_orf_title = replace_name(raw_seq_file, '.orf')
-    subprocess.check_call('getorf -sequence ' + alt_title_file_name + ' -outseq ' + raw_orf_title + ' -minsize 98 2>/dev/null', shell=True)
+    subprocess.check_call('orfm ' + alt_title_file_name + ' > ' + raw_orf_title, shell=True)
 
     hmm_out_title = replace_name(raw_seq_file, '.tmp.csv')
     subprocess.check_call("hmmsearch -o /dev/null --tblout " + hmm_out_title + " " + hmm + " " + raw_orf_title, shell=True)
@@ -350,7 +360,7 @@ def dictionary_builder(gup_file):
         splits = [x for x in line.split(' ') if x]
         try:
             float(splits[4])
-            if splits[0] != 'name' and splits[1] == splits[2] and float(splits[4]) and float(splits[len(splits) - 2]) > splits(cl.d[0]):
+            if splits[0] != 'name' and splits[1] == splits[2] and float(splits[4]) and float(splits[len(splits) - 2]) > float(cl.d[0]):
                 if splits[0] not in d:
                     d[splits[0]] = []
                 d[splits[0]].append(splits[3])

@@ -56,7 +56,7 @@ from graftm.nhmmer3_text import Nhmmer3TextParser
 parser = argparse.ArgumentParser(description='''--- graftM %s --- Searches reads for genes using hmms, and places them into a tree with pplacer to classify them phylogenetically.''' % __version__
                                 , epilog='Joel Boyd - Honours 2014.')
 parser.add_argument('-f', metavar='forward read (or single read file)', type=str, nargs=1 , help='Forward raw sequence file in .fa, or .fq.gz format.', required=True)
-parser.add_argument('-r', metavar='reverse read', type=str, nargs=1, help='Optional reverse raw sequence file in .fa, or .fq.gz format.', default=argparse.SUPPRESS)
+parser.add_argument('--reverse', metavar='reverse read', type=str, nargs=1, help='[do NOT use unless you understand the difficulties with this] Optional reverse raw sequence file in .fa, or .fq.gz format.', default=argparse.SUPPRESS)
 parser.add_argument('-t', metavar='prot or dna', type=str, nargs=1, help='dna (like 16S) or prot (like mcrA)', choices=['prot', 'dna'], required=True)
 parser.add_argument('-m', metavar='hmm_file', type=str, nargs=1, help='HMM file', required=True)
 parser.add_argument('-e', metavar='evalue', type=str, nargs=1, help='evalue cutoff for the hmmsearch (default = 1e-5)', default=['1e-5'])
@@ -444,7 +444,7 @@ else:
 # Defining a list of the reads to be searched & checking the file names match.
 
 try:    # If there are forward and reverse reads
-    seq_file_list = [cl.f[0], cl.r[0]]  # Make a list of the names of sequences
+    seq_file_list = [cl.f[0], cl.reverse[0]]  # Make a list of the names of sequences
 except AttributeError:  # And if just forward reads are present
     seq_file_list = [cl.f[0]]  # Make a list of just the forward reads
 

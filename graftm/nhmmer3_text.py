@@ -284,7 +284,6 @@ class Nhmmer3TextParser(object):
 
                 # adjust 'from' and 'to' coordinates to 0-based ones
 
-                print parsed
                 # hack - to get around the biopython assert error, ensure the end is after the start
                 # this code may very well be wrong - untested.
                 hit_end = int(parsed[8]) - 1

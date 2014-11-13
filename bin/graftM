@@ -18,7 +18,7 @@ __license__ = "GPL3"
 __maintainer__ = "Joel Boyd, Ben Woodcroft"
 __email__ = "joel.boyd near uq.net.au, b.woodcroft near uq.edu.au"
 __status__ = "Development"
-__version__ = "0.3.1"
+__version__ = "0.3.2"
 
 ##### Messsages #####
 intro = '''
@@ -344,7 +344,7 @@ def extract_from_raw_reads(raw_seq_file, hmm, name_file, input_file_format):
     title_file_open.close()
 
     hmm_out_title = replace_name(raw_seq_file, '.orf.fasta')
-    subprocess.check_call('fxtract -H -f ' + file_name + ' ' + raw_orf_title + ' > ' + hmm_out_title, shell=True)
+    subprocess.check_call('fxtract -H -X -f ' + file_name + ' ' + raw_orf_title + ' > ' + hmm_out_title, shell=True)
 
 def replace_name(old_title, new_suffix):
     nt = ''
@@ -510,4 +510,4 @@ else:
     raise Exception("Programming error")
 
 
-message('Finshed! Thank you for using graftM!\n')
+message('Finished! Thank you for using graftM!\n')

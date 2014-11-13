@@ -18,7 +18,7 @@ __license__ = "GPL3"
 __maintainer__ = "Joel Boyd, Ben Woodcroft"
 __email__ = "joel.boyd near uq.net.au, b.woodcroft near uq.edu.au"
 __status__ = "Development"
-__version__ = "0.3.2"
+__version__ = "0.3.3"
 
 ##### Messsages #####
 intro = '''

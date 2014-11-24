@@ -30,7 +30,7 @@ intro = '''
 - -            -             |        |____/_
 - _     --->  -   --->   ____|      ______
 _-  -          -             |_____|
-  - _                                     |______
+  - _                              |______
 -
 ''' % __version__
 
@@ -46,6 +46,8 @@ from datetime import datetime
 from collections import OrderedDict
 import tempfile
 import StringIO
+import code
+import os
 
 from graftm.nhmmer3_text import Nhmmer3TextParser
 
@@ -78,6 +80,24 @@ FORMAT_FASTA = 'FORMAT_FASTA'
 FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'
 FORMAT_SRA = 'FORMAT_SRA'
 
+
+##### Classes #####
+
+class GraftMFiles:
+    def __init__(self, old_title, out_path):
+        if '/' in old_title:
+            self.basename = old_title.split('/')[len(old_title.split('/')) - 1].split('.')[0]
+        else:
+            self.basename = old_title.split('.')[0]
+        self.out_path = out_path
+    def forward_read_hmmsearch_output_path(self):
+        return os.path.join(self.out_path, "%s.hmmout.csv" % self.basename)
+    def jplace_output_path(self):
+        return os.path.join(self.out_path, "%s.aln.jplace" % self.basename)
+
+    
+    
+code.interact(local=locals())
 ##### Functions #####
 
 # Given a Return the guessed file format, or raise an Exception if
@@ -298,7 +318,6 @@ def extract_from_raw_reads(raw_seq_file, hmm, name_file, input_file_format):
     fxtract_cmd = "fxtract -H -X -f " + replace_name(raw_seq_file, '_readnames.txt') + " "
     if input_file_format == FORMAT_FASTA:
         subprocess.check_call(fxtract_cmd + " " + raw_seq_file + " > " + sequence_file_name + " ", shell=True)
-        print fxtract_cmd + " " + raw_seq_file + " > " + sequence_file_name + " "
     elif input_file_format == FORMAT_FASTQ_GZ:
         subprocess.check_call(fxtract_cmd + raw_seq_file + " | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > " + sequence_file_name + " ", shell=True)
     elif input_file_format == FORMAT_SRA:
@@ -351,10 +370,11 @@ def replace_name(old_title, new_suffix):
     if '/' in old_title:  # Check if specifying full path
         nt = old_title.split('/')[len(old_title.split('/')) - 1]  # if so, chop off the path to access file name
         return nt.split('.')[0] + new_suffix  # Split, and return the base with whatever suffix is wanted.
+        
     else:
         return old_title.split('.')[0] + new_suffix  # Split, and return the base with whatever suffix is wanted.
 
-def otu_builder(gup_file):
+def otu_builder(gup_file, output_file_name):
   d = {}
   for line in open(gup_file, 'r'):
     list = [x for x in line.split(' ') if x]
@@ -401,7 +421,8 @@ def otu_builder(gup_file):
     else: otu_table.write('\t'.join(line)+'\n')
   otu_table.close()
 
-  subprocess.call("mv "+replace_name(cl.f[0], '')+"* "+cl.o[0]+"/ 2> /dev/null", shell = True)
+  subprocess.call("mv "+replace_name(cl.f[0], '')+"* "+output_file_name+"/ 2> /dev/null", shell = True)
+  subprocess.call("mv "+output_file_name+"/" +cl.f[0]+ " ./", shell = True)
 
 
 
@@ -470,7 +491,7 @@ if cl.t[0] == 'prot':  # If the protein pipeline was specified
     message('Creating Guppy file..')
     guppy_class(cl.c[0], replace_name(cl.f[0], '.aln.jplace'))
     message('Building OTU table..')
-    dictionary_builder(replace_name(cl.f[0], '.guppy'))
+    otu_builder(replace_name(cl.f[0], '.guppy'), out_file_name)
 
 elif cl.t[0] == 'dna':
     if hasattr(cl, 'c') and cl.extract_alignment_from_nhmmer is not True:
@@ -501,7 +522,7 @@ elif cl.t[0] == 'dna':
     message('Creating Guppy file..')
     guppy_class(cl.c[0], replace_name(cl.f[0], '.aln.jplace'))
     message('Building OTU table..')
-    dictionary_builder(replace_name(cl.f[0], '.guppy'))
+    otu_builder(replace_name(cl.f[0], '.guppy'), out_file_name)
 
 else:
     raise Exception("Programming error")

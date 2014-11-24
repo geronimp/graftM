@@ -1,19 +1,27 @@
 #!/usr/bin/env python
 
 
-##### ##### ##### ##### ##### ##### ##### #####
-#                                             #
-#                graftM v.0.2.1               #
-#                                             #
-#        This is a script for doing the       #
-#       gene centric analyses in Joel's       #
-#               Honours project.              #
-#                                             #
-##### ##### ##### ##### ##### ##### ##### #####
+##### ##### ##### ##### ##### ##### #####
+#                                       #
+#                 graftM                #
+#                                       #
+#  A pipeline for gene centric analyses #
+#          of metagenome datasets       #
+#                                       #
+##### ##### ##### ##### ##### ##### #####
+
+__author__ = "Joel Boyd, Ben Woodcroft"
+__copyright__ = "Copyright 2014"
+__credits__ = ["Joel Boyd", "Ben Woodcroft"]
+__license__ = "GPL3"
+__maintainer__ = "Joel Boyd, Ben Woodcroft"
+__email__ = "joel.boyd near uq.net.au, b.woodcroft near uq.edu.au"
+__status__ = "Development"
+__version__ = "0.3.3"
 
 ##### Messsages #####
 intro = '''
-    ## graftM  v.0.2.1                   ##
+    ## graftM  %s                    ##
     ## Searches raw sequences for genes  ##
     ## Joel Boyd, Honours 2014           ##
                                               __/__
@@ -22,73 +30,68 @@ intro = '''
 - -            -             |        |____/_
 - _     --->  -   --->   ____|      ______
 _-  -          -             |_____|
-  - _  	    	                   |______
+  - _                                     |______
 -
-'''
+''' % __version__
 
 import argparse
 import re
 try:
-  from Bio import SeqIO
+    from Bio import SeqIO
 except ImportError:
-  print "Please install Biopython first"
-  exit(1)
-import glob
+    print "Please install Biopython first"
+    exit(1)
 import subprocess
 from datetime import datetime
-import cPickle as pickle
-import code
 from collections import OrderedDict
+import tempfile
+import StringIO
 
+from graftm.nhmmer3_text import Nhmmer3TextParser
 
 
 ##### Input Files #####
 
-parser = argparse.ArgumentParser(description='''--- graftM  v.0.2.1 --- Searches reads for genes using hmms, and places them into a tree with pplacer to classify them phylogenetically.'''
-                          , epilog='Joel Boyd - Honours 2014.')
-parser.add_argument('-f', metavar = 'forward read (or single read file)', type = str, nargs = 1 , help = 'Forward raw sequence file in .fa, or .fq.gz format.', required = True)
-parser.add_argument('-r', metavar = 'reverse read', type = str, nargs = 1, help = 'Optional reverse raw sequence file in .fa, or .fq.gz format.', default = argparse.SUPPRESS)
-parser.add_argument('-t', metavar = 'prot or dna', type = str, nargs = 1, help = 'dna (like 16S) or prot (like mcrA)', choices = ['prot','dna'], required = True)
-parser.add_argument('-m', metavar = 'hmm_file', type = str, nargs = 1, help = 'HMM file', required = True)
-parser.add_argument('-e', metavar = 'evalue', type = str, nargs = 1, help = 'evalue cutoff for the hmmsearch (default = 1e-5)', default = ['1e-5'])
-parser.add_argument('-jpplacer', metavar = 'threads', type = str, nargs = 1, help = 'number of threads to use when pplacing (default = 5)', default = [5])
-parser.add_argument('-jhmm', metavar = 'threads', type = str, nargs = 1, help = 'number of threads to use when hmmsearching (default = 5)', default = [5])
-parser.add_argument('-d', metavar = 'confidence', type = str, nargs = 1, help = 'Cutoff of placement confidence level (0.5 - 1), default = 0.75', default = [0.75])
-parser.add_argument('-c', metavar = 'reference_package', type = str, nargs = 1, help = 'Reference package of gene family', default =argparse.SUPPRESS)
-parser.add_argument('-g', metavar = 'gg_database', type = str, nargs = 1, help = 'Aligned gg database for pynast alignment (dna sequences only)', default = argparse.SUPPRESS)
-parser.add_argument('-o', metavar = 'output directory', type = str, nargs = 1, help = 'Specify an output directory (default is the file name) If you are looking for more than one marker gene in the same directory, you will definitely need this flag to avoid clobbering.', default = argparse.SUPPRESS)
-parser.add_argument('-v', action = 'version', version = 'graftM v.0.2.1')
+parser = argparse.ArgumentParser(description='''--- graftM %s --- Searches reads for genes using hmms, and places them into a tree with pplacer to classify them phylogenetically.''' % __version__
+                                , epilog='Joel Boyd - Honours 2014.')
+parser.add_argument('-f', metavar='forward read (or single read file)', type=str, nargs=1 , help='Forward raw sequence file in .fa, or .fq.gz format.', required=True)
+parser.add_argument('--reverse', metavar='reverse read', type=str, nargs=1, help='[do NOT use unless you understand the difficulties with this] Optional reverse raw sequence file in .fa, or .fq.gz format.', default=argparse.SUPPRESS)
+parser.add_argument('-t', metavar='prot or dna', type=str, nargs=1, help='dna (like 16S) or prot (like mcrA)', choices=['prot', 'dna'], required=True)
+parser.add_argument('-m', metavar='hmm_file', type=str, nargs=1, help='HMM file', required=True)
+parser.add_argument('-e', metavar='evalue', type=str, nargs=1, help='evalue cutoff for the hmmsearch (default = 1e-5)', default=['1e-5'])
+parser.add_argument('-jpplacer', metavar='threads', type=str, nargs=1, help='number of threads to use when pplacing (default = 5)', default=[5])
+parser.add_argument('-jhmm', metavar='threads', type=str, nargs=1, help='number of threads to use when hmmsearching (default = 5)', default=[5])
+parser.add_argument('-d', metavar='confidence', type=str, nargs=1, help='Cutoff of placement confidence level (0.5 - 1), default = 0.75', default=[0.75])
+parser.add_argument('-c', metavar='reference_package', type=str, nargs=1, help='Reference package of gene family', default=argparse.SUPPRESS)
+parser.add_argument('--extract_alignment_from_nhmmer', action="store_true", help='Use nhmmer\'s alignment output, rather than doing a separate alignment step (currently ignores reverse reads)', default=False)
+parser.add_argument('-g', metavar='gg_database', type=str, help='Aligned gg database for pynast alignment (dna sequences only)', default=argparse.SUPPRESS)
+parser.add_argument('-o', metavar='output directory', type=str, nargs=1, help='Specify an output directory (default is the file name) If you are looking for more than one marker gene in the same directory, you will definitely need this flag to avoid clobbering.', default=argparse.SUPPRESS)
+parser.add_argument('-v', action='version', version='graftM v%s' % __version__)
 
-cl=parser.parse_args()
+cl = parser.parse_args()
 
-if float(cl.d[0]) < float(0.5):
-  message('Please specify a confidence level (-d) between 0.5 and 1.0!')
-  exit(1)
-elif float(cl.d[0]) > float(1.0):
-  message('Please specify a confidence level (-d) between 0.5 and 1.0!')
-  print cl.d[0]
-  exit(1)
 
-if cl.e[0]:
-  cl.e[0] = '-E '+cl.e[0]
-else:
-  pass
 
-if cl.jpplacer[0]:
-  cl.jpplacer[0] =  '-j '+str(cl.jpplacer[0])
-else:
-  pass
 
-if cl.jhmm[0]:
-  cl.jhmm[0] = '--cpu '+str(cl.jhmm[0])
-else:
-  pass
-
+# Constants - don't change them evar.
+FORMAT_FASTA = 'FORMAT_FASTA'
+FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'
+FORMAT_SRA = 'FORMAT_SRA'
 
 ##### Functions #####
 
-# Corrects sequence alignments by removing lower case insertions
+# Given a Return the guessed file format, or raise an Exception if
+def guess_sequence_file_format(sequence_file_path):
+    if sequence_file_path.endswith(('.fa', '.faa', '.fna')):  # Check the file type
+        return FORMAT_FASTA
+    elif sequence_file_path.endswith(('.fq.gz', '.fastq.gz')):
+        return FORMAT_FASTQ_GZ
+    elif sequence_file_path.endswith(('.sra')):
+        return FORMAT_SRA
+    else:
+        raise Exception("Unable to guess file format of sequence file: %s" % sequence_file_path)
 
+# Corrects sequence alignments by removing lower case insertions
 def alignment_correcter(alignment_file, output_file_name):
   insert_list = [] # Define inserted positions to be removed (lower case characters)
   for sequence in list(SeqIO.parse(open(alignment_file, 'r'), 'fasta')): # For each sequence in the alignment
@@ -104,181 +107,255 @@ def alignment_correcter(alignment_file, output_file_name):
     corrected_alignment.write('>'+sequence.id+'\n')
     corrected_alignment.write(''.join(new_seq)+'\n')
 
+
 # Displays message with time in brackets before the message.
 def message(message):
-  time = datetime.now().strftime('%H:%M:%S')
-  print '['+time+']: '+str(message)
+    time = datetime.now().strftime('%H:%M:%S')
+    print '[' + time + ']: ' + str(message)
 
 # split_names
 def title_cleaner(title):
-  d = title.split('_')
-  del d[-1]
-  return '_'.join(d)
+    d = title.split('_')
+    del d[-1]
+    return '_'.join(d)
 
 # run nhmmer
-def nhmmer(hmm, seq_file_list):
-  suffix = ['_for', '_rev']
-  table_title_list = []
-  for seq_file in seq_file_list:
-    hmmout_table_title = replace_name(seq_file, suffix[0]+'.hmmout.csv')
-    table_title_list.append(hmmout_table_title)
-    if seq_file.endswith(('.fa','.faa','.fna')):
-      subprocess.check_call(["/bin/bash", "-c", " nhmmer "+cl.jhmm[0]+" "+cl.e[0]+" --tblout " +hmmout_table_title+ " " +hmm+ " <(sed 's/:/$/g' " +seq_file+ ") 2>&1 > /dev/null"])
-    elif seq_file.endswith(('.fq.gz', 'fastq.gz')):
-      subprocess.check_call(["/bin/bash", "-c", " nhmmer "+cl.jhmm[0]+" "+cl.e[0]+" --tblout " +hmmout_table_title+ " " +hmm+ " <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat " +seq_file+ " | sed 's/:/$/g')) 2>&1 > /dev/null"])
-    else:
-      message('ERROR: Suffix on %s not recegnised. Please submit an .fq.gz or .fa file\n' % (seq_file))
-      exit(1)
-    del suffix[0]
-  return table_title_list
+def nhmmer(hmm, seq_file_list, input_file_format):
+    suffix = ['_for', '_rev']
+    table_title_list = []
+    for seq_file in seq_file_list:
+        hmmout_table_title = replace_name(seq_file, suffix[0] + '.hmmout.csv')
+        table_title_list.append(hmmout_table_title)
+        nhmmer_cmd = "nhmmer " + cl.jhmm[0] + " " + cl.e[0] + " --tblout " + hmmout_table_title + " " + hmm
+        if input_file_format == FORMAT_FASTA:
+            subprocess.check_call(["/bin/bash", "-c", nhmmer_cmd + " <(sed 's/:/$/g' " + seq_file + ") 2>&1 > /dev/null"])
+        elif input_file_format == FORMAT_FASTQ_GZ:
+            subprocess.check_call(["/bin/bash", "-c", nhmmer_cmd + " <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat " + seq_file + " | sed 's/:/$/g')) 2>&1 > /dev/null"])
+        elif input_file_format == FORMAT_SRA:
+            cmd = "fastq-dump --fasta --stdout %s 2>/dev/null | %s /dev/stdin 2>&1 > /dev/null" % (
+                seq_file,
+                nhmmer_cmd
+            )
+            subprocess.check_call(cmd, shell=True)
+        else:
+            message('ERROR: Suffix on %s not recegnised. Please submit an .fq.gz or .fa file\n' % (seq_file))
+            exit(1)
+        del suffix[0]
+    return table_title_list
 
 # run hmmsearch
-def hmmsearch(hmm, seq_file_list):
-  suffix = ['_for', '_rev']
-  table_title_list = []
-  for seq_file in seq_file_list:
-    hmmout_table_title = replace_name(seq_file, suffix[0]+'.hmmout.csv')
-    table_title_list.append(hmmout_table_title)
-    if seq_file.endswith(('.fa','.faa','.fna')):
-      subprocess.check_call(["/bin/bash", "-c", " hmmsearch "+cl.jhmm[0]+" "+cl.e[0]+" --domtblout " +hmmout_table_title+ " " +hmm+ " <(getorf -sequence  <(sed 's/:/$/g' " +seq_file+ ") -outseq >(cat) -minsize 98 2>/dev/null) 2>&1 > /dev/null"])
-    elif seq_file.endswith(('.fq.gz', 'fastq.gz')):
-      subprocess.check_call(["/bin/bash", "-c", " hmmsearch "+cl.jhmm[0]+" "+cl.e[0]+" --domtblout " +hmmout_table_title+ " " +hmm+ " <(getorf -sequence <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat " +seq_file+ " | sed 's/:/$/g')) -outseq >(cat) -minsize 98 2>/dev/null) 2>&1 > /dev/null"])
-    else:
-      message('ERROR: Suffix on %s not recegnised. Please submit an .fq.gz or .fa file\n' % (seq_file))
-      exit(1)
-    del suffix[0]
-  return table_title_list
+def hmmsearch(hmm, seq_file_list, input_file_format):
+    suffix = ['_for', '_rev']
+    table_title_list = []
+    for seq_file in seq_file_list:
+        hmmout_table_title = replace_name(seq_file, suffix[0] + '.hmmout.csv')
+        table_title_list.append(hmmout_table_title)
+        hmmsearch_cmd = " hmmsearch " + cl.jhmm[0] + " " + cl.e[0] + " -o /dev/null --domtblout " + hmmout_table_title + " " + hmm + " "
+        # TODO: capture stderr and report if the check_call fails
+        if input_file_format == FORMAT_FASTA or input_file_format == FORMAT_FASTQ_GZ:
+            subprocess.check_call(["/bin/bash", "-c", 'orfm '+seq_file+' |'+hmmsearch_cmd + "/dev/stdin"])
+        elif input_file_format == FORMAT_SRA:
+            cmd = "fastq-dump --fasta --stdout %s 2>/dev/null |orfm | %s /dev/stdin" % (
+                seq_file,
+                hmmsearch_cmd
+                )
+            subprocess.check_call(['bash', '-c', cmd])
+
+        else:
+            message('ERROR: Suffix on %s not recegnised\n' % (seq_file))
+            exit(1)
+        del suffix[0]
+    return table_title_list
 
 # run pynast
 def pynast(ts_file, gg_db_path):
-  subprocess.check_call('pynast -l 0 -i ' +replace_name(ts_file, '.fna.fasta')+ ' -t ' +gg_db_path+ ' -a ' +replace_name(ts_file, '.aln.fasta'), shell=True)
+    subprocess.check_call('pynast -l 0 -i ' + replace_name(ts_file, '.fna.fasta') + ' -t ' + gg_db_path + ' -a ' + replace_name(ts_file, '.aln.fasta'), shell=True)
+
+
+def nhmmerToAlignment(hmm, seq_file, input_file_format):
+    # Run nhmmer
+    nhmmer_cmd = 'nhmmer %s %s %s ' % (cl.e[0], cl.jhmm[0], hmm)
+    if input_file_format == FORMAT_FASTA:
+        nhmmer_out = subprocess.check_output(['bash', '-c', nhmmer_cmd + " <(sed 's/:/$/g' " + seq_file + ")"])
+    elif input_file_format == FORMAT_FASTQ_GZ:
+        nhmmer_out = subprocess.check_output(['bash', '-c', nhmmer_cmd + " <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat " + seq_file + " | sed 's/:/$/g'))"])
+    elif input_file_format == FORMAT_SRA:
+        cmd = "fastq-dump --fasta --stdout %s 2>/dev/null | %s /dev/stdin" % (
+            seq_file,
+            nhmmer_cmd
+        )
+        nhmmer_out = subprocess.check_output(['bash', '-c', cmd])
+    else:
+        raise Exception("Programming error")
+
+    # Extract the alignments from the output file, and pad them
+    seq_cleaner = re.compile(r'[a-z\.\*]')
+    queries = list(Nhmmer3TextParser(StringIO.StringIO(nhmmer_out)))
+    assert len(queries) == 1
+    query = queries[0]
+    hmm_length = query.seq_len
+
+    with open(replace_name(seq_file, '.aln.fasta'), 'w') as alignment_fh:
+        for hit in query.hits:
+            alignment_fh.write(">" + hit.id + "\n")
+            # Only write the first HSP, and remove the indels so the alignment is correct
+            hsp = hit.hsps[0].fragments[0]
+            alignment_fh.write('-' * hsp.query_start)
+            alignment_fh.write(seq_cleaner.sub('', str(hsp.hit.seq)))
+            alignment_fh.write('-' * (hmm_length - hsp.query_end))
+            alignment_fh.write("\n")
+
+
+
 
 # run pplacer
 def pplacer(refpkg, ts_file):
-  subprocess.check_call('pplacer '+cl.jpplacer[0]+' --verbosity 0 -c ' +refpkg+ ' ' +ts_file, shell=True)
+    subprocess.check_call('pplacer ' + cl.jpplacer[0] + ' --verbosity 0 -c ' + refpkg + ' ' + ts_file, shell=True)
 
 # run guppy classify
 def guppy_class(rpkg, jplace_file):
-  subprocess.check_call('guppy classify -c ' +rpkg+ ' '+jplace_file+' > ' +replace_name(jplace_file, '.guppy'), shell=True)
+    subprocess.check_call('guppy classify -c ' + rpkg + ' ' + jplace_file + ' > ' + replace_name(jplace_file, '.guppy'), shell=True)
 
 # delete
 def delete(delete_list):
-  for item in delete_list:
-    subprocess.check_call("rm "+item, shell = True)
+    for item in delete_list:
+        subprocess.check_call("rm " + item, shell=True)
 
 # HMM aligning
 def hmmalign(hmm, sequencefile):
-  base_name = replace_name(sequencefile, '') # Create a base name for output files
-  subprocess.check_call("mkdir -p "+ cl.o[0], shell=True)
-  subprocess.check_call("mv "+base_name+".* "+cl.o[0], shell = True)
-  subprocess.check_call('hmmalign --trim -o '+base_name+'.sto ' +hmm+ ' ' +cl.o[0]+ '/' +sequencefile, shell = True)
-  subprocess.check_call('seqmagick convert '+base_name+'.sto ' +base_name+ '_conv_.fa', shell=True)
+    base_name = replace_name(sequencefile, '')  # Create a base name for output files
+    subprocess.check_call("mkdir -p " + cl.o[0], shell=True)
+    subprocess.check_call("mv " + base_name + ".* " + cl.o[0], shell=True)
+    subprocess.check_call('hmmalign --trim -o ' + base_name + '.sto ' + hmm + ' ' + cl.o[0] + '/' + sequencefile, shell=True)
+    subprocess.check_call('seqmagick convert ' + base_name + '.sto ' + base_name + '_conv_.fa', shell=True)
 
-# process hmmsearch/nhmmer results into ts_files
-def csv_to_titles(hmm_table_list, typ):
-  titles_list = []
-  reads_list = []
-  write_list = []
-  suffix = ['_for', '_rev']
-  title_count = 0
-  for hmm_table in hmm_table_list:
-    for line in open(hmm_table):
-      if line.startswith('#'):
-        continue
-      title_count += 1
-      title = str(line.split(' ', 1)[0])
-      if typ == 'dna':
-        if line.startswith('FCC'):
-          titles_list.append(title.replace('$',':').replace('_', '/')[:-2])
-        else:
-          titles_list.append(title.replace('$',':'))
-      if typ == 'prot':
-        if line.startswith('FCC'):
-          titles_list.append(title_cleaner(title).replace('$',':')[:-2])
-        else:
-          titles_list.append(title_cleaner(title).replace('$',':'))
-    reads_list.append(titles_list)
+
+def csv_to_titles(hmm_table_list, type_):
+    '''process hmmsearch/nhmmer results into a list of matching reads/ORFs for dna/prot respectively, to *_readnames.txt
+    '''
     titles_list = []
+    reads_list = []
+    write_list = []
+    title_count = 0
+    orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
+    for hmm_table in hmm_table_list:
+        for line in open(hmm_table):
+            if line.startswith('#'):
+                continue
+            title_count += 1
+            title = str(line.split(' ', 1)[0])
+            if type_ == 'dna':
+                if 'FCC' in line:
+                    titles_list.append(title.replace('$', ':').replace('_', '/')[:-2])
+                else:
+                    titles_list.append(title.replace('$', ':'))
+            elif type_ == 'prot':
+                # The original reads file contains sequences like
+                # >eg and comment
+                # where orfm gives orfs in the form of
+                # >eg_1_2_3 and comment
+                # The title here is the orfm style, we want to add to the titles_list
+                # the original form
+                regex_match = orfm_regex.match(title)
+                if regex_match is not None:
+                    titles_list.append(regex_match.groups(0)[0])
+                else:
+                    raise Exception("Unexpected form of ORF name found: %s" % title)
+            else:
+                raise Exception("Programming error")
+        reads_list.append(titles_list)
+        titles_list = []
 
-  if title_count == 0: # Check if any reads were found
-    message('0 Reads found! Exiting..') # If not, throw a warning
-    exit(1) # and exit
-  else:
-    message('Found %s read(s) in %s.' % (str(title_count), replace_name(hmm_table_list[0], ''))) # Otherwise, report the count.
-
-  if len(reads_list) == 2:
-    write_list.append(reads_list[0])
-    write_list.append(reads_list[1])
-  elif len(reads_list) == 1:
-    write_list = reads_list[0]
-  for l in write_list:
-      
-      
-  output_file_name = replace_name(hmm_table_list[0], '')[:-3]+'readnames.txt'
-  output_file = open(output_file_name, 'w')
-  for name in write_list:
-    if name.startswith('FCC'):
-      output_file.write(name+'/1'+'\n')
+    if title_count == 0:  # Check if any reads were found
+        message('0 Reads found! Exiting..')  # If not, throw a warning
+        exit(1)  # and exit
     else:
-      output_file.write(name+'\n')
-  output_file.close()
+        message('Found %s read(s) in %s.' % (str(title_count), replace_name(hmm_table_list[0], '')))  # Otherwise, report the count.
 
-  return output_file_name
+    if len(reads_list) == 2:
+        for_r = set(reads_list[0])
+        for read in reads_list[1]:
+            if read in for_r:
+                write_list.append(read)
+    elif len(reads_list) == 1:
+        write_list = reads_list[0]
 
-def extract_from_raw_reads(raw_seq_file, hmm, name_file):
-  ## Run fxtract to obtain reads form original sequence file
-  sequence_file_name = name_file.replace('_readnames.txt', '.fna') # Set the new output file name
-  message('Extracting reads..') # Send an update
-  if raw_seq_file.endswith(('.fa','.faa','.fna')): # Check the file type
-    subprocess.check_call("fxtract -H -f " +replace_name(raw_seq_file, '_readnames.txt')+ " " +raw_seq_file+ " > " +sequence_file_name+ " ", shell=True)
-  if raw_seq_file.endswith(('.fq.gz', 'fastq.gz')):
-    subprocess.check_call("fxtract -H -f " +replace_name(raw_seq_file, '_readnames.txt')+ " " +raw_seq_file+ " | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > " +sequence_file_name+ " ", shell=True)
+    output_file_name = replace_name(hmm_table_list[0], '')[:-3] + 'readnames.txt'
+    output_file = open(output_file_name, 'w')
+    for name in write_list:
+        if name.startswith('FCC'):
+            output_file.write(name + '/1' + '\n')
+        else:
+            output_file.write(name + '\n')
+    output_file.close()
 
-  alt_title_file_name = replace_name(raw_seq_file, '.fna.fasta')
-  fasta_file_open = open(alt_title_file_name, 'w')
-  for sequence in list(SeqIO.parse(open(sequence_file_name, 'r'), 'fasta')):
-    sequence.id = sequence.id.replace(':', '_')
-    SeqIO.write(sequence, fasta_file_open, "fasta")
-  fasta_file_open.close()
+    return output_file_name
 
-  if cl.t[0] == 'dna': # Stop here if the pipeline is DNA
-    return
+def extract_from_raw_reads(raw_seq_file, hmm, name_file, input_file_format):
+    # Run fxtract to obtain reads form original sequence file
+    sequence_file_name = name_file.replace('_readnames.txt', '.fna')  # Set the new output file name
+    message('Extracting reads..')  # Send an update
+    fxtract_cmd = "fxtract -H -X -f " + replace_name(raw_seq_file, '_readnames.txt') + " "
+    if input_file_format == FORMAT_FASTA:
+        subprocess.check_call(fxtract_cmd + " " + raw_seq_file + " > " + sequence_file_name + " ", shell=True)
+        print fxtract_cmd + " " + raw_seq_file + " > " + sequence_file_name + " "
+    elif input_file_format == FORMAT_FASTQ_GZ:
+        subprocess.check_call(fxtract_cmd + raw_seq_file + " | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > " + sequence_file_name + " ", shell=True)
+    elif input_file_format == FORMAT_SRA:
+        # There's no good way to extract sequences directly from the sra
+        # file by specifying their ID. So first dump to a temp fasta file,
+        # then fxtract from that.
+        with tempfile.NamedTemporaryFile() as tmp:
+            cmd = "fastq-dump --fasta --stdout %s 2>/dev/null > %s " % (raw_seq_file, tmp.name)
+            subprocess.check_call(cmd, shell=True)
+            cmd = "%s %s > %s" % (fxtract_cmd, tmp.name, sequence_file_name)
+            subprocess.check_call(cmd, shell=True)
+    else:
+        raise Exception("Programming error")
 
-  raw_orf_title = replace_name(raw_seq_file, '.orf')
-  subprocess.check_call('getorf -sequence ' +alt_title_file_name+ ' -outseq ' +raw_orf_title+ ' -minsize 98 2>/dev/null', shell=True)
 
-  hmm_out_title = replace_name(raw_seq_file, '.tmp.csv')
-  subprocess.check_call("hmmsearch --tblout "+hmm_out_title+" "+hmm+" "+raw_orf_title+" 2>&1 > /dev/null", shell=True)
+    alt_title_file_name = replace_name(raw_seq_file, '.fna.fasta')
+    fasta_file_open = open(alt_title_file_name, 'w')
+    for sequence in list(SeqIO.parse(open(sequence_file_name, 'r'), 'fasta')):
+        sequence.id = sequence.id.replace(':', '_')
+        SeqIO.write(sequence, fasta_file_open, "fasta")
+    fasta_file_open.close()
+    if cl.t[0] == 'dna':  # Stop here if the pipeline is DNA
+        return
 
-  raw_titles = []
-  for line in open(hmm_out_title):
-    if line.startswith('#'):
-      continue
-    split = line.split(' ', 1)
-    raw_titles.append(split[0])
+    raw_orf_title = replace_name(raw_seq_file, '.orf')
+    subprocess.check_call('orfm ' + alt_title_file_name + ' > ' + raw_orf_title, shell=True)
 
-  file_name = replace_name(raw_seq_file, '.orf.titles')
+    hmm_out_title = replace_name(raw_seq_file, '.tmp.csv')
+    subprocess.check_call("hmmsearch -o /dev/null --tblout " + hmm_out_title + " " + hmm + " " + raw_orf_title, shell=True)
 
-  title_file_open = open(file_name, 'w')
-  for title in raw_titles:
-    title_file_open.write(str(title) + '\n')
-  title_file_open.close()
+    raw_titles = []
+    for line in open(hmm_out_title):
+        if line.startswith('#'):
+            continue
+        split = line.split(' ', 1)
+        raw_titles.append(split[0])
 
-  hmm_out_title = replace_name(raw_seq_file, '.orf.fasta')
-  subprocess.check_call('fxtract -H -f '+file_name+' '+raw_orf_title+' > '+hmm_out_title, shell=True)
+    file_name = replace_name(raw_seq_file, '.orf.titles')
 
-def replace_name(old_title,new_suffix):
-  nt = ''
-  if '/' in old_title: # Check if specifying full path
-    nt = old_title.split('/')[len(old_title.split('/')) - 1] # if so, chop off the path to access file name
-    return nt.split('.')[0] + new_suffix # Split, and return the base with whatever suffix is wanted.
-  else:
-    return old_title.split('.')[0] + new_suffix # Split, and return the base with whatever suffix is wanted.
+    title_file_open = open(file_name, 'w')
+    for title in raw_titles:
+        title_file_open.write(str(title) + '\n')
+    title_file_open.close()
+
+    hmm_out_title = replace_name(raw_seq_file, '.orf.fasta')
+    subprocess.check_call('fxtract -H -X -f ' + file_name + ' ' + raw_orf_title + ' > ' + hmm_out_title, shell=True)
+
+def replace_name(old_title, new_suffix):
+    nt = ''
+    if '/' in old_title:  # Check if specifying full path
+        nt = old_title.split('/')[len(old_title.split('/')) - 1]  # if so, chop off the path to access file name
+        return nt.split('.')[0] + new_suffix  # Split, and return the base with whatever suffix is wanted.
+    else:
+        return old_title.split('.')[0] + new_suffix  # Split, and return the base with whatever suffix is wanted.
 
 def otu_builder(gup_file):
-  d = {
-  }
-  test = 1
+  d = {}
   for line in open(gup_file, 'r'):
     list = [x for x in line.split(' ') if x]
     try:
@@ -323,65 +400,111 @@ def otu_builder(gup_file):
       otu_table.write(line+'\n')
     else: otu_table.write('\t'.join(line)+'\n')
   otu_table.close()
-  
+
   subprocess.call("mv "+replace_name(cl.f[0], '')+"* "+cl.o[0]+"/ 2> /dev/null", shell = True)
 
 
 
- ##### Running Script #####
+##### Running Script #####
 print intro
-seq_file_title = replace_name(cl.f[0], '') # Define base name for sequence file
-hmm_file_title = replace_name(cl.m[0], '.hmm') # Define base name for hmm file
 
-if hasattr(cl,'o'): # Check if an output directory has been specified
-  pass
+# Check parameters are in sensible land
+if float(cl.d[0]) < float(0.5) or float(cl.d[0]) > float(1.0):
+    message('Please specify a confidence level (-d) between 0.5 and 1.0! Found: %s' % cl.d[0])
+    exit(1)
+
+if cl.e[0]:
+    cl.e[0] = '-E ' + cl.e[0]
 else:
-  setattr(cl, 'o', [str(seq_file_title)]) # If not, just make it the base name
+    pass
+
+if cl.jpplacer[0]:
+    cl.jpplacer[0] = '-j ' + str(cl.jpplacer[0])
+else:
+    pass
+
+if cl.jhmm[0]:
+    cl.jhmm[0] = '--cpu ' + str(cl.jhmm[0])
+else:
+    pass
+
+seq_file_title = replace_name(cl.f[0], '')  # Define base name for sequence file
+hmm_file_title = replace_name(cl.m[0], '.hmm')  # Define base name for hmm file
+
+if hasattr(cl, 'o'):  # Check if an output directory has been specified
+    pass
+else:
+    setattr(cl, 'o', [str(seq_file_title)])  # If not, just make it the base name
 
 # Defining a list of the reads to be searched & checking the file names match.
 
-try: # If there are forward and reverse reads
-  seq_file_list = [cl.f[0], cl.r[0]] # Make a list of the names of sequences
-except AttributeError: # And if just forward reads are present
-  seq_file_list = [cl.f[0]] # Make a list of just the forward reads
+try:    # If there are forward and reverse reads
+    seq_file_list = [cl.f[0], cl.reverse[0]]  # Make a list of the names of sequences
+except AttributeError:  # And if just forward reads are present
+    seq_file_list = [cl.f[0]]  # Make a list of just the forward reads
+
+# Check if there is an output folder name specified
+
+try:
+    str(cl.o[0])
+    out_file_name = cl.o[0]
+except AttributeError:
+    out_file_name = replace_name(cl.f[0], '')
 
 
-if cl.t[0] == 'prot': # If the protein pipeline was specified
-  message(datetime.now().strftime('%Y/%m/%d')) # print starting date & time
-  message('Searching %s using %s..' % (seq_file_title, hmm_file_title)) # First message, searching the reads
-  name_file = csv_to_titles(hmmsearch(cl.m[0], seq_file_list), cl.t[0]) # Create list of names that hit from the hmm search
-  extract_from_raw_reads(cl.f[0], cl.m[0], name_file) # And extract from the original file
-  message('Aligning to hmm..') # Tell user that the reads are extracted, and the alignment is proceeding
-  hmmalign(cl.m[0], replace_name(cl.f[0], '.orf.fasta')) # And align
-  alignment_correcter(seq_file_title+ '_conv_.fa', seq_file_title+'.aln.fasta') # And fix up the alignment file by removing the insertions
-  if not hasattr(cl,'c'):
-    message('No refpkg found! Stopping at alignment')
-    exit(1)
-  message('Placing in refpkg tree..')
-  pplacer(cl.c[0], replace_name(cl.f[0], '.aln.fasta'))
-  message('Creating Guppy file..')
-  guppy_class(cl.c[0], replace_name(cl.f[0],'.aln.jplace'))
-  message('Building OTU table..')
-  otu_builder(replace_name(cl.f[0], '.guppy'))
+input_file_format = guess_sequence_file_format(seq_file_list[0])
 
-if cl.t[0] == 'dna':
-  date = datetime.now().strftime('%Y-%m-%d')
-  message(date)
-  message('Searching %s using %s..' % (seq_file_title, hmm_file_title))
-  name_file = csv_to_titles(nhmmer(cl.m[0], seq_file_list), cl.t[0])
-  extract_from_raw_reads(cl.f[0], cl.m[0], name_file)
-  message('Aligning to database..')
-  pynast(cl.f[0], cl.g[0])
-  if not hasattr(cl,'c'):
-    message('No refpkg found! Stopping at alignment')
-    exit(1)
-  message('Placing in refpkg tree..')
-  pplacer(cl.c[0], replace_name(cl.f[0],'.aln.fasta'))
-  message('Creating Guppy file..')
-  guppy_class(cl.c[0], replace_name(cl.f[0], '.aln.jplace'))
-  message('Building OTU table..')
-  otu_builder(replace_name(cl.f[0], '.guppy'))
+if cl.t[0] == 'prot':  # If the protein pipeline was specified
+    message(datetime.now().strftime('%Y/%m/%d'))  # print starting date & time
+    message('Searching %s using %s..' % (seq_file_title, hmm_file_title))  # First message, searching the reads
+    name_file = csv_to_titles(hmmsearch(cl.m[0], seq_file_list, input_file_format), cl.t[0])  # Create list of names that hit from the hmm search
+    extract_from_raw_reads(cl.f[0], cl.m[0], name_file, input_file_format)  # And extract from the original file
+    message('Aligning to hmm..')  # Tell user that the reads are extracted, and the alignment is proceeding
+    hmmalign(cl.m[0], replace_name(cl.f[0], '.orf.fasta'))  # And align
+    alignment_correcter(seq_file_title + '_conv_.fa', seq_file_title + '.aln.fasta')  # And fix up the alignment file by removing the insertions
+    if not hasattr(cl, 'c'):
+        message('No refpkg found! Stopping at alignment')
+        exit(1)
+    message('Placing in refpkg tree..')
+    pplacer(cl.c[0], replace_name(cl.f[0], '.aln.fasta'))
+    message('Creating Guppy file..')
+    guppy_class(cl.c[0], replace_name(cl.f[0], '.aln.jplace'))
+    message('Building OTU table..')
+    dictionary_builder(replace_name(cl.f[0], '.guppy'))
+
+elif cl.t[0] == 'dna':
+    if hasattr(cl, 'c') and cl.extract_alignment_from_nhmmer is not True:
+        try:
+            cl.g
+        except AttributeError:
+            message("The -g/--gg_database option is required in dna mode with -c is specified, unless --extract_alignment_from_nhmmer is specified")
+            exit(1)
+
+    date = datetime.now().strftime('%Y-%m-%d')
+    message(date)
+    if cl.extract_alignment_from_nhmmer:
+        message('Searching and extracting alignments of %s against %s..' % (seq_file_title, hmm_file_title))
+        nhmmerToAlignment(cl.m[0], cl.f[0], input_file_format)
+    else:
+        message('Searching %s using %s..' % (seq_file_title, hmm_file_title))
+        name_file = csv_to_titles(nhmmer(cl.m[0], seq_file_list, input_file_format), cl.t[0])
+        extract_from_raw_reads(cl.f[0], cl.m[0], name_file, input_file_format)
+        if hasattr(cl, 'c'):
+            message('Aligning to database..')
+            pynast(cl.f[0], cl.g)
+
+    if not hasattr(cl, 'c'):
+        message('No refpkg found! Stopping at alignment')
+        exit(1)
+    message('Placing in refpkg tree..')
+    pplacer(cl.c[0], replace_name(cl.f[0], '.aln.fasta'))
+    message('Creating Guppy file..')
+    guppy_class(cl.c[0], replace_name(cl.f[0], '.aln.jplace'))
+    message('Building OTU table..')
+    dictionary_builder(replace_name(cl.f[0], '.guppy'))
+
+else:
+    raise Exception("Programming error")
 
 
-message('Finshed! Thank you for using graftM!\n')
-exit(1)
+message('Finished! Thank you for using graftM!\n')

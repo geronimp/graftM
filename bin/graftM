@@ -84,20 +84,59 @@ FORMAT_SRA = 'FORMAT_SRA'
 ##### Classes #####
 
 class GraftMFiles:
+    
     def __init__(self, old_title, out_path):
+    
         if '/' in old_title:
             self.basename = old_title.split('/')[len(old_title.split('/')) - 1].split('.')[0]
+    
         else:
             self.basename = old_title.split('.')[0]
+    
         self.out_path = out_path
+    
     def forward_read_hmmsearch_output_path(self):
-        return os.path.join(self.out_path, "%s.hmmout.csv" % self.basename)
+        return os.path.join(self.out_path, "%s_for.hmmout.csv" % self.basename)
+    
     def jplace_output_path(self):
         return os.path.join(self.out_path, "%s.aln.jplace" % self.basename)
 
+    def guppy_file_output_path(self):
+        return os.path.join(self.out_path, "%s.guppy" % self.basename)
     
+    def otu_table_output_path(self):
+        return os.path.join(self.out_path, "%s_otu_table.txt" % self.basename)
+        
+    def aligned_fasta_output_path(self):
+        return os.path.join(self.out_path, "%s.aln.fasta" % self.basename)
     
-code.interact(local=locals())
+    def orf_output_path(self):
+        return os.path.join(self.out_path, "%s.orf" % self.basename)
+        
+    def orf_titles_output_path(self):
+        return os.path.join(self.out_path, "%s.ord.titles" % self.basename)
+        
+    def conv_output_path(self):
+        return os.path.join(self.out_path, "%s_conv_.fa" % self.basename)
+    
+    def reverse_read_hmmsearch_output_path(self):
+        return os.path.join(self.out_path, "%s_rev.guppy" % self.basename)
+    
+    def fna_output_path(self):
+        return os.path.join(self.out_path, "%s.fna" % self.basename)
+        
+    def fna_fasta_output_path(self):
+        return os.path.join(self.out_path, "%s.fna.fasta" % self.basename)
+        
+    def readnames_output_path(self):
+        return os.path.join(self.out_path, "%s_readnames" % self.basename)
+        
+    def sto_output_path(self):
+        return os.path.join(self.out_path, "%s.sto" % self.basename)
+    
+    def orf_hmmsearch_output_path(self):
+        return os.path.join(self.out_path, "%s_orf.hmmout.csv" % self.basename)
+        
 ##### Functions #####
 
 # Given a Return the guessed file format, or raise an Exception if

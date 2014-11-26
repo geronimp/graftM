@@ -26,6 +26,7 @@ intro = '''
        ## Searches raw sequences for genes  ##
        ## Joel Boyd, Ben Woodcroft          ##
        #######################################  
+       
                                                  __/__
                                           ______|
   _- - _                         ________|      |_____/
@@ -365,11 +366,11 @@ def csv_to_titles(hmm_table_list, type_, outdir):
         titles_list = []
 
     if title_count == 0:  # Check if any reads were found
-        message('0 Reads found! Exiting..')  # If not, throw a warning
+        message('0 Reads found! Exiting')  # If not, throw a warning
         exit(1)  # and exit
     
     else:
-        message('Found %s read(s) in %s.' % (str(title_count), GraftMFiles(hmm_table_list[0] ,outdir).base()))  # Otherwise, report the count.
+        message('Found %s read(s) in %s' % (str(title_count), GraftMFiles(hmm_table_list[0] ,'').base()))  # Otherwise, report the count.
 
     if len(reads_list) == 2:
         for_r = set(reads_list[0])
@@ -410,7 +411,7 @@ def make_working_directory(directory_path):
 def extract_from_raw_reads(raw_seq_file, hmm, name_file, input_file_format, outdir):
     # Run fxtract to obtain reads form original sequence file
     sequence_file_name = name_file.replace('_readnames.txt', '.fna')  # Set the new output file name
-    message('Extracting reads..')  # Send an update
+    message('Extracting reads')  # Send an update
     fxtract_cmd = "fxtract -H -X -f " + GraftMFiles(raw_seq_file, outdir).readnames_output_path() + " "
     
     
@@ -589,10 +590,10 @@ make_working_directory(cl.o[0])
 
 if cl.t[0] == 'prot':  # If the protein pipeline was specified
     message(datetime.now().strftime('%Y/%m/%d'))  # print starting date & time 
-    message('Searching %s using %s..' % (GraftMFiles(cl.f[0], '').base(), GraftMFiles(cl.m[0], '').base()))  # First message, searching the reads
+    message('Searching %s using %s' % (GraftMFiles(cl.f[0], '').base(), GraftMFiles(cl.m[0], '').base()))  # First message, searching the reads
     name_file = csv_to_titles(hmmsearch(cl.m[0], seq_file_list, input_file_format), cl.t[0], GraftMFiles(cl.f[0], cl.o[0]).readnames_output_path())  # Create list of names that hit from the hmm search
     extract_from_raw_reads(cl.f[0], cl.m[0], name_file, input_file_format, cl.o[0])  # And extract from the original file
-    message('Aligning to hmm..')  # Tell user that the reads are extracted, and the alignment is proceeding
+    message('Aligning to hmm')  # Tell user that the reads are extracted, and the alignment is proceeding
     hmmalign(cl.m[0], GraftMFiles(cl.f[0], cl.o[0]).orf_fasta_output_path())  # And align
     alignment_correcter(GraftMFiles(cl.f[0], cl.o[0]).conv_output_path() , GraftMFiles(cl.f[0], cl.o[0]).aligned_fasta_output_path())  # And fix up the alignment file by removing the insertions
     
@@ -600,16 +601,12 @@ if cl.t[0] == 'prot':  # If the protein pipeline was specified
         message('No refpkg found! Stopping at alignment')
         exit(1)
     
-    message('Placing in refpkg tree..')
+    message('Placing in reference package tree')
     pplacer(cl.c[0], GraftMFiles(cl.f[0], cl.o[0]).aligned_fasta_output_path())
-    message('Creating Guppy file..')
+    message('Creating Guppy file')
     guppy_class(cl.c[0], GraftMFiles(cl.f[0], cl.o[0]).jplace_output_path())
-    message('Building OTU table..')
+    message('Building OTU table')
     otu_builder(GraftMFiles(cl.f[0], cl.o[0]).guppy_file_output_path(), cl.o[0])
-
-
-
-
 
 
 
@@ -628,31 +625,31 @@ elif cl.t[0] == 'dna':
     message(date)
     
     if cl.extract_alignment_from_nhmmer:
-        message('Searching and extracting alignments of %s against %s..' % (cl.f[0], cl.m[0]))
+        message('Searching and extracting alignments of %s against %s' % (cl.f[0], cl.m[0]))
         nhmmerToAlignment(cl.m[0], cl.f[0], input_file_format)
     
     else:
-        message('Searching %s using %s..' % (cl.f[0], cl.m[0]))
+        message('Searching %s using %s' % (cl.f[0], cl.m[0]))
         name_file = csv_to_titles(nhmmer(cl.m[0], seq_file_list, input_file_format), cl.t[0], GraftMFiles(cl.f[0], cl.o[0]).readnames_output_path())
         extract_from_raw_reads(cl.f[0], cl.m[0], name_file, input_file_format, cl.o[0])
         
         if hasattr(cl, 'c'):
-            message('Aligning to database..')
+            message('Aligning to database')
             pynast(cl.f[0], cl.g)
 
     if not hasattr(cl, 'c'):
         message('No refpkg found! Stopping at alignment')
         exit(1)
     
-    message('Placing in refpkg tree..')
+    message('Placing in reference package tree')
     pplacer(cl.c[0], GraftMFiles(cl.f[0], cl.o[0]).aligned_fasta_output_path())
-    message('Creating Guppy file..')
+    message('Creating Guppy file')
     guppy_class(cl.c[0], GraftMFiles(cl.f[0], cl.o[0]).jplace_output_path())
-    message('Building OTU table..')
+    message('Building OTU table')
     otu_builder(GraftMFiles(cl.f[0], cl.o[0]).guppy_file_output_path(), cl.o[0])
 
 else:
     raise Exception("Programming error")
 
 
-message('Finished! Thank you for using graftM!\n')
+message('Finished. Thank you for using graftM!\n')

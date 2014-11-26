@@ -52,8 +52,8 @@ import tempfile
 import StringIO
 import code
 import os
-
-from graftm.nhmmer3_text import Nhmmer3TextParser
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','lib'))
+import nhmmer3_text
 
 
 ##### Input Files #####
@@ -307,7 +307,7 @@ def guppy_class(rpkg, jplace_file):
 # delete
 def delete(delete_list):
     for item in delete_list:
-        subprocess.check_call("rm " + item, shell=True)
+        subprocess.check_call("rm %s" % item, shell=True)
 
 # HMM aligning
 def hmmalign(hmm, sequencefile):

@@ -13,7 +13,7 @@
 __author__ = "Joel Boyd, Ben Woodcroft"
 __copyright__ = "Copyright 2014"
 __credits__ = ["Joel Boyd", "Ben Woodcroft"]
-__license__ = "GP"
+__license__ = "GPL3"
 __maintainer__ = "Joel Boyd, Ben Woodcroft"
 __email__ = "joel.boyd near uq.net.au, b.woodcroft near uq.edu.au"
 __status__ = "Development"
@@ -75,7 +75,6 @@ parser.add_argument('-o', metavar='output directory', type=str, nargs=1, help='S
 parser.add_argument('-v', action='version', version='graftM v%s' % __version__)
 
 cl = parser.parse_args()
-
 
 
 
@@ -230,7 +229,7 @@ def nhmmer(hmm, seq_file_list, input_file_format):
             subprocess.check_call(cmd, shell=True)
         
         else:
-            message('ERROR: Suffix on %s not recegnised. Please submit an .fq.gz or .fa file\n' % (seq_file))
+            message('ERROR: Suffix on %s not familiar. Please submit an .fq.gz or .fa file\n' % (seq_file))
             exit(1)
         
         del suffix[0]
@@ -255,8 +254,13 @@ def hmmsearch(hmm, seq_file_list, input_file_format, seq_type):
                 subprocess.check_call(["/bin/bash", "-c", cmd])
             elif seq_type == 'dna':
                 
-                cmd = "%s <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s  | sed 's/:/$/g')) 2>&1 > /dev/null " % (hmmsearch_cmd, seq_file)
-                subprocess.check_call(["/bin/bash", "-c", cmd])
+                if input_file_format == FORMAT_FASTQ_GZ:
+                    cmd = "%s <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s  | sed 's/:/$/g')) 2>&1 > /dev/null " % (hmmsearch_cmd, seq_file)
+                    subprocess.check_call(["/bin/bash", "-c", cmd])
+                    
+                elif input_file_format == FORMAT_FASTA:
+                    cmd = "%s %s" % (hmmsearch_cmd, seq_file)
+                    subprocess.check_call(["/bin/bash", "-c", cmd])
                
             else:
                 message('ERROR: Programming error')
@@ -396,7 +400,7 @@ def csv_to_titles(hmm_table_list, type_, outdir):
         
         reads_list.append(titles_list)
         titles_list = []
-
+    
     if title_count == 0:  # Check if any reads were found
         message('0 Reads found! Exiting')  # If not, throw a warning
         exit(1)  # and exit
@@ -405,6 +409,7 @@ def csv_to_titles(hmm_table_list, type_, outdir):
         message('Found %s read(s) in %s' % (str(title_count), GraftMFiles(hmm_table_list[0] ,'').base()))  # Otherwise, report the count.
 
     if len(reads_list) == 2:
+        
         for_r = set(reads_list[0])
         
         for read in reads_list[1]:
@@ -414,7 +419,7 @@ def csv_to_titles(hmm_table_list, type_, outdir):
     
     elif len(reads_list) == 1:
         write_list = reads_list[0]
-
+    
     output_file = open(outdir, 'w')
     
     for name in write_list:

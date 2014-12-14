@@ -69,7 +69,7 @@ parser.add_argument('-jhmm', metavar='threads', type=str, nargs=1, help='number 
 parser.add_argument('-d', metavar='confidence', type=str, nargs=1, help='Cutoff of placement confidence level (0.5 - 1), default = 0.75', default=[0.75])
 parser.add_argument('-c', metavar='reference_package', type=str, nargs=1, help='Reference package of gene family', default=argparse.SUPPRESS)
 parser.add_argument('--extract_alignment_from_nhmmer', action="store_true", help='Use nhmmer\'s alignment output, rather than doing a separate alignment step (currently ignores reverse reads)', default=False)
-parser.add_argument('--dna_hmm_alignment', action="store_true", help='Use hmmalign to align dna sequences. EXPERIMENTAL.', default=False)
+parser.add_argument('--dna_hmm_alignment', action="store_true", help='[do NOT use unless you understand the difficulties with this] Use hmmalign to align dna sequences. EXPERIMENTAL.', default=False)
 parser.add_argument('-g', metavar='gg_database', type=str, help='Aligned gg database for pynast alignment (dna sequences only)', default=argparse.SUPPRESS)
 parser.add_argument('-o', metavar='output directory', type=str, nargs=1, help='Specify an output directory (default is the file name) If you are looking for more than one marker gene in the same directory, you will definitely need this flag to avoid clobbering.', default=argparse.SUPPRESS)
 parser.add_argument('-v', action='version', version='graftM v%s' % __version__)
@@ -520,70 +520,56 @@ def extract_from_raw_reads(raw_seq_file, hmm, name_file, input_file_format, outd
 
 # --- Builds the final otu table
 
-def otu_builder(gup_file, output_file_name):
-  d = {}
+def otu_builder(gup_file):
+    d = {}
+    classifications = []
+    placed = []
+    otu_id = 0
+    output_table = ['#OTU_ID\t'+GraftMFiles(cl.f[0], '').base()+'\tConsensusLineage']
+    unique_list = []
   
-  for line in open(gup_file, 'r'):
-    list = [x for x in line.split(' ') if x]
-    
-    try:
-      float(list[4])
-      
-      if list[0] != 'name' and list[1] == list[2] and float(list[4]) and float(list[len(list)-2]) > float(cl.d[0]):
+    for line in open(gup_file, 'r'):
+        list = line.split()
+
+        if list[0] != 'name' and list[1] == list[2] and float(list[len(list)-2]) > float(cl.d[0]):
+            
+            if list[0] not in d:
+                d[list[0]] = []
         
-        if list[0] not in d:
-          d[list[0]] = []
         
-        d[list[0]].append(list[3])
-      
-      else:
-        continue
-    
-    except ValueError:
-      list.pop(3)
-      
-      if list[0] != 'name' and list[0] not in d and list[1] == list[2] and float(list[4]) and float(list[len(list)-2]) > float(cl.d[0]):
-        d[list[0]].append(list[3])
-      
-      else:
-        continue
+            d[list[0]].append(list[3])
 
-  classifications = []
-  placed = []
+    for x,y in d.iteritems():
 
-  for x,y in d.iteritems():
-    
-    if x not in placed:
-      classifications.append(';'.join(y))
-      placed.append(x)
-    
-    else:
-      continue
+        if x not in placed:
+            classifications.append(';'.join(y))
+            placed.append(x)
 
-  otu_id = 0
-  output_table = []
-  unique_list = []
-  output_table.append('#OTU_ID\t'+GraftMFiles(cl.f[0], '').base()+'\tConsensusLineage') 
-  
-  for x in classifications:
-    
-    if x not in unique_list:
-      unique_list.append(x)
-  
-  for x in unique_list:
-    output_table.append([str(otu_id),str(classifications.count(x)),x])
-    otu_id += 1
+        else:
+            continue
 
-  otu_table = open(GraftMFiles(cl.f[0], cl.o[0]).otu_table_output_path(), 'w')
-  
-  for line in output_table:
+    for x in classifications:
+        
+        if x not in unique_list:
+            unique_list.append(x)
+
+    for x in unique_list:
+        output_table.append([str(otu_id),str(classifications.count(x)),x])
+        otu_id += 1
+
+    otu_table = open(output, 'w')
+
+    with otu_table as open(GraftMFiles(cl.f[0], cl.o[0]).otu_table_output_path(), 'w'):
+        
+        for line in output_table:
+            
+            if '#' in line:
+                otu_table.write(line+'\n')
     
-    if '#' in line:
-        otu_table.write(line+'\n')
-    
-    else: otu_table.write('\t'.join(line)+'\n')
-  
-  otu_table.close()
+            else: 
+                otu_table.write('\t'.join(line)+'\n')
+
+    otu_table.close()
 
 
 

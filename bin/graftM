@@ -59,13 +59,16 @@ class GraftMFiles:
         return os.path.join(self.out_path, "%s_for.hmmout.csv" % self.basename)
     
     def jplace_output_path(self):
+        return os.path.join(self.out_path, "%s.jplace" % self.basename)
+    
+    def jplace_output_path_old(self):
         return os.path.join(self.out_path, "%s.aln.jplace" % self.basename)
-
+    
     def guppy_file_output_path(self):
         return os.path.join(self.out_path, "%s.guppy" % self.basename)
     
     def otu_table_output_path(self):
-        return os.path.join(self.out_path, "%s_otu_table.txt" % self.basename)
+        return os.path.join(self.out_path, "%s_count_table.txt" % self.basename)
         
     def aligned_fasta_output_path(self):
         return os.path.join(self.out_path, "%s.aln.fasta" % self.basename)
@@ -86,7 +89,7 @@ class GraftMFiles:
         return os.path.join(self.out_path, "%s_rev.hmmout.csv" % self.basename)
     
     def fna_output_path(self):
-        return os.path.join(self.out_path, "%s.fna" % self.basename)
+        return os.path.join(self.out_path, "%s_hits.fna" % self.basename)
         
     def fna_fasta_output_path(self):
         return os.path.join(self.out_path, "%s.fna.fasta" % self.basename)
@@ -303,7 +306,7 @@ def pplacer(refpkg, ts_file):
         cmd = "pplacer %s --verbosity 0 -c %s %s" % (args.threads_pplacer, refpkg, ts_file)
         subprocess.check_call(cmd, shell=True)
         
-        cmd = 'mv %s %s/' % (GraftMFiles(args.forward, '').jplace_output_path(), args.output_directory)
+        cmd = 'mv %s %s/%s' % (GraftMFiles(args.forward, '').jplace_output_path_old(), args.output_directory, GraftMFiles(args.forward, '').jplace_output_path())
         subprocess.check_call(cmd, shell = True)
 
 # run guppy classify
@@ -314,7 +317,7 @@ def guppy_class(rpkg, jplace_file):
 def delete(delete_list):
     
     for item in delete_list:
-        subprocess.check_call("rm %s/%s" % (args.output_directory, item), shell=True)
+        subprocess.check_call("rm %s" % item, shell=True)
 
 # HMM aligning
 def hmmalign(hmm, sequencefile):
@@ -496,7 +499,7 @@ def otu_builder(gup_file, output):
     classifications = []
     placed = []
     otu_id = 0
-    output_table = ['#OTU_ID\t'+GraftMFiles(args.forward, '').base()+'\tConsensusLineage']
+    output_table = ['#ID\t'+GraftMFiles(args.forward, '').base()+'\tConsensusLineage']
     unique_list = []
     
   
@@ -668,7 +671,10 @@ def main(args):
         guppy_class(args.reference_package, GraftMFiles(args.forward, args.output_directory).jplace_output_path())
         message('Building OTU table')
         otu_builder(GraftMFiles(args.forward, args.output_directory).guppy_file_output_path(), GraftMFiles(args.forward, args.output_directory).otu_table_output_path())
-    
+        
+        delete([GraftMFiles(args.forward, args.output_directory).guppy_file_output_path(), GraftMFiles(args.forward, args.output_directory).fna_fasta_output_path(), GraftMFiles(args.forward, args.output_directory).readnames_output_path(), GraftMFiles(args.forward, args.output_directory).forward_read_hmmsearch_output_path(), args.output_directory+'/*pynast*'])
+        
+        
     else:
         raise Exception("Programming error")
     
@@ -679,7 +685,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='''--- graftM %s --- Searches reads for genes using hmms, and places them into a tree with pplacer to classify them phylogenetically.''' % __version__
-                                , epilog='Joel Boyd - Honours 2014.')
+                                , epilog='Joel Boyd, Ben Woodcroft')
     parser.add_argument('--forward', metavar='forward read (or single read file)', type=str, help='Forward raw sequence file in .fa, or .fq.gz format.', required=True)
     parser.add_argument('--reverse', metavar='reverse read', type=str, help='[do NOT use unless you understand the difficulties with this] Optional reverse raw sequence file in .fa, or .fq.gz format.', default=argparse.SUPPRESS)
     parser.add_argument('--type', metavar='P or D', type=str, help='dna (like 16S) or prot (like mcrA)', choices=['P', 'D'], required=True)

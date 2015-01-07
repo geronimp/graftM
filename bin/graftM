@@ -209,9 +209,10 @@ def check_euk_contamination(reads, evals, avg_read_length, input_file_format):
                     
                     if ali_length >= float(cutoff):
                         contamination_list.append(line[0])
+                        euk_uniq.append(line[0])
             
             except KeyError:
-                
+
                 if args.check_total_euks:
                     euk_uniq.append(line[0])
                 
@@ -233,7 +234,7 @@ def check_euk_contamination(reads, evals, avg_read_length, input_file_format):
         
             if record.id not in contamination_list:
                 SeqIO.write(record, euk_free_output, "fasta")
-    
+
     return len(contamination_list), len(euk_uniq)
            
                 
@@ -520,8 +521,8 @@ def csv_to_titles(hmm_table_list, graftm_pipeline, outdir):
         message('0 Reads found! Exiting')  # If not, throw a warning
         exit(1)  # and exit
 
-    else:
-        message('Found %s read(s) in %s' % (str(title_count), GraftMFiles(hmm_table_list[0] ,'').base()))  # Otherwise, report the count.
+
+         
 
     if len(reads_list) == 2:
 
@@ -534,7 +535,8 @@ def csv_to_titles(hmm_table_list, graftm_pipeline, outdir):
 
     elif len(reads_list) == 1:
         write_list = reads_list[0]
-
+    
+    message('Found %s read(s) in %s' % (len(write_list), GraftMFiles(hmm_table_list[0] ,'').base())) 
     output_file = open(outdir, 'w')
 
     for name in write_list:
@@ -544,10 +546,9 @@ def csv_to_titles(hmm_table_list, graftm_pipeline, outdir):
 
         else:
             output_file.write(name + '\n')
-
     output_file.close()
 
-    return outdir, evals, title_count
+    return outdir, evals, len(write_list)
 
 
 

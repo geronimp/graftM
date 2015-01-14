@@ -32,7 +32,6 @@ from collections import OrderedDict
 import tempfile
 import timeit
 import StringIO
-import IPython
 import os
 
 # Constants - don't change them evar.
@@ -224,7 +223,6 @@ def check_read_length(reads):
     
     for record in list(SeqIO.parse(open(reads, 'r'), 'fasta')):
         lengths.append(len(record.seq))
-        
     return sum(lengths) / float(len(lengths))
     
 
@@ -576,14 +574,8 @@ def csv_to_titles(hmm_table_list, graftm_pipeline):
 
             if graftm_pipeline == 'D':
 
-                if 'FCC' in line:
-                    titles_list.append(read_name.replace('_', '/')[:-2])
-                    evals[read_name.replace('_', '/')[:-2]] = [e_value, direction]
-                
-                else:
-                    titles_list.append(read_name)
-                    
-                    evals[read_name] = [e_value, direction]
+                titles_list.append(read_name)
+                evals[read_name] = [e_value, direction]
 
 
             elif graftm_pipeline == 'P':
@@ -632,11 +624,7 @@ def csv_to_titles(hmm_table_list, graftm_pipeline):
 
         for name in write_list:
     
-            if name.startswith('FCC'):
-                output_file.write(name + '/1' + '\n')
-    
-            else:
-                output_file.write(name + '\n')
+            output_file.write(name + '\n')
     
 
     return evals, len(write_list)

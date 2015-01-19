@@ -29,16 +29,30 @@ except ImportError:
 import subprocess
 from datetime import datetime
 from collections import OrderedDict
-import tempfile
+import shutil 
 import timeit
+import tempfile
 import StringIO
 import os
+import IPython
 
 # Constants - don't change them evar.
 FORMAT_FASTA = 'FORMAT_FASTA'
 FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'
-date = datetime.now().strftime('%Y-%m-%d')
+
 ##### Classes #####
+
+class Messenger:
+    
+    def __init__(self):
+        self.time = datetime.now().strftime('%H:%M:%S')
+        self.date = datetime.now().strftime('%d-%m-%Y')
+        
+    def message(self, message):
+        print '  %s [%s]: %s' % (self.date, self.time, message)
+    
+    def error_message(self, message):
+        print '  %s [%s]: == ERROR == %s' % (self.date, self.time, message)
 
 class GraftMFiles:
 
@@ -56,11 +70,8 @@ class GraftMFiles:
         return os.path.join(self.out_path, "%s_for.hmmout.csv" % self.basename)
 
     def jplace_output_path(self):
-        return os.path.join(self.out_path, "%s.jplace" % self.basename)
-
-    def jplace_output_path_old(self):
-        return os.path.join(self.out_path, "%s.aln.jplace" % self.basename)
-
+        return "placements.jplace"
+    
     def euk_free_path(self):
         return os.path.join(self.out_path, "%s_euk_free.fa" % self.basename)
     
@@ -68,11 +79,11 @@ class GraftMFiles:
         return os.path.join(self.out_path, "%s_euk_contam.txt" % self.basename)
 
     def guppy_file_output_path(self):
-        return os.path.join(self.out_path, "%s.guppy" % self.basename)
+        return ".guppy"
 
     def summary_table_output_path(self):
-        return os.path.join(self.out_path, "%s_count_table.txt" % self.basename)
-
+        return "_count_table.txt"
+    
     def aligned_fasta_output_path(self):
         return os.path.join(self.out_path, "%s.aln.fasta" % self.basename)
 
@@ -99,9 +110,6 @@ class GraftMFiles:
 
     def fna_output_path(self):
         return os.path.join(self.out_path, "%s_hits.fna" % self.basename)
-
-    def fna_fasta_output_path(self):
-        return os.path.join(self.out_path, "%s.fna.fasta" % self.basename)
 
     def readnames_output_path(self):
         return os.path.join(self.out_path, "%s_readnames.txt" % self.basename)
@@ -131,16 +139,329 @@ class GraftMFiles:
         return os.path.join(self.out_path, "%s_rev_aln.fa" % self.basename)
     
     def coverage_table_path(self):
-        return os.path.join(self.out_path, "%s_coverage_table.txt" % self.basename)
+        return '_coverage_table.txt'
       
     def base(self):
         return os.path.join(self.out_path, "%s" % self.basename)
 
 
+class Run:
+    
+    def __init__(self, args, sequence_file_list, input_file_format, Gfiles):
+        self.args = args
+        self.sequence_file_list = sequence_file_list
+        self.input_file_format = input_file_format
+        self.Gfiles = Gfiles
+        
+    def protein_pipeline(self):
+            
+            # Start Timer
+            start_all = timeit.default_timer()
+            
+            # Search for reads
+            Messenger().message('Searching %s using %s' % (self.sequence_file_list[0], self.args.hmm_file))
+            start = timeit.default_timer()
+            
+            hmm_search_output = hmmsearch(
+                                        self.Gfiles.forward_read_hmmsearch_output_path(), 
+                                        self.Gfiles.reverse_read_hmmsearch_output_path(),
+                                        self.args.hmm_file, 
+                                        self.sequence_file_list, 
+                                        self.input_file_format, 
+                                        self.args.type,
+                                        self.args.threads,
+                                        self.args.eval
+                                            )
+                                            
+            stop = timeit.default_timer()
+            search_t = str(int(round((stop - start), 0)) )
+            
+            
+            # Interpret the results of the hmmsearch output
+            Messenger().message('Reading results')
+            evals, n_total_reads, rev_true = csv_to_titles(
+                                                        hmm_search_output, 
+                                                        self.args.type,
+                                                        self.Gfiles.readnames_output_path()
+                                                            )
+            
+            
+            # Extract the hists from the original file
+            Messenger().message('Extracting reads')
+            start = timeit.default_timer()
+            
+            extract_from_raw_reads(
+                                self.sequence_file_list[0], 
+                                self.args.hmm_file, 
+                                self.Gfiles.readnames_output_path(), 
+                                self.input_file_format, 
+                                self.args.output_directory,
+                                self.Gfiles.fna_output_path(),
+                                self.Gfiles.orf_output_path(),
+                                self.Gfiles.orf_hmmsearch_output_path(),
+                                self.Gfiles.orf_titles_output_path(),
+                                self.Gfiles.orf_fasta_output_path(),
+                                False
+                                    )  # And extract from the original file
+            
+            stop = timeit.default_timer()
+            extract_t = str(int(round((stop - start), 0)) )
+            
+            
+            # Align the reads
+            Messenger().message('Aligning reads to reference package database')
+            start = timeit.default_timer()
+            
+            hmmalign(
+                    self.args.hmm_file, 
+                    self.Gfiles.orf_fasta_output_path(), 
+                    evals, 
+                    rev_true,
+                    self.Gfiles.sto_for_output_path(), 
+                    self.Gfiles.for_aln_path(), 
+                    self.Gfiles.conv_output_for_path(), 
+                    self.Gfiles.sto_rev_output_path(), 
+                    self.Gfiles.rev_aln_path(), 
+                    self.Gfiles.conv_output_rev_path(), 
+                    self.Gfiles.sto_output_path()
+                        )  # And align
+            
+            alignment_correcter(
+                            [self.Gfiles.conv_output_for_path()],
+                            self.Gfiles.aligned_fasta_output_path()
+                                )  # And fix up the alignment file by removing the insertions
+            
+            stop = timeit.default_timer()
+            aln_t = str(int(round((stop - start), 0)) )
+            
+            return self.Gfiles.aligned_fasta_output_path(), start_all, n_total_reads, n_contamin_euks, n_uniq_euks, search_t, extract_t, euk_check_t, aln_t
 
+    def dna_pipeline(self):
+            # Start Timer
+            start_all = timeit.default_timer()
+            
+            # Search for reads
+            Messenger().message('Searching %s using %s' % (self.sequence_file_list[0], self.args.hmm_file))
+            start = timeit.default_timer()
+            
+            hmm_search_output = nhmmer(
+                                    self.Gfiles.forward_read_hmmsearch_output_path(), 
+                                    self.Gfiles.reverse_read_hmmsearch_output_path(), 
+                                    self.args.hmm_file, 
+                                    self.sequence_file_list, 
+                                    self.input_file_format,
+                                    self.args.threads,
+                                    self.args.eval
+                                        )
+                                        
+            stop = timeit.default_timer()
+            search_t = str(int(round((stop - start), 0)) )
+            
+            
+            # Interpret the results of the nhmmer output
+            Messenger().message('Reading results')
+            evals, n_total_reads, rev_true = csv_to_titles(
+                                                        hmm_search_output, 
+                                                        self.args.type, 
+                                                        self.Gfiles.readnames_output_path()
+                                                            )
+            
+            
+            # Extract the hists from the original file
+            Messenger().message('Extracting reads')
+            start = timeit.default_timer()
+            
+            extract_from_raw_reads(
+                                self.sequence_file_list[0], 
+                                self.args.hmm_file, 
+                                self.Gfiles.readnames_output_path(), 
+                                self.input_file_format, 
+                                self.args.output_directory, 
+                                self.Gfiles.fna_output_path(),
+                                self.Gfiles.orf_output_path(),
+                                self.Gfiles.orf_hmmsearch_output_path(),
+                                self.Gfiles.orf_titles_output_path(),
+                                self.Gfiles.orf_fasta_output_path(),
+                                True
+                                    )
+            
+            stop = timeit.default_timer()
+            extract_t = str(int(round((stop - start), 0)) )
+            
+            
+            # Check for Eukarytoic contamination
+            Messenger().message("Checking for Eukaryotic contamination")
+            start = timeit.default_timer()
+
+            n_contamin_euks, n_uniq_euks = check_euk_contamination(
+                                                                self.Gfiles.euk_free_path(),
+                                                                self.Gfiles.euk_contam_path(), 
+                                                                self.Gfiles.fna_output_path(), 
+                                                                evals, 
+                                                                check_read_length(self.Gfiles.fna_output_path()), 
+                                                                self.input_file_format, 
+                                                                args.threads, 
+                                                                args.eval,
+                                                                args.check_total_euks,
+                                                                self.sequence_file_list[0]
+                                                                    )
+            stop = timeit.default_timer()
+            euk_check_t = str( int(round((stop - start), 0)) )
+            
+                    
+            # Align the reads
+            Messenger().message('Aligning reads to reference package database')
+            start = timeit.default_timer()
+            
+            if self.args.pynast_alignment:            
+                n_failed_pynast = pynast(
+                                        self.Gfiles.base(),
+                                        self.Gfiles.aligned_fasta_output_path(), 
+                                        self.args.GG_database, 
+                                        self.Gfiles.euk_free_path()
+                                            )
+    
+            
+            else:
+                hmmalign(
+                        self.args.hmm_file, 
+                        self.Gfiles.euk_free_path(), 
+                        evals, rev_true, 
+                        self.Gfiles.sto_for_output_path(), 
+                        self.Gfiles.for_aln_path(), 
+                        self.Gfiles.conv_output_for_path(), 
+                        self.Gfiles.sto_rev_output_path(), 
+                        self.Gfiles.rev_aln_path(), 
+                        self.Gfiles.conv_output_rev_path(), 
+                        self.Gfiles.sto_output_path()
+                            )
+                
+                if rev_true:
+                    alignment_correcter(
+                                    [self.Gfiles.conv_output_for_path(), self.Gfiles.conv_output_rev_path()], 
+                                    self.Gfiles.aligned_fasta_output_path()
+                                        )
+                
+                else:
+                    alignment_correcter(
+                                    [self.Gfiles.conv_output_for_path()], 
+                                    self.Gfiles.aligned_fasta_output_path()
+                                        )
+    
+                    
+            stop = timeit.default_timer()
+            aln_t = str(int(round((stop - start), 0)) )
+            
+            return self.Gfiles.aligned_fasta_output_path(), start_all, n_total_reads, n_contamin_euks, n_uniq_euks, search_t, extract_t, euk_check_t, aln_t
+            
+    def placement(self, placement_files, base_list, start_all, n_total_reads, n_contamin_euks, n_uniq_euks, search_t, extract_t, euk_check_t, aln_t):
+            # Check that there is a reference package to place in. If not, exit.     
+            if self.args.skip_placement:
+                Messenger().message('Stopping at alignment\n')
+                delete([
+                    self.Gfiles.for_aln_path(), 
+                    self.Gfiles.rev_aln_path(), 
+                    self.Gfiles.sto_for_output_path(), 
+                    self.Gfiles.sto_rev_output_path(), 
+                    self.Gfiles.conv_output_rev_path(), 
+                    self.Gfiles.conv_output_for_path(), 
+                    self.Gfiles.euk_free_path(), 
+                    self.Gfiles.euk_contam_path(), 
+                    self.Gfiles.readnames_output_path(), 
+                    self.Gfiles.forward_read_hmmsearch_output_path(), 
+                    self.args.output_directory+'/*pynast*',
+                    self.Gfiles.sto_output_path(), 
+                    self.Gfiles.reverse_read_hmmsearch_output_path(),
+                    self.Gfiles.orf_titles_output_path(), 
+                    self.Gfiles.orf_hmmsearch_output_path()
+                        ])
+                exit(0)
+            
+
+            # Place in tree
+            Messenger().message('Placing reads into reference package tree')
+            start = timeit.default_timer()
+            pplacer(
+                self.args.reference_package, 
+                placement_files,
+                self.Gfiles.jplace_output_path(),
+                self.args.threads,
+                base_list
+                    )
+            stop = timeit.default_timer()
+            place_t = str(int(round((stop - start), 0)) )
+            
+            
+            # Create Guppy File
+            Messenger().message('Creating Guppy file')
+            start = timeit.default_timer()
+            n_placements = guppy_class(
+                                    self.args.reference_package, 
+                                    self.Gfiles.jplace_output_path(),
+                                    self.Gfiles.guppy_file_output_path(),
+                                    base_list
+                                        )
+
+            # Generate Summary Table
+            
+            base_path_list = [base+'/'+base for base in base_list]
+            for idx, base in enumerate(base_list):
+                
+                Messenger().message('Building summary table for %s' % base)
+                otu_builder(
+                        base_path_list[idx] + self.Gfiles.guppy_file_output_path(), 
+                        base_path_list[idx] + self.Gfiles.summary_table_output_path(),
+                        self.args.placements_cutoff,
+                        base
+                            )
+            
+            
+                # Generate coverage table
+                Messenger().message('Building coverage table for %s' % base)
+                coverage_of_hmm(
+                            self.args.hmm_file, 
+                            base_path_list[idx] + self.Gfiles.summary_table_output_path(), 
+                            base_path_list[idx] + self.Gfiles.coverage_table_path(), 
+                            check_read_length(self.Gfiles.fna_output_path())
+                                )
+            
+            stop = timeit.default_timer()
+            summary_t = str(int(round((stop - start), 0)) )
+            
+            # Compile basic run statistics
+            stop_all = timeit.default_timer()
+            all_t = str(int(round((stop_all - start_all), 0)) )
+
+            
+            
+            # Delete unncessary files
+            Messenger().message('Cleaning up')
+            for base in base_list:
+                Gfs = GraftMFiles(base,base)
+                delete([
+                    Gfs.for_aln_path(), 
+                    Gfs.rev_aln_path(), 
+                    Gfs.sto_for_output_path(), 
+                    Gfs.sto_rev_output_path(), 
+                    Gfs.conv_output_rev_path(), 
+                    Gfs.conv_output_for_path(), 
+                    Gfs.euk_free_path(), 
+                    Gfs.euk_contam_path(), 
+                    Gfs.readnames_output_path(), 
+                    Gfs.forward_read_hmmsearch_output_path(), 
+                    Gfs.sto_output_path(), 
+                    Gfs.reverse_read_hmmsearch_output_path(),
+                    Gfs.orf_titles_output_path(), 
+                    Gfs.orf_hmmsearch_output_path(),
+                    self.args.output_directory+'/*pynast*'
+                        ])
+            
+            Messenger().message('Done, thanks for using graftM!\n')
+            
+            
 ##### Functions #####
 
-def build_basic_statistics(n_total_16S_reads, n_contaminant_euk_reads, n_placed_reads, n_total_euk_reads, all_t, search_t, extract_t, euk_check_t, summary_t, aln_t, tree_i_t):
+def build_basic_statistics(output_path, n_total_16S_reads, n_contaminant_euk_reads, n_placed_reads, n_total_euk_reads, all_t, search_t, extract_t, euk_check_t, summary_t, aln_t, tree_i_t):
     
     if n_total_euk_reads == 'N/A':
         n_total_passed = n_total_16S_reads
@@ -213,7 +534,7 @@ Runtime:
     other_t
     )
     
-    with open(Gfiles.basic_stats_path(), 'w') as stats_file:
+    with open(output_path, 'w') as stats_file:
         stats_file.write(stats)
         
 
@@ -227,39 +548,38 @@ def check_read_length(reads):
     
 
 
-def check_euk_contamination(reads, evals, avg_read_length, input_file_format):
-    
+def check_euk_contamination(euk_free_path, out_table, reads, evals, avg_read_length, input_file_format, threads, eval, check_total_euks, raw_reads):
+
     
     contamination_list = []
     euk_uniq = []
     cutoff = 0.9*avg_read_length
     # do a nhmmer using a Euk specific hmm
-    out_table = Gfiles.euk_contam_path()
     
     
-    if args.check_total_euks:
-
-        nhmmer_cmd = "nhmmer --cpu %s %s --tblout %s /srv/db/graftm/0.1/HMM/Euk.hmm " % (args.threads, args.eval, out_table)
+    if check_total_euks:
+        nhmmer_cmd = "nhmmer --cpu %s %s --tblout %s /srv/db/graftm/0.1/HMM/Euk.hmm " % (threads, eval, out_table)
         
         if input_file_format == FORMAT_FASTA:
-            cmd = nhmmer_cmd + args.forward +' 2>&1 > /dev/null'
-            log(cmd)
+            cmd = nhmmer_cmd + raw_reads +' 2>&1 > /dev/null'
+
+            # log
             subprocess.check_call(cmd, shell = True)
         
         elif input_file_format == FORMAT_FASTQ_GZ:
-            cmd = nhmmer_cmd + " <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat " + args.forward + ")) 2>&1 > /dev/null"
-            log(cmd)
+            cmd = nhmmer_cmd + " <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat " + raw_reads + ")) 2>&1 > /dev/null"
+            # log
             subprocess.check_call(["/bin/bash", "-c", cmd])
     
 
     
         else:
-            message('ERROR: Suffix on %s not familiar. Please submit an .fq.gz or .fa file\n' % (args.forward))
+            Messenger().error_message('Suffix on %s not familiar. Please submit an .fq.gz or .fa file\n' % (raw_reads))
             exit(1)
     
     else:    
-        cmd = "nhmmer --cpu %s %s --tblout %s /srv/db/graftm/0.1/HMM/Euk.hmm %s 2>&1 > /dev/null " % (args.threads, args.eval, out_table, reads)
-        log(cmd)
+        cmd = "nhmmer --cpu %s %s --tblout %s /srv/db/graftm/0.1/HMM/Euk.hmm %s 2>&1 > /dev/null " % (threads, eval, out_table, reads)
+        # log
         subprocess.check_call(cmd, shell = True)
     
     
@@ -285,7 +605,7 @@ def check_euk_contamination(reads, evals, avg_read_length, input_file_format):
             
             except KeyError:
 
-                if args.check_total_euks:
+                if check_total_euks:
                     euk_uniq.append(line[0])
                 
                 else:
@@ -294,13 +614,13 @@ def check_euk_contamination(reads, evals, avg_read_length, input_file_format):
                 
     # Return Euk contamination
     if len(contamination_list) == 0:
-        message("No contaminating eukaryotic reads detected")
+        Messenger().error_message("No contaminating eukaryotic reads detected")
     
     else:
-        message("Found %s read(s) that may be eukaryotic, continuing without them" % len(contamination_list))
+        Messenger().message("Found %s read(s) that may be eukaryotic, continuing without it/them" % len(contamination_list))
     
     # Write a file with the Euk free reads.
-    with open(Gfiles.euk_free_path(), 'w') as euk_free_output:
+    with open(euk_free_path, 'w') as euk_free_output:
     
         for record in list(SeqIO.parse(open(reads, 'r'), 'fasta')):
 
@@ -310,11 +630,7 @@ def check_euk_contamination(reads, evals, avg_read_length, input_file_format):
     return len(contamination_list), len(euk_uniq)
            
                 
-def log(cmd):
-    
-    with open(Gfiles.command_log_path(), 'a') as output_path:
-        output_path.write(cmd)
-        output_path.write('\n')
+
 
 # Given a Return the guessed file format, or raise an Exception if
 def guess_sequence_input_file_format(sequence_file_path):
@@ -379,179 +695,260 @@ def title_cleaner(title):
     return '_'.join(d)
 
 # run nhmmer
-def nhmmer(hmm, sequence_file_list, input_file_format):
-    suffix = [Gfiles.forward_read_hmmsearch_output_path(), Gfiles.reverse_read_hmmsearch_output_path()]
+def nhmmer(for_out_path, rev_out_path, hmm, sequence_file_list, input_file_format, threads, eval):
+    suffix = [for_out_path, rev_out_path]
     table_title_list = []
-
     for seq_file in sequence_file_list:
         hmmout_table_title = suffix.pop(0)
         table_title_list.append(hmmout_table_title)
-        nhmmer_cmd = "nhmmer --cpu %s %s --tblout %s %s" % (args.threads, args.eval, hmmout_table_title, hmm)
+        nhmmer_cmd = "nhmmer --cpu %s %s --tblout %s %s" % (threads, eval, hmmout_table_title, hmm)
         
         if input_file_format == FORMAT_FASTA:
             cmd = "%s %s 2>&1 > /dev/null" % (nhmmer_cmd, seq_file)
-            log(cmd)
+            # log
+
             subprocess.check_call(["/bin/bash", "-c", cmd])
 
         elif input_file_format == FORMAT_FASTQ_GZ:
             cmd = "%s <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s)) 2>&1 > /dev/null" % (nhmmer_cmd, seq_file)
-            log(cmd)
             subprocess.check_call(["/bin/bash", "-c", cmd])
-
+            # log
         else:
-            message('ERROR: Suffix on %s not familiar. Please submit an .fq.gz or .fa file\n' % (seq_file))
+            Messenger().message('ERROR: Suffix on %s not familiar. Please submit an .fq.gz or .fa file\n' % (seq_file))
             exit(1)
 
     return table_title_list
 
 # run hmmsearch
-def hmmsearch(hmm, sequence_file_list, input_file_format, seq_type):
-    suffix = [Gfiles.forward_read_hmmsearch_output_path(), Gfiles.reverse_read_hmmsearch_output_path()]
+def hmmsearch(for_out_reads, rev_out_reads, hmm, sequence_file_list, input_file_format, seq_type, threads, eval):
+    suffix = [for_out_reads, rev_out_reads]
     table_title_list = []
 
     for seq_file in sequence_file_list:
         hmmout_table_title = suffix[0]
         table_title_list.append(hmmout_table_title)
-        hmmsearch_cmd = " hmmsearch --cpu %s %s -o /dev/null --domtblout %s %s " % (args.threads, args.eval, hmmout_table_title, hmm)
+        hmmsearch_cmd = " hmmsearch --cpu %s %s -o /dev/null --domtblout %s %s " % (threads, eval, hmmout_table_title, hmm)
         # TODO: capture stderr and report if the check_call fails
 
         if input_file_format == FORMAT_FASTA or input_file_format == FORMAT_FASTQ_GZ:
 
             if seq_type == 'P':
                 cmd = 'orfm %s | %s /dev/stdin' % (seq_file, hmmsearch_cmd)
-                log(cmd)
+                # log
                 subprocess.check_call(["/bin/bash", "-c", cmd])
             elif seq_type == 'D':
 
                 if input_file_format == FORMAT_FASTQ_GZ:
                     cmd = "%s <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s)) 2>&1 > /dev/null " % (hmmsearch_cmd, seq_file)
-                    log(cmd)
+                    # log
                     subprocess.check_call(["/bin/bash", "-c", cmd])
 
                 elif input_file_format == FORMAT_FASTA:
                     cmd = "%s %s" % (hmmsearch_cmd, seq_file)
-                    log(cmd)
+                    # log
                     subprocess.check_call(["/bin/bash", "-c", cmd])
 
             else:
-                message('ERROR: Programming error')
+                Messenger().message('ERROR: Programming error')
                 exit(1)
 
 
         else:
-            message('ERROR: Suffix on %s not recegnised\n' % (seq_file))
+            Messenger().message('ERROR: Suffix on %s not recegnised\n' % (seq_file))
             exit(1)
         del suffix[0]
 
     return table_title_list
 
 # run pynast
-def pynast(output_alignment, gg_db_path, input_sequences):
+def pynast(base, output_alignment, gg_db_path, input_sequences):
     
     cmd = 'pynast -l 0 -i %s -t %s -a %s' % (input_sequences, gg_db_path, output_alignment)
-    log(cmd)
+    # log
     subprocess.check_call(cmd, shell=True)
     
-    n_failed_pynast = len(list(SeqIO.parse(open("%s_euk_free_pynast_fail.fasta" % Gfiles.base() , 'r'), 'fasta')))
+    n_failed_pynast = len(list(SeqIO.parse(open("%s_euk_free_pynast_fail.fasta" % base , 'r'), 'fasta')))
     
     return n_failed_pynast
     
 # run pplacer
-def pplacer(refpkg, ts_file):
+def pplacer(refpkg, ts_file, jplace_output, threads, base_list):
 
-    if len(list(SeqIO.parse(open(ts_file, 'r'), 'fasta'))) == 0:
-       message("%s is empty, no sequences to graft!" % ts_file)
-       exit(1)
+    cmd = "pplacer -j %s --verbosity 0 -c %s %s" % (threads, refpkg, ts_file)
+    # log
+    subprocess.check_call(cmd, shell=True)
+    
+    for base in base_list:
+        dest = '%s/%s_%s' % (base, base, jplace_output)
+        jplace_old = base + '.aln.jplace'
+        shutil.move(jplace_old, dest)
 
-
-    else:
-        cmd = "pplacer -j %s --verbosity 0 -c %s %s" % (args.threads, refpkg, ts_file)
-        log(cmd)
-        subprocess.check_call(cmd, shell=True)
-
-        cmd = 'mv %s %s/%s' % (GraftMFiles(args.forward, '').jplace_output_path_old(), args.output_directory, GraftMFiles(args.forward, '').jplace_output_path())
-        subprocess.check_call(cmd, shell = True)
 
 # run guppy classify
-def guppy_class(rpkg, jplace_file):
-    
-    guppy_path = Gfiles.guppy_file_output_path()
-    placement_list = []
-    cmd = 'guppy classify -c ' + rpkg + ' ' + jplace_file + ' > ' + guppy_path
-    log(cmd)
-    subprocess.check_call(cmd, shell=True)
+def guppy_class(rpkg, jplace_file, guppy_path, base_list):
 
-    for placement in open(Gfiles.guppy_file_output_path(), 'r'):
-        
-        if 'desired_rank' not in placement:
-            
-            if placement.split()[0] not in placement_list:
-                placement_list.append(placement.split()[0])
+    placement_list = []
+    guppy_main = 'Graftm' + guppy_path
+    jplace_list = [x+'/'+x+'_placements.jplace' for x in base_list]
+
+    cmd = 'guppy classify -c ' + rpkg + ' ' + ' '.join(jplace_list) + ' > ' + guppy_main
+    # log
+    subprocess.check_call(cmd, shell=True)
     
-    return len(placement_list)
+    
+    # Split the guppy and distribute into ouput files
+    guppy = []
+    report = []
+    
+    for line in open(guppy_main, 'r'):
+        
+        if line.startswith('name'):
+            if len(guppy) == 0:
+                guppy.append(line)
+            
+            else:
+                out =  guppy[1].split()[5].replace('_placements', '')
+                r_num = 0
+                seen = []
+                for line in guppy:
+                    if not line.startswith('name'):
+
+                        seq_id = line.rstrip().split()[0]
+                        if seq_id not in seen:
+                            seen.append(seq_id)
+                            r_num += 1
+                
+                report.append('%s\t%s' % (out, r_num))     
+                out = out+'/'+out+'.guppy'
+                
+                with open(out, 'w') as out_guppy:
+                    for line in guppy:
+                        out_guppy.write(line)
+                
+                guppy = [] 
+                guppy.append(line)
+                        
+        else:
+            guppy.append(line)
+    
+    
+    # Write the last guppy file
+    
+    out =  guppy[1].split()[5].replace('_placements', '')
+    
+    r_num = 0
+    seen = []
+    for line in guppy:
+        if not line.startswith('name'):
+
+            seq_id = line.rstrip().split()[0]
+            if seq_id not in seen:
+                seen.append(seq_id)
+                r_num += 1
+                
+    report.append('%s\t%s' % (out, r_num))     
+
+    out = out+'/'+out+'.guppy'
+       
+    with open(out, 'w') as out_guppy:
+        for line in guppy:
+            out_guppy.write(line)
+       
+    
+    delete(['GraftM.guppy'])
+    
+    return report
     
 # delete
 def delete(delete_list):
-    
     for item in delete_list:
         try:
-            subprocess.check_call("rm %s 2> /dev/null" % item, shell=True)
+            os.remove(item)
+            
         except:
             pass
     
 # HMM aligning
-def hmmalign(hmm, sequencefile, evals):
+def hmmalign(hmm, sequencefile, evals, rev_true, sto_for_output_path, for_aln_path, conv_output_for_path, sto_rev_output_path, rev_aln_path, conv_output_rev_path, sto_output_path):
 
-    if args.dna_hmm_alignment:
+
+    # If there are reverse complement reads
+    if rev_true:
+        
         reverse = []
         forward = []
-    
+        
         records = list(SeqIO.parse(open(sequencefile), 'fasta'))
         
+        # Split the reads into reverse and forward lists
         for record in records:
-            
+                
             if evals[record.id][1] == '+':
                 forward.append(record)
-            
+                
             elif evals[record.id][1] == '-':
                 reverse.append(record)
-            
+                
             else:
-                message('Programming error: hmmalign')
+                Messenger().error_message('Programming error: hmmalign')
                 exit(1)
-        
-    
-        with open(Gfiles.for_aln_path(), 'w') as for_aln:
+            
+            
+        # Write reverse complement and forward reads to files
+        with open(for_aln_path, 'w') as for_aln:
             for record in forward:
                 for_aln.write('>'+record.id+'\n')
                 for_aln.write(str(record.seq)+'\n')
-                
-        with open(Gfiles.rev_aln_path(), 'w') as rev_aln:
+            
+        with open(rev_aln_path, 'w') as rev_aln:
             for record in reverse:
                 rev_aln.write('>'+record.id+'\n')
                 rev_aln.write(str(record.seq.reverse_complement())+'\n')
+            
+            
+        # HMMalign and convert to fasta format
+        cmd = 'hmmalign --trim -o %s %s %s 2>/dev/null; seqmagick convert %s %s  2>/dev/null' % (
+                                                                                                sto_for_output_path, 
+                                                                                                hmm, 
+                                                                                                for_aln_path, 
+                                                                                                sto_for_output_path, 
+                                                                                                conv_output_for_path
+                                                                                                    )
+        # log
+        subprocess.check_call(cmd, shell=True)
+            
+        cmd = 'hmmalign --trim -o %s %s %s 2>/dev/null; seqmagick convert %s %s  2>/dev/null' % (
+                                                                                                sto_rev_output_path, 
+                                                                                                hmm, 
+                                                                                                rev_aln_path, 
+                                                                                                sto_rev_output_path, 
+                                                                                                conv_output_rev_path
+                                                                                                )
+        # log
+        subprocess.check_call(cmd, shell=True)
         
+    # If there are only forward reads, just hmm
+    else:
+        cmd = 'hmmalign --trim -o %s %s %s ; seqmagick convert %s %s' % (
+                                                                        sto_output_path, 
+                                                                        hmm, 
+                                                                        sequencefile, 
+                                                                        sto_output_path, 
+                                                                        conv_output_for_path
+                                                                        )
+        # log
+        subprocess.check_call(cmd, shell=True)
         
-        hmmalign_cmd = 'hmmalign --trim -o %s %s %s 2>/dev/null; seqmagick convert %s %s  2>/dev/null' % (Gfiles.sto_for_output_path(), hmm, Gfiles.for_aln_path(), Gfiles.sto_for_output_path(), Gfiles.conv_output_for_path())
-        subprocess.check_call(hmmalign_cmd, shell=True)
-        
-        hmmalign_cmd = 'hmmalign --trim -o %s %s %s 2>/dev/null; seqmagick convert %s %s  2>/dev/null' % (Gfiles.sto_rev_output_path(), hmm, Gfiles.rev_aln_path(), Gfiles.sto_rev_output_path(), Gfiles.conv_output_rev_path())
-        subprocess.check_call(hmmalign_cmd, shell=True)
+    
+    
+    
 
         
-        
-        delete([Gfiles.for_aln_path(), Gfiles.rev_aln_path(), Gfiles.sto_for_output_path(), Gfiles.sto_rev_output_path()])
     
-    
-    
-    else:        
-        subprocess.check_call('hmmalign --trim -o ' + GraftMFiles(args.forward, args.output_directory).sto_output_path() +' '+ hmm + ' ' + sequencefile, shell=True)
-        subprocess.check_call('seqmagick convert ' + GraftMFiles(args.forward, args.output_directory).sto_output_path() +' '+ Gfiles.conv_output_for_path(), shell=True)
-        
-    
-def csv_to_titles(hmm_table_list, graftm_pipeline):
+def csv_to_titles(hmm_table_list, graftm_pipeline, readnames_output_path):
     '''process hmmsearch/nhmmer results into a list of matching reads/ORFs for D/P respectively, to *_readnames.txt
     '''
+    rev_true = False
     evals = {}
     titles_list = []
     reads_list = []
@@ -571,7 +968,10 @@ def csv_to_titles(hmm_table_list, graftm_pipeline):
             read_name = str(line.split()[0])
             e_value = line.split()[12]
             direction = line.split()[11]
-
+            
+            if direction == '-':
+                rev_true = True
+            
             if graftm_pipeline == 'D':
 
                 titles_list.append(read_name)
@@ -598,16 +998,16 @@ def csv_to_titles(hmm_table_list, graftm_pipeline):
         
         reads_list.append(titles_list)
         titles_list = []
-
-    if title_count == 0:  # Check if any reads were found
-        message('0 Reads found! Exiting')  # If not, throw a warning
-        exit(1)  # and exit
+    
+    # Check if there arereads, and exit if non are found
+    if title_count == 0:  
+        Messenger().message('0 Reads found! Exiting')
+        exit(0)  # and exit
 
 
          
-
+    
     if len(reads_list) == 2:
-
         for_r = set(reads_list[0])
 
         for read in reads_list[1]:
@@ -618,84 +1018,63 @@ def csv_to_titles(hmm_table_list, graftm_pipeline):
     elif len(reads_list) == 1:
         write_list = reads_list[0]
 
-    message('Found %s read(s) in %s' % (len(write_list), GraftMFiles(hmm_table_list[0] ,'').base())) 
+    Messenger().message('Found %s read(s) %s' % (len(write_list), hmm_table_list[0])) 
     
-    with open(Gfiles.readnames_output_path(), 'w') as output_file:
+    with open(readnames_output_path, 'w') as output_file:
 
         for name in write_list:
     
             output_file.write(name + '\n')
     
 
-    return evals, len(write_list)
+    return evals, len(write_list), rev_true
 
 
 
 # --- Creates a directory on bash command line
 
-def make_working_directory(directory_path):
-    
-    if args.force:
-        cmd = "rm -r %s 2>/dev/null; mkdir -p %s" % (directory_path, directory_path)
-        subprocess.check_call(cmd, shell = True)
+def make_working_directory(directory_path, force):
 
-    
+    if force:
+        shutil.rmtree(directory_path, ignore_errors=True)
+        os.mkdir(directory_path)
+   
     else:
-
         try:
-            cmd = "mkdir %s 2>/dev/null " % directory_path
-            subprocess.check_call(cmd, shell = True)
-    
+            os.mkdir(directory_path)
+                
         except:
-            message('Directory %s already exists. Exiting to prevent over-writing\n' % directory_path)
+            Messenger().message('Directory %s already exists. Exiting to prevent over-writing\n' % directory_path)
             exit(1)    
     
 # ---
 
-def extract_from_raw_reads(raw_seq_file, hmm, name_file, input_file_format, outdir):
+def extract_from_raw_reads(raw_seq_file, hmm, name_file, input_file_format, outdir, sequence_file_name, raw_orf_title, hmm_out_title, orf_titles_path, orf_hmm_out_title, dna_pipe):
     # Run fxtract to obtain reads form original sequence file
-    sequence_file_name = Gfiles.fna_output_path()  # Set the new output file name
-    fxtract_cmd = "fxtract -H -X -f %s " % GraftMFiles(raw_seq_file, outdir).readnames_output_path()
-
-
-
+    fxtract_cmd = "fxtract -H -X -f %s " % name_file
     if input_file_format == FORMAT_FASTA:
         cmd = fxtract_cmd + " " + raw_seq_file + " > " + sequence_file_name + ' '
-        log(cmd)
+        # log
         subprocess.check_call(cmd, shell=True)
-
     elif input_file_format == FORMAT_FASTQ_GZ:
         cmd = fxtract_cmd + raw_seq_file + " | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > " + sequence_file_name + " "
-        log(cmd)
+        # log
         subprocess.check_call(fxtract_cmd + raw_seq_file + " | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > " + sequence_file_name + " ", shell=True)
-
-
-
     else:
         raise Exception("Programming error")
 
-
-    alt_title_file_name = GraftMFiles(raw_seq_file, outdir).fna_fasta_output_path()
-    fasta_file_open = open(alt_title_file_name, 'w')
-
-    for sequence in list(SeqIO.parse(open(sequence_file_name, 'r'), 'fasta')):
-        SeqIO.write(sequence, fasta_file_open, "fasta")
-
-    fasta_file_open.close()
-
-    if args.type == 'D':  # Stop here if the pipeline is DNA
+    # Exit if in the dna pipeline
+    if dna_pipe:
         return
 
-    raw_orf_title = GraftMFiles(raw_seq_file, outdir).orf_output_path()
-    
-    cmd = 'orfm ' + alt_title_file_name + ' > ' + raw_orf_title
-    log(cmd)
+    # Call orfs on the sequences
+    cmd = 'orfm ' + sequence_file_name + ' > ' + raw_orf_title
+    # log
     subprocess.check_call(cmd, shell=True)
 
-    hmm_out_title = GraftMFiles(raw_seq_file, outdir).orf_hmmsearch_output_path()
-    
+    # Search for the correct reading fram
     cmd = "hmmsearch -o /dev/null --tblout " + hmm_out_title + " " + hmm + " " + raw_orf_title
-    log(cmd)
+    # log
     subprocess.check_call(cmd, shell=True)
 
     raw_titles = []
@@ -708,36 +1087,35 @@ def extract_from_raw_reads(raw_seq_file, hmm, name_file, input_file_format, outd
         split = line.split(' ', 1)
         raw_titles.append(split[0])
 
-    file_name = GraftMFiles(raw_seq_file, outdir).orf_titles_output_path()
+     
 
-    title_file_open = open(file_name, 'w')
+    title_file_open = open(orf_titles_path, 'w')
 
     for title in raw_titles:
         title_file_open.write(str(title) + '\n')
 
     title_file_open.close()
-    hmm_out_title = GraftMFiles(raw_seq_file, outdir).orf_fasta_output_path()
-    cmd = 'fxtract -H -X -f ' + file_name + ' ' + raw_orf_title + ' > ' + hmm_out_title
-    log(cmd)
+    cmd = 'fxtract -H -X -f ' + orf_titles_path + ' ' + raw_orf_title + ' > ' + orf_hmm_out_title
+    # log
     subprocess.check_call(cmd, shell=True)
 
 
 
 # --- Builds the final otu table
 
-def otu_builder(gup_file, output):
+def otu_builder(gup_file, output, cutoff, header):
     d = {}
     classifications = []
     placed = []
     otu_id = 0
-    output_table = ['#ID\t'+GraftMFiles(args.forward, '').base()+'\tConsensusLineage']
+    output_table = ['#ID\t'+header+'\tConsensusLineage']
     unique_list = []
 
 
     for line in open(gup_file, 'r'):
         list = line.split()
 
-        if list[0] != 'name' and list[1] == list[2] and float(list[len(list)-2]) > float(args.placements_cutoff):
+        if list[0] != 'name' and list[1] == list[2] and float(list[len(list)-2]) > float(cutoff):
 
             if list[0] not in d:
                 d[list[0]] = []
@@ -773,45 +1151,7 @@ def otu_builder(gup_file, output):
             else:
                 otu_table.write('\t'.join(line)+'\n')
 
-
-def parameter_checks(args):
-    # --- Check parameters are in sensible land
-    
-    # Create the working directory
-    make_working_directory(args.output_directory)
-    
-    if hasattr(args, 'reference_package') and args.dna_hmm_alignment is not True:
-        
-        try:
-            args.GG_database
-
-        except AttributeError:
-            message('A green genes file is required to be aligned to')
-            exit(1)
-            
-            
-            
-            
-    # Check that the placement cutoff is between 0.5 and 1
-    if float(args.placements_cutoff) < float(0.5) or float(args.placements_cutoff) > float(1.0):
-        message('Please specify a confidence level (-d) between 0.5 and 1.0! Found: %s' % args.placements_cutoff)
-        exit(1)
-
-    # Set string for hmmsearch evalue
-    args.eval = '-E %s' % args.eval
-
-    # Determine the File format based on the suffix
-    input_file_format = guess_sequence_input_file_format(args.forward)
-        
-    try:
-        sequence_file_list = [args.forward, args.reverse]
-        
-    except AttributeError:
-        sequence_file_list = [args.forward]
-        
-    return sequence_file_list, input_file_format
-
-def coverage_of_hmm(hmm, count_table, coverage_table):
+def coverage_of_hmm(hmm, count_table, coverage_table, avg_read_length):
     
     for line in open(hmm):
         
@@ -824,9 +1164,10 @@ def coverage_of_hmm(hmm, count_table, coverage_table):
                 
                 if line.startswith('#'):
                     continue
-                    
+                
                 splt = line.split()
-                cov = str(round(float(splt[1]) / float(length), 3))
+
+                cov = str(round((float(splt[1])*float(avg_read_length)) / float(length), 3))
                     
                 write.append("%s\t%s\t%s\n" % (
                                 splt[0],
@@ -836,41 +1177,92 @@ def coverage_of_hmm(hmm, count_table, coverage_table):
         
         for entry in write:
             ct.write(entry)
+            
+def parameter_checks(args):
+    # --- Check parameters are in sensible land
+    # Check that the necessary files are in place
+    if hasattr(args, 'hmm_file') and not hasattr(args, 'reference_package'):
+        Messenger().message('\nA reference package needs to be specified\n')
+        exit(1)
+    
+    
+    elif hasattr(args, 'reference_package') and not hasattr(args, 'hmm_file'):
+        Messenger().message('A HMM file needs to be specified\n')
+        exit(1)
+    
         
+    if args.pynast_alignment is True and not hasattr(args, 'GG_database'):
+        Messenger().message('When using pynast alignments, an aligned file must be specifies using --GG_database')
+        exit(1)
+            
+            
+            
+    # Check that the placement cutoff is between 0.5 and 1
+    if float(args.placements_cutoff) < float(0.5) or float(args.placements_cutoff) > float(1.0):
+        Messenger().message('Please specify a confidence level (-d) between 0.5 and 1.0! Found: %s' % args.placements_cutoff)
+        exit(1)
+
+    # Set string for hmmsearch evalue
+    args.eval = '-E %s' % args.eval
+
+    # Determine the File format based on the suffix
+    input_file_format = guess_sequence_input_file_format(args.forward)
+    
+    # Make array of sequences
+
+    sequence_file_list = []
+
+    if hasattr(args, 'reverse'):
+        fors = args.forward.split(',')
+        revs = args.reverse.split(',')
+        
+        for i in range(0, len(fors)):
+            sequence_file_list.append([fors[i], revs[i]])
+        
+    elif not hasattr(args, 'reverse'):
+        for f in args.forward.split(','):
+            f = [f]
+            sequence_file_list.append(f)
+            
+    else:
+        Messenger().error_message('Confusing input. Did you specify the same amount of reverse and forward read files?')
+    
+        
+    return sequence_file_list, input_file_format
+
+def reset_outdir(args, base):
+    
+    # reset working directory
+    setattr(args, 'output_directory', base) 
+    
+    # create the directory
+    make_working_directory(args.output_directory, args.force)
+    
 
                     
             
-def set_attributes(args):
+def set_attributes(args, base):  
     
-    try:
-    
-        if hasattr(args, 'hmm_file'):
-            pass
-        
-        else:
+    # Read graftM packagea and assign HMM and refpkg file
+       
+    if hasattr(args, 'graftm_package'):
             
-            for item in os.listdir(args.graftm_package):
-                
-                if '.hmm' in item:
-                    setattr(args, 'hmm_file', os.path.join(args.graftm_package, item))
-        
         for item in os.listdir(args.graftm_package):
-            if 'refpkg' in item:
-                refpkg = os.path.join(args.graftm_package, item)
                 
-                for i in os.listdir(refpkg):
-                    if '.aln.fasta' in i:
-                        db = os.path.join(refpkg, i)
-                
-                setattr(args, 'GG_database', db)
-                setattr(args, 'reference_package', refpkg)
-    except:
-        message('ERROR: %s is empty or misformatted.' % args.graftm_package)
+            if item.endswith('.hmm'):
+                setattr(args, 'hmm_file', os.path.join(args.graftm_package, item))
+                    
+            elif item.endswith('.refpkg'):
+                setattr(args, 'reference_package', os.path.join(args.graftm_package, item))
+        
+        
+    if not hasattr(args, 'reference_package') or not hasattr(args, 'hmm_file'):
+        Messenger().message('ERROR: %s is empty or misformatted.' % args.graftm_package)
+        exit(1)
+
         
         
 def main(args):
-    
-    start_all = timeit.default_timer()
     print '''
        #######################################
        ## graftM  %s                     ##
@@ -886,202 +1278,55 @@ def main(args):
   - _-  -         -             |      ______
      - _                        |_____|
    -                                  |______
-
 ''' % __version__
         
-    # Prepping - checking all necessary parameters are present, checking formats, making working directories
-    message(date)
+    # Prepping - checking all necessary parameters are present, 
+    # checking formats, making working directories
+
+    set_attributes(args, GraftMFiles(args.forward, '').base())    
+    sequence_pair_list, input_file_format = parameter_checks(args)
+    placement_list = []
+    base_list = []
     
-    sequence_file_list, input_file_format = parameter_checks(args)
-    
-    if hasattr(args, 'graftm_package'):
-        set_attributes(args)
-    
+    for pair in sequence_pair_list:       
+         
+        base = pair[0].split('.')[0]
+        reset_outdir(args, base)
+        print "\nWorking on %s" % base
 
-    # Choose pipeline
-    if args.type == 'P':  
-    
-    
-        # Search for reads
-        message('Searching %s using %s' % (args.forward, args.hmm_file))
-        start = timeit.default_timer()
-        hmm_search_output = hmmsearch(args.hmm_file, sequence_file_list, input_file_format, args.type)
-        stop = timeit.default_timer()
-        search_t = str(int(round((stop - start), 0)) )
+        # Protein pipeline
+        if args.type == 'P':
+            placement_file, start_all, n_total_reads, n_contamin_euks, n_uniq_euks, search_t, extract_t, euk_check_t, aln_t = Run(args, pair, input_file_format, GraftMFiles(base, args.output_directory)).protein_pipeline()
         
+        # DNA pipeline
+        elif args.type == 'D':
+            placement_file, start_all, n_total_reads, n_contamin_euks, n_uniq_euks, search_t, extract_t, euk_check_t, aln_t = Run(args, pair, input_file_format, GraftMFiles(base, args.output_directory)).dna_pipeline()
         
-        # Interpret the results of the hmmsearch output
-        message('Reading results')
-        evals, n_total_reads = csv_to_titles(hmm_search_output, args.type)
-        
-        
-        # Extract the hists from the original file
-        message('Extracting reads')
-        start = timeit.default_timer()
-        extract_from_raw_reads(args.forward, args.hmm_file, Gfiles.readnames_output_path(), input_file_format, args.output_directory)  # And extract from the original file
-        stop = timeit.default_timer()
-        extract_t = str(int(round((stop - start), 0)) )
-        
-        
-        # Align the reads
-        message('Aligning reads to reference package database')
-        start = timeit.default_timer()
-        hmmalign(args.hmm_file, Gfiles.orf_fasta_output_path(), evals)  # And align
-        alignment_correcter([Gfiles.conv_output_for_path(), Gfiles.conv_output_rev_path()],  Gfiles.aligned_fasta_output_path())  # And fix up the alignment file by removing the insertions
-        stop = timeit.default_timer()
-        aln_t = str(int(round((stop - start), 0)) )
-        
-        
-        if args.skip_placement:
-            message('Stopping at alignment\n')
-            delete([Gfiles.fna_fasta_output_path(), Gfiles.conv_output_rev_path(), Gfiles.conv_output_for_path(), Gfiles.readnames_output_path(), Gfiles.forward_read_hmmsearch_output_path(), Gfiles.orf_titles_output_path(), Gfiles.orf_output_path(), Gfiles.conv_output_for_path(), Gfiles.reverse_read_hmmsearch_output_path(), Gfiles.conv_output_rev_path(), Gfiles.sto_output_path(), Gfiles.orf_hmmsearch_output_path() ])
-
-            exit(1)
-
-        # Place in tree
-        message('Grafting reads into reference package tree')
-        start = timeit.default_timer()
-        pplacer(args.reference_package, Gfiles.aligned_fasta_output_path())
-        stop = timeit.default_timer()
-        place_t = str(int(round((stop - start), 0)) )
-        
-        
-        # Create Guppy File
-        message('Creating Guppy file')
-        start = timeit.default_timer()
-        n_placements = guppy_class(args.reference_package, Gfiles.jplace_output_path())
-        
-        
-        # Generate Summary Table
-        message('Building summary table')
-        otu_builder(Gfiles.guppy_file_output_path(), Gfiles.summary_table_output_path())
-        
-        
-        # Generate coverage table
-        message('Building coverage table')
-        coverage_of_hmm(args.hmm_file, Gfiles.summary_table_output_path() , Gfiles.coverage_table_path())
-        stop = timeit.default_timer()
-        summary_t = str(int(round((stop - start), 0)) )
-        
-        
-        # Compile basic run statistics
-        stop_all = timeit.default_timer()
-        all_t = str(int(round((stop_all - start_all), 0)) )
-        euk_check_t = 'N/A'
-        n_contamin_euks = 'N/A'
-        n_uniq_euks = 'N/A'
-        message('Compiling statistics')
-        build_basic_statistics(n_total_reads, n_contamin_euks, n_placements, n_uniq_euks, all_t, search_t, extract_t, euk_check_t, summary_t, aln_t, place_t)
-        
-        
-        # Delete unncessary files
-        message('Cleaning up')
-        delete([Gfiles.fna_fasta_output_path(), Gfiles.conv_output_rev_path(), Gfiles.conv_output_for_path(), Gfiles.readnames_output_path(), Gfiles.forward_read_hmmsearch_output_path(), Gfiles.orf_titles_output_path(), Gfiles.orf_output_path(), Gfiles.conv_output_for_path(), Gfiles.reverse_read_hmmsearch_output_path(), Gfiles.conv_output_rev_path(), Gfiles.sto_output_path(), Gfiles.orf_hmmsearch_output_path() ])
-
-
-
-    elif args.type == 'D':
-        
-        
-        # Search for reads
-        message('Searching %s using %s' % (args.forward, args.hmm_file))
-        start = timeit.default_timer()
-        hmm_search_output = nhmmer(args.hmm_file, sequence_file_list, input_file_format)
-        stop = timeit.default_timer()
-        search_t = str(int(round((stop - start), 0)) )
-        
-        
-        # Interpret the results of the nhmmer output
-        message('Reading results')
-        evals, n_total_reads = csv_to_titles(hmm_search_output, args.type)
-        
-        
-        # Extract the hists from the original file
-        message('Extracting reads')
-        start = timeit.default_timer()
-        extract_from_raw_reads(args.forward, args.hmm_file, Gfiles.readnames_output_path(), input_file_format, args.output_directory)
-        stop = timeit.default_timer()
-        extract_t = str(int(round((stop - start), 0)) )
-        
-        
-        # Check for Eukarytoic contamination
-        message("Checking for Eukaryotic contamination")
-        start = timeit.default_timer()
-        n_contamin_euks, n_uniq_euks = check_euk_contamination(Gfiles.fna_output_path(), evals, check_read_length(Gfiles.fna_output_path()), input_file_format)
-        stop = timeit.default_timer()
-        euk_check_t = str(int(round((stop - start), 0)) )
-        
-                
-        # Align the reads
-        message('Aligning reads to reference package database')
-        start = timeit.default_timer()
-        
-        if args.dna_hmm_alignment:
-            hmmalign(args.hmm_file, Gfiles.euk_free_path(), evals)
-            alignment_correcter([Gfiles.conv_output_for_path(), Gfiles.conv_output_rev_path()], Gfiles.aligned_fasta_output_path())
-        
-        else:
-            n_failed_pynast = pynast(Gfiles.aligned_fasta_output_path(), args.GG_database, Gfiles.euk_free_path())
-        
-        stop = timeit.default_timer()
-        aln_t = str(int(round((stop - start), 0)) )
-        
-        
-        # Check that there is a reference package to place in. If not, exit.     
-        if args.skip_placement:
-            message('Stopping at alignment\n')
-            delete([Gfiles.conv_output_rev_path(), Gfiles.conv_output_for_path(), Gfiles.euk_free_path(), Gfiles.euk_contam_path(), Gfiles.fna_fasta_output_path(), Gfiles.readnames_output_path(), Gfiles.forward_read_hmmsearch_output_path(), args.output_directory+'/*pynast*'])
-            exit(1)
-        
-        # Place in tree
-        message('Grafting reads into reference package tree')
-        start = timeit.default_timer()
-        pplacer(args.reference_package, Gfiles.aligned_fasta_output_path())
-        stop = timeit.default_timer()
-        place_t = str(int(round((stop - start), 0)) )
-        
-        
-        # Create Guppy File
-        message('Creating Guppy file')
-        start = timeit.default_timer()
-        n_placements = guppy_class(args.reference_package, Gfiles.jplace_output_path())
-        
-        
-        # Generate Summary Table
-        message('Building summary table')
-        otu_builder(Gfiles.guppy_file_output_path(), Gfiles.summary_table_output_path())
-        
-        
-        # Generate coverage table
-        message('Building coverage table')
-        coverage_of_hmm(args.hmm_file, Gfiles.summary_table_output_path() , Gfiles.coverage_table_path())
-        stop = timeit.default_timer()
-        summary_t = str(int(round((stop - start), 0)) )       
-        
-        
-        # Compile basic run statistics
-        stop_all = timeit.default_timer()
-        all_t = str(int(round((stop_all - start_all), 0)) )
-        message('Compiling statistics')
-        build_basic_statistics(n_total_reads, n_contamin_euks, n_placements, n_uniq_euks, all_t, search_t, extract_t, euk_check_t, summary_t, aln_t, place_t)
-        
-        
-        # Delete unncessary files
-        message('Cleaning up')
-        delete([Gfiles.conv_output_rev_path(), Gfiles.conv_output_for_path(), Gfiles.euk_free_path(), Gfiles.euk_contam_path(), Gfiles.fna_fasta_output_path(), Gfiles.readnames_output_path(), Gfiles.forward_read_hmmsearch_output_path(), args.output_directory+'/*pynast*'])
-        
-
-    else:
-        raise Exception("Programming error")
-    
-
-    message('Done, thanks for using graftM!\n')
+        placement_list.append(placement_file)
+        base_list.append(base)
+    print "\nGrafting..."
+    Run(
+        args, 
+        pair, 
+        input_file_format, 
+        GraftMFiles(base, args.output_directory)).placement(
+                                                        ' '.join(placement_list),
+                                                        base_list,
+                                                        start_all, 
+                                                        n_total_reads, 
+                                                        n_contamin_euks, 
+                                                        n_uniq_euks, 
+                                                        search_t, 
+                                                        extract_t, 
+                                                        euk_check_t, 
+                                                        aln_t
+                                                            )
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='''--- graftM %s --- Searches reads for genes using hmms, and places them into a tree with pplacer to classify them phylogenetically.''' % __version__
                                 , epilog='Joel Boyd, Ben Woodcroft')
-    parser.add_argument('--forward', metavar='forward read (or single read file)', type=str, help='Forward raw sequence file in .fa, or .fq.gz format.', required=True)
+    parser.add_argument('--forward', metavar='forward read (or single read file)', type=str, help='comma separated list of forward reads .fa, or .fq.gz format.', required=True)
     parser.add_argument('--reverse', metavar='reverse read', type=str, help='[do NOT use unless you understand the difficulties with this] Optional reverse raw sequence file in .fa, or .fq.gz format.', default=argparse.SUPPRESS)
     parser.add_argument('--type', metavar='P or D', type=str, help='dna (like 16S) or prot (like mcrA)', choices=['P', 'D'], required=True)
     parser.add_argument('--eval', metavar='evalue', type=str, help='evalue cutoff for the hmmsearch (default = 1e-5)', default= '1e-5')
@@ -1089,34 +1334,17 @@ if __name__ == '__main__':
     parser.add_argument('--placements_cutoff', metavar='confidence', type=str, help='Cutoff of placement confidence level (0.5 - 1), default = 0.75', default=0.75)
     parser.add_argument('--graftm_package', metavar='reference_package', type=str, help='Reference package of gene family', default=argparse.SUPPRESS)
     parser.add_argument('--force', action="store_true", help='Force overwrite the output directory, even if one already exists with the same name', default=False)
-    parser.add_argument('--dna_hmm_alignment', action="store_true", help='Use hmmalign to align dna sequences.', default=False)
+    parser.add_argument('--pynast_alignment', action="store_true", help='Use hmmalign to align dna sequences.', default=False)
     parser.add_argument('--skip_placement', action="store_true", help='Stop after reads have been identified and aligned', default=False)
     parser.add_argument('--check_total_euks', action="store_true", help='Search whole sample for euks', default=False)
     parser.add_argument('--hmm_file', type=str, help='HMM file that hmmsearch uses', default=argparse.SUPPRESS)
+    parser.add_argument('--GG_database', type=str, help='A green genes database, if pynast alignment is used', default=argparse.SUPPRESS)
     parser.add_argument('--reference_package', type=str, help='Reference package that pplacer uses', default=argparse.SUPPRESS)
     parser.add_argument('--output_directory', metavar='output directory', type=str, help='Specify an output directory (default is the file name) If you are looking for more than one marker gene in the same directory, you will definitely need this flag to avoid clobbering.', default=argparse.SUPPRESS)
     parser.add_argument('--version', action='version', version='graftM v%s' % __version__)
     
-    
     args = parser.parse_args()
-
-    # Check if an output directory has been specified. If not, just make it the base name
-    if hasattr(args, 'output_directory'):
-        pass
-
-    else:
-        setattr(args, 'output_directory', GraftMFiles(args.forward, '').base())           
-    
-    if hasattr(args, 'hmm_file') and not hasattr(args, 'reference_package'):
-        message('\nA reference package needs to be specified\n')
-        exit(1)
-    
-    if hasattr(args, 'reference_package') and not hasattr(args, 'hmm_file'):
-        message('A HMM file needs to be specified\n')
-        exit(1)
-    
-    Gfiles = GraftMFiles(args.forward, args.output_directory)
-    
+              
     main(args)
 
     exit(1)

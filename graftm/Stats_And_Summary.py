@@ -7,12 +7,16 @@ from Bio import SeqIO
 
 class Stats_And_Summary:
 
-    def check_read_length(self, reads):
+    def check_read_length(self, reads, pipe):
         lengths = []
         
+            
         for record in list(SeqIO.parse(open(reads, 'r'), 'fasta')):
             lengths.append(len(record.seq))
-        return sum(lengths) / float(len(lengths))
+        if pipe == "P":
+            return (sum(lengths) / float(len(lengths)))/3
+        elif pipe =="D":
+            return sum(lengths) / float(len(lengths))
 
 
     def coverage_of_hmm(self, hmm, count_table, coverage_table, avg_read_length):
@@ -43,8 +47,8 @@ class Stats_And_Summary:
                 ct.write(entry)
             
 
-    def build_basic_statistics(self, summary_hash, base_list, output_directory):
-        sep = '\t\t\t'
+    def build_basic_statistics(self, summary_hash, base_list, output, pipe):
+        sep = '\t'
         S16= []
         S18 = []
         cont_18S = []
@@ -55,67 +59,64 @@ class Stats_And_Summary:
         euk_check_t = []
         tree_i_t = summary_hash['place_t']
         summary_t = summary_hash['summary_t']
-        all_t = str(summary_hash['stop_all'] - summary_hash['start_all'])
+        all_t = str(round(summary_hash['stop_all'] - summary_hash['start_all'], 2))
         base_titles = '\t'.join(base_list)
         
         for base in base_list:
             h = summary_hash[base]
+            if pipe == "P":
+                S16.append(str(h['n_total_reads']))
+                S18.append('N/A')
+                cont_18S.append('N/A')
+            elif pipe == "D":
+                S16.append(str(h['n_total_reads'] - h['n_contamin_euks']))
+                S18.append(str(h['n_uniq_euks']))
+                cont_18S.append(str(h['n_contamin_euks']))
             
-            S16.append(str(h['n_total_reads'] - h['n_contamin_euks']))
-            S18.append(str(h['n_uniq_euks']))
-            cont_18S.append(str(h['n_contamin_euks']))
             n_placed.append(str(h['reads_found']))
             search_s.append(str(h['search_t']))
             extract_t.append(str(h['extract_t']))
             aln_t.append(str(h['extract_t']))
             euk_check_t.append(str(h['euk_check_t']))
         
-        
-        
-        
+
+
         stats = """Basic run statistics (count):
-    
-                                                %s
-        Total number of 16S reads detected:     %s
-        Total number of 18S reads detected:     %s  
+
+                             Files:\t%s
+Total number of 16S reads detected:\t%s
+Total number of 18S reads detected:\t%s  
+    'Contaminant' eukaryotic reads:\t%s
+Number of 16S reads placed in tree:\t%s
         
-        
-    Placement statistics (count):
-    
-                                                %s
-            'Contaminant' eukaryotic reads:     %s
-        Number of 16S reads placed in tree:     %s
-        
-        
-    Runtime (seconds):
-                                                %s
-                               Search step:     %s
-                              Extract step:     %s
-                            Alignment step:     %s
-                      Eukaryote check step:     %s
-        
-                       Tree insertion step:     %s
-                         Summarising steps:     %s
-                             Total runtime:     %s
+Runtime (seconds):
+                             Files:\t%s
+                       Search step:\t%s
+                      Extract step:\t%s
+                    Alignment step:\t%s
+              Eukaryote check step:\t%s
+
+               Tree insertion step:\t%s
+                 Summarising steps:\t%s
+                     Total runtime:\t%s
     """ % (
-            base_titles,
-            sep.join(S16),
-            sep.join(S18),
-            base_titles,
-            sep.join(cont_18S),
-            sep.join(n_placed),
-            base_titles,
-            sep.join(search_s),
-            sep.join(extract_t),
-            sep.join(aln_t),
-            sep.join(euk_check_t),
-            tree_i_t,
-            summary_t,
-            all_t
-           )
-        
-        with open(output_directory, 'w') as stats_file:
+                base_titles,
+                sep.join(S16),
+                sep.join(S18),
+                sep.join(cont_18S),
+                sep.join(n_placed),
+                base_titles,
+                sep.join(search_s),
+                sep.join(extract_t),
+                sep.join(aln_t),
+                sep.join(euk_check_t),
+                tree_i_t,
+                summary_t,
+                all_t
+               )
+        with open(output, 'w') as stats_file:
             stats_file.write(stats)
+
         
     def otu_builder(self, gup_file, output, cutoff, header):
         d = {}

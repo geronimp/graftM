@@ -26,6 +26,9 @@ class GraftMFiles:
     def summary_table_output_path(self):
         return "_count_table.txt"
     
+    def krona_output_path(self):
+        return "_krona.html"
+    
     def aligned_fasta_output_path(self, out_path):
         return os.path.join(out_path, "%s_hits.aln.fa" % self.basename)
 
@@ -60,8 +63,8 @@ class GraftMFiles:
         return os.path.join(out_path, "%s_rev.hmmout.csv" % self.basename)
 
     def fa_output_path(self, out_path):
-        return os.path.join(out_path, "%s_hits.fa" % self.basename)
-
+        return os.path.join(out_path, "%s_hits.fa" % self.basename)     
+        
     def readnames_output_path(self, out_path):
         return os.path.join(out_path, "%s_readnames.txt" % self.basename)
 

@@ -14,4 +14,4 @@ class Messenger:
         print '\t%s  [%s]: == ERROR == %s' % (self.date, self.time, message)
         
     def header(self, message):
-        print '[%s]: %s' % (self.time, message)
+        print '\n[%s]: %s' % (self.time, message)

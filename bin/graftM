@@ -17,7 +17,7 @@ __license__ = "GPL3"
 __maintainer__ = "Joel Boyd, Ben Woodcroft"
 __email__ = "joel.boyd near uq.net.au, b.woodcroft near uq.edu.au"
 __status__ = "Development"
-__version__ = "0.3.5"
+__version__ = "0.4.0"
 
 from graftm.Run import Run
 import argparse

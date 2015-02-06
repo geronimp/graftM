@@ -17,18 +17,11 @@ from graftm.Stats_And_Summary import Stats_And_Summary
 from graftm.Alignment_Manager import Alignment_Manager
 from graftm.DatManip import DatManip
 from graftm.Pplacer import Pplacer
-import argparse
-try:
-    from Bio import SeqIO
-except ImportError:
-    print "Please install Biopython first"
-    exit(1)
-import subprocess
+from graftm.krona_from_community_profiles import KronaBuilder
+
 import timeit
 import tempfile
-import StringIO
 import os
-
 
 
 class Run:
@@ -43,7 +36,7 @@ class Run:
         self.sequence_pair_list, self.input_file_format = self.HK.parameter_checks(args)
         self.SAS = Stats_And_Summary()
         self.P = Pplacer(self.args.reference_package)
-        
+        self.KB = KronaBuilder()
         
     def protein_pipeline(self, base, summary_dict, sequence_file_list):
             run_stats = summary_dict[base]
@@ -99,7 +92,7 @@ class Run:
             
             
             self.H.hmmalign(base,
-                            self.GMF.fa_output_path(base),
+                            self.GMF.orf_fasta_output_path(base),
                             run_stats)
             
 
@@ -179,7 +172,7 @@ class Run:
                                                                           self.GMF.euk_contam_path(base), 
                                                                           self.GMF.fa_output_path(base), 
                                                                           run_stats['evals'], 
-                                                                          self.SAS.check_read_length(self.GMF.fa_output_path(base)), 
+                                                                          self.SAS.check_read_length(self.GMF.fa_output_path(base), "D"), 
                                                                           self.input_file_format, 
                                                                           self.args.threads, 
                                                                           self.args.eval,
@@ -270,13 +263,18 @@ class Run:
                                      self.args.placements_cutoff,
                                      base)
             
-            
+                
                 # Generate coverage table
                 Messenger().message('Building coverage table for %s' % base)
                 self.SAS.coverage_of_hmm(self.args.hmm_file, 
                                         base_path_list[idx] + self.GMF.summary_table_output_path(), 
                                         base_path_list[idx] + self.GMF.coverage_table_path(), 
-                                        self.SAS.check_read_length(self.GMF.fa_output_path(base)))
+                                        self.SAS.check_read_length(self.GMF.fa_output_path(base), self.args.type))
+                
+                Messenger().message('Building krona for %s' % base)
+                self.KB.otuTablePathListToKrona(base_path_list[idx] + self.GMF.summary_table_output_path(), 
+                                                base_path_list[idx] + self.GMF.krona_output_path())
+            
             
             stop = timeit.default_timer()
             summary_dict['summary_t'] = str(int(round((stop - start), 0)) )
@@ -284,8 +282,10 @@ class Run:
             # Compile basic run statistics if they are wanted
             summary_dict['stop_all'] = timeit.default_timer()
             summary_dict['all_t'] = str(int(round((summary_dict['stop_all'] - summary_dict['start_all']), 0)) )
+            
             if hasattr(self.args, 'output_stats'):
-                self.SAS.build_basic_statistics(summary_dict, base_list, self.args.output_stats)
+                self.SAS.build_basic_statistics(summary_dict, base_list, self.args.output_stats, self.args.type)
+            
             
             # Delete unncessary files
             Messenger().message('Cleaning up')

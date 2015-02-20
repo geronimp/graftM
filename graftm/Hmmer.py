@@ -26,7 +26,7 @@ class Hmmer:
         # If there are reverse complement reads
         if summary_dict['rev_true']:
 
-
+            evals = summary_dict['evals']
 
             reverse = []
             forward = []

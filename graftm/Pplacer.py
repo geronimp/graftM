@@ -2,28 +2,29 @@
 import subprocess
 import shutil
 from graftm.HouseKeeping import HouseKeeping
+from graftm.DatManip import DatManip
 
 class Pplacer:
     
     def __init__(self, refpkg):
         self.refpkg = refpkg
         self.HK = HouseKeeping()
+        self.DM = DatManip()
     
-    # run pplacer
-    def pplacer(self, ts_file, threads, base_list):
-        cmd = "pplacer -j %s --verbosity 0 -c %s %s" % (threads, self.refpkg, ts_file)
+    # Run pplacer
+    def pplacer(self, ts_file, threads, base_list, GM_temp):
+        output_path=GM_temp+'/placements.jplace'
+        cmd = "pplacer -j %s --verbosity 0 -o %s -c %s %s" % (threads, output_path, self.refpkg, ts_file)
+    
         # log
         subprocess.check_call(cmd, shell=True)
-        
-        for src, dest in zip([x+'_hits.aln.jplace' for x in base_list], [x+'/'+x+'_placements.jplace' for x in base_list]):
-            shutil.move(src, dest)
-        
+
+        return output_path
     
-    # run guppy classify
-    def guppy_class(self, guppy_path, base_list, GM_temp):
+    # Run guppy classify
+    def guppy_class(self, guppy_path, jplace_list, GM_temp):
     
         guppy_main = GM_temp + 'Graftm' + guppy_path
-        jplace_list = [x+'/'+x+'_placements.jplace' for x in base_list]
     
         cmd = 'guppy classify -c %s %s > %s' % (self.refpkg, ' '.join(jplace_list), guppy_main)
         # log

@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from graftm.Messenger import Messenger
+
 import os
 import shutil 
 from graftm.Messenger import Messenger
@@ -40,7 +42,7 @@ class HouseKeeping:
                 os.mkdir(directory_path)
                     
             except:
-                Messenger().message('Directory %s already exists. Exiting to prevent over-writing\n' % directory_path)
+                Messenger().header('Directory %s already exists. Exiting to prevent over-writing\n' % directory_path)
                 exit(1)    
         
     def parameter_checks(self, args):

@@ -51,7 +51,7 @@ class HouseKeeping:
         if hasattr(args, 'hmm_file'):
             if not hasattr(args, 'graftm_package') and \
             not hasattr(args, 'reference_package') and\
-            not hasattr(args, 'search_only') and\
+            not hasattr(args, 'search_only') and \
             not hasattr(args, 'skip_placement'):
                 Messenger().message('When --hmm_file is specified, --graftm_package, --reference_package, --search_only or --skip_placement must be specified')
                 exit(1)

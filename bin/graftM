@@ -19,8 +19,16 @@ __email__ = "joel.boyd near uq.net.au, b.woodcroft near uq.edu.au"
 __status__ = "Development"
 __version__ = "0.4.0"
 
-from graftm.Run import Run
+import sys
+import os
 import argparse
+
+# import graftm from PYTHONPATH or default to relative directory
+try:
+    import graftm
+except ImportError:
+    sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),'..'))
+from graftm.Run import Run
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='''--- graftM %s --- Searches reads for genes using hmms, and places them into a tree with pplacer to classify them phylogenetically.''' % __version__

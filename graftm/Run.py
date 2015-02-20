@@ -34,8 +34,12 @@ class Run:
         self.H = Hmmer(self.args.hmm_file)
         self.sequence_pair_list, self.input_file_format = self.HK.parameter_checks(args)
         self.SAS = Stats_And_Summary()
-        self.P = Pplacer(self.args.reference_package)
-        self.KB = KronaBuilder()
+        try:
+            self.P = Pplacer(self.args.reference_package)
+            self.KB = KronaBuilder()
+        except AttributeError:
+            pass # this happens when only a hmm is specified
+        
         
     def protein_pipeline(self, base, summary_dict, sequence_file_list):
             run_stats = summary_dict[base]

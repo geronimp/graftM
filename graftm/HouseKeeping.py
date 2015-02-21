@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
+from graftm.Messenger import Messenger
+
 import os
 import shutil 
+from graftm.Messenger import Messenger
 
 # Constants - don't change them evar.
 FORMAT_FASTA = 'FORMAT_FASTA'
@@ -39,15 +42,19 @@ class HouseKeeping:
                 os.mkdir(directory_path)
                     
             except:
-                Messenger().message('Directory %s already exists. Exiting to prevent over-writing\n' % directory_path)
+                Messenger().header('Directory %s already exists. Exiting to prevent over-writing\n' % directory_path)
                 exit(1)    
         
     def parameter_checks(self, args):
         # --- Check parameters are in sensible land
         # Check that the necessary files are in place
-        if hasattr(args, 'hmm_file') and not hasattr(args, 'reference_package'):
-            Messenger().message('\nA reference package needs to be specified\n')
-            exit(1)
+        if hasattr(args, 'hmm_file'):
+            if not hasattr(args, 'graftm_package') and \
+            not hasattr(args, 'reference_package') and\
+            not hasattr(args, 'search_only') and \
+            not hasattr(args, 'skip_placement'):
+                Messenger().message('When --hmm_file is specified, --graftm_package, --reference_package, --search_only or --skip_placement must be specified')
+                exit(1)
         
         
         elif hasattr(args, 'reference_package') and not hasattr(args, 'hmm_file'):
@@ -98,6 +105,7 @@ class HouseKeeping:
     def set_attributes(self, args):  
         
         # Read graftM packagea and assign HMM and refpkg file
+
            
         if hasattr(args, 'graftm_package'):
                 
@@ -108,9 +116,5 @@ class HouseKeeping:
                         
                 elif item.endswith('.refpkg'):
                     setattr(args, 'reference_package', os.path.join(args.graftm_package, item))
-            
-            
-        if not hasattr(args, 'reference_package') or not hasattr(args, 'hmm_file'):
-            Messenger().message('ERROR: %s is empty or misformatted.' % args.graftm_package)
-            exit(1)
+
             

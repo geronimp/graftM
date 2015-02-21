@@ -7,7 +7,7 @@ __license__ = "GPL3"
 __maintainer__ = "Joel Boyd, Ben Woodcroft"
 __email__ = "joel.boyd near uq.net.au, b.woodcroft near uq.edu.au"
 __status__ = "Development"
-__version__ = "0.3.5"
+__version__ = "0.4.0"
 
 from graftm.Messenger import Messenger
 from graftm.GraftMFiles import GraftMFiles
@@ -23,7 +23,6 @@ import timeit
 import tempfile
 import os
 
-
 class Run:
     
     def __init__(self, args):
@@ -35,8 +34,12 @@ class Run:
         self.H = Hmmer(self.args.hmm_file)
         self.sequence_pair_list, self.input_file_format = self.HK.parameter_checks(args)
         self.SAS = Stats_And_Summary()
-        self.P = Pplacer(self.args.reference_package)
-        self.KB = KronaBuilder()
+        try:
+            self.P = Pplacer(self.args.reference_package)
+            self.KB = KronaBuilder()
+        except AttributeError:
+            pass # this happens when only a hmm is specified
+        
         
     def protein_pipeline(self, base, summary_dict, sequence_file_list):
             run_stats = summary_dict[base]
@@ -90,6 +93,10 @@ class Run:
             Messenger().message('Aligning reads to reference package database')
             start = timeit.default_timer()
             
+            if self.args.search_only:
+                Messenger().message('Stopping before alignment\n')
+                
+                exit(0)
             
             self.H.hmmalign(base,
                             self.GMF.orf_fasta_output_path(base),
@@ -183,6 +190,11 @@ class Run:
             Messenger().message('Aligning reads to reference package database')
             start = timeit.default_timer()
             
+            if self.args.search_only:
+                Messenger().message('Stopping before alignment\n')
+                
+                exit(0)
+            
             
             self.H.hmmalign(base,
                             self.GMF.euk_free_path(base),
@@ -214,40 +226,51 @@ class Run:
 
             # Check that there is a reference package to place in. If not, exit.     
             if self.args.skip_placement:
-                Messenger().message('Stopping at alignment\n')
-                self.HK.delete([self.GMF.for_aln_path(), 
-                                self.GMF.rev_aln_path(), 
-                                self.GMF.sto_for_output_path(), 
-                                self.GMF.sto_rev_output_path(), 
-                                self.GMF.conv_output_rev_path(), 
-                                self.GMF.conv_output_for_path(), 
-                                self.GMF.euk_free_path(), 
-                                self.GMF.euk_contam_path(), 
-                                self.GMF.readnames_output_path(), 
-                                self.GMF.forward_read_hmmsearch_output_path(), 
-                                self.GMF.sto_output_path(), 
-                                self.GMF.reverse_read_hmmsearch_output_path(),
-                                self.GMF.orf_titles_output_path(), 
-                                self.GMF.orf_hmmsearch_output_path()])
+                Messenger().message('Stopping before placement\n')
+                for base in base_list:
+                    self.GMF = GraftMFiles(base)
+                    self.HK.delete([self.GMF.for_aln_path(base), 
+                                    self.GMF.rev_aln_path(base), 
+                                    self.GMF.sto_for_output_path(base), 
+                                    self.GMF.sto_rev_output_path(base), 
+                                    self.GMF.conv_output_rev_path(base), 
+                                    self.GMF.conv_output_for_path(base), 
+                                    self.GMF.euk_free_path(base), 
+                                    self.GMF.euk_contam_path(base), 
+                                    self.GMF.readnames_output_path(base), 
+                                    self.GMF.forward_read_hmmsearch_output_path(base), 
+                                    self.GMF.sto_output_path(base), 
+                                    self.GMF.reverse_read_hmmsearch_output_path(base),
+                                    self.GMF.orf_titles_output_path(base), 
+                                    self.GMF.orf_hmmsearch_output_path(base),
+                                    self.GMF.orf_output_path(base)])
                 exit(0)
             
-
+            # Combine sequebces (4 Xtra zpeed)
+            Messenger().message("Combining alignments")
+            alias_hash = self.AM.name_changer(base_list,
+                                              self.GMF.comb_aln_fa(GM_temp))
+            
             # Place in tree
             Messenger().message('Placing reads into reference package tree')
             start = timeit.default_timer()
 
-            self.P.pplacer(aln_files,
-                           self.args.threads,
-                           base_list)
+            placements = self.P.pplacer(self.GMF.comb_aln_fa(GM_temp),
+                                        self.args.threads,
+                                        base_list,
+                                        GM_temp)
             
+           
             stop = timeit.default_timer()
             summary_dict['place_t'] = str( int(round((stop - start), 0)) )
+            
+            jplace_path_list = self.DM.jplace_split(placements, alias_hash)
             
             # Create Guppy File
             Messenger().message('Creating Guppy file')
             start = timeit.default_timer()
             n_placements = self.P.guppy_class(self.GMF.guppy_file_output_path(),
-                                              base_list,
+                                              jplace_path_list,
                                               GM_temp)
             
             for count in n_placements.keys():
@@ -334,19 +357,22 @@ class Run:
         
         summary_table = {'euks_checked': self.args.check_total_euks,
                          'base_list': [],
-                         'seqs_list': []
-                         }
+                         'seqs_list': [],
+                         'start_all': timeit.default_timer() }
     
         GM_temp = tempfile.mkdtemp(prefix='GM_temp_')
         
         
-        for pair in self.sequence_pair_list:       
+        for pair in self.sequence_pair_list:      
             base = os.path.basename(pair[0]).split('.')[0]
-            self.GMF = GraftMFiles(base)
-            self.HK.reset_outdir(self.args, base)
             summary_table[base] = {}
-            summary_table['start_all'] = timeit.default_timer()
             
+            # Reset default output directory
+            self.HK.reset_outdir(self.args, base)
+            
+            # Set file destinations
+            self.GMF = GraftMFiles(base)
+
             Messenger().header("Working on %s" % base)
             # Protein pipeline
             if self.args.type == 'P':
@@ -367,7 +393,7 @@ class Run:
             summary_table['seqs_list'].append(info[0])
             summary_table['base_list'].append(base)
     
-        Messenger().header("Aligning and Grafting...")
+        Messenger().header("Grafting")
 
         self.placement(' '.join(summary_table['seqs_list']),
                        summary_table['base_list'],

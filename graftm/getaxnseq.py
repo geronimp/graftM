@@ -51,16 +51,16 @@ class Tax_n_Seq_builder:
         for entry in open(taxonomy_file):
             # split the entire line including the  on '; '
             split = entry.rstrip().split('; ')
-
+            
             # split out the taxon ID from the first split of above
             taxon_id = split[0].split()[0]
             first_taxon = split[0].split()[1]
             tax_split = [first_taxon] + split[1:]
-
+            
             # Replace spaces with underscores e.g. 'Candidatus my_genus'
             for idx, item in enumerate(tax_split):
                 tax_split[idx] = re.sub('\s+', '_', item)
-
+            
             # Remove 'empty' taxononomies e.g. 's__'
             tax_split = [item for item in tax_split if item not in meaningless_taxonomic_names]
 
@@ -77,19 +77,15 @@ class Tax_n_Seq_builder:
         for j, array in enumerate(first_pass_id_and_taxonomies):
             taxonomy = array[1:]
 
-            if args.merge_genus:
+                
 
-                if len(taxonomy) == 7:
-                    taxonomy[-1] = taxonomy[-2].replace('g__','s__')+taxonomy[-1].replace('s__','_')
-
-
-
+            
             for i, tax in enumerate(taxonomy):
                 if i==0: continue #top levels don't have parents
                 ancestry = taxonomy[i-1]
                 if parents.has_key(tax):
                     if parents[tax] != ancestry:
-
+                        
                         dup = "%s%s" %(parents[tax], ancestry)
                         # don't report the same problem several times
                         if dup not in known_duplicates:
@@ -103,7 +99,7 @@ class Tax_n_Seq_builder:
                         while parents.has_key(new_name) and parents[new_name] != ancestry:
                             new_name_id += 1
                             new_name = "%se%s" % (tax, new_name_id)
-
+                        
                         first_pass_id_and_taxonomies[j][i+1] = new_name
                         taxonomy[i] = new_name
                         parents[new_name] = ancestry
@@ -130,25 +126,21 @@ class Tax_n_Seq_builder:
         # Write the taxonomy file
         noted_taxonomies = sets.Set([])
         with open(output_taxonomy, 'w') as seqout:
-
+            
             # write header and root line
             seqout.write('tax_id,parent_id,rank,tax_name,root,kingdom,phylum,class,order,family,genus,species\n')
             seqout.write('Root,Root,root,Root,Root,,,,,,,\n')
             # write all the taxonomies
             for array in first_pass_id_and_taxonomies:
                 taxons = array[1:]
+                
 
-                if args.merge_genus:
-
-                    if len(taxonomy) == 7:
-                        taxonomy[-1] = taxonomy[-2].replace('g__','s__')+taxonomy[-1].replace('s__','_')
-
+                    
                 for i, tax in enumerate(taxons):
                     line = self.taxonomy_line(i, taxons[:(i+1)])
-
+                    
                     if line not in noted_taxonomies:
                         seqout.write(line+"\n")
                         noted_taxonomies.add(line)
-
 
 

@@ -1,14 +1,46 @@
 #!/usr/bin/env python
-import re
 from graftm.Messenger import Messenger
-import subprocess
 
+import subprocess
+import re
+import json
 # Constants
 FORMAT_FASTA = 'FORMAT_FASTA'
 FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'
 
 class DatManip:
+    
+    def jplace_split(self, jplace_file, alias_hash):
+        placement_file = json.load(open(jplace_file))
+        jplace_path_list = []
+        
+        for placement in placement_file['placements']:
             
+            hash = {}
+            for alias in alias_hash:
+                hash = {'p': placement['p'],
+                        'nm': [nm for nm in placement['nm'] if nm[0].split('_')[-1] == alias]}
+                alias_hash[alias]['place'].append(hash)
+         
+                 
+        # Parse placements
+        for alias in alias_hash:
+
+            output = {'fields': placement_file['fields'],
+                      'version': placement_file['version'],
+                      'tree':  placement_file['tree'],
+                      'placements': alias_hash[alias]['place'],
+                      'metadata': placement_file['metadata']}
+            
+            base = alias_hash[alias]['filename'] + '/' + alias_hash[alias]['filename'] + '_placements.jplace'
+            
+            with open(base, 'w') as out:
+                json.dump(output, out, ensure_ascii=False)
+            jplace_path_list.append(base)
+        
+        return jplace_path_list
+
+    
     def csv_to_titles(self, hmm_table_list, graftm_pipeline, readnames_output_path, base):
         '''process hmmsearch/nhmmer results into a list of matching reads/ORFs for D/P respectively, to *_readnames.txt
         '''

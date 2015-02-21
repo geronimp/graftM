@@ -55,7 +55,10 @@ class GraftMFiles:
     
     def conv_output_path(self, out_path):
         return os.path.join(out_path, "%s_conv.faa" % self.basename)
-
+    
+    def comb_aln_fa(self, out_path):
+        return os.path.join(out_path, "%s_comb.aln.fa" % self.basename)
+    
     def conv_output_rev_path(self, out_path):
         return os.path.join(out_path, "%s_conv_rev.faa" % self.basename)
 

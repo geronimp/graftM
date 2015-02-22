@@ -26,7 +26,7 @@ class Hmmer:
         # If there are reverse complement reads
         if summary_dict['rev_true']:
 
-
+            evals = summary_dict['evals']
 
             reverse = []
             forward = []
@@ -168,7 +168,7 @@ class Hmmer:
         
         
         if check_total_euks:
-            nhmmer_cmd = "nhmmer --cpu %s %s --tblout %s /srv/db/graftm/0.1/HMM/Euk.hmm " % (threads, eval, out_table)
+            nhmmer_cmd = "nhmmer --cpu %s %s --tblout %s /srv/db/graftm/0/HMM/Euk.hmm " % (threads, eval, out_table)
             
             if input_file_format == FORMAT_FASTA:
                 cmd = nhmmer_cmd + raw_reads +' 2>&1 > /dev/null'
@@ -188,7 +188,7 @@ class Hmmer:
                 exit(1)
         
         else:    
-            cmd = "nhmmer --cpu %s %s --tblout %s /srv/db/graftm/0.1/HMM/Euk.hmm %s 2>&1 > /dev/null " % (threads, eval, out_table, reads)
+            cmd = "nhmmer --cpu %s %s --tblout %s /srv/db/graftm/0/HMM/Euk.hmm %s 2>&1 > /dev/null " % (threads, eval, out_table, reads)
             # log
             subprocess.check_call(cmd, shell = True)
         

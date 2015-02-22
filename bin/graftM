@@ -19,8 +19,16 @@ __email__ = "joel.boyd near uq.net.au, b.woodcroft near uq.edu.au"
 __status__ = "Development"
 __version__ = "0.4.0"
 
-from graftm.Run import Run
+import sys
+import os
 import argparse
+
+# import graftm from PYTHONPATH or default to relative directory
+try:
+    import graftm
+except ImportError:
+    sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),'..'))
+from graftm.Run import Run
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='''--- graftM %s --- Searches reads for genes using hmms, and places them into a tree with pplacer to classify them phylogenetically.''' % __version__
@@ -34,6 +42,7 @@ if __name__ == '__main__':
     parser.add_argument('--graftm_package', metavar='reference_package', type=str, help='Reference package of gene family', default=argparse.SUPPRESS)
     parser.add_argument('--force', action="store_true", help='Force overwrite the output directory, even if one already exists with the same name', default=False)
     parser.add_argument('--skip_placement', action="store_true", help='Stop after reads have been identified and aligned', default=False)
+    parser.add_argument('--search_only', action="store_true", help='Stop after reads have been identified', default=False)
     parser.add_argument('--check_total_euks', action="store_true", help='Search whole sample for euks', default=False)
     parser.add_argument('--hmm_file', type=str, help='HMM file that hmmsearch uses', default=argparse.SUPPRESS)
     parser.add_argument('--output_statistics', type=str, help='output simple runtime statistics into this file', default=argparse.SUPPRESS)

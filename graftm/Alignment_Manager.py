@@ -37,3 +37,26 @@ class Alignment_Manager:
             for fasta_id, fasta_seq in corrected_sequences.iteritems():
                 output_file.write(fasta_id)
                 output_file.write(fasta_seq)
+                
+    def name_changer(self, base_list, output_alignment_path):
+        
+        alignment_files = [base + '/' + base+'_hits.aln.fa' for base in base_list]
+        
+        alias_hash = {}
+        file_num = 0
+        with open(output_alignment_path, 'w') as out:
+            
+            for base, alignment_file in zip(base_list, alignment_files):
+                
+                alignments = list(SeqIO.parse(open(alignment_file, 'r'), 'fasta'))
+
+                for record in alignments:    
+                    record.id = record.id + '_' + str(file_num)
+                    description = ''
+                
+                SeqIO.write(alignments, out, "fasta")
+                alias_hash[str(file_num)] = {'filename': base,
+                                             'place': []}
+                file_num += 1 
+                
+        return alias_hash

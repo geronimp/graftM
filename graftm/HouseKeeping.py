@@ -1,15 +1,18 @@
 #!/usr/bin/env python
 
 from graftm.Messenger import Messenger
-
+import random
 import os
 import shutil 
 from test.test_MimeWriter import OUTPUT
 import IPython
-
+import tempfile
+import subprocess
 # Constants - don't change them evar.
 FORMAT_FASTA = 'FORMAT_FASTA'
 FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'
+
+
 
 class HouseKeeping:
     
@@ -68,6 +71,36 @@ class HouseKeeping:
     
         else:
             raise Exception("Unable to guess file format of sequence file: %s" % sequence_file_path)
+        
+    def guess_sequence_type(self, input_file, file_format):
+        
+        aas = set(['P','V','L','I','M','F','Y','W','H','K','R','Q','N','E','D','S'])
+        nas = set(['A', 'T', 'G', 'C'])
+        
+        if file_format == 'FORMAT_FASTQ_GZ':
+            filename = "/tmp/graftM_sample_"+str(random.randint(1, 100))+".fa"
+            #unzip, and head into tmp_file, read tmp file, and return sequence type
+            cmd = "head -n2 <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s 2> /dev/null) 2> /dev/null ) > %s " % (input_file, filename)
+            subprocess.check_call(["/bin/bash", "-c", cmd])
+            
+            input_file = filename
+
+        with open(input_file) as in_file:
+            head = [next(in_file).rstrip() for x in xrange(2)]
+            
+            for nucl in head[1][:10]:
+                
+                if nucl not in nas and nucl in aas:
+                    return 'protein'
+                
+                elif nucl not in nas and nucl not in aas:
+                    Messenger().error_message('Encounted unexpected character when attempting to guess sequence type: %s' % (nucl))
+                    exit(1)
+                
+                else:
+                    continue
+                
+            return 'nucleotide'
     
     def setpipe(self, hmm):
         t = [x.rstrip() for x in open(hmm, 'r').readlines() if x.startswith('ALPH')][0].split()[1]
@@ -77,7 +110,7 @@ class HouseKeeping:
         elif t == 'amino':
             return 'P'
         else:
-            print Messenger().error_message('Unrecognised HMM library. Not sure which pipeline to use.')
+            Messenger().error_message('Unrecognised HMM library. Not sure which pipeline to use.')
             exit(1)
     
     def delete(self, delete_list):

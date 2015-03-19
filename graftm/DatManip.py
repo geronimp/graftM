@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 from graftm.Messenger import Messenger
-
+import IPython
 import subprocess
 import re
 import json
+import shutil
 # Constants
 FORMAT_FASTA = 'FORMAT_FASTA'
 FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'
@@ -41,7 +42,7 @@ class DatManip:
         return jplace_path_list
 
     
-    def csv_to_titles(self, hmm_table_list, graftm_pipeline, readnames_output_path, base):
+    def csv_to_titles(self, hmm_table_list, graftm_pipeline, readnames_output_path, base, seq_type):
         '''process hmmsearch/nhmmer results into a list of matching reads/ORFs for D/P respectively, to *_readnames.txt
         '''
         rev_true = False
@@ -73,22 +74,26 @@ class DatManip:
                     titles_list.append(read_name)
                     evals[read_name] = [e_value, direction]
     
-    
+                
                 elif graftm_pipeline == 'P':
-                    # The original reads file contains sequences like
-                    # >eg and comment
-                    # where orfm gives orfs in the form of
-                    # >eg_1_2_3 and comment
-                    # The read_name here is the orfm style, we want to add to the titles_list
-                    # the original form
-                    regex_match = orfm_regex.match(read_name)
-    
-                    if regex_match is not None:
-                        titles_list.append(regex_match.groups(0)[0])
-    
-                    else:
-                        raise Exception("Unexpected form of ORF name found: %s" % read_name)
-    
+                    
+                    if seq_type == 'nucleotide':
+                        # The original reads file contains sequences like
+                        # >eg and comment
+                        # where orfm gives orfs in the form of
+                        # >eg_1_2_3 and comment
+                        # The read_name here is the orfm style, we want to add to the titles_list
+                        # the original form
+                        regex_match = orfm_regex.match(read_name)
+                        
+                        if regex_match is not None:
+                            titles_list.append(regex_match.groups(0)[0])
+        
+                        else:
+                            raise Exception("Unexpected form of ORF name found: %s" % read_name)
+                    
+                    elif seq_type == 'protein':
+                        titles_list.append(read_name)
                 else:
                     raise Exception("Programming error")
             
@@ -125,7 +130,7 @@ class DatManip:
     
         return evals, len(write_list), rev_true
     
-    def extract_from_raw_reads(self, raw_seq_file, hmm, name_file, input_file_format, outdir, sequence_file_name, raw_orf_title, hmm_out_title, orf_titles_path, orf_hmm_out_title, dna_pipe):
+    def extract_from_raw_reads(self, raw_seq_file, hmm, name_file, input_file_format, outdir, sequence_file_name, raw_orf_title, hmm_out_title, orf_titles_path, orf_out_path, dna_pipe, seq_type):
         # Run fxtract to obtain reads form original sequence file
         fxtract_cmd = "fxtract -H -X -f %s " % name_file
         if input_file_format == FORMAT_FASTA:
@@ -138,11 +143,13 @@ class DatManip:
             subprocess.check_call(fxtract_cmd + raw_seq_file + " | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > " + sequence_file_name + " ", shell=True)
         else:
             raise Exception("Programming error")
-    
+
         # Exit if in the dna pipeline
-        if dna_pipe:
+        if dna_pipe or seq_type == 'protein':
             return
-    
+        
+            
+            
         # Call orfs on the sequences
         cmd = 'orfm ' + sequence_file_name + ' > ' + raw_orf_title
         # log
@@ -171,7 +178,7 @@ class DatManip:
             title_file_open.write(str(title) + '\n')
     
         title_file_open.close()
-        cmd = 'fxtract -H -X -f ' + orf_titles_path + ' ' + raw_orf_title + ' > ' + orf_hmm_out_title
+        cmd = 'fxtract -H -X -f ' + orf_titles_path + ' ' + raw_orf_title + ' > ' + orf_out_path
         # log
         subprocess.check_call(cmd, shell=True)
      

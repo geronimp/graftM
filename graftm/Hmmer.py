@@ -8,6 +8,7 @@ import IPython
 FORMAT_FASTA = 'FORMAT_FASTA'
 FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'
 
+
 class Hmmer:
     
     def __init__(self, hmm):
@@ -101,13 +102,13 @@ class Hmmer:
     
             if input_file_format == FORMAT_FASTA or input_file_format == FORMAT_FASTQ_GZ:
     
-                if seq_type == 'P':
+                if seq_type == 'nucleotide':
                     cmd = 'orfm %s | %s /dev/stdin' % (seq_file, hmmsearch_cmd)
                     # log
                     subprocess.check_call(["/bin/bash", "-c", cmd])
                     
                 
-                elif seq_type == 'D':
+                elif seq_type == 'protein':
     
                     if input_file_format == FORMAT_FASTQ_GZ:
                         cmd = "%s <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s)) 2>&1 > /dev/null " % (hmmsearch_cmd, seq_file)
@@ -156,6 +157,7 @@ class Hmmer:
                 exit(1)
     
         return table_title_list
+    
     # Filter Search
     def filter_nhmmer(self, file_path, threads, hmm_hash):    
         suffix = [for_out_path, rev_out_path]
@@ -193,7 +195,7 @@ class Hmmer:
     
         
         if check_total_euks:
-            nhmmer_cmd = "nhmmer --cpu %s %s --tblout %s /srv/db/graftm/0/HMM/18S.hmm" % (threads, eval, out_table)
+            nhmmer_cmd = "nhmmer --cpu %s %s --tblout %s /srv/db/graftm/0/HMM/Euk.hmm" % (threads, eval, out_table)
             
             if input_file_format == FORMAT_FASTA:
                 cmd = nhmmer_cmd + raw_reads +' 2>&1 > /dev/null'
@@ -213,7 +215,7 @@ class Hmmer:
                 exit(1)
         
         else:    
-            cmd = "nhmmer --cpu %s %s --tblout %s /srv/db/graftm/0/HMM/18S.hmm %s 2>&1 > /dev/null " % (threads, eval, out_table, reads)
+            cmd = "nhmmer --cpu %s %s --tblout %s /srv/db/graftm/0/HMM/Euk.hmm %s 2>&1 > /dev/null " % (threads, eval, out_table, reads)
             # log
             subprocess.check_call(cmd, shell = True)
         

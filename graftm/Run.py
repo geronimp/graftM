@@ -78,13 +78,17 @@ class Run:
             Messenger().message('Searching %s using %s' % (os.path.basename(sequence_file_list[0]), os.path.basename(self.args.hmm_file)))
             start = timeit.default_timer()
             
-            
-            
+            # If an input sequence type has not been specified, attempt to autocheck..
+            if not hasattr(self.args, 'input_sequence_type'):
+                Messenger().message('Attempting to detect input sequence type')
+                setattr(self.args, 'input_sequence_type', self.HK.guess_sequence_type(sequence_file_list[0], self.input_file_format))
+
+
             hmm_search_output = self.H.hmmsearch(self.GMF.forward_read_hmmsearch_output_path(base), 
                                                  self.GMF.reverse_read_hmmsearch_output_path(base),
                                                  sequence_file_list, 
                                                  self.input_file_format, 
-                                                 self.args.type,
+                                                 self.args.input_sequence_type,
                                                  self.args.threads,
                                                  self.args.eval)
                                             
@@ -96,7 +100,8 @@ class Run:
             evals, n_total_reads, rev_true = self.DM.csv_to_titles(hmm_search_output, 
                                                                    self.args.type,
                                                                    self.GMF.readnames_output_path(base),
-                                                                   base)
+                                                                   base,
+                                                                   self.args.input_sequence_type)
             run_stats['rev_true'] = rev_true
             run_stats['n_total_reads'] = n_total_reads
             run_stats['evals'] = evals    
@@ -114,7 +119,8 @@ class Run:
                                            self.GMF.orf_hmmsearch_output_path(base),
                                            self.GMF.orf_titles_output_path(base),
                                            self.GMF.orf_fasta_output_path(base),
-                                           False)  # And extract from the original file
+                                           False,
+                                           self.args.input_sequence_type)  # And extract from the original file
             
             stop = timeit.default_timer()
             
@@ -127,10 +133,15 @@ class Run:
                 
                 exit(0)
             
-            self.H.hmmalign(base,
-                            self.GMF.orf_fasta_output_path(base),
-                            run_stats)
+            if self.args.input_sequence_type == 'nucleotide':
+                self.H.hmmalign(base,
+                                self.GMF.orf_fasta_output_path(base),
+                                run_stats)
             
+            elif self.args.input_sequence_type == 'protein':
+                self.H.hmmalign(base,
+                                self.GMF.fa_output_path(base),
+                                run_stats)
 
             # Fix up the alignment file by removing the insertions
             if run_stats['rev_true']:
@@ -404,6 +415,8 @@ class Run:
                 
                 # Set pipeline
                 setattr(self.args, 'type', self.HK.setpipe(self.args.hmm_file))
+                
+                # Find input type
                 
                 # Protein pipeline
                 if self.args.type == 'P':

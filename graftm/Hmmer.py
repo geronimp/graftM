@@ -14,17 +14,16 @@ class Hmmer:
     def __init__(self, hmm):
         self.hmm = hmm
         
-    def hmmalign(self, base, sequencefile, summary_dict):
+    def hmmalign(self, base, sequencefile, summary_dict, args):
 
-        GMF = GraftMFiles(base)
+        GMF = GraftMFiles(base, args.output_directory)
         for_file = GMF.output_for_path(base)
         rev_file = GMF.output_rev_path(base)
         for_sto_file = GMF.sto_for_output_path(base)
         rev_sto_file = GMF.sto_rev_output_path(base)
         for_conv_file = GMF.conv_output_for_path(base)
         rev_conv_file = GMF.conv_output_rev_path(base)
-        ## TODO look at old graftM and re-paste code. for HMMalign. I screwed somthing up in here that makes it twice as slow....
-        # If there are reverse complement reads
+
         if summary_dict['rev_true']:
 
             evals = summary_dict['evals']

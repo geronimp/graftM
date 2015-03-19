@@ -11,7 +11,7 @@ FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'
 
 class DatManip:
     
-    def jplace_split(self, jplace_file, alias_hash):
+    def jplace_split(self, jplace_file, alias_hash, args):
         placement_file = json.load(open(jplace_file))
         jplace_path_list = []
         
@@ -33,8 +33,7 @@ class DatManip:
                       'placements': alias_hash[alias]['place'],
                       'metadata': placement_file['metadata']}
             
-            base = alias_hash[alias]['filename'] + '/' + alias_hash[alias]['filename'] + '_placements.jplace'
-            
+            base = args.output_directory + '/' + alias_hash[alias]['filename'] + '/' + alias_hash[alias]['filename'] + '_placements.jplace'
             with open(base, 'w') as out:
                 json.dump(output, out, ensure_ascii=False)
             jplace_path_list.append(base)

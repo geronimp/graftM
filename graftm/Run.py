@@ -78,12 +78,6 @@ class Run:
             Messenger().message('Searching %s using %s' % (os.path.basename(sequence_file_list[0]), os.path.basename(self.args.hmm_file)))
             start = timeit.default_timer()
             
-            # If an input sequence type has not been specified, attempt to autocheck..
-            if not hasattr(self.args, 'input_sequence_type'):
-                Messenger().message('Attempting to detect input sequence type')
-                setattr(self.args, 'input_sequence_type', self.HK.guess_sequence_type(sequence_file_list[0], self.input_file_format))
-
-
             hmm_search_output = self.H.hmmsearch(self.GMF.forward_read_hmmsearch_output_path(base), 
                                                  self.GMF.reverse_read_hmmsearch_output_path(base),
                                                  sequence_file_list, 
@@ -136,12 +130,14 @@ class Run:
             if self.args.input_sequence_type == 'nucleotide':
                 self.H.hmmalign(base,
                                 self.GMF.orf_fasta_output_path(base),
-                                run_stats)
+                                run_stats,
+                                self.args)
             
             elif self.args.input_sequence_type == 'protein':
                 self.H.hmmalign(base,
                                 self.GMF.fa_output_path(base),
-                                run_stats)
+                                run_stats,
+                                self.args)
 
             # Fix up the alignment file by removing the insertions
             if run_stats['rev_true']:
@@ -187,7 +183,8 @@ class Run:
             evals, n_total_reads, rev_true = self.DM.csv_to_titles(hmm_search_output, 
                                                                    self.args.type, 
                                                                    self.GMF.readnames_output_path(base),
-                                                                   base)
+                                                                   base,
+                                                                   self.args.input_sequence_type)
             run_stats['rev_true'] = rev_true
             run_stats['n_total_reads'] = n_total_reads
             run_stats['evals'] = evals
@@ -205,7 +202,8 @@ class Run:
                                            self.GMF.orf_hmmsearch_output_path(base),
                                            self.GMF.orf_titles_output_path(base),
                                            self.GMF.orf_fasta_output_path(base),
-                                           True)
+                                           True,
+                                           self.args.input_sequence_type)
             
             stop = timeit.default_timer()
             run_stats['extract_t'] = str(int(round((stop - start), 0)) )
@@ -238,7 +236,8 @@ class Run:
             
             self.H.hmmalign(base,
                             self.GMF.euk_free_path(base),
-                            run_stats)
+                            run_stats,
+                            self.args)
             
 
             # Fix up the alignment file by removing the insertions
@@ -265,10 +264,10 @@ class Run:
     def placement(self, aln_files, base_list, GM_temp, summary_dict):      
 
             # Check that there is a reference package to place in. If not, exit.     
-            if self.args.skip_placement:
+            if self.args.seach_and_align_only:
                 Messenger().message('Stopping before placement\n')
                 for base in base_list:
-                    self.GMF = GraftMFiles(base)
+                    self.GMF = GraftMFiles(base, self.args.output_directory)
                     self.HK.delete([self.GMF.for_aln_path(base), 
                                     self.GMF.rev_aln_path(base), 
                                     self.GMF.sto_for_output_path(base), 
@@ -289,7 +288,8 @@ class Run:
             # Combine sequences (4 Xtra zpeed)
             Messenger().message("Combining alignments")
             alias_hash = self.AM.name_changer(base_list,
-                                              self.GMF.comb_aln_fa(GM_temp))
+                                              self.GMF.comb_aln_fa(GM_temp),
+                                              self.args)
             
             # Place in tree
             Messenger().message('Placing reads into reference package tree')
@@ -304,22 +304,23 @@ class Run:
             stop = timeit.default_timer()
             summary_dict['place_t'] = str( int(round((stop - start), 0)) )
             
-            jplace_path_list = self.DM.jplace_split(placements, alias_hash)
+            jplace_path_list = self.DM.jplace_split(placements, alias_hash, self.args)
             
             # Create Guppy File
             Messenger().message('Creating Guppy file')
             start = timeit.default_timer()
             n_placements = self.P.guppy_class(self.GMF.guppy_file_output_path(),
                                               jplace_path_list,
-                                              GM_temp)
+                                              GM_temp,
+                                              self.args)
             
             for count in n_placements.keys():
                 summary_dict[count]['reads_found'] = n_placements[count]
 
             # Generate Summary Table
-            base_path_list = [base+'/'+base for base in base_list]
+            base_path_list = [self.args.output_directory + '/' +base+'/'+base for base in base_list]
             for idx, base in enumerate(base_list):
-                self.GMF = GraftMFiles(base)
+                self.GMF = GraftMFiles(base, self.args.output_directory)
                 Messenger().message('Building summary table for %s' % base)
                 self.SAS.otu_builder(base_path_list[idx] + self.GMF.guppy_file_output_path(), 
                                      base_path_list[idx] + self.GMF.summary_table_output_path(),
@@ -330,14 +331,13 @@ class Run:
                 # Generate coverage table
                 Messenger().message('Building coverage table for %s' % base)
                 self.SAS.coverage_of_hmm(self.args.hmm_file, 
-                                        base_path_list[idx] + self.GMF.summary_table_output_path(), 
-                                        base_path_list[idx] + self.GMF.coverage_table_path(), 
+                                         base_path_list[idx] + self.GMF.summary_table_output_path(), 
+                                         base_path_list[idx] + self.GMF.coverage_table_path(), 
                                         self.SAS.check_read_length(self.GMF.fa_output_path(base), self.args.type))
                 
                 Messenger().message('Building krona for %s' % base)
                 self.KB.otuTablePathListToKrona(base_path_list[idx] + self.GMF.summary_table_output_path(), 
                                                 base_path_list[idx] + self.GMF.krona_output_path())
-            
             
             stop = timeit.default_timer()
             summary_dict['summary_t'] = str(int(round((stop - start), 0)) )
@@ -346,14 +346,14 @@ class Run:
             summary_dict['stop_all'] = timeit.default_timer()
             summary_dict['all_t'] = str(int(round((summary_dict['stop_all'] - summary_dict['start_all']), 0)) )
             
-            if hasattr(self.args, 'output_stats'):
-                self.SAS.build_basic_statistics(summary_dict, base_list, self.args.output_stats, self.args.type)
+            
+            self.SAS.build_basic_statistics(summary_dict, base_list, self.GMF.basic_stats_path(), self.args.type)
             
             
             # Delete unncessary files
             Messenger().message('Cleaning up')
             for base in base_list:
-                self.GMF = GraftMFiles(base)
+                self.GMF = GraftMFiles(base, self.args.output_directory)
                 self.HK.delete([self.GMF.for_aln_path(base), 
                                 self.GMF.rev_aln_path(base), 
                                 self.GMF.sto_for_output_path(base), 
@@ -393,6 +393,8 @@ class Run:
        -                                  |______
                 '''
             
+            timer_hash = {}
+            
             summary_table = {'euks_checked': self.args.check_total_euks,
                              'base_list': [],
                              'seqs_list': [],
@@ -400,17 +402,28 @@ class Run:
         
             GM_temp = tempfile.mkdtemp(prefix='GM_temp_')
             
+            # Check that a specific output directory has not been specified as a flag
+            if not hasattr(self.args, 'output_directory'):
+                self.args.output_directory = "GraftM_proc"
+
+            self.HK.make_working_directory(self.args.output_directory, self.args.force)
+                
             
-            for pair in self.sequence_pair_list:      
+            for pair in self.sequence_pair_list:  
+                
+                # If an input sequence type has not been specified, attempt to autocheck.
+                if not hasattr(self.args, 'input_sequence_type'):
+                    setattr(self.args, 'input_sequence_type', self.HK.guess_sequence_type(pair[0], self.input_file_format))
+                    
                 base = os.path.basename(pair[0]).split('.')[0]
                 summary_table[base] = {}
                 
-                # Reset default output directory
-                self.HK.reset_outdir(self.args, base)
+                # Set the working path for all of the output files provided by 
+                # GraftM.
                 
-                # Set file destinations
-                self.GMF = GraftMFiles(base)
-    
+                self.GMF = GraftMFiles(base, self.args.output_directory)
+                self.HK.make_working_directory(self.args.output_directory +'/'+ base, self.args.force)
+                
                 Messenger().header("Working on %s" % base)
                 
                 # Set pipeline
@@ -438,7 +451,6 @@ class Run:
                 summary_table['base_list'].append(base)
         
             Messenger().header("Grafting")
-    
             self.placement(' '.join(summary_table['seqs_list']),
                            summary_table['base_list'],
                            GM_temp,

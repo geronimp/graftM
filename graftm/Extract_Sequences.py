@@ -43,11 +43,11 @@ class Extract:
                 elif not args.non_cumil:
                     with open(args.profile+'_'+lineages[0]+'_Seqs.fa', 'w') as output:
                         for entry in guppy:
-
                             if lineages[0] in guppy[entry]:
                                 output.write('>' + entry[:-2] + '\n')
                                 output.write(str(record_dict[entry[:-2]].seq) + '\n')
             elif args.file:
+                
                 for lin in lineages:
                     if args.non_cumil:
                         with open(args.profile+'_'+lin+'_Seqs.fa', 'w') as output:

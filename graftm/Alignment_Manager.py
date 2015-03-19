@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from Bio import SeqIO
 from collections import OrderedDict
-
+import IPython
 class Alignment_Manager:
               
     def alignment_correcter(self, alignment_file_list, output_file_name):
@@ -38,10 +38,10 @@ class Alignment_Manager:
                 output_file.write(fasta_id)
                 output_file.write(fasta_seq)
                 
-    def name_changer(self, base_list, output_alignment_path):
+    def name_changer(self, base_list, output_alignment_path, args):
         
-        alignment_files = [base + '/' + base+'_hits.aln.fa' for base in base_list]
-        
+        alignment_files = [args.output_directory + '/' + base + '/' + base+'_hits.aln.fa' for base in base_list]
+
         alias_hash = {}
         file_num = 0
         with open(output_alignment_path, 'w') as out:

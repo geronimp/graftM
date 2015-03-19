@@ -114,7 +114,6 @@ class TaxoGroup:
             exit(1)
         
         
-        
         for idx, taxonomic_rank in enumerate(tax_rank_list):
             r = p_rank.pop(0)
             if r == 'Genus':
@@ -124,7 +123,6 @@ class TaxoGroup:
 
             for tax_name, sequences in taxonomic_rank.iteritems():
                 number_of_sequences = len(list(sequences))
-                
                 if number_of_sequences > 10:
                     output_assembly_file_path = os.path.join(output_directory, '%s_%s_%s_assembly.fa' % (rank[idx], tax_name, str(number_of_sequences)))
                     output_reads_file_path = os.path.join(output_directory, '%s_%s_%s_reads.fa' % (rank[idx], tax_name, str(number_of_sequences))) 

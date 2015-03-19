@@ -139,7 +139,7 @@ class HouseKeeping:
         # Check that the necessary files are in place
         
         if args.subparser_name == 'graft':
-        
+            
             if hasattr(args, 'hmm_file') and not hasattr(args, 'reference_package'):
                 Messenger().message('\nA reference package needs to be specified\n')
                 exit(1)
@@ -183,21 +183,15 @@ class HouseKeeping:
             sequence_file_list = args.reads.split(',')
             return sequence_file_list, input_file_format
     
-        
 
-
-    def reset_outdir(self, args, base):
-        # reset working directory
-        setattr(args, 'output_directory', base) 
         
-        # create the directory
-        self.make_working_directory(args.output_directory, args.force)
         
         
     def set_attributes(self, args):  
         
         # Read graftM package and assign HMM and refpkg file
-           
+
+        
         if hasattr(args, 'graftm_package'):
                 
             for item in os.listdir(args.graftm_package):
@@ -210,6 +204,6 @@ class HouseKeeping:
             
             
         if not hasattr(args, 'reference_package') or not hasattr(args, 'hmm_file'):
-            Messenger().error_message('%s is empty or misformatted.' % args.graftm_package)
+            Messenger().error_message('GraftM package is empty or misformatted.')
             exit(1)
             

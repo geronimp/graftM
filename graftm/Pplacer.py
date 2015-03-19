@@ -22,7 +22,7 @@ class Pplacer:
         return output_path
     
     # Run guppy classify
-    def guppy_class(self, guppy_path, jplace_list, GM_temp):
+    def guppy_class(self, guppy_path, jplace_list, GM_temp, args):
     
         guppy_main = GM_temp + 'Graftm' + guppy_path
     
@@ -55,7 +55,7 @@ class Pplacer:
                                 r_num += 1
     
                     report[out] = r_num
-                    out = out+'/'+out+'_placements.guppy'
+                    out = args.output_directory + '/' + out +'/'+out+'_placements.guppy'
     
                     with open(out, 'w') as out_guppy:
                         for l in guppy:
@@ -85,7 +85,7 @@ class Pplacer:
     
         report[out] = r_num
     
-        out = out+'/'+out+'_placements.guppy'
+        out = args.output_directory + '/' +out+'/'+out+'_placements.guppy'
     
         with open(out, 'w') as out_guppy:
             for line in guppy:

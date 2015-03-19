@@ -80,15 +80,16 @@ if __name__ == '__main__':
                                         epilog='Joel Boyd, Ben Woodcroft')
                                         
     graft_parser.add_argument('--forward', metavar='forward read (or single read file)', type=str, help='comma separated list of forward reads .fa, or .fq.gz format.', required=True)
-    graft_parser.add_argument('--reverse', metavar='reverse read', type=str, help='[do NOT use unless you understand the difficulties with this] Optional reverse raw sequence file in .fa, or .fq.gz format.', default=argparse.SUPPRESS)
+    graft_parser.add_argument('--reverse', metavar='reverse read', type=str, help='[do NOT use unless you understand the difficulties with this] Optional reverse raw sequence file in .fa, or .fq.gz format', default=argparse.SUPPRESS)
     graft_parser.add_argument('--eval', metavar='evalue', type=str, help='evalue cutoff for the hmmsearch (default = 1e-5)', default= '1e-5')
     graft_parser.add_argument('--threads', metavar='threads', type=str, help='number of threads to use', default='5')
     graft_parser.add_argument('--placements_cutoff', metavar='confidence', type=str, help='Cutoff of placement confidence level (0.5 - 1), default = 0.75', default=0.75)
     graft_parser.add_argument('--graftm_package', metavar='reference_package', type=str, help='Reference package of gene family', default=argparse.SUPPRESS)
-    graft_parser.add_argument('--force', action="store_true", help='Force overwrite the output directory, even if one already exists with the same name', default=False)
-    graft_parser.add_argument('--skip_placement', action="store_true", help='Stop after reads have been identified and aligned', default=False)
-    graft_parser.add_argument('--search_only', action="store_true", help='Stop after reads have been identified', default=False)
-    graft_parser.add_argument('--check_total_euks', action="store_true", help='Search whole sample for euks', default=False)
+    graft_parser.add_argument('--force', action="store_true", help='Force overwrite the output directory, even if one already exists with the same name (default=False)', default=False)
+    graft_parser.add_argument('--input_sequence_type', help='Specify whether the input sequence is "nucleotide" or "protein" sequence data (default=will attempt to auto-detect)', choices = ['protein', 'nucleotide'],  default=argparse.SUPPRESS)
+    graft_parser.add_argument('--skip_placement', action="store_true", help='Stop after reads have been identified and aligned (default=False)', default=False)
+    graft_parser.add_argument('--search_only', action="store_true", help='Stop after reads have been identified (default=False)', default=False)
+    graft_parser.add_argument('--check_total_euks', action="store_true", help='Search whole sample for euks (default=False)', default=False)
     graft_parser.add_argument('--hmm_file', type=str, help='HMM file that hmmsearch uses', default=argparse.SUPPRESS)
     graft_parser.add_argument('--output_statistics', type=str, help='output simple runtime statistics into this file', default=argparse.SUPPRESS)
     graft_parser.add_argument('--reference_package', type=str, help='Reference package that pplacer uses', default=argparse.SUPPRESS)
@@ -112,11 +113,11 @@ if __name__ == '__main__':
                                             description='Attempt to assemble as many genes as possible.',
                                             epilog='Joel Boyd, Ben Woodcroft')
                                             
-    assemble_parser.add_argument('--graft_run', metavar='File produced ', help='guppy file produced by graftM, comma separated', default=True)
+    assemble_parser.add_argument('--graft_run', metavar='File produced ', help='guppy file produced by graftM, comma separated (default=True)', default=True)
     assemble_parser.add_argument('--kmer', metavar='k-mer',  help='k-mer to use for assembly with velvet', default = '51')
     assemble_parser.add_argument('--assembly_type', metavar='type of assembly', help='phrap or velvet assembly',choices = ['phrap', 'velvet', 'finishm'], default='velvet')
     assemble_parser.add_argument('--version', action='version', version='graftM v%s' % __version__)
-    assemble_parser.add_argument('--finish', action = 'store_true', help='finish the velvet assembly with an overlap assembly', default=False)
+    assemble_parser.add_argument('--finish', action = 'store_true', help='finish the velvet assembly with an overlap assembly (default=False)', default=False)
 
     # Manage - various tools that make the management of graftM output easier
     
@@ -124,10 +125,10 @@ if __name__ == '__main__':
                                             description='Attempt to assemble as many genes as possible.',
                                             epilog='Joel Boyd, Ben Woodcroft')
                                             
-    manage_parser.add_argument('--seq', metavar='The reads from this lineage will be returned', help='guppy file produced by graftM, comma separated', default=False)
-    manage_parser.add_argument('--profile', metavar='graftM_profile', help='GraftM profile produced by graftM graft run', required=True)
-    manage_parser.add_argument('--non_cumil', action = 'store_true', help='Return all sequences exclusively at this taxonomic rank (i.e. do not return sequences that were classified to a higher resolution)', default=False)
-    manage_parser.add_argument('--file', action = 'store_true', help='Lineages are in a file, one entry per line.', default=False)
+    manage_parser.add_argument('--seq', metavar='The reads from this lineage will be returned', help='guppy file produced by graftM, comma separated (default=False)', default=False)
+    manage_parser.add_argument('--profile', metavar='graftM_profile', help='GraftM profile produced by graftM graft run (required=True)', required=True)
+    manage_parser.add_argument('--non_cumil', action = 'store_true', help='Return all sequences exclusively at this taxonomic rank (i.e. do not return sequences that were classified to a higher resolution, default=False)', default=False)
+    manage_parser.add_argument('--file', action = 'store_true', help='Lineages are in a file, one entry per line (default=False)', default=False)
     manage_parser.add_argument('--version', action='version', version='graftM v%s' % __version__)
     
     # Pathfinder - Find a whole pathway of genes in a metagenome/transcriptome.

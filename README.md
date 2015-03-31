@@ -24,5 +24,5 @@ For now though, installation will have to be manual but very soon we hope to mak
 ---
 
 ## Help + Contact
-Of course, can always contact Joel at joel.boyd@uqconnect.edu.au for any queries, complaints or reccomendations you have about GraftM. I'm happy to help.
-A manual page and pdf will be available shortly
+if you have any comments, complaints or reccomendations about GraftM. I'm happy to help, just ask through GitHub.
+A manual page and pdf will also be available shortly

@@ -1,16 +1,5 @@
-#!/usr/bin/env python
 
 from skbio import TreeNode
-
-__author__ = "Joel Boyd"
-__copyright__ = "Copyright 2014"
-__credits__ = ["Joel Boyd"]
-__license__ = "GPL3"
-__maintainer__ = "Joel Boyd, Ben Woodcroft"
-__email__ = "joel.boyd near uq.net.au"
-__status__ = "Development"
-__version__ = "0.0.1"
-
 
 class Rerooter:
 

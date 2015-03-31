@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+
 import subprocess
 from graftm.GraftMFiles import GraftMFiles
 from graftm.Messenger import Messenger

@@ -1,6 +1,5 @@
-#!/usr/bin/env python
+
 import os
-import IPython
 
 class GraftMFiles:
 
@@ -58,9 +57,6 @@ class GraftMFiles:
     
     def comb_aln_fa(self, out_path):
         return os.path.join(self.outdir, out_path, "%s_comb.aln.fa" % self.basename)
-    
-    def conv_output_rev_path(self, out_path):
-        return os.path.join(self.outdir, out_path, "%s_conv_rev.faa" % self.basename)
 
     def reverse_read_hmmsearch_output_path(self, out_path):
         return os.path.join(self.outdir, out_path, "%s_rev.hmmout.csv" % self.basename)

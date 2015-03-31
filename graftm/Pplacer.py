@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+
 import subprocess
-import shutil
+
 from graftm.HouseKeeping import HouseKeeping
 from graftm.DatManip import DatManip
 

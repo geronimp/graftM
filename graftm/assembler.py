@@ -1,21 +1,11 @@
-#!/usr/bin/env python
-import cmd
+
 from graftm.Messenger import Messenger
 
-
-import argparse
 import subprocess
-import code
 import tempfile
-import IPython
 import os
 import shutil
-from datetime import datetime
-try:
-    from Bio import SeqIO
-except ImportError:
-    print "Please install Biopython first"
-    exit(1)
+from Bio import SeqIO
     
 class TaxoGroup:       
     

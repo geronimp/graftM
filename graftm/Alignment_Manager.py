@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+
 from Bio import SeqIO
 from collections import OrderedDict
-import IPython
+
 class Alignment_Manager:
               
     def alignment_correcter(self, alignment_file_list, output_file_name):

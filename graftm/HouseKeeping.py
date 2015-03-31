@@ -5,9 +5,8 @@ import random
 import os
 import shutil 
 from test.test_MimeWriter import OUTPUT
-import IPython
-import tempfile
 import subprocess
+
 # Constants - don't change them evar.
 FORMAT_FASTA = 'FORMAT_FASTA'
 FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'

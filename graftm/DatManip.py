@@ -1,10 +1,9 @@
-#!/usr/bin/env python
+
 from graftm.Messenger import Messenger
-import IPython
 import subprocess
 import re
 import json
-import shutil
+
 # Constants
 FORMAT_FASTA = 'FORMAT_FASTA'
 FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'

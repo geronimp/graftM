@@ -17,8 +17,6 @@ For now though, installation will have to be manual but very soon we hope to mak
 * fxtract (https://github.com/ctSkennerton/fxtract)
 * pplacer v. >= 2.6.32 (http://matsen.fhcrc.org/pplacer/)
 * seqmagick v. >= 0.6.0 (https://github.com/fhcrc/seqmagick)
-* sra toolkit v. >= 2.3.2-5 (https://github.com/ncbi/sratoolkit)
-* pandas (https://github.com/pydata/pandas)
 * krona v. >= 2.4 (http://sourceforge.net/p/krona/home/krona/)
 
 ---

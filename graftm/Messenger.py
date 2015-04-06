@@ -8,10 +8,10 @@ class Messenger:
         self.date = datetime.now().strftime('%d-%m-%Y')
         
     def message(self, message):
-        print '\t%s  [%s]: %s' % (self.date, self.time, message)
+        print '\t  [%s]: %s' % (self.time, message)
     
     def error_message(self, message):
-        print '\t%s  [%s]: == ERROR == %s' % (self.date, self.time, message)
+        print '\t  [%s]: == ERROR == %s' % (self.time, message)
         
     def header(self, message):
-        print '\n[%s]: %s' % (self.time, message)
+        print '[%s]: %s' % (self.time, message)

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 ##### ##### ##### ##### ##### ##### #####
 #                                       #
 #                 graftM                #
@@ -10,19 +9,13 @@
 #                                       #
 ##### ##### ##### ##### ##### ##### #####
 
-__author__ = "Joel Boyd, Ben Woodcroft"
-__copyright__ = "Copyright 2014"
-__credits__ = ["Joel Boyd", "Ben Woodcroft"]
-__license__ = "GPL3"
-__maintainer__ = "Joel Boyd, Ben Woodcroft"
-__email__ = "joel.boyd near uq.net.au, b.woodcroft near uq.edu.au"
-__status__ = "Development"
-__version__ = "0.4.2"
-
-from graftm.Run import Run
 import argparse
 import sys
 import IPython
+
+from graftm.Run import Run
+
+__version__ = '0.4.0'
 
 def phelp():
     print """
@@ -63,22 +56,15 @@ UTILITIES
                             graftM filter --reads <READS> --graftM_package <GRAFTM_PACKAGE> 
 =====================================================================================================
 """ % (__version__)
-    
-    
 
 if __name__ == '__main__':
-    
     parser = argparse.ArgumentParser(add_help=False)
-    
     subparsers = parser.add_subparsers(help="--", dest='subparser_name')
-    
-    
     
     # Standard GraftM pipeline.
     graft_parser = subparsers.add_parser('graft',
                                         description='Search and classify marker genes to construct community profiles',
                                         epilog='Joel Boyd, Ben Woodcroft')
-                                        
     graft_parser.add_argument('--forward', metavar='forward read (or single read file)', type=str, help='comma separated list of forward reads .fa, or .fq.gz format.', required=True)
     graft_parser.add_argument('--reverse', metavar='reverse read', type=str, help='[do NOT use unless you understand the difficulties with this] Optional reverse raw sequence file in .fa, or .fq.gz format', default=argparse.SUPPRESS)
     graft_parser.add_argument('--eval', metavar='evalue', type=str, help='evalue cutoff for the hmmsearch (default = 1e-5)', default= '1e-5')
@@ -98,11 +84,8 @@ if __name__ == '__main__':
     filter_parser = subparsers.add_parser('filter',
                                          description='Remove rRNA genes from transcriptome dataset.',
                                          epilog='Joel Boyd, Ben Woodcroft')
-        # Required
     filter_parser.add_argument('--reads', metavar='<READS>', help='File to be filtered', required=True)
     filter_parser.add_argument('--filter_hmms', metavar='<FILTER_HMMS>', help='Directory with HMMs to use when filtering.', required=True)
-    
-        # Optional
     filter_parser.add_argument('--output', metavar='<OUTPUT>', help='Directory within which to place filtered reads, and sorted hits')
     
 
@@ -110,19 +93,16 @@ if __name__ == '__main__':
     assemble_parser = subparsers.add_parser('assemble',
                                             description='Attempt to assemble as many genes as possible.',
                                             epilog='Joel Boyd, Ben Woodcroft')
-                                            
     assemble_parser.add_argument('--graft_run', metavar='File produced ', help='guppy file produced by graftM, comma separated (default=True)', default=True)
-    assemble_parser.add_argument('--kmer', metavar='k-mer',  help='k-mer to use for assembly with velvet', default = '51')
+    assemble_parser.add_argument('--kmer', metavar='k-mer',  help='k-mer to use for assembly with velvet (default = 51)', default = '51')
     assemble_parser.add_argument('--assembly_type', metavar='type of assembly', help='phrap or velvet assembly',choices = ['phrap', 'velvet', 'finishm'], default='velvet')
     assemble_parser.add_argument('--version', action='version', version='graftM v%s' % __version__)
     assemble_parser.add_argument('--finish', action = 'store_true', help='finish the velvet assembly with an overlap assembly (default=False)', default=False)
 
     # Manage - various tools that make the management of graftM output easier
-    
     manage_parser = subparsers.add_parser('manage',
                                             description='Attempt to assemble as many genes as possible.',
                                             epilog='Joel Boyd, Ben Woodcroft')
-                                            
     manage_parser.add_argument('--seq', metavar='The reads from this lineage will be returned', help='guppy file produced by graftM, comma separated (default=False)', default=False)
     manage_parser.add_argument('--profile', metavar='graftM_profile', help='GraftM profile produced by graftM graft run (required=True)', required=True)
     manage_parser.add_argument('--non_cumil', action = 'store_true', help='Return all sequences exclusively at this taxonomic rank (i.e. do not return sequences that were classified to a higher resolution, default=False)', default=False)
@@ -134,10 +114,6 @@ if __name__ == '__main__':
                                               description='Find a whole pathway of genes in a metagenome/transcriptome.',
                                               epilog='Joel Boyd, Ben Woodcroft')
 
-    
-    
-    
-
     if(len(sys.argv) == 1 or sys.argv[1] == '-h' or sys.argv == '--help'):
         phelp()
         exit(0)
@@ -146,12 +122,3 @@ if __name__ == '__main__':
     
     Run(args).main()
     exit(0)
-    
-    # Summary of class abbreviations:
-    # Messenger         = M
-    # GraftMFiles       = GMF
-    # Alignment_Manager = AM
-    # Hmmer             = H
-    # Pplacer           = P
-    # HouseKeeping      = HK
-    # Stats_And_Summary = SAS

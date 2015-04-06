@@ -1,18 +1,14 @@
-#!/usr/bin/env python
-
-from graftm.Messenger import Messenger
 import random
 import os
 import shutil 
-from test.test_MimeWriter import OUTPUT
-import IPython
-import tempfile
 import subprocess
+
+from graftm.Messenger import Messenger
+from test.test_MimeWriter import OUTPUT
+
 # Constants - don't change them evar.
 FORMAT_FASTA = 'FORMAT_FASTA'
 FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'
-
-
 
 class HouseKeeping:
     
@@ -75,7 +71,7 @@ class HouseKeeping:
     def guess_sequence_type(self, input_file, file_format):
         
         aas = set(['P','V','L','I','M','F','Y','W','H','K','R','Q','N','E','D','S'])
-        nas = set(['A', 'T', 'G', 'C'])
+        nas = set(['A', 'T', 'G', 'C', 'N', 'U'])
         
         if file_format == 'FORMAT_FASTQ_GZ':
             filename = "/tmp/graftM_sample_"+str(random.randint(1, 100))+".fa"
@@ -84,19 +80,15 @@ class HouseKeeping:
             subprocess.check_call(["/bin/bash", "-c", cmd])
             
             input_file = filename
-
+        
         with open(input_file) as in_file:
             head = [next(in_file).rstrip() for x in xrange(2)]
-            
-            for nucl in head[1][:10]:
-                
+            for nucl in set(head[1]):
                 if nucl not in nas and nucl in aas:
                     return 'protein'
-                
                 elif nucl not in nas and nucl not in aas:
-                    Messenger().error_message('Encounted unexpected character when attempting to guess sequence type: %s' % (nucl))
+                    Messenger().error_message('Encountered unexpected character when attempting to guess sequence type: %s' % (nucl))
                     exit(1)
-                
                 else:
                     continue
                 
@@ -121,7 +113,17 @@ class HouseKeeping:
             except:
                 pass
     
+    def add_cmd(self, cmd_log, command):
+    
+        if not os.path.isfile(cmd_log):
+            open(cmd_log, 'a').close()
+            
+        with open(cmd_log, 'a') as log:
+            log.write(command + '\n')
+            
+    
     def make_working_directory(self, directory_path, force):
+        
         if force:
             shutil.rmtree(directory_path, ignore_errors=True)
             os.mkdir(directory_path)
@@ -129,7 +131,6 @@ class HouseKeeping:
         else:
             try:
                 os.mkdir(directory_path)
-                    
             except:
                 Messenger().header('Directory %s already exists. Exiting to prevent over-writing\n' % directory_path)
                 exit(1)    

@@ -1,16 +1,12 @@
-#!/usr/bin/env python
-import cmd
-from graftm.Messenger import Messenger
-
-
 import argparse
 import subprocess
-import code
 import tempfile
-import IPython
 import os
 import shutil
+
+from graftm.Messenger import Messenger
 from datetime import datetime
+
 try:
     from Bio import SeqIO
 except ImportError:
@@ -48,26 +44,32 @@ class TaxoGroup:
                 
         exit(1)
         
-    def guppy_splitter(self, guppy_file_list):  
+    def guppy_splitter(self, guppy_file, cutoff):  
+        ## Split a gupyp file, and return the placement information in hash 
+        ## format, and also the placement confidence at each rank
+        
+        # Send the message that the guppy file is being split
         Messenger().message("Parsing the guppy file(s)")
+        read_tax_dict = {} # Define an empty output hash
         
-        read_tax_dict = {}
-        
-        for guppy_file in guppy_file_list:           
+        # Split each line in the guppy, check that it meets the cutoff, and 
+        # Return a hash with the placements, and rank placements
+        for lst in [x.replace('Candidatus ', 'Candidatus_').split() for x in open(guppy_file,'r')]: # for each entry in the guppy file
+            if lst[0] != 'name': # ignore the title entry of the guppy
+                lst[0] = '_'.join(lst[0].split('_')[:-1]) # Remove the unique identifier of this read name            
+                if lst[1] == lst[2] and float(lst[len(lst)-2]) > float(cutoff): # If the placements match, and the placement confidence meets the cutoff
+                    if lst[0] not in read_tax_dict: # If the read name is not already in the list
+                        read_tax_dict[lst[0]] = {}
+                        read_tax_dict[lst[0]]['placement'] = [lst[3]] # Add a placement entry for this read
+                        read_tax_dict[lst[0]]['confidence'] = [lst[len(lst)-2]] # Add a confidence entry for this read
+                    else: # else, if there is already an entry for this read
+                        if len(read_tax_dict[lst[0]]) < 7: # Ensure that the rank of placement isn't already full
+                            read_tax_dict[lst[0]]['placement'].append(lst[3]) # And append the rank to the list.
+                            read_tax_dict[lst[0]]['confidence'].append(lst[len(lst)-2]) # And append the confidence to the list
+                        else:
+                            raise Exception('Programming Error: Guppy file not formatted correctly: %s' % (guppy_file)) # If its full, and there are too many placements for a given read, fail.
             
-            for line in open(guppy_file,'r'):
-                
-                lst = list(line.rstrip().replace('Candidatus ', 'Candidatus_').split())
-                
-                if lst[0] != 'name' and lst[1] == lst[2] and float(lst[len(lst)-2]) > float(0.75):
-                    
-                    if lst[0] not in read_tax_dict:
-                        read_tax_dict[lst[0]] = [lst[3]]
-                    
-                    else:
-                        if len(read_tax_dict[lst[0]]) < 7:
-                            read_tax_dict[lst[0]].append(lst[3])
-        
+        # Return the hash.
         return read_tax_dict
           
     def rank_grouper(self, split_guppy, f_sequences_list):
@@ -96,7 +98,7 @@ class TaxoGroup:
             
             if taxonomic_group not in tax_dict:
                 tax_dict[taxonomic_group] = []
-            tax_dict[taxonomic_group].append(f_sequences[read_name.replace('_',':')[:-2]])
+            tax_dict[taxonomic_group].append(f_sequences[read_name[:-2]])
 
         return tax_list
  
@@ -123,7 +125,7 @@ class TaxoGroup:
 
             for tax_name, sequences in taxonomic_rank.iteritems():
                 number_of_sequences = len(list(sequences))
-                if number_of_sequences > 10:
+                if number_of_sequences > 1:
                     output_assembly_file_path = os.path.join(output_directory, '%s_%s_%s_assembly.fa' % (rank[idx], tax_name, str(number_of_sequences)))
                     output_reads_file_path = os.path.join(output_directory, '%s_%s_%s_reads.fa' % (rank[idx], tax_name, str(number_of_sequences))) 
                     velvet_assembly_path = os.path.join(output_directory, '%s_%s_velvet_assembly' % (rank[idx],tax_name))

@@ -1,23 +1,8 @@
-#!/usr/bin/env python
-
-
 from Bio import SeqIO
 
-
-
 class Stats_And_Summary:
-
-    def check_read_length(self, reads, pipe):
-        lengths = []
-        
-            
-        for record in list(SeqIO.parse(open(reads, 'r'), 'fasta')):
-            lengths.append(len(record.seq))
-        if pipe == "P":
-            return (sum(lengths) / float(len(lengths)))/3
-        elif pipe =="D":
-            return sum(lengths) / float(len(lengths))
-
+    
+    def __init__(self): pass
 
     def coverage_of_hmm(self, hmm, count_table, coverage_table, avg_read_length):
         
@@ -40,9 +25,7 @@ class Stats_And_Summary:
                     write.append("%s\t%s\t%s\n" % (
                                     splt[0],
                                     cov,
-                                    splt[2]
-                                    ))
-            
+                                    splt[2]))
             for entry in write:
                 ct.write(entry)
             
@@ -118,52 +101,26 @@ Runtime (seconds):
             stats_file.write(stats)
 
         
-    def otu_builder(self, gup_file, output, cutoff, header):
-        d = {}
-        classifications = []
-        placed = []
-        otu_id = 0
-        output_table = ['#ID\t'+header+'\tConsensusLineage']
-        unique_list = []
-    
-    
-        for line in open(gup_file, 'r'):
-            list = line.split()
-    
-            if list[0] != 'name' and list[1] == list[2] and float(list[len(list)-2]) > float(cutoff):
-    
-                if list[0] not in d:
-                    d[list[0]] = []
-    
-    
-                d[list[0]].append(list[3])
-    
-        for x,y in d.iteritems():
-    
-            if x not in placed:
-                classifications.append(';'.join(y))
-                placed.append(x)
-    
-            else:
-                continue
-    
-        for x in classifications:
-    
-            if x not in unique_list:
-                unique_list.append(x)
-    
-        for x in unique_list:
-            output_table.append([str(otu_id),str(classifications.count(x)),x])
-            otu_id += 1
-    
-        with open(output, 'w') as otu_table:
-    
+    def otu_builder(self, hash, output, base):
+        ## A function that takes a hash of trusted placements, and compiles them
+        ## into an OTU-esque table.
+        # Start an output list and hash that will contain consolidated numbers 
+        # for each taxonomic rank...
+        output_table = [['#ID', base, 'ConsensusLineage']]
+        c_hash = {}
+        rank_id = 0
+        # Consolidate the placement list into a simplified hash with taxonomic 
+        # rank, and number. Simple.
+        for read_name, placement_list in hash.iteritems():
+            try:
+                c_hash['; '.join(placement_list)] += 1
+            except:
+                c_hash['; '.join(placement_list)] = 1
+        # Make an entry into the output list
+        for rank, count in c_hash.iteritems():
+            output_table.append([str(rank_id), str(count), rank])
+            rank_id += 1
+        # And write to a file
+        with open(output, 'w') as out:
             for line in output_table:
-    
-                if '#' in line:
-                    otu_table.write(line+'\n')
-    
-                else:
-                    otu_table.write('\t'.join(line)+'\n')
-
-                    
+                out.write('\t'.join(line)+'\n')

@@ -17,12 +17,11 @@
 #                                                                             #
 ###############################################################################
 
-import sys
-import os
-import argparse
 import csv
 import subprocess
 import tempfile
+
+from graftm.HouseKeeping import HouseKeeping
 
 class OtuTable:
     def __init__(self, sample_name):
@@ -31,12 +30,15 @@ class OtuTable:
 
 
 class KronaBuilder:
-    def otuTablePathListToKrona(self, otuTablePaths, outputName):
+    def __init__(self):
+        self.HK = HouseKeeping()
+        
+    def otuTablePathListToKrona(self, otuTablePaths, outputName, cmd_log):
         otuTables = []
-        for table in self.parseOtuTable(otuTablePaths):
-            otuTables.append(table)
-
-        self.runKrona(otuTables, outputName)
+        for path in otuTablePaths:
+            for table in self.parseOtuTable(path):
+                otuTables.append(table)
+        self.runKrona(otuTables, outputName, cmd_log)
 
     def parseOtuTable(self, otuTablePath):
         tables = None
@@ -59,8 +61,7 @@ class KronaBuilder:
 
         return tables
 
-    def runKrona(self, otuTables, outputName):
-
+    def runKrona(self, otuTables, outputName, cmd_log):
         # write out the tables to files
         tempfiles = []
         tempfile_paths = []
@@ -74,12 +75,13 @@ class KronaBuilder:
                 tax = "\t".join(taxonomy.split(';'))
                 out.write("%s\t%s\n" % (count,tax))
             out.close()
-
+        
         cmd = ["ktImportText",'-o',outputName]
         for i, tmp in enumerate(tempfile_paths):
             cmd.append(','.join([tmp,otuTables[i].sample_name]))
 
         # run the actual krona
+        self.HK.add_cmd(cmd_log, ' '.join(cmd) + ' 1>/dev/null ')
         subprocess.check_call(' '.join(cmd) + ' 1>/dev/null ', shell=True)
 
         # close tempfiles

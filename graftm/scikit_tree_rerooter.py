@@ -1,7 +1,7 @@
 from skbio import TreeNode
 
 class Rerooter:
-    def __ninit_(self): pass
+    def __init_(self): pass
 
     def importer(self, tree_path):
         t = TreeNode.from_newick(open(tree_path, 'r'))

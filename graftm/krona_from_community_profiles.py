@@ -2,18 +2,17 @@ import csv
 import subprocess
 import tempfile
 
-from graftm.HouseKeeping import HouseKeeping
+from graftm.housekeeping import HouseKeeping
 
 class OtuTable:
     def __init__(self, sample_name):
         self.sample_name = sample_name
         self.sampleCounts = {} #taxonomy to count info
 
-
 class KronaBuilder:
     def __init__(self):
-        self.HK = HouseKeeping()
-        
+        self.hk = HouseKeeping()
+
     def otuTablePathListToKrona(self, otuTablePaths, outputName, cmd_log):
         otuTables = []
         for path in otuTablePaths:
@@ -55,13 +54,13 @@ class KronaBuilder:
                 tax = "\t".join(taxonomy.split(';'))
                 out.write("%s\t%s\n" % (count,tax))
             out.close()
-        
+
         cmd = ["ktImportText",'-o',outputName]
         for i, tmp in enumerate(tempfile_paths):
             cmd.append(','.join([tmp,otuTables[i].sample_name]))
 
         # run the actual krona
-        self.HK.add_cmd(cmd_log, ' '.join(cmd) + ' 1>/dev/null ')
+        self.hk.add_cmd(cmd_log, ' '.join(cmd) + ' 1>/dev/null ')
         subprocess.check_call(' '.join(cmd) + ' 1>/dev/null ', shell=True)
 
         # close tempfiles

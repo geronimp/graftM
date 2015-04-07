@@ -4,63 +4,63 @@ import timeit
 import tempfile
 import os
 
-from graftm.Messenger import Messenger
-from graftm.GraftMFiles import GraftMFiles
-from graftm.Extract_Sequences import Extract
-from graftm.Hmmer import Hmmer
-from graftm.HouseKeeping import HouseKeeping
-from graftm.Stats_And_Summary import Stats_And_Summary
-from graftm.Pplacer import Pplacer
+from graftm.messenger import Messenger
+from graftm.graftm_output_paths import GraftMFiles
+from graftm.extract_sequences import Extract
+from graftm.hmmer import Hmmer
+from graftm.housekeeping import HouseKeeping
+from graftm.summarise import Stats_And_Summary
+from graftm.pplacer import Pplacer
 from graftm.krona_from_community_profiles import KronaBuilder
 from graftm.assembler import TaxoGroup
 
 class Run:
     ### Functions that make up pipelines in GraftM
-        
+
     def __init__(self, args):
         self.args = args
         self.setattributes(self.args)
-        
+
     def setattributes(self, args):
-        self.KB = KronaBuilder()
-        self.HK = HouseKeeping()
-        self.SAS = Stats_And_Summary()
-        self.TG = TaxoGroup()
-        self.ES = Extract()
+        self.kb = KronaBuilder()
+        self.hk = HouseKeeping()
+        self.s = Stats_And_Summary()
+        self.tg = TaxoGroup()
+        self.e = Extract()
         if args.subparser_name == 'graft':
-            self.HK.set_attributes(self.args)
-            self.H = Hmmer(self.args.hmm_file)
-            self.sequence_pair_list, self.input_file_format = self.HK.parameter_checks(args)
-            self.P = Pplacer(self.args.reference_package)
+            self.hk.set_attributes(self.args)
+            self.h = Hmmer(self.args.hmm_file)
+            self.sequence_pair_list, self.input_file_format = self.hk.parameter_checks(args)
+            self.p = Pplacer(self.args.reference_package)
 
     def protein_pipeline(self, base, summary_dict, sequence_file, direction):
         ## The main pipeline for GraftM searching for protein sequence
-        
+
         # Set a variable to store the run statistics, to be added later to
         # the summary_dict
         if direction:
-            run_stats = summary_dict[base][direction]        
+            run_stats = summary_dict[base][direction]
         elif not direction:
             run_stats = summary_dict[base]
         else:
             raise Exception('Programming Error: Assigning run_stats hash')
         # Tell user what is being searched with what
-        Messenger().message('Searching %s using %s' % (os.path.basename(sequence_file), 
+        Messenger().message('Searching %s using %s' % (os.path.basename(sequence_file),
                                                        os.path.basename(self.args.hmm_file)))
         # Search for reads using hmmsearch
-        hit_reads, run_stats = self.H.p_search(self.GMF, 
-                                               self.args, 
-                                               run_stats, 
+        hit_reads, run_stats = self.h.p_search(self.GMF,
+                                               self.args,
+                                               run_stats,
                                                base,
                                                self.input_file_format,
-                                               sequence_file)    
+                                               sequence_file)
         # Exit here if the search search only was specified
         if self.args.search_only:
             Messenger().message('Stopping before alignment\n')
             exit(0)
         # Align the reads.
         Messenger().message('Aligning reads to reference package database')
-        hit_aligned_reads, run_stats = self.H.align(self.GMF, 
+        hit_aligned_reads, run_stats = self.h.align(self.GMF,
                                                     self.args,
                                                     run_stats,
                                                     base,
@@ -80,37 +80,37 @@ class Run:
             Messenger().message('Stopping before placement\n')
             exit(0)
         return summary_dict, hit_aligned_reads
-        
+
     def dna_pipeline(self, base, summary_dict, sequence_file, direction):
-        ## The main pipeline for GraftM searching for DNA sequence 
-        
+        ## The main pipeline for GraftM searching for DNA sequence
+
         # Set a variable to store the run statistics, to be added later to
         # the summary_dict
         if direction:
-            run_stats = summary_dict[base][direction]        
+            run_stats = summary_dict[base][direction]
         elif not direction:
             run_stats = summary_dict[base]
         else:
             raise Exception('Programming Error: Assigning run_stats hash')
-            
+
         # Search for reads using nhmmer
-        Messenger().message('Searching %s using %s' % (os.path.basename(sequence_file), 
+        Messenger().message('Searching %s using %s' % (os.path.basename(sequence_file),
                                                        os.path.basename(self.args.hmm_file)))
-        hit_reads, run_stats = self.H.d_search(self.GMF, 
-                                               self.args, 
-                                               run_stats, 
+        hit_reads, run_stats = self.h.d_search(self.GMF,
+                                               self.args,
+                                               run_stats,
                                                base,
                                                self.input_file_format,
-                                               sequence_file)          
-        
+                                               sequence_file)
+
         # Exit here if the search search only was specified
         if self.args.search_only:
             Messenger().message('Stopping before alignment\n')
             exit(0)
-        
+
         # Otherwise, run through the alignment
         Messenger().message('Aligning reads to reference package database')
-        hit_aligned_reads, run_stats = self.H.align(self.GMF, 
+        hit_aligned_reads, run_stats = self.h.align(self.GMF,
                                                     self.args,
                                                     run_stats,
                                                     base,
@@ -121,31 +121,32 @@ class Run:
             summary_dict[base] = run_stats
         else:
             raise Exception('Programming Error: Logging %s hash' % direction)
-        # Exit here if search and align only was specified     
-        if self.args.seach_and_align_only:
+        # Exit here if search and align only was specified
+        if self.args.search_and_align_only:
             Messenger().message('Stopping before placement\n')
             exit(0)
         return summary_dict, hit_aligned_reads
-                              
-    def placement(self, summary_dict, GM_temp):      
-        ## This is the placement pipeline in GraftM, in aligned reads are 
+
+    def placement(self, summary_dict, GM_temp):
+        ## This is the placement pipeline in GraftM, in aligned reads are
         ## placed into phylogenetic trees, and the results interpreted.
         ## If reverse reads are used, this is where the comparisons are made
         ## between placements, for the summary tables to be build in the
         ## next stage.
-        
+
         # Concatenate alignment files, place in tree, split output guppy
-        # and .jplace file for the output 
-        summary_dict = self.P.place(summary_dict,
+        # and .jplace file for the output
+        summary_dict = self.p.place(summary_dict,
                                     self.GMF,
                                     self.args)
-        # Summary steps. 
+        # Summary steps.
         start = timeit.default_timer()
         otu_tables = []
         for idx, base in enumerate(summary_dict['base_list']):
             # First assign the hash that contains all of the trusted placements
             # to a variable to it can be passed to otu_builder, to be written
             # to a file. :)
+
             if summary_dict['reverse_pipe']:
                 placements = summary_dict[base]['comparison_hash']['trusted_placements']
                 summary_dict[base]['read_length'] = (summary_dict[base]['forward']['read_length'] + summary_dict[base]['reverse']['read_length'])/2
@@ -153,36 +154,36 @@ class Run:
                 placements = summary_dict[base]['trusted_placements']
             else:
                 raise Exception('Programming Error: Assigning placements hash')
-            
+
             self.GMF = GraftMFiles(base, self.args.output_directory, False) # Assign the output directory to place output in
             Messenger().message('Building summary table for %s' % base)
-            self.SAS.otu_builder(placements, 
+            self.s.otu_builder(placements,
                                  self.GMF.summary_table_output_path(base),
                                  base)
             otu_tables.append(self.GMF.summary_table_output_path(base))
-            
+
             # Generate coverage table
             Messenger().message('Building coverage table for %s' % base)
-            self.SAS.coverage_of_hmm(self.args.hmm_file, 
-                                     self.GMF.summary_table_output_path(base), 
-                                     self.GMF.coverage_table_path(base), 
+            self.s.coverage_of_hmm(self.args.hmm_file,
+                                     self.GMF.summary_table_output_path(base),
+                                     self.GMF.coverage_table_path(base),
                                      summary_dict[base]['read_length'])
-            
+
         Messenger().message('Building summary krona plot')
-        self.KB.otuTablePathListToKrona(otu_tables, 
+        self.kb.otuTablePathListToKrona(otu_tables,
                                         self.GMF.krona_output_path(),
                                         self.GMF.command_log_path())
         stop = timeit.default_timer()
         summary_dict['summary_t'] = str(int(round((stop - start), 0)) )
-        
+
         # Compile basic run statistics if they are wanted
         summary_dict['stop_all'] = timeit.default_timer()
         summary_dict['all_t'] = str(int(round((summary_dict['stop_all'] - summary_dict['start_all']), 0)) )
-        
-        
-        #self.SAS.build_basic_statistics(summary_dict, summary_dict['base_list'], self.GMF.basic_stats_path(), self.args.type)
-        
-        
+
+
+        #self.s.build_basic_statistics(summary_dict, summary_dict['base_list'], self.GMF.basic_stats_path(), self.args.type)
+
+
         # Delete unncessary files
         Messenger().message('Cleaning up')
         for base in summary_dict['base_list']:
@@ -190,39 +191,39 @@ class Run:
             if summary_dict['reverse_pipe']:
                 for i in range(0,2):
                     self.GMF = GraftMFiles(base, self.args.output_directory, directions[i])
-                    self.HK.delete([self.GMF.for_aln_path(base), 
-                                    self.GMF.rev_aln_path(base), 
-                                    self.GMF.sto_for_output_path(base), 
-                                    self.GMF.sto_rev_output_path(base), 
-                                    self.GMF.conv_output_rev_path(base), 
-                                    self.GMF.conv_output_for_path(base), 
-                                    self.GMF.euk_free_path(base), 
-                                    self.GMF.euk_contam_path(base), 
-                                    self.GMF.readnames_output_path(base), 
-                                    self.GMF.sto_output_path(base), 
-                                    self.GMF.orf_titles_output_path(base), 
+                    self.hk.delete([self.GMF.for_aln_path(base),
+                                    self.GMF.rev_aln_path(base),
+                                    self.GMF.sto_for_output_path(base),
+                                    self.GMF.sto_rev_output_path(base),
+                                    self.GMF.conv_output_rev_path(base),
+                                    self.GMF.conv_output_for_path(base),
+                                    self.GMF.euk_free_path(base),
+                                    self.GMF.euk_contam_path(base),
+                                    self.GMF.readnames_output_path(base),
+                                    self.GMF.sto_output_path(base),
+                                    self.GMF.orf_titles_output_path(base),
                                     self.GMF.orf_hmmsearch_output_path(base),
                                     self.GMF.hmmsearch_output_path(base),
                                     self.GMF.orf_output_path(base),
                                     self.GMF.comb_aln_fa()])
             elif not summary_dict['reverse_pipe']:
                 self.GMF = GraftMFiles(base, self.args.output_directory, False)
-                self.HK.delete([self.GMF.for_aln_path(base), 
-                                self.GMF.rev_aln_path(base), 
-                                self.GMF.sto_for_output_path(base), 
-                                self.GMF.sto_rev_output_path(base), 
-                                self.GMF.conv_output_rev_path(base), 
-                                self.GMF.conv_output_for_path(base), 
-                                self.GMF.euk_free_path(base), 
-                                self.GMF.euk_contam_path(base), 
-                                self.GMF.readnames_output_path(base), 
-                                self.GMF.sto_output_path(base), 
-                                self.GMF.orf_titles_output_path(base), 
+                self.hk.delete([self.GMF.for_aln_path(base),
+                                self.GMF.rev_aln_path(base),
+                                self.GMF.sto_for_output_path(base),
+                                self.GMF.sto_rev_output_path(base),
+                                self.GMF.conv_output_rev_path(base),
+                                self.GMF.conv_output_for_path(base),
+                                self.GMF.euk_free_path(base),
+                                self.GMF.euk_contam_path(base),
+                                self.GMF.readnames_output_path(base),
+                                self.GMF.sto_output_path(base),
+                                self.GMF.orf_titles_output_path(base),
                                 self.GMF.hmmsearch_output_path(base),
                                 self.GMF.orf_hmmsearch_output_path(base),
                                 self.GMF.orf_output_path(base),
                                 self.GMF.comb_aln_fa()])
-            
+
         Messenger().message('Done, thanks for using graftM!\n')
 
     def graft(self):
@@ -231,7 +232,7 @@ class Run:
         # trees to derive a community structure.
         print '''
                         GRAFT
-       
+
                Joel Boyd, Ben Woodcroft
                                                  __/__
                                           ______|
@@ -248,23 +249,23 @@ class Run:
                          'seqs_list': [],
                          'start_all': timeit.default_timer(),
                          'reverse_pipe': False}
-        
+
         # Define a temporary file that will be used as the concatenated aln
         # file in the placement step
         GM_temp = tempfile.mkdtemp(prefix='GM_temp_')
-        
+
         # Set the output directory if not specified and create that directory
         if not hasattr(self.args, 'output_directory'):
-            self.args.output_directory = "GraftM_proc"  
-        self.HK.make_working_directory(self.args.output_directory, 
+            self.args.output_directory = "GraftM_proc"
+        self.hk.make_working_directory(self.args.output_directory,
                                        self.args.force)
-        
-        # For each pair (or single file passed to GraftM) 
-        for pair in self.sequence_pair_list:  
-            
+
+        # For each pair (or single file passed to GraftM)
+        for pair in self.sequence_pair_list:
+
             # Set the basename, and make an entry to the summary table.
             base = os.path.basename(pair[0]).split('.')[0]
-            
+
             # Set reverse pipe if more than one pair
             if hasattr(self.args, 'reverse'):
                 summary_table['reverse_pipe'] = True
@@ -273,43 +274,43 @@ class Run:
             else:
                 summary_table[base] = {}
 
+            # Set pipeline by checking HMM format
+            setattr(self.args, 'type', self.hk.setpipe(self.args.hmm_file))
+            
             # Guess the sequence file type, if not already specified to GraftM
             if not hasattr(self.args, 'input_sequence_type'):
-                setattr(self.args, 'input_sequence_type', 
-                        self.HK.guess_sequence_type(pair[0], 
+                setattr(self.args, 'input_sequence_type',
+                        self.hk.guess_sequence_type(pair[0],
                                                     self.input_file_format))
             # Make the working base directory
-            self.HK.make_working_directory(os.path.join(self.args.output_directory, 
-                                                        base), 
+            self.hk.make_working_directory(os.path.join(self.args.output_directory,
+                                                        base),
                                            self.args.force)
-            
+
             # tell the user which file/s is being processed
             Messenger().header("Working on %s" % base)
-            
-            # Set pipeline by checking HMM format
-            setattr(self.args, 'type', self.HK.setpipe(self.args.hmm_file))
-            
+
             # for each of the paired end read files
-            for read_file in pair:    
+            for read_file in pair:
                 # Set the output file_name
                 if summary_table['reverse_pipe']:
                     direction = pair_direction.pop(0)
                     Messenger().header("Working on %s reads" % direction)
-                    self.GMF = GraftMFiles(base, 
+                    self.GMF = GraftMFiles(base,
                                            self.args.output_directory,
                                            direction)
-                    self.HK.make_working_directory(os.path.join(self.args.output_directory, 
+                    self.hk.make_working_directory(os.path.join(self.args.output_directory,
                                                                 base,
-                                                                direction), 
+                                                                direction),
                                                    self.args.force)
                 elif not summary_table['reverse_pipe']:
                     direction = False
-                    self.GMF = GraftMFiles(base, 
+                    self.GMF = GraftMFiles(base,
                                            self.args.output_directory,
                                            direction)
                 else:
                     raise Exception('Programming Error')
-                
+
                 if self.args.type == 'P':
                     summary_table, hit_aligned_reads = self.protein_pipeline(base,
                                                                             summary_table,
@@ -317,60 +318,60 @@ class Run:
                                                                             direction)
                 # Or the DNA pipeline
                 elif self.args.type == 'D':
+                    self.hk.set_euk_hmm(self.args)
                     summary_table, hit_aligned_reads = self.dna_pipeline(base,
                                                                         summary_table,
                                                                         read_file,
                                                                         direction)
-                
                 # Add the run stats and the completed run to the summary table
                 summary_table['seqs_list'].append(hit_aligned_reads)
                 if base not in summary_table['base_list']:
                     summary_table['base_list'].append(base)
         # Tell the user we're on to placing the sequences into the tree.
-        self.GMF = GraftMFiles('', 
+        self.GMF = GraftMFiles('',
                                self.args.output_directory,
                                False)
         Messenger().header("Placing reads into phylogenetic tree")
         self.placement(summary_table,
                        GM_temp)
-        
-    
+
+
     def manage(self):
         print '''
                             MANAGE
-           
+
                    Joel Boyd, Ben Woodcroft
-                      
-'''     
-        
+
+'''
+
         if self.args.seq:
-            self.ES.extract(self.args)
-        
+            self.e.extract(self.args)
+
     def assemble(self):
         print '''
                            ASSEMBLE
-           
+
                    Joel Boyd, Ben Woodcroft
-                                        
-                                   
+
+
           _- - _               ___            __/
-           -                  /___\____      /\/   
-           - _     --->   ___/       \_\     \/      
+           -                  /___\____      /\/
+           - _     --->   ___/       \_\     \/
           - _-           /_/            \    /
              - _        /                \__/
                        /
 '''
-        self.TG.main(self.args)
+        self.tg.main(self.args)
 
     def main(self):
 
         if self.args.subparser_name == 'graft':
             self.graft()
-            
+
         elif self.args.subparser_name == 'assemble':
             self.assemble()
 
-        
+
         elif self.args.subparser_name == 'manage':
             self.manage()
-            
+

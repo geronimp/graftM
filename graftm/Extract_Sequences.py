@@ -1,17 +1,8 @@
-#!/usr/bin/env python
-__author__ = "Joel Boyd, Ben Woodcroft"
-__copyright__ = "Copyright 2014"
-__credits__ = ["Joel Boyd", "Ben Woodcroft"]
-__license__ = "GPL3"
-__maintainer__ = "Joel Boyd, Ben Woodcroft"
-__email__ = "joel.boyd near uq.net.au, b.woodcroft near uq.edu.au"
-__status__ = "Development"
-__version__ = "0.4.0"
 
 from graftm.Messenger import Messenger
 from graftm.assembler import TaxoGroup
 from Bio import SeqIO
-import IPython
+
 class Extract:
     
     def __init__(self):

@@ -1,5 +1,3 @@
-from Bio import SeqIO
-
 class Stats_And_Summary:
     
     def __init__(self): pass
@@ -124,3 +122,4 @@ Runtime (seconds):
         with open(output, 'w') as out:
             for line in output_table:
                 out.write('\t'.join(line)+'\n')
+

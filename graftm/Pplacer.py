@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import subprocess
 import os
 import json
@@ -10,7 +8,7 @@ from Bio import SeqIO
 from graftm.Messenger import Messenger
 from graftm.assembler import TaxoGroup
 from graftm.HouseKeeping import HouseKeeping
-from graftm.DatManip import DatManip
+
 
 class Pplacer:
     ### Contains function related to processing alignment files to jplace files
@@ -20,7 +18,6 @@ class Pplacer:
     def __init__(self, refpkg):
         self.refpkg = refpkg
         self.HK = HouseKeeping()
-        self.DM = DatManip()
     
     # Run pplacer
     def pplacer(self, output_file, output_path, input_path, threads, cmd_log):
@@ -228,12 +225,3 @@ class Compare:
         hash['comparison_hash'] = comparison_hash
         return hash # Return the hash
     
-    def create_placement_hash(self, guppy_file, placement_cutoff):
-        pass
-        ## If no comparison is required withr everse reads, simply hame a 
-        ## that can be used to create an output count table
-        
-        # Read in the guppy file
-        #gup = TaxoGroup().guppy_splitter(guppy_file, placement_cutoff)
-        
-        # Create the hash

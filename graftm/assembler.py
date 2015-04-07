@@ -1,18 +1,12 @@
-import argparse
 import subprocess
 import tempfile
 import os
 import shutil
 
-from graftm.Messenger import Messenger
-from datetime import datetime
+from Bio import SeqIO
 
-try:
-    from Bio import SeqIO
-except ImportError:
-    print "Please install Biopython first"
-    exit(1)
-    
+from graftm.Messenger import Messenger
+   
 class TaxoGroup:       
     
     def main(self, args):    

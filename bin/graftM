@@ -9,13 +9,20 @@
 #                                       #
 ##### ##### ##### ##### ##### ##### #####
 
+__author__ = "Joel Boyd, Ben Woodcroft"
+__copyright__ = "Copyright 2014"
+__credits__ = ["Joel Boyd", "Ben Woodcroft"]
+__license__ = "GPL3"
+__maintainer__ = "Joel Boyd, Ben Woodcroft"
+__email__ = "joel.boyd near uq.net.au, b.woodcroft near uq.edu.au"
+__status__ = "Development"
+
+
+import graftm
 import argparse
 import sys
-import IPython
 
 from graftm.Run import Run
-
-__version__ = '0.4.0'
 
 def phelp():
     print """
@@ -32,33 +39,24 @@ COMMUNITY PROFILING
                         marker gene, and construct a community profile
                         e.g. usage:
                             graftM graft --forward <READS.fq.gz> --graftm_package <GRAFTM_PACKAGE>
-                          
-    pathfinder  -       Search for and phylogenetically classify reads associated with a whole 
-                        metabolic pathway
-                        e.g. usage:
-                            Not finished - be patient!
+
 =====================================================================================================
 UTILITIES
 
-    assemble    -       Cluster and attempt to assemble reads at the most resolved taxonomic
-                        rank possible
-                        e.g. usage:
-                            graftM assemble --profile <GRAFTM_PROFILE>
                             
     manage      -       Tools to manage the output of GraftM such as:
                             * --return - Return reads assigned to a given lineage
                             
                         e.g. usage:
                             graftM manage --profile <GRAFTM_PROFILE> --<GRAFTM_TASK>
-                        
-    filter      -       Filter out rRNA reads from a transcriptome
-                        e.g. usage:
-                            graftM filter --reads <READS> --graftM_package <GRAFTM_PACKAGE> 
-=====================================================================================================
-""" % (__version__)
 
+=====================================================================================================
+""" % (graftm.__version__)
+    
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument('--version', action='version', version='graftM v%s' % graftm.__version__)
+    
     subparsers = parser.add_subparsers(help="--", dest='subparser_name')
     
     # Standard GraftM pipeline.
@@ -76,7 +74,6 @@ if __name__ == '__main__':
     graft_parser.add_argument('--seach_and_align_only', action="store_true", help='Stop after reads have been identified and aligned (default=False)', default=False)
     graft_parser.add_argument('--search_only', action="store_true", help='Stop after reads have been identified (default=False)', default=False)
     graft_parser.add_argument('--check_total_euks', action="store_true", help='Search whole sample for 18S and attempt to estimate relative percentage of Eukaryotes (default=False)', default=False)
-    graft_parser.add_argument('--version', action='version', version='graftM v%s' % __version__)
     graft_parser.add_argument('--output_directory', metavar='reference_package', type=str, help='Output directory name. If unspecified, this file will be named GraftM_proc', default=argparse.SUPPRESS)
     
     
@@ -96,7 +93,6 @@ if __name__ == '__main__':
     assemble_parser.add_argument('--graft_run', metavar='File produced ', help='guppy file produced by graftM, comma separated (default=True)', default=True)
     assemble_parser.add_argument('--kmer', metavar='k-mer',  help='k-mer to use for assembly with velvet (default = 51)', default = '51')
     assemble_parser.add_argument('--assembly_type', metavar='type of assembly', help='phrap or velvet assembly',choices = ['phrap', 'velvet', 'finishm'], default='velvet')
-    assemble_parser.add_argument('--version', action='version', version='graftM v%s' % __version__)
     assemble_parser.add_argument('--finish', action = 'store_true', help='finish the velvet assembly with an overlap assembly (default=False)', default=False)
 
     # Manage - various tools that make the management of graftM output easier
@@ -107,14 +103,14 @@ if __name__ == '__main__':
     manage_parser.add_argument('--profile', metavar='graftM_profile', help='GraftM profile produced by graftM graft run (required=True)', required=True)
     manage_parser.add_argument('--non_cumil', action = 'store_true', help='Return all sequences exclusively at this taxonomic rank (i.e. do not return sequences that were classified to a higher resolution, default=False)', default=False)
     manage_parser.add_argument('--file', action = 'store_true', help='Lineages are in a file, one entry per line (default=False)', default=False)
-    manage_parser.add_argument('--version', action='version', version='graftM v%s' % __version__)
     
     # Pathfinder - Find a whole pathway of genes in a metagenome/transcriptome.
     pathfinder_parser = subparsers.add_parser('pathfinder',
                                               description='Find a whole pathway of genes in a metagenome/transcriptome.',
                                               epilog='Joel Boyd, Ben Woodcroft')
 
-    if(len(sys.argv) == 1 or sys.argv[1] == '-h' or sys.argv == '--help'):
+
+    if(len(sys.argv) == 1 or sys.argv[1] == '-h' or sys.argv[1] == '--help'):
         phelp()
         exit(0)
     else:

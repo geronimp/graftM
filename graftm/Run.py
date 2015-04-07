@@ -10,7 +10,6 @@ from graftm.Extract_Sequences import Extract
 from graftm.Hmmer import Hmmer
 from graftm.HouseKeeping import HouseKeeping
 from graftm.Stats_And_Summary import Stats_And_Summary
-from graftm.DatManip import DatManip
 from graftm.Pplacer import Pplacer
 from graftm.krona_from_community_profiles import KronaBuilder
 from graftm.assembler import TaxoGroup
@@ -24,7 +23,6 @@ class Run:
         
     def setattributes(self, args):
         self.KB = KronaBuilder()
-        self.DM = DatManip()
         self.HK = HouseKeeping()
         self.SAS = Stats_And_Summary()
         self.TG = TaxoGroup()
@@ -55,9 +53,7 @@ class Run:
                                                run_stats, 
                                                base,
                                                self.input_file_format,
-                                               sequence_file)
-        
-    
+                                               sequence_file)    
         # Exit here if the search search only was specified
         if self.args.search_only:
             Messenger().message('Stopping before alignment\n')

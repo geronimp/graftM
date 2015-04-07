@@ -531,3 +531,4 @@ class Hmmer:
         
         # Return
         return files.aligned_fasta_output_path(base), run_stats
+

@@ -207,4 +207,5 @@ class HouseKeeping:
         if not hasattr(args, 'reference_package') or not hasattr(args, 'hmm_file'):
             Messenger().error_message('GraftM package is empty or misformatted.')
             exit(1)
+
             

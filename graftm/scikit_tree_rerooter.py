@@ -2,7 +2,7 @@ from skbio import TreeNode
 
 class Rerooter:
     def __ninit_(self): pass
-    
+
     def importer(self, tree_path):
         t = TreeNode.from_newick(open(tree_path, 'r'))
         return t
@@ -51,5 +51,3 @@ class Rerooter:
 
         # Write to file
         self.write_tree(rerooted_tree , o)
-
-

@@ -152,7 +152,7 @@ class HouseKeeping:
 
             # Set string for hmmsearch evalue
             args.eval = '-E %s' % args.eval
-
+            
             # Determine the File format based on the suffix
             input_file_format = self.guess_sequence_input_file_format(args.forward)
             sequence_file_list = []
@@ -174,6 +174,30 @@ class HouseKeeping:
             return
         
     def set_attributes(self, args):
+        # Check the presence of all prerequisite programs needed for GraftM
+        uninstalled_programs = []
+        prerequisites = {'orfm': 'https://github.com/wwood/OrfM',
+                        'nhmmer': 'http://hmmer.janelia.org/',
+                        'hmmsearch': 'http://hmmer.janelia.org/',
+                        'fxtract': 'https://github.com/ctSkennerton/fxtract',
+                        'pplacer': 'http://matsen.fhcrc.org/pplacer/',
+                        'guppy': 'http://matsen.fhcrc.org/pplacer/',
+                        'seqmagick': 'https://github.com/fhcrc/seqmagick',
+                        'ktImportText': 'http://sourceforge.net/p/krona/home/krona/'}
+        for program in prerequisites.keys():
+            if self.which(program):
+                pass
+            else:
+                uninstalled_programs.append(program)
+        if len(uninstalled_programs) > 0:
+            Messenger().header("Following programs must be installed to run graftM\n")
+            for program in uninstalled_programs:
+                print '\t%s\t%s' % (program, prerequisites[program])
+
+            exit(0)
+        else:
+            pass
+        
         # Read graftM package and assign HMM and refpkg file
         if hasattr(args, 'graftm_package'):
             if hasattr(args, 'hmm_file'): # If a hmm is specified, overwrite the one graftM package
@@ -182,11 +206,28 @@ class HouseKeeping:
                 setattr(args, 'hmm_file', os.path.join(args.graftm_package, [x for x in os.listdir(args.graftm_package) if x.endswith('.hmm')][0]))
                 setattr(args, 'reference_package', os.path.join(args.graftm_package, [x for x in os.listdir(args.graftm_package) if x.endswith('.refpkg')][0]))
         elif not hasattr(args, 'graftm_package'): # Or if no graftM package and hmm is specified
-            if hasattr(args, 'hmm_file') and args.search_only or args.search_and_align_only: # and the placement step is skipped
+            if hasattr(args, 'hmm_file') and args.search_only: # and the placement step is skipped
                 pass # That's okay
-            elif hasattr(args, 'hmm_file') and not args.search_only or not args.search_and_align_only: # But if a hmm is specified
-                raise Exception('No refpkg specified.')
+                setattr(args, 'reference_package', None)
+            elif hasattr(args, 'hmm_file') and not args.search_only: # But if a hmm is specified
+                raise Exception('No refpkg specified: Need to provide a GraftM package or provide the --search_only path')
         else:
             raise Exception("Programming Error: Assigning hmm and refpkg attributes to args")       
         return
+    
+    def which(self, program):
+        '''from: BamM and http://stackoverflow.com/questions/377017/test-if-executable-exists-in-python'''
+        def is_exe(fpath):
+            return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+        fpath, fname = os.path.split(program)
+        if fpath:
+            if is_exe(program):
+                return program
+        else:
+            for path in os.environ["PATH"].split(os.pathsep):
+                path = path.strip('"')
+                exe_file = os.path.join(path, program)
+                if is_exe(exe_file):
+                    return exe_file
+        return None
 

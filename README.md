@@ -5,6 +5,8 @@
 ## Overview
 Basically, GraftM is a pipeline used for identifying and classifying marker gene reads from metagenomic datasets. If you are after a tool that provide rapid and accurate analysis of short read sequence data, then you'll probably want to give GraftM a try
 
+Because GraftM is still being actively developed backwards incompatability may happen in the future, although we will aim to minimise this as much as possible.
+
 ---
 
 ## Installation
@@ -24,3 +26,5 @@ For now though, installation will have to be manual but very soon we hope to mak
 ## Help + Contact
 if you have any comments, complaints or reccomendations about GraftM. I'm happy to help, just ask through GitHub.
 A manual page and pdf will also be available shortly
+
+---

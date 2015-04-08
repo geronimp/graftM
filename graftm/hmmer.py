@@ -171,7 +171,7 @@ class Hmmer:
                 raise Exception(Messenger().error_message('Suffix on %s not familiar. Please submit an .fq.gz or .fa file\n' % (raw_reads)))
 
         else:
-            cmd = "nhmmer --cpu %s %s --tblout %s /srv/db/graftm/0/HMM/Euk.hmm %s 2>&1 > /dev/null " % (threads, evalue, output_path, input_path)
+            cmd = "nhmmer --cpu %s %s --tblout %s %s %s 2>&1 > /dev/null " % (threads, evalue, output_path, euk_hmm, input_path)
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(cmd, shell = True)
 
@@ -189,7 +189,6 @@ class Hmmer:
 
                     if ali_length >= float(cutoff):
                         reads_with_better_euk_hit.append(read_name)
-                        reads_unique_to_eukaryotes.append(read_name)
 
             except KeyError:
                 if check_total_euks:
@@ -197,27 +196,26 @@ class Hmmer:
 
                 else:
                     continue
-
         # Return Euk contamination
-        if len(reads_unique_to_eukaryotes) == 0:
+        if len(reads_with_better_euk_hit) == 0:
             Messenger().message("No contaminating eukaryotic reads detected in %s" % (os.path.basename(raw_reads)))
 
         else:
-            Messenger().message("Found %s read(s) that may be eukaryotic, continuing without it/them" % len(reads_unique_to_eukaryotes))
+            Messenger().message("Found %s read(s) that may be eukaryotic, continuing without it/them" % len(reads_with_better_euk_hit))
 
         # Write a file with the Euk free reads.
         with open(euk_free_output_path, 'w') as euk_free_output:
             for record in list(SeqIO.parse(open(input_path, 'r'), 'fasta')):
-                if record.id not in reads_unique_to_eukaryotes:
+                if record.id not in reads_with_better_euk_hit:
                     SeqIO.write(record, euk_free_output, "fasta")
 
         if check_total_euks:
-            run_stats['euk_uniq'] = len(euk_uniq)
-            run_stats['euk_contamination'] = len(reads_unique_to_eukaryotes)
+            run_stats['euk_uniq'] = len(reads_unique_to_eukaryotes)
+            run_stats['euk_contamination'] = len(reads_with_better_euk_hit)
 
         else:
             run_stats['euk_uniq'] = 'N/A'
-            run_stats['euk_contamination'] = len(reads_unique_to_eukaryotes)
+            run_stats['euk_contamination'] = len(reads_with_better_euk_hit)
 
         return run_stats, euk_free_output_path
 
@@ -227,21 +225,15 @@ class Hmmer:
             table_title_list.append(hmmout_table_title)
             hmmsearch_cmd = " hmmsearch --cpu %s %s -o /dev/null --domtblout %s %s " % (threads, eval, hmmout_table_title, self.hmm)
             # TODO: capture stderr and report if the check_call fails
-
             if input_file_format == FORMAT_FASTA or input_file_format == FORMAT_FASTQ_GZ:
-
                 if contents.pipe == 'P':
                     cmd = 'orfm %s | %s /dev/stdin' % (seq_file, hmmsearch_cmd)
                     self.hk.add_cmd(cmd_log, cmd)
                     subprocess.check_call(["/bin/bash", "-c", cmd])
-
-
-
             else:
                 Messenger().message('ERROR: Suffix on %s not recegnised\n' % (seq_file))
                 exit(1)
             del suffix[0]
-
         return table_title_list
 
     def csv_to_titles(self, output_path, input_path, graftm_pipeline, run_stats, seq_type):
@@ -331,49 +323,30 @@ class Hmmer:
             return (sum(lengths) / float(len(lengths)))/3
         elif pipe =="D":
             return sum(lengths) / float(len(lengths))
-
-
+        
     def alignment_correcter(self, alignment_file_list, output_file_name):
-
         corrected_sequences = {}
-
         for alignment_file in alignment_file_list:
             insert_list = [] # Define list containing inserted positions to be removed (lower case characters)
-
             sequence_list = list(SeqIO.parse(open(alignment_file, 'r'), 'fasta'))
-
             for sequence in sequence_list: # For each sequence in the alignment
-
                 for idx, nt in enumerate(list(sequence.seq)): # For each nucleotide in the sequence
-
                     if nt.islower(): # Check for lower case character
                         insert_list.append(idx) # Add to the insert list if it is
-
             insert_list = list(OrderedDict.fromkeys(sorted(insert_list, reverse = True))) # Reverse the list and remove duplicate positions
-
-
-
             for sequence in sequence_list: # For each sequence in the alignment
                 new_seq = list(sequence.seq) # Define a list of sequences to be iterable list for writing
-
                 for position in insert_list: # For each position in the removal list
                     del new_seq[position] # Delete that inserted position in every sequence
-
                 corrected_sequences['>'+sequence.id+'\n'] = ''.join(new_seq)+'\n'
-
-
-
         with open(output_file_name, 'w') as output_file: # Create an open file to write the new sequences to
-
             for fasta_id, fasta_seq in corrected_sequences.iteritems():
                 orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
                 regex_match = orfm_regex.match(fasta_id)
-
                 if regex_match is not None:
                     output_file.write(regex_match.groups(0)[0] + '\n')
                 else:
                     output_file.write(fasta_id)
-
                 output_file.write(fasta_seq)
 
     def extract_orfs(self, input_path, raw_orf_path, hmmsearch_out_path, orf_titles_path, orf_out_path, hmm, cmd_log):
@@ -440,6 +413,10 @@ class Hmmer:
         # Stop and log search timer
         stop = timeit.default_timer()
         run_stats['search_t'] = str(int(round((stop - start), 0)) )
+        # Falsify some summary entries
+        run_stats['euk_contamination'] = 'N/A'
+        run_stats['euk_uniq'] = 'N/A'
+        run_stats['euk_check_t'] = 'N/A'
         # Return hit reads, and summary hash
         return hit_orfs, run_stats
 

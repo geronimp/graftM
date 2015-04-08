@@ -11,55 +11,15 @@ FORMAT_FASTA = 'FORMAT_FASTA'
 FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'
 
 class HouseKeeping:
-
+    ### Functions for setting up the graftM pipeline to run correctly, and 
+    ### general housekeeping things like adding and removing directories and 
+    ### files.
+    
     def __init__(self): pass
 
-    def make_filter_directories(self, filter_list, input_list, force):
-
-        output_hash = {}
-
-        for sequence_file in input_list:
-
-            base_sequence = os.path.basename(sequence_file).split('.')[0]
-
-            if force:
-                shutil.rmtree(base_sequence, ignore_errors=True)
-
-            try:
-                os.mkdir(base_sequence)
-            except:
-                Messenger().header('Directory %s already exists. Exiting to prevent over-writing\n' % base_sequence)
-                exit(1)
-
-            output_hash[sequence_file] = {'dir': base_sequence}
-
-            for f in filter_list:
-                base_filter = os.path.basename(f.split('.')[0])
-                filter_output = os.path.join(base_sequence, base_filter)
-                os.mkdir(filter_output)
-                output_hash[sequence_file][base_filter+ '.hmm'] = filter_output
-
-        return output_hash
-
-
-    def read_contents(self, gpkg_path):
-
-        c = os.path.join(gpkg_path, "contents.txt")
-
-        contents_hash = {}
-
-        f =  [x.rstrip() for x in open(c, 'r').readlines()]
-
-        for entry in f:
-            s = entry.split('=')
-            contents_hash[s[0]] = s[1].split(',')
-
-        contents_hash['HMM'] = [os.path.join(gpkg_path, x) for x in contents_hash['HMM']]
-        return contents_hash
-
-
-    # Given a Return the guessed file format, or raise an Exception if
     def guess_sequence_input_file_format(self, sequence_file_path):
+        ## Given a sequence file, guess the format and return. Raise an 
+        ## exception if it cannot be guessed
         if sequence_file_path.endswith(('.fa', '.faa', '.fna')):  # Check the file type
             return FORMAT_FASTA
         elif sequence_file_path.endswith(('.fq.gz', '.fastq.gz')):
@@ -68,10 +28,13 @@ class HouseKeeping:
             raise Exception("Unable to guess file format of sequence file: %s" % sequence_file_path)
 
     def guess_sequence_type(self, input_file, file_format):
-
+        ## Guess the type of input sequence provided to graftM (i.e. nucleotide
+        ## or amino acid) and return
+        # Define expected residues for each sequence type
         aas = set(['P','V','L','I','M','F','Y','W','H','K','R','Q','N','E','D','S'])
         nas = set(['A', 'T', 'G', 'C', 'N', 'U'])
-
+        # If its Gzipped and fastqm make a small sample of the sequence to be 
+        # read
         if file_format == 'FORMAT_FASTQ_GZ':
             filename = "/tmp/graftM_sample_"+str(random.randint(1, 100))+".fa"
             #unzip, and head into tmp_file, read tmp file, and return sequence type
@@ -85,14 +48,13 @@ class HouseKeeping:
                 if nucl not in nas and nucl in aas:
                     return 'protein'
                 elif nucl not in nas and nucl not in aas:
-                    Messenger().error_message('Encountered unexpected character when attempting to guess sequence type: %s' % (nucl))
-                    exit(1)
+                    raise Exception(Messenger().error_message('Encountered unexpected character when attempting to guess sequence type: %s' % (nucl)))
                 else:
                     continue
-
             return 'nucleotide'
 
     def set_euk_hmm(self, args):
+        ## Set the hmm used by graftM to cross check for euks.
         if hasattr(args, 'euk_hmm_file'):
             pass
         elif not hasattr(args, 'euk_hmm_file'):
@@ -102,16 +64,24 @@ class HouseKeeping:
         return
     
     def setpipe(self, hmm):
-        t = [x.rstrip() for x in open(hmm, 'r').readlines() if x.startswith('ALPH')][0].split()[1]
-
-        if t == 'DNA':
-            return 'D'
-        elif t == 'amino':
-            return 'P'
-        else:
-            Messenger().error_message('Unrecognised HMM library. Not sure which pipeline to use.')
-            exit(1)
-
+        ## Read in the hmm file and return the evalue trusted cutoff and the
+        ## type of HMM
+        hmm_tc = None
+        hmm_read = [x.rstrip() for x in open(hmm, 'r').readlines() if x.startswith('ALPH') or x.startswith('TC')]
+        if len(hmm_read) > 2:
+            raise Exception('Possibly Programming Error: Misread HMM library.')
+        for item in hmm_read:
+            if item.startswith('ALPH'):
+                if item.split()[1] == 'DNA' or item.split()[1] == 'RNA':
+                    hmm_type = 'D'
+                elif item.split()[1] == 'amino':
+                    hmm_type = 'P'
+            elif item.startswith('TC'):
+                hmm_tc = item.split()[1]
+            else:
+                raise Exception('Possibly Programming Error: Misread HMM library.')
+        return hmm_type, hmm_tc
+        
     def delete(self, delete_list):
         for item in delete_list:
             try:
@@ -130,11 +100,9 @@ class HouseKeeping:
 
 
     def make_working_directory(self, directory_path, force):
-
         if force:
             shutil.rmtree(directory_path, ignore_errors=True)
             os.mkdir(directory_path)
-
         else:
             try:
                 os.mkdir(directory_path)

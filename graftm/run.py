@@ -164,12 +164,9 @@ class Run:
         # Compile basic run statistics if they are wanted
         summary_dict['stop_all'] = timeit.default_timer()
         summary_dict['all_t'] = str(int(round((summary_dict['stop_all'] - summary_dict['start_all']), 0)) )
+        self.s.build_basic_statistics(summary_dict, self.gmf.basic_stats_path(), self.args.type)
 
-
-        #self.s.build_basic_statistics(summary_dict, summary_dict['base_list'], self.gmf.basic_stats_path(), self.args.type)
-
-
-        # Delete unncessary files
+        # Delete unnecessary files
         Messenger().message('Cleaning up')
         for base in summary_dict['base_list']:
             directions = ['forward', 'reverse']
@@ -259,9 +256,12 @@ class Run:
             else:
                 summary_table[base] = {}
 
-            # Set pipeline by checking HMM format
-            setattr(self.args, 'type', self.hk.setpipe(self.args.hmm_file))
-            
+            # Set pipeline and evalue by checking HMM format
+            hmm_type, hmm_tc = self.hk.setpipe(self.args.hmm_file)
+            setattr(self.args, 'type', hmm_type)
+            if hmm_tc:
+                setattr(self.args, 'eval', hmm_type)
+                
             # Guess the sequence file type, if not already specified to GraftM
             if not hasattr(self.args, 'input_sequence_type'):
                 setattr(self.args, 'input_sequence_type',

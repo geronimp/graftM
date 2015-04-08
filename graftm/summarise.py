@@ -28,73 +28,57 @@ class Stats_And_Summary:
                 ct.write(entry)
 
 
-    def build_basic_statistics(self, summary_hash, base_list, output, pipe):
-        sep = '\t'
-        S16= []
-        S18 = []
-        cont_18S = []
-        n_placed = []
-        search_s = []
-        extract_t = []
-        aln_t = []
-        euk_check_t = []
-        tree_i_t = summary_hash['place_t']
-        summary_t = summary_hash['summary_t']
-        all_t = str(round(summary_hash['stop_all'] - summary_hash['start_all'], 2))
-        base_titles = '\t'.join(base_list)
-
-        for base in base_list:
-            h = summary_hash[base]
-            if pipe == "P":
-                S16.append(str(h['n_total_reads']))
-                S18.append('N/A')
-                cont_18S.append('N/A')
-            elif pipe == "D":
-                S16.append(str(h['n_total_reads'] - h['n_contamin_euks']))
-                S18.append(str(h['n_uniq_euks']))
-                cont_18S.append(str(h['n_contamin_euks']))
-
-            n_placed.append(str(h['reads_found']))
-            search_s.append(str(h['search_t']))
-            extract_t.append(str(h['extract_t']))
-            aln_t.append(str(h['extract_t']))
-            euk_check_t.append(str(h['euk_check_t']))
-
-
-
+    def build_basic_statistics(self, summary_hash, output, pipe):
+        
+        def compile_run_stats(hash):
+            files = []
+            tot_16S = []
+            tot_18S = []
+            cont_18S = []
+            search_step = []
+            aln_step = []
+            euk_check_step = []
+            for base in hash['base_list']:
+                if hash['reverse_pipe']:
+                    files += [base + ' forward', base + ' reverse']
+                    tot_16S += [str(len(hash[base]['forward']['reads'].keys())), str(len(hash[base]['reverse']['reads'].keys()))]
+                    tot_18S += [str(hash[base]['forward']['euk_uniq'] + hash[base]['forward']['euk_contamination']), 
+                                str(hash[base]['reverse']['euk_uniq'] + hash[base]['reverse']['euk_contamination'])]
+                    cont_18S += [str(summary_hash[base]['forward']['euk_contamination']), str(summary_hash[base]['reverse']['euk_contamination'])] 
+                    search_step += [hash[base]['forward']['search_t'], hash[base]['reverse']['search_t']]
+                    aln_step += [hash[base]['forward']['aln_t'], hash[base]['reverse']['aln_t']]
+                    euk_check_step += [hash[base]['forward']['euk_check_t'], hash[base]['reverse']['euk_check_t']]
+                elif not hash['reverse_pipe']:
+                    files += [base]
+                    tot_16S += [str(len(hash[base]['reads'].keys()))]
+                    tot_18S += [str(hash[base]['euk_contamination'])]
+                    cont_18S += [str(summary_hash[base]['euk_contamination'])]
+                    search_step += [hash[base]['search_t']]
+                    aln_step += [hash[base]['aln_t']]
+                    euk_check_step += [hash[base]['euk_check_t']]
+                else:
+                    raise Exception('Programming Error')
+            
+            return '\t'.join(files), '\t'.join(tot_16S), '\t'.join(tot_18S), '\t'.join(cont_18S), '\t'.join(files), '\t'.join(search_step), '\t'.join(aln_step), '\t'.join(euk_check_step), hash['place_t'], hash['summary_t'], hash['all_t']
+        
+        sum = compile_run_stats(summary_hash)
         stats = """Basic run statistics (count):
 
                              Files:\t%s
 Total number of 16S reads detected:\t%s
 Total number of 18S reads detected:\t%s
     'Contaminant' eukaryotic reads:\t%s
-Number of 16S reads placed in tree:\t%s
 
 Runtime (seconds):
                              Files:\t%s
                        Search step:\t%s
-                      Extract step:\t%s
                     Alignment step:\t%s
               Eukaryote check step:\t%s
 
                Tree insertion step:\t%s
                  Summarising steps:\t%s
                      Total runtime:\t%s
-    """ % (
-                base_titles,
-                sep.join(S16),
-                sep.join(S18),
-                sep.join(cont_18S),
-                sep.join(n_placed),
-                base_titles,
-                sep.join(search_s),
-                sep.join(extract_t),
-                sep.join(aln_t),
-                sep.join(euk_check_t),
-                tree_i_t,
-                summary_t,
-                all_t
-               )
+    """ % (sum)
         with open(output, 'w') as stats_file:
             stats_file.write(stats)
 

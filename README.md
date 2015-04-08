@@ -27,4 +27,7 @@ For now though, installation will have to be manual but very soon we hope to mak
 if you have any comments, complaints or reccomendations about GraftM. I'm happy to help, just ask through GitHub.
 A manual page and pdf will also be available shortly
 
+Software by Joel A. Boyd and Ben J. Woodcroft
+Released under GPL3 - see LICENCE.txt for licencing details
+
 ---

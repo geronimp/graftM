@@ -11,64 +11,55 @@ class Extract:
         self.tg = TaxoGroup()
 
     def extract(self, args):
-            has_rev = False
-            if args.file:
-                lineages = [x.rstrip() for x in open(args.seq, 'r').readlines()]
-                Messenger().header("Acquiring reads for %s lineages" % len(lineages))
-            else:
-                lineages = [args.seq]
-                Messenger().header("Acquiring reads for %s" % lineages[0])
-            if os.path.isdir( os.path.join(args.profile, 'forward') ) and os.path.isdir( os.path.join(args.profile, 'reverse') ):
-                has_rev = True
-                # Forward read guppy and sequences
-                f_guppy = self.tg.guppy_splitter(os.path.join(args.profile, 'forward', 'placements.guppy'), '0.75')
-                f_record_dict = SeqIO.to_dict(SeqIO.parse(os.path.join(args.profile, 'forward' , os.path.basename(args.profile)+'_forward_hits.fa'), "fasta"))
-                # Reverse read guppy and sequences
-                r_guppy = self.tg.guppy_splitter(os.path.join(args.profile, 'reverse', 'placements.guppy'), '0.75')
-                r_record_dict = SeqIO.to_dict(SeqIO.parse(os.path.join(args.profile, 'reverse' , os.path.basename(args.profile)+'_reverse_hits.fa'), "fasta"))
-            elif not os.path.isdir( os.path.join(args.profile, 'forward') ) and not os.path.isdir( os.path.join(args.profile, 'reverse') ):  
-                guppy = self.tg.guppy_splitter(os.path.join(args.profile, 'placements.guppy'), '0.75')
-                record_dict = SeqIO.to_dict(SeqIO.parse(os.path.join(args.profile, os.path.basename(args.profile)+'_hits.fa'), "fasta"))
-            else:
-                raise Exception("Programming Error: Incomplete or misformatted GraftM profile.")
-            import IPython
-            IPython.embed()
-
+            runs = [os.path.join(args.profile, f) for f in os.listdir(args.profile) if os.path.isdir(os.path.join(args.profile, f))]
+            d = {}
             
-            Messenger().message("Parsing sequences")
-            record_dict = SeqIO.to_dict(SeqIO.parse(os.path.join(args.profile, '*_hits.fa'), "fasta"))
-
-            if not args.file:
-
-                if args.non_cumil:
-                    with open(args.profile+'_'+lineages[0]+'_Seqs.fa', 'w') as output:
-                        for entry in guppy:
-                            if guppy[entry][-1] == lineages[0]:
-                                output.write('>' + entry[:-2] + '\n')
-                                output.write(str(record_dict[entry[:-2]].seq) + '\n')
-
-
-                elif not args.non_cumil:
-                    with open(args.profile+'_'+lineages[0]+'_Seqs.fa', 'w') as output:
-                        for entry in guppy:
-                            if lineages[0] in guppy[entry]:
-                                output.write('>' + entry[:-2] + '\n')
-                                output.write(str(record_dict[entry[:-2]].seq) + '\n')
-            elif args.file:
-
-                for lin in lineages:
-                    if args.non_cumil:
-                        with open(args.profile+'_'+lin+'_Seqs.fa', 'w') as output:
-                            for entry in guppy:
-                                if guppy[entry][-1] == lin:
-                                    output.write('>' + entry[:-2] + '\n')
-                                    output.write(str(record_dict[entry[:-2]].seq) + '\n')
-
-
-                    elif not args.non_cumil:
-                        with open(args.profile+'_'+lin+'_Seqs.fa', 'w') as output:
-                            for entry in guppy:
-
-                                if lin in guppy[entry]:
-                                    output.write('>' + entry[:-2] + '\n')
-                                    output.write(str(record_dict[entry[:-2]].seq) + '\n')
+            for r in runs:
+                if len([f for f in os.listdir(r) if f == 'reverse' or f == 'forward']) > 0:
+                    files = [os.path.join(f, 'forward') for f in runs] + [os.path.join(f, 'reverse') for f in runs]
+                    prefix = ['forward', 'reverse']
+                    for f in files:
+                        p = prefix.pop(0)
+                        d[os.path.basename(r) + '_' + p] = {'guppy': os.path.join(f, 'placements.guppy'),
+                                                  'reads': os.path.join(f, os.path.basename(r) + '_%s_hits.fa' % p)}
+                elif len([f for f in os.listdir(r) if f == 'reverse' or f == 'forward']) == 0:
+                    d[os.path.basename(r)] = {'guppy': os.path.join(r, 'placements.guppy'),
+                                              'reads': os.path.join(r, os.path.basename(r) + '_hits.fa')}           
+            for run in d.keys():
+                reads = SeqIO.to_dict(SeqIO.parse(d[run]["reads"], "fasta"))
+                guppy = TaxoGroup().guppy_splitter(d[run]["guppy"], args.cutoff)
+                out_path = os.path.join(os.path.split(d[run]["reads"])[0], 'reads')
+                if not os.path.isdir(out_path):
+                    os.mkdir(out_path)
+                
+                if not args.file:                    
+                    for lin in args.seq.split(','):
+                        Messenger().message("Finding sequences for %s in %s" % (lin, run))
+                        if args.non_cumil:
+                            with open(os.path.join(out_path, run+'_'+lin+'_non_cumil_seqs.fa'), 'w') as output:
+                                for entry in guppy:
+                                    if guppy[entry]['placement'][-1] == lin:
+                                        output.write('>' + entry + '\n')
+                                        output.write(str(reads[entry].seq) + '\n')
+                        elif not args.non_cumil:
+                            with open(os.path.join(out_path, run+'_'+lin+'_seqs.fa'), 'w') as output:
+                                for entry in guppy:
+                                    if lin in guppy[entry]['placement']:
+                                        output.write('>' + entry + '\n')
+                                        output.write(str(reads[entry].seq) + '\n')
+                elif args.file:
+                    for lin in [x.rstrip() for x in open(args.seq, 'r').readlines()]:
+                        Messenger().message("Finding sequences for %s in %s" % (lin, run))
+                        if args.non_cumil:
+                            with open(os.path.join(out_path, run+'_'+lin+'_seqs.fa'), 'w') as output:
+                                for entry in guppy:
+                                    if guppy[entry][-1] == lin:
+                                        output.write('>' + entry[:-2] + '\n')
+                                        output.write(str(record_dict[entry[:-2]].seq) + '\n')
+                        elif not args.non_cumil:
+                            with open(os.path.join(out_path, run+'_'+lin+'_seqs.fa'), 'w') as output:
+                                for entry in guppy:
+    
+                                    if lin in guppy[entry]:
+                                        output.write('>' + entry[:-2] + '\n')
+                                        output.write(str(record_dict[entry[:-2]].seq) + '\n')

@@ -277,7 +277,7 @@ class Hmmer:
             Messenger().message('Found %s read(s) in %s' % (len(reads_list), os.path.basename(input_path)))
         else:
             Messenger().message('%s reads found, cannot continue' % (len(reads_list)))
-            raise Exception('No reads to continue with')
+            return
 
         ## write the read names to output
         with open(output_path, 'w') as output_file:
@@ -439,7 +439,8 @@ class Hmmer:
                                                      args.type,
                                                      run_stats,
                                                      None)
-
+        
+        
         # And extract them from the original sequence file
         hit_reads = self.extract_from_raw_reads(files.fa_output_path(base),
                                                 hit_readnames,

@@ -70,10 +70,7 @@ class TaxoGroup:
         return read_tax_dict
 
     def rank_grouper(self, split_guppy, f_sequences_list):
-
         '''Gathers the sequences that correspond to each id, and taxonomic rank within the split guppy'''
-
-
         n_misses = 0
         tax_list = [{}, {}, {}, {}, {}, {}]
 

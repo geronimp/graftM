@@ -118,7 +118,6 @@ class Run:
         ## If reverse reads are used, this is where the comparisons are made
         ## between placements, for the summary tables to be build in the
         ## next stage.
-
         # Concatenate alignment files, place in tree, split output guppy
         # and .jplace file for the output
         summary_dict = self.p.place(summary_dict,

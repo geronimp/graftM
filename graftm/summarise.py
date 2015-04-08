@@ -42,8 +42,11 @@ class Stats_And_Summary:
                 if hash['reverse_pipe']:
                     files += [base + ' forward', base + ' reverse']
                     tot_16S += [str(len(hash[base]['forward']['reads'].keys())), str(len(hash[base]['reverse']['reads'].keys()))]
-                    tot_18S += [str(hash[base]['forward']['euk_uniq'] + hash[base]['forward']['euk_contamination']), 
-                                str(hash[base]['reverse']['euk_uniq'] + hash[base]['reverse']['euk_contamination'])]
+                    try:
+                        tot_18S += [str(hash[base]['forward']['euk_uniq'] + hash[base]['forward']['euk_contamination']), 
+                                    str(hash[base]['reverse']['euk_uniq'] + hash[base]['reverse']['euk_contamination'])]
+                    except:
+                        tot_18S += ['N/A', 'N/A']
                     cont_18S += [str(summary_hash[base]['forward']['euk_contamination']), str(summary_hash[base]['reverse']['euk_contamination'])] 
                     search_step += [hash[base]['forward']['search_t'], hash[base]['reverse']['search_t']]
                     aln_step += [hash[base]['forward']['aln_t'], hash[base]['reverse']['aln_t']]
@@ -51,7 +54,10 @@ class Stats_And_Summary:
                 elif not hash['reverse_pipe']:
                     files += [base]
                     tot_16S += [str(len(hash[base]['reads'].keys()))]
-                    tot_18S += [str(hash[base]['euk_contamination'])]
+                    try:
+                        tot_18S += [str(hash[base]['euk_contamination'] + hash[base]['forward']['euk_uniq'])]
+                    except:
+                        tot_18S += ['N/A']
                     cont_18S += [str(summary_hash[base]['euk_contamination'])]
                     search_step += [hash[base]['search_t']]
                     aln_step += [hash[base]['aln_t']]

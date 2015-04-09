@@ -163,15 +163,15 @@ class Hmmer:
                 elif float(hit[17]) - float(hit[18]) < 0:
                     len = float(hit[18]) - float(hit[17])
                 hash[read_name] = {'len': len,
-                                'bit': float(hit[7])}
+                                   'bit': float(hit[7])}
             elif program == 'nhmmer':
                 if float(hit[6]) - float(hit[7]) > 0:
                     len = float(hit[6]) - float(hit[7])
                 elif float(hit[6]) - float(hit[7]) < 0:
                     len = float(hit[7]) - float(hit[6])
                 hash[read_name] = {'len': len,
-                                'bit': float(hit[13]),
-                                'direction': hit[11]}
+                                   'bit': float(hit[13]),
+                                   'direction': hit[11]}
             else:
                 raise Exception('Programming Error: hmmtable_reader')
         return hash
@@ -259,11 +259,14 @@ class Hmmer:
     def csv_to_titles(self, output_path, input_path, run_stats):
         ## process hmmsearch/nhmmer results into a list of titles to <base_filename>_readnames.txt
         run_stats['reads'] = self.hmmtable_reader(input_path)
-        if [run_stats['reads'][x]['direction'] for x in run_stats['reads'].keys() if run_stats['reads'][x]['direction'] == '-']:
-            run_stats['rev_true'] = True
-        else:
+        try:
+            if [run_stats['reads'][x]['direction'] for x in run_stats['reads'].keys() if run_stats['reads'][x]['direction'] == '-']:
+                run_stats['rev_true'] = True
+            else:
+                run_stats['rev_true'] = False
+        except KeyError:
             run_stats['rev_true'] = False
-            
+    
         if len(run_stats['reads'].keys()) > 0:
             Messenger().message('Found %s read(s) in %s' % (len(run_stats['reads'].keys()), os.path.basename(input_path).split('.')[0]))
         else:
@@ -341,7 +344,8 @@ class Hmmer:
     def extract_orfs(self, input_path, raw_orf_path, hmmsearch_out_path, orf_titles_path, orf_out_path, hmm, cmd_log):
         ## Extract only the orfs that hit the hmm, return sequence file with
         ## within.
-
+        
+        
         # Call orfs on the sequences
         cmd = 'orfm %s > %s' % (input_path, raw_orf_path)
         self.hk.add_cmd(cmd_log, cmd)
@@ -357,6 +361,7 @@ class Hmmer:
             for title in [x.split(' ')[0] for x in open(hmmsearch_out_path).readlines() if not x.startswith('#')]:
                 output.write(str(title) + '\n')
 
+        
         # Extract the reads using the titles.
         cmd = 'fxtract -H -X -f %s %s > %s' % (orf_titles_path, raw_orf_path, orf_out_path)
         self.hk.add_cmd(cmd_log, cmd)
@@ -383,21 +388,25 @@ class Hmmer:
                                                       run_stats)
         if not hit_readnames:
             return False, run_stats
-        
         # Extract the hits form the original raw read file
         hit_reads = self.extract_from_raw_reads(files.fa_output_path(base),
                                                 hit_readnames,
                                                 raw_reads,
                                                 input_file_format,
                                                 files.command_log_path())
-        # Extract the orfs of these reads that hit the original search
-        hit_orfs = self.extract_orfs(hit_reads,
-                                     files.orf_output_path(base),
-                                     files.orf_hmmsearch_output_path(base),
-                                     files.orf_titles_output_path(base),
-                                     files.orf_fasta_output_path(base),
-                                     args.hmm_file,
-                                     files.command_log_path())
+        if args.input_sequence_type == 'nucleotide':
+            # Extract the orfs of these reads that hit the original search
+            hit_orfs = self.extract_orfs(hit_reads,
+                                         files.orf_output_path(base),
+                                         files.orf_hmmsearch_output_path(base),
+                                         files.orf_titles_output_path(base),
+                                         files.orf_fasta_output_path(base),
+                                         args.hmm_file,
+                                         files.command_log_path())
+        elif args.input_sequence_type == 'protein':
+            hit_orfs = hit_reads
+        else:
+            raise Exception('Programming Error')
         # Define the average read length of the hits
         run_stats['read_length'] = self.check_read_length(hit_orfs, "P")
         # Stop and log search timer

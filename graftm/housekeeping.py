@@ -2,6 +2,7 @@ import random
 import os
 import shutil
 import subprocess
+import json
 
 from graftm.messenger import Messenger
 from test.test_MimeWriter import OUTPUT
@@ -17,6 +18,13 @@ class HouseKeeping:
     
     def __init__(self): pass
 
+    def contents(self, path):
+        contents = os.path.join(path, 'CONTENTS.txt')
+        if os.path.isfile(contents):
+            return json.load(open(contents, 'w'))
+        else:
+            return None
+        
     def guess_sequence_input_file_format(self, sequence_file_path):
         ## Given a sequence file, guess the format and return. Raise an 
         ## exception if it cannot be guessed
@@ -157,22 +165,30 @@ class HouseKeeping:
                 pass
             else:
                 uninstalled_programs.append(program)
-        if len(uninstalled_programs) > 0:
+        if uninstalled_programs:
             Messenger().header("Following programs must be installed to run graftM\n")
             for program in uninstalled_programs:
                 print '\t%s\t%s' % (program, prerequisites[program])
-
             exit(0)
         else:
             pass
         
         # Read graftM package and assign HMM and refpkg file
+        
         if hasattr(args, 'graftm_package'):
-            if hasattr(args, 'hmm_file'): # If a hmm is specified, overwrite the one graftM package
-                setattr(args, 'reference_package', os.path.join(args.graftm_package, [x for x in os.listdir(args.graftm_package) if x.endswith('.refpkg')][0]))
-            elif not hasattr(args, 'hmm_file'): 
-                setattr(args, 'hmm_file', os.path.join(args.graftm_package, [x for x in os.listdir(args.graftm_package) if x.endswith('.hmm')][0]))
-                setattr(args, 'reference_package', os.path.join(args.graftm_package, [x for x in os.listdir(args.graftm_package) if x.endswith('.refpkg')][0]))
+            if self.contents(args.graftm_package) is None:
+                if hasattr(args, 'hmm_file'): # If a hmm is specified, overwrite the one graftM package
+                    setattr(args, 'reference_package', os.path.join(args.graftm_package, [x for x in os.listdir(args.graftm_package) if x.endswith('.refpkg')][0]))
+                elif not hasattr(args, 'hmm_file'): 
+                    setattr(args, 'hmm_file', os.path.join(args.graftm_package, [x for x in os.listdir(args.graftm_package) if x.endswith('.hmm')][0]))
+                    setattr(args, 'reference_package', os.path.join(args.graftm_package, [x for x in os.listdir(args.graftm_package) if x.endswith('.refpkg')][0]))
+            elif self.contents(args.graftm_package) is not None:
+                c = self.contents(args.graftm_package)
+                if hasattr(args, 'hmm_file'): # If a hmm is specified, overwrite the one graftM package
+                    setattr(args, 'reference_package', c['refpkg'])
+                elif not hasattr(args, 'hmm_file'): 
+                    setattr(args, 'hmm_file', c['seach_hmm'])
+                    setattr(args, 'reference_package', c['refpkg'])
         elif not hasattr(args, 'graftm_package'): # Or if no graftM package and hmm is specified
             if hasattr(args, 'hmm_file') and args.search_only: # and the placement step is skipped
                 pass # That's okay

@@ -75,7 +75,6 @@ class Hmmer:
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(cmd, shell=True)
 
-
     def hmmsearch(self, output_path, input_path, input_file_format, seq_type, threads, eval, cmd_log):
         ## Run a hmmsearch on the input_path raw reads, and return the name
         ## of the output table. Keep a log of the commands.
@@ -146,13 +145,41 @@ class Hmmer:
                 exit(1)
 
         return table_title_list
-    # Find Euk contmaination
 
-
+    def hmmtable_reader(self, hmmtable):
+        hash = {}
+        orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
+        program = [line.rstrip().split()[2] for line in open(hmmtable).readlines() if line.startswith('# Program:')][0]
+        for hit in [line.rstrip().split() for line in open(hmmtable).readlines() if not line.startswith('#')]:
+            regex_match = orfm_regex.match(hit[0])
+            if regex_match is not None:
+                read_name = regex_match.groups(0)[0]
+            if regex_match is None:
+                read_name = hit[0]
+                
+            if program == 'hmmsearch':
+                if float(hit[17]) - float(hit[18]) > 0:
+                    len = float(hit[17]) - float(hit[18])
+                elif float(hit[17]) - float(hit[18]) < 0:
+                    len = float(hit[18]) - float(hit[17])
+                hash[read_name] = {'len': len,
+                                'bit': float(hit[7])}
+            elif program == 'nhmmer':
+                if float(hit[6]) - float(hit[7]) > 0:
+                    len = float(hit[6]) - float(hit[7])
+                elif float(hit[6]) - float(hit[7]) < 0:
+                    len = float(hit[7]) - float(hit[6])
+                hash[read_name] = {'len': len,
+                                'bit': float(hit[13]),
+                                'direction': hit[11]}
+            else:
+                raise Exception('Programming Error: hmmtable_reader')
+        return hash
+        
     def check_euk_contamination(self, output_path, euk_free_output_path, input_path, run_stats, input_file_format, check_total_euks, threads, evalue, raw_reads, base, cmd_log, euk_hmm):
         reads_with_better_euk_hit = []
         reads_unique_to_eukaryotes = []
-        cutoff = 0.9*run_stats['read_length']
+        cutoff = float(0.9*run_stats['read_length'])
         # do a nhmmer using a Euk specific hmm
         if check_total_euks:
             nhmmer_cmd = "nhmmer --cpu %s %s --tblout %s %s" % (threads, evalue, output_path, euk_hmm)
@@ -174,28 +201,21 @@ class Hmmer:
             cmd = "nhmmer --cpu %s %s --tblout %s %s %s 2>&1 > /dev/null " % (threads, evalue, output_path, euk_hmm, input_path)
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(cmd, shell = True)
-
         # check for evalues that are lower, after eliminating hits with an
         # alignment length of < 90% the length of the whole read.
-        for line in [x.rstrip().split() for x in open(output_path, 'r') if not x.startswith('#')]:
-            read_name = line[0]
-            eval = line[12]
-            ali_length = float(line[6]) - float(line[7])
-
-            try:
-                if float(run_stats['reads'][read_name]['evalue']) >= float(eval):
-                    if ali_length < 0:
-                        ali_length = ali_length * -1.0
-
-                    if ali_length >= float(cutoff):
-                        reads_with_better_euk_hit.append(read_name)
-
-            except KeyError:
-                if check_total_euks:
-                    reads_unique_to_eukaryotes.append(read_name)
-
-                else:
+        euk_reads = self.hmmtable_reader(output_path)
+        euk_crossover = [x for x in euk_reads.keys() if x in run_stats['reads'].keys()]
+        reads_unique_to_eukaryotes = [x for x in euk_reads.keys() if x not in run_stats['reads'].keys()]
+        
+        for entry in euk_crossover:
+            if euk_reads[entry]['bit'] >= float(run_stats['reads'][entry]['bit']):
+                if euk_reads[entry]['len'] > cutoff:
+                    reads_with_better_euk_hit.append(entry)
+                elif euk_reads[entry]['len'] < cutoff:
                     continue
+            else:
+                continue
+
         # Return Euk contamination
         if len(reads_with_better_euk_hit) == 0:
             Messenger().message("No contaminating eukaryotic reads detected in %s" % (os.path.basename(raw_reads)))
@@ -236,54 +256,23 @@ class Hmmer:
             del suffix[0]
         return table_title_list
 
-    def csv_to_titles(self, output_path, input_path, graftm_pipeline, run_stats, seq_type):
+    def csv_to_titles(self, output_path, input_path, run_stats):
         ## process hmmsearch/nhmmer results into a list of titles to <base_filename>_readnames.txt
-        # Assume there are no reverse reads detected
-        run_stats['rev_true'] = False
-        reads_list = []
-        orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
-        run_stats['reads'] = {}
-        hmm_table = [x.rstrip().split() for x in open(input_path, 'r').readlines() if not x.startswith('#')]
-        for entry in hmm_table:
-            read_name = entry[0]
-            evalue = entry[12]
-            direction = entry[11]
-            if direction == '-':
-                run_stats['rev_true'] = True
-            if graftm_pipeline == 'D':
-                run_stats['reads'][read_name] = {'evalue': evalue,
-                                                 'direction': direction}
-                reads_list.append(read_name)
-            elif graftm_pipeline == 'P':
-                if seq_type == 'nucleotide':
-                # The original reads file contains sequences like
-                # >eg and comment
-                # where orfm gives orfs in the form of
-                # >eg_1_2_3 and comment
-                # The read_name here is the orfm style, we want to add to the titles_list
-                # the original form
-                    regex_match = orfm_regex.match(read_name)
-                    if regex_match is not None:
-                        read_name = regex_match.groups(0)[0]
-                        run_stats['reads'][read_name] = {'evalue': evalue,
-                                                         'direction': direction}
-                        reads_list.append(read_name)
-                    else:
-                        raise Exception("Unexpected form of ORF name found: %s" % read_name)
-                else:
-                    reads_list.append(read_name)
-
-        if len(reads_list) > 0:
-            Messenger().message('Found %s read(s) in %s' % (len(reads_list), os.path.basename(input_path)))
+        run_stats['reads'] = self.hmmtable_reader(input_path)
+        if [run_stats['reads'][x]['direction'] for x in run_stats['reads'].keys() if run_stats['reads'][x]['direction'] == '-']:
+            run_stats['rev_true'] = True
         else:
-            Messenger().message('%s reads found, cannot continue' % (len(reads_list)))
-            return
-
+            run_stats['rev_true'] = False
+            
+        if len(run_stats['reads'].keys()) > 0:
+            Messenger().message('Found %s read(s) in %s' % (len(run_stats['reads'].keys()), os.path.basename(input_path).split('.')[0]))
+        else:
+            Messenger().message('%s reads found, cannot continue with %s' % (len(run_stats['reads'].keys()), os.path.basename(input_path).split('.')[0]))
+            return run_stats, False
         ## write the read names to output
         with open(output_path, 'w') as output_file:
-            for record in reads_list:
+            for record in run_stats['reads'].keys():
                 output_file.write(record + '\n')
-
         return run_stats, output_path
 
     def extract_from_raw_reads(self, output_path, input_path, raw_sequences_path, input_file_format, cmd_log):
@@ -389,11 +378,12 @@ class Hmmer:
                                    args.eval,
                                    files.command_log_path())
         # Processing the output table to give you the readnames of the hits
-        run_stats, hit_readnames= self.csv_to_titles(files.readnames_output_path(base),
-                                                     hit_table,
-                                                     args.type,
-                                                     run_stats,
-                                                     args.input_sequence_type)
+        run_stats, hit_readnames = self.csv_to_titles(files.readnames_output_path(base),
+                                                      hit_table,
+                                                      run_stats)
+        if not hit_readnames:
+            return False, run_stats
+        
         # Extract the hits form the original raw read file
         hit_reads = self.extract_from_raw_reads(files.fa_output_path(base),
                                                 hit_readnames,
@@ -434,12 +424,11 @@ class Hmmer:
                                 files.command_log_path())
 
         # Next, get a list of readnames
-        run_stats, hit_readnames= self.csv_to_titles(files.readnames_output_path(base),
-                                                     hit_table,
-                                                     args.type,
-                                                     run_stats,
-                                                     None)
-        
+        run_stats, hit_readnames = self.csv_to_titles(files.readnames_output_path(base),
+                                                      hit_table,
+                                                      run_stats)
+        if not hit_readnames:
+            return False, run_stats
         
         # And extract them from the original sequence file
         hit_reads = self.extract_from_raw_reads(files.fa_output_path(base),

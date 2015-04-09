@@ -37,7 +37,7 @@ COMMUNITY PROFILING
     graft       -       Search for and phylogenetically classify reads associated with a single
                         marker gene, and construct a community profile
                         e.g. usage:
-                            graftM graft --forward <READS.fq.gz> --graftm_package <GRAFTM_PACKAGE>
+                            graftM graft --forward <READS> --graftm_package <GRAFTM_PACKAGE>
 
 =====================================================================================================
 UTILITIES
@@ -47,7 +47,7 @@ UTILITIES
                             * --return - Return reads assigned to a given lineage
 
                         e.g. usage:
-                            graftM manage --profile <GRAFTM_PROFILE> --<GRAFTM_TASK>
+                            graftM manage --profile <GRAFTM_PROFILE> --seqs <LINEAGE>
 
 =====================================================================================================
 """ % (graftm.__version__)

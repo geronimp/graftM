@@ -11,9 +11,11 @@ class Extract:
         self.tg = TaxoGroup()
 
     def extract(self, args):
+            if not os.path.isdir(args.profile):
+                Messenger().error_message("Profile doesn't exist")
+                exit(0)
             runs = [os.path.join(args.profile, f) for f in os.listdir(args.profile) if os.path.isdir(os.path.join(args.profile, f))]
             d = {}
-            
             for r in runs:
                 if len([f for f in os.listdir(r) if f == 'reverse' or f == 'forward']) > 0:
                     files = [os.path.join(f, 'forward') for f in runs] + [os.path.join(f, 'reverse') for f in runs]
@@ -26,8 +28,12 @@ class Extract:
                     d[os.path.basename(r)] = {'guppy': os.path.join(r, 'placements.guppy'),
                                               'reads': os.path.join(r, os.path.basename(r) + '_hits.fa')}           
             for run in d.keys():
-                reads = SeqIO.to_dict(SeqIO.parse(d[run]["reads"], "fasta"))
-                guppy = TaxoGroup().guppy_splitter(d[run]["guppy"], args.cutoff)
+                try:
+                    reads = SeqIO.to_dict(SeqIO.parse(d[run]["reads"], "fasta"))
+                    guppy = TaxoGroup().guppy_splitter(d[run]["guppy"], args.cutoff)
+                except:
+                    Messenger().message("Cannot use unfinished run: %s" % run)
+                    continue
                 out_path = os.path.join(os.path.split(d[run]["reads"])[0], 'reads')
                 if not os.path.isdir(out_path):
                     os.mkdir(out_path)

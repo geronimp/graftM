@@ -154,41 +154,62 @@ class Compare:
     def compare_hits(self, hash, file_name):
         ## Take a paired read run, and compare hits between the two, report the
         ## number of hits each, the crossover, and a
-
+        def check_reads(read_lists):
+            for read_list in read_lists:
+                read_check = [read for read in read_list if read.startswith('FCC')]
+                if read_check:
+                    return True
+                elif not read_check:
+                    continue
+            return False
         # Read in the read names for each file
-        forward_read_names = set(hash['forward']['reads'].keys())
-        reverse_read_names = set(hash['reverse']['reads'].keys())
-
+        check = check_reads([hash['forward']['reads'].keys(), hash['reverse']['reads'].keys()])
+        if check:
+            forward_read_names = [x.replace('/1', '') for x in hash['forward']['reads'].keys()]
+            reverse_read_names = [x.replace('/2', '') for x in hash['reverse']['reads'].keys()]
+        elif not check:
+            forward_read_names = set(hash['forward']['reads'].keys())
+            reverse_read_names = set(hash['reverse']['reads'].keys())
         # Report and record the crossover
         crossover_hits = [x for x in forward_read_names if x in reverse_read_names]
         hash['crossover'] = crossover_hits
-        Messenger().message("%s reads found that crossover in %s" % (str(len(crossover_hits)),
-                                                                   file_name))
-
+        # Check if there are reads to continue with.
+        if len(crossover_hits) > 0:
+            Messenger().message("%s reads found that crossover in %s" % (str(len(crossover_hits)),
+                                                                       file_name))
+        elif len(crossover_hits) == 0:
+            Messenger().message("%s reads found that crossover in %s, No reads to use!" % (str(len(crossover_hits)),
+                                                                                           file_name))            
+        else:
+            raise Exception
         # Return the hash
-        return hash
+        return hash 
 
     def compare_placements(self, forward_guppy, reverse_guppy, hash, placement_cutoff):
         ## Take guppy placement file for the forward and reverse reads, compare
         ## the placement, and make a call as to which is to be trusted. Return
         ## a list of trusted reads for use by the summary step in GraftM
-        import IPython
         # Read in guppy files
         forward_gup = TaxoGroup().guppy_splitter(forward_guppy, placement_cutoff)
         reverse_gup = TaxoGroup().guppy_splitter(reverse_guppy, placement_cutoff)
-        
         # Report and record trusted placements
         comparison_hash = {'trusted_placements': {}} # Set up a hash that will record info on each placement
         for read in hash['crossover']:
+            if read.startswith('FCC'):
+                f_read = read + '/1'
+                r_read = read + '/2'
+            else:
+                f_read = read
+                r_read = read
             comparison_hash[read] = {} # make an entry for each read
             comparison_hash['trusted_placements'][read] = [] # Set up a taxonomy entry in trusted placements
-            if len(forward_gup[read]['placement']) == len(reverse_gup[read]['placement']): # If the level of placement matches
+            if len(forward_gup[f_read]['placement']) == len(reverse_gup[r_read]['placement']): # If the level of placement matches
                 comparison_hash[read]['rank_length_match'] = True # Store True
-            elif len(forward_gup[read]['placement']) != len(reverse_gup[read]['placement']):
+            elif len(forward_gup[f_read]['placement']) != len(reverse_gup[r_read]['placement']):
                 comparison_hash[read]['rank_length_match'] = False # Otherwise store False
             else:
                 raise Exception('Programming Error: Comparison of placement resolution')
-            for idx, (f_rank, r_rank) in enumerate(zip(forward_gup[read]['placement'], reverse_gup[read]['placement'])): # For the each rank in the read placement
+            for idx, (f_rank, r_rank) in enumerate(zip(forward_gup[f_read]['placement'], reverse_gup[r_read]['placement'])): # For the each rank in the read placement
                 if f_rank == r_rank: # If the classification at this rank matches
                     comparison_hash[read]['all_ranks_match'] = True # Maintain the all ranks match are true
                     if comparison_hash[read]['rank_length_match']: # If both reads are to the same resolution
@@ -198,22 +219,22 @@ class Compare:
                         # and if we have, append the tail end of one with the longer taxonomy, because
                         # we can trust these placements are past the overall threshold,
                         # but one has higher resolution and so is more useful to us.
-                        if len(forward_gup[read]['placement'][idx:]) == 1:
-                            comparison_hash['trusted_placements'][read] += reverse_gup[read]['placement'][idx:]
-                        elif len(reverse_gup[read]['placement'][idx:]) == 1:
-                            comparison_hash['trusted_placements'][read] += forward_gup[read]['placement'][idx:]
-                        elif len(forward_gup[read]['placement'][idx:]) > 1 and len(reverse_gup[read]['placement'][idx:]) > 1:
+                        if len(forward_gup[f_read]['placement'][idx:]) == 1:
+                            comparison_hash['trusted_placements'][read] += reverse_gup[r_read]['placement'][idx:]
+                        elif len(reverse_gup[r_read]['placement'][idx:]) == 1:
+                            comparison_hash['trusted_placements'][read] += forward_gup[f_read]['placement'][idx:]
+                        elif len(forward_gup[f_read]['placement'][idx:]) > 1 and len(reverse_gup[r_read]['placement'][idx:]) > 1:
                             comparison_hash['trusted_placements'][read].append(f_rank)
                         else:
                             raise Exception('Programming Error')
                 elif f_rank != r_rank: # Otherwise if the classification doesn't match
                     comparison_hash[read]['all_ranks_match'] = False # Store that all ranks do not match up
-                    forward_confidence = forward_gup[read]['confidence'][idx] # Store confidence values for both directions
-                    reverse_confidence = reverse_gup[read]['confidence'][idx]
+                    forward_confidence = forward_gup[f_read]['confidence'][idx] # Store confidence values for both directions
+                    reverse_confidence = reverse_gup[r_read]['confidence'][idx]
                     if float(forward_confidence) > float(reverse_confidence): # If the forward read has more confidence
-                        comparison_hash['trusted_placements'][read] += forward_gup[read]['placement'][idx:] # Store the taxonomy of that read from that point on
+                        comparison_hash['trusted_placements'][read] += forward_gup[f_read]['placement'][idx:] # Store the taxonomy of that read from that point on
                     elif float(reverse_confidence) > float(forward_confidence): # Do the opposite if reverse read has more confidence
-                        comparison_hash['trusted_placements'][read] += reverse_gup[read]['placement'][idx:]
+                        comparison_hash['trusted_placements'][read] += reverse_gup[r_read]['placement'][idx:]
                     elif float(reverse_confidence) == float(forward_confidence): # If they are of the same value
                         break # Do nothing, because a decision cannot be made if the confidence is equal.
                     else:

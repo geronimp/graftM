@@ -54,7 +54,8 @@ class Run:
                                                base,
                                                self.input_file_format,
                                                sequence_file)
-
+        if not hit_reads:
+            return summary_dict, False
         # Align the reads.
         Messenger().message('Aligning reads to reference package database')
         hit_aligned_reads, run_stats = self.h.align(self.gmf,
@@ -96,7 +97,10 @@ class Run:
                                                base,
                                                self.input_file_format,
                                                sequence_file)
-
+        
+        if not hit_reads:
+            return summary_dict, False
+        
         # Otherwise, run through the alignment
         Messenger().message('Aligning reads to reference package database')
         hit_aligned_reads, run_stats = self.h.align(self.gmf,
@@ -112,7 +116,7 @@ class Run:
             raise Exception('Programming Error: Logging %s hash' % direction)
         return summary_dict, hit_aligned_reads
 
-    def placement(self, summary_dict, GM_temp):
+    def placement(self, summary_dict):
         ## This is the placement pipeline in GraftM, in aligned reads are
         ## placed into phylogenetic trees, and the results interpreted.
         ## If reverse reads are used, this is where the comparisons are made
@@ -212,17 +216,17 @@ class Run:
         # Searches for reads using hmmer, and places them in phylogenetic
         # trees to derive a community structure.
         print '''
-                        GRAFT
-
-               Joel Boyd, Ben Woodcroft
-                                                 __/__
-                                          ______|
-  _- - _                         ________|      |_____/
-   - -            -             |        |____/_
-   - _     --->  -   --->   ____|
-  - _-  -         -             |      ______
-     - _                        |_____|
-   -                                  |______
+                                GRAFT
+        
+                       Joel Boyd, Ben Woodcroft
+                                                         __/__
+                                                  ______|
+          _- - _                         ________|      |_____/
+           - -            -             |        |____/_
+           - _     --->  -   --->   ____|
+          - _-  -         -             |      ______
+             - _                        |_____|
+           -                                  |______
             '''
         # Set up a dictionary that will record stats as the pipeline is running
         summary_table = {'euks_checked': self.args.check_total_euks,
@@ -230,10 +234,6 @@ class Run:
                          'seqs_list': [],
                          'start_all': timeit.default_timer(),
                          'reverse_pipe': False}
-
-        # Define a temporary file that will be used as the concatenated aln
-        # file in the placement step
-        GM_temp = tempfile.mkdtemp(prefix='GM_temp_')
 
         # Set the output directory if not specified and create that directory
         if not hasattr(self.args, 'output_directory'):
@@ -307,7 +307,8 @@ class Run:
                                                                         summary_table,
                                                                         read_file,
                                                                         direction)
-                
+                if not hit_aligned_reads:
+                    continue
 
                 # Add the run stats and the completed run to the summary table
                 summary_table['seqs_list'].append(hit_aligned_reads)
@@ -323,8 +324,7 @@ class Run:
                                self.args.output_directory,
                                False)
         Messenger().header("Placing reads into phylogenetic tree")
-        self.placement(summary_table,
-                       GM_temp)
+        self.placement(summary_table)
 
 
     def manage(self):

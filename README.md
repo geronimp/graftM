@@ -5,6 +5,8 @@
 ## Overview
 Basically, GraftM is a pipeline used for identifying and classifying marker gene reads from metagenomic datasets. If you are after a tool that provide rapid and accurate analysis of short read sequence data, then you'll probably want to give GraftM a try
 
+Head on over to the [GraftM page](http://geronimp.github.io/graftM/) for more general information.
+
 Because GraftM is still being actively developed backwards incompatability may happen in the future, although we will aim to minimise this as much as possible.
 
 ---
@@ -25,7 +27,7 @@ For now though, installation will have to be manual but very soon we hope to mak
 
 ## Help + Contact
 if you have any comments, complaints or reccomendations about GraftM. I'm happy to help, just ask through GitHub.
-A manual page and pdf will also be available shortly
+A [manual](https://github.com/geronimp/graftM/wiki) is available in the form of the wiki here on github . Please just let us know if you think something might be useful to add to it.
 
 Software by Joel A. Boyd and Ben J. Woodcroft
 Released under GPL3 - see LICENCE.txt for licencing details

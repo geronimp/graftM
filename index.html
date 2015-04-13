@@ -35,53 +35,51 @@
   <!-- Headings & Paragraph Copy -->
   <hr>
   <h1>Overview</h1>
-  <p>GraftM is a tool that rapidly identifies and classifies marker genes in short read datasets such as metagenomes and transcriptomes. It can be used on both protein and nucleotide sequence, and can be used to search for phylogenetic, as well as functional genes. Your output will include a <a href="http://sourceforge.net/p/krona/home/krona/">krona</a> plot, a summary table, hit reads (both unaligned and aligned) and a summary table. You can manage this output using the the GraftM utility <code>GraftM manage</code>. A more detailed description of the inputs and outputs of GraftM can be found in the <a href="https://github.com/geronimp/graftM/wiki">manual.</a></p>
+  <p>GraftM is a meta-omic tool that identifies and classifies marker genes in short read datasets (metagenomes and metatranscriptomes), as well as assembled contigs, whole genomes and protein sequences. It produces outputs including the sequences identified, a taxonomic/functional summary table, and <a href="http://sourceforge.net/p/krona/home/krona/">krona</a> plot.
+  <p>GraftM is designed for speed and accuracy. It is able to find marker genes in a 200Mb of assembled metagenome in &lt;20 sec, and compares favourably with similar tools in accuracy benchmarking.</p>
   <hr>
   <h1>News + Updates</h1>
   <p>31/03/2015 - Please submit any requests for features in graftM to the GitHub page!</p>
   <hr>
   <div class="row">
     <div class="span4">
-        <h1>Get GraftM</h1>
-        <p>Currently, GraftM has a few dependencies, and so simply using pip isn't really an option. Unfortunately that means that for the time being installation will have to be manual, although we're working on making the installation a little smoother so watch this space. The <a href="https://github.com/geronimp/graftM/wiki">manual</a> has more detailed instructions on how to install GraftM, as well as a list of dependencies and a detailed description of command line options.</p>
-        <p>The source code for GraftM is also available on Github <a href="https://github.com/geronimp/graftM.git">here</a>.</p>
+        <h1>Getting GraftM</h1>
+        <p>Currently, GraftM has a few dependencies, and so simply using pip isn't really an option. Unfortunately that means that for the time being installation will have to be manual, although we're working on making the installation a little smoother so watch this space. The <a href="https://github.com/geronimp/graftM/wiki">manual</a> has more detailed instructions on how to install GraftM and a detailed description of command line options.</p>
+        <p>The source code for GraftM is also available on <a href="https://github.com/geronimp/graftM.git">Github</a>.</p>
         <hr>
         <h1>Licensing</h1>
-        <p>GraftM is licensed using the Lesser GNU General Public License version 3 as published by the Free Software Foundation.</p>
-        <p>This site and the GraftM logo are copyright Mike Imelfort.</p>
-        <p>This site was created using a template created by the wonderful people at <a href="http://bootswatch.com">bootswatch</a>.</p>
+        <p>Written by <a href="http://ecogenomic.org/users/joel-boyd">Joel Boyd</a>, <a href="http://ecogenomic.org/users/ben-woodcroft">Ben Woodcroft</a> and <a href="http://ecogenomic.org/users/gene-tyson">Gene Tyson</a>, GraftM is licensed using the Lesser GNU General Public License version 3 as published by the Free Software Foundation.</p>
+
     </div>
     <div class="span4">
         <h1>Using GraftM</h1>
         <p>GraftM was developed as a tool for the rapid analysis of short read metagenomic data. The idea was to develop a tool that could search and classify marker gene reads without depending on pairwise sequence comparisons, such as BLAST. The result is an easy-to-use tool which can be run on any marker gene of choice, in a fraction of time taken for other methods.</p>
-        <p>Currently, graftM can be used on 32 trusted marker genes, along with numerous metabolic genes that are phylogenetically consistent with 16S, such as mcrA. In addition, GraftM can be used with other, functional genes to classify your sample based on functionality (e.g. pmoA)</p>
+        <p>Currently, graftM can be used on 32 trusted marker genes, along with numerous metabolic genes that are phylogenetically consistent with 16S, such as McrA. In addition, GraftM can be used with other, functional genes to classify your sample based on functionality (e.g. PmoA)</p>
         <hr>
         <h1>Example Usage</h1>
         <p>Here is just a quick example of how to run GraftM, for impatient peoples. You can find some example data to use GraftM with <a href="https://github.com/geronimp/graftM/tree/master/example_data">here</a>.</p>
         <p>If you'd like to run GraftM with only a single file of reads, you'll use the <code>--forward</code> flag. Your run should something akin to this:
         <p><code class="codeblock">$ graftM graft --forward reads_f.fa --graftm_package mcrA_gpkg</code></p>
-        <p>Using reverse reads acts as an extra layer of stringency in GraftM, but adds on the run time. If you'd like to do this, simply throw in the <code>--reverse</code> flag, so your command would look something more like this:
-        <p><code class="codeblock">$ graftM graft --forward reads_f.fa --reverse reads_r.fa --graftm_package mcrA_gpkg</code></p>
-        <p>Easy. Hopefully.</p>
     </div>
     <div class="span4">
         <h1>Citing GraftM</h1>
         <p>If you use GraftM then please cite us. Problem is that isn't possible just yet, but a publication is just up the road.</p>
         <hr>
         <h1>Contact</h1>
-        <p>Of course, you can always contact Joel on the GitHub page for any queries, complaints or reccomendations you have about GraftM. I'm happy to help.</p>
+        <p>Of course, you can always contact <a href="https://github.com/geronimp">Joel</a> or <a href="https://github.com/wwood">Ben</a> on the <a href="https://github.com/geronimp/graftM/issues">issues page</a> for any queries, complaints or reccomendations you have about GraftM, or just throw us an email. We're happy to help.</p>
         <hr>
-        <h1>M tools</h1>
-        <p>GraftM is part of the M(etagenomics) suite of tools being developed at the Australian Centre for Ecogenomics (ACE). We'd love for you to check out our tools:</p>
+        <h1>The M suite</h1>
+        <p>GraftM is part of the M(etagenomics) suite of tools being developed at the Australian Centre for Ecogenomics (<a href="http://ecogenomic.org/">ACE</a>). We'd love for you to check out our tools:</p>
         <ul>
-            <li><strong><a href="http://minillinim.github.io/GroopM/">GroopM</a></strong> - Tools for the accurate recovery of metagneome bins using differential coverage across multpile metagenomic datasets.</li>
-            <li><strong><a href="http://ecogenomics.github.io/CheckM/">CheckM</a></strong> - Tools to assess the quality of genomes recovered from isolates, single cells or metagenomes.</li>
-            <li><strong><a href="http://minillinim.github.io/BamM/">BamM</a></strong> - Tools for faster and more stable parsing of BAM files.</li>
+            <li><strong><a href="http://minillinim.github.io/GroopM/">GroopM</a></strong> - Recover (bin) population genomes from assembled metagenomes using differential coverage across multiple datasets.</li>
+            <li><strong><a href="http://ecogenomics.github.io/CheckM/">CheckM</a></strong> - Assess the quality of genomes recovered from isolates, single cells or metagenomes using lineage specific marker sets.</li>
+            <li><strong><a href="http://minillinim.github.io/BamM/">BamM</a></strong> - Make and parse metagenomic BAM files.</li>
         </ul>
     </div>
   </div>
-</section>
 <hr>
+<p>This website's structure and the GraftM logo are copyright Mike Imelfort. This site was created using a template created by the wonderful people at <a href="http://bootswatch.com">bootswatch</a>.</p>
+</section>
 
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>

@@ -1,0 +1,11 @@
+#ID	sample_mcrA	ConsensusLineage
+0	8	Root; mcrA; Euryarchaeota_mcrA; Thermoplasmata; Methanomassiliicocales; Methanomassiliicoccaceae; Methanomassiliicoccus
+1	10	Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia
+2	4	Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales; Methanocellalceae; Methanocella
+3	8	Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosaetaceae; Methanosaeta
+4	2	Root; mcrA; Euryarchaeota_mcrA
+5	4	Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanomicrobiales; Methanoregulaceae; Methanoregula
+6	60	Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales
+7	2	Root; mcrA; Euryarchaeota_mcrA; Thermoplasmata; Methanomassiliicocales; Methanomassiliicoccaceae
+8	1	Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanomicrobiales
+9	1	Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales

@@ -1,0 +1,4 @@
+sample_1_16S = 20110816_S1M 100
+sample_2_16S = 20110816_P1M 200
+sample_1_mcrA = 20110811_E2D 100
+sample_2_mcrA = 20110811_E3M 200

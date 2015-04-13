@@ -1,0 +1,68 @@
+#ID	sample_16S_2	ConsensusLineage
+0	2	Root; k__Bacteria; p__Proteobacteria; c__Deltaproteobacteria
+1	1	Root; k__Bacteria; p__TM7; c__TM7-3
+2	1	Root; k__Bacteria; p__Planctomycetes; c__Phycisphaerae; o__WD2101
+3	1	Root; k__Bacteria; p__Verrucomicrobia; c__Opitutae
+4	1	Root; k__Bacteria; p__Bacteroidetes; c__Bacteroidia; o__Bacteroidales
+5	1	Root; k__Bacteria; p__Planctomycetes; c__vadinHA49; o__p04_C01
+6	2	Root; k__Bacteria; p__Acidobacteria; c__Acidobacteriia; o__Acidobacteriales
+7	2	Root; k__Bacteria; p__Proteobacteria; c__Gammaproteobacteria
+8	3	Root; k__Bacteria; p__Acidobacteria; c__Acidobacteriia; o__Acidobacteriales; f__Koribacteraceae
+9	13	Root; k__Bacteria
+10	1	Root; k__Bacteria; p__Proteobacteria; c__Betaproteobacteria; o__Burkholderiales
+11	1	Root; k__Bacteria; p__Planctomycetes; c__Planctomycetia
+12	8	Root; k__Bacteria; p__Acidobacteria; c__DA052; o__Ellin6513
+13	1	Root; k__Bacteria; p__OP11; c__OP11-3
+14	1	Root; k__Bacteria; p__OD1
+15	1	Root; k__Bacteria; p__Planctomycetes; c__OM190
+16	8	Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria
+17	2	Root; k__Bacteria; p__Proteobacteria
+18	1	Root; k__Bacteria; p__OD1; c__ZB2
+19	2	Root; k__Bacteria; p__Proteobacteria; c__Deltaproteobacteria; o__Myxococcales; f__Nannocystaceae; g__Plesiocystis
+20	3	Root; k__Bacteria; p__Verrucomicrobia; c__[Methylacidiphilae]
+21	3	Root; k__Bacteria; p__Acidobacteria
+22	1	Root; k__Bacteria; p__Spirochaetes; c__MVP-15
+23	3	Root; k__Bacteria; p__AD3; c__JG37-AG-4
+24	3	Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria; o__Rhizobiales; f__Hyphomicrobiaceae
+25	3	Root; k__Bacteria; p__Fibrobacteres; c__Fibrobacteria
+26	3	Root; k__Bacteria; p__Gemmatimonadetes; c__Gemm-1
+27	1	Root; k__Bacteria; p__Proteobacteria; c__Deltaproteobacteria; o__Syntrophobacterales; f__Syntrophobacteraceae
+28	1	Root; k__Bacteria; p__Firmicutes; c__Clostridia; o__Clostridiales
+29	1	Root; k__Bacteria; p__Gemmatimonadetes; c__Gemmatimonadetes
+30	21	Root; k__Bacteria; p__WPS-2
+31	1	Root; k__Bacteria; p__Verrucomicrobia; c__[Pedosphaerae]; o__[Pedosphaerales]; f__OPB35
+32	3	Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria; o__Sphingomonadales; f__Sphingomonadaceae
+33	2	Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria; o__Rhizobiales; f__Bradyrhizobiaceae
+34	1	Root; k__Bacteria; p__Kazan-3B-28
+35	1	Root; k__Bacteria; p__Verrucomicrobia; c__[Pedosphaerae]; o__[Pedosphaerales]
+36	1	Root; k__Bacteria; p__BHI80-139
+37	1	Root; k__Bacteria; p__Actinobacteria
+38	3	Root; k__Bacteria; p__Actinobacteria; c__Thermoleophilia; o__Solirubrobacterales
+39	1	Root; k__Bacteria; p__Acidobacteria; c__Acidobacteria-6; o__iii1-15
+40	1	Root; k__Bacteria; p__Proteobacteria; c__Betaproteobacteria
+41	21	Root; k__Bacteria; p__Verrucomicrobia; c__[Spartobacteria]; o__[Chthoniobacterales]; f__[Chthoniobacteraceae]
+42	3	Root; k__Bacteria; p__Proteobacteria; c__Deltaproteobacteria; o__Myxococcales
+43	1	Root; k__Bacteria; p__Gemmatimonadetes
+44	1	Root; k__Bacteria; p__Chloroflexi; c__Ktedonobacteria
+45	2	Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria; o__Rhizobiales
+46	2	Root; k__Bacteria; p__Proteobacteria; c__Gammaproteobacteria; o__Xanthomonadales; f__Sinobacteraceae
+47	1	Root; k__Bacteria; p__Planctomycetes; c__Planctomycetia; o__Gemmatales
+48	1	Root; k__Bacteria; p__Proteobacteria; c__Deltaproteobacteria; o__MIZ46
+49	10	Root; k__Bacteria; p__AD3
+50	1	Root; k__Bacteria; p__Chlamydiae; c__Chlamydiia; o__Chlamydiales
+51	5	Root; k__Bacteria; p__Actinobacteria; c__Acidimicrobiia; o__Acidimicrobiales
+52	1	Root; k__Bacteria; p__Verrucomicrobia; c__[Pedosphaerae]
+53	1	Root; k__Bacteria; p__Actinobacteria; c__MB-A2-108
+54	3	Root; k__Bacteria; p__Chloroflexi
+55	1	Root; k__Bacteria; p__Bacteroidetes; c__[Saprospirae]; o__[Saprospirales]; f__Chitinophagaceae
+56	2	Root; k__Bacteria; p__Planctomycetes; c__Phycisphaerae
+57	3	Root; k__Bacteria; p__Actinobacteria; c__Actinobacteria; o__Actinomycetales
+58	2	Root; k__Bacteria; p__Acidobacteria; c__DA052
+59	2	Root; k__Bacteria; p__Acidobacteria; c__Solibacteres; o__Solibacterales
+60	2	Root; k__Bacteria; p__Proteobacteria; c__Gammaproteobacteria; o__Legionellales; f__Coxiellaceae
+61	3	Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria; o__Rhodospirillales; f__Rhodospirillaceae
+62	1	Root; k__Bacteria; p__Planctomycetes; c__Planctomycetia; o__Gemmatales; f__Gemmataceae
+63	1	Root; k__Bacteria; p__Cyanobacteria; c__ML635J-21
+64	7	Root; k__Bacteria; p__Actinobacteria; c__Thermoleophilia
+65	1	Root; k__Bacteria; p__Elusimicrobia; c__Elusimicrobia; o__FAC88
+66	11	Root; k__Bacteria; p__Verrucomicrobia

@@ -25,52 +25,76 @@ import unittest
 import subprocess
 import os.path
 import tempdir
+import IPython
 
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
 
 class Tests(unittest.TestCase):
-    def test16S(self):
-        data = os.path.join(path_to_data,'1_small_16S_tree')
+    
+    # Tests on searching for rRNA sequence in nucleic acid sequence
+    def test_single_forward_read_run_16S(self):
+        data = os.path.join(path_to_data,'16S.gpkg', 'two_examples.fa')
+        package = os.path.join(path_to_data,'16S.gpkg')
         with tempdir.TempDir() as tmp:
-            cmd = '%s -m %s/16S.hmm -c %s/16S_gg201308_82.refpkg -f %s/two_examples.fa -t dna -g %s/16S_gg201308_82.refpkg/82_otus.fasta -o %s' % (
-                path_to_script,
-                data, data, data, data,
-                tmp
-            )
+            cmd = '%s graft --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script, 
+                                                                                               data, 
+                                                                                               package,
+                                                                                               tmp)
             subprocess.check_output(cmd, shell=True)
-            otuTableFile = os.path.join(tmp, 'two_examples_otu_table.txt')
-            lines = (
-                "\t".join(('#OTU_ID','two_examples','ConsensusLineage')),
-                    "\t".join(('0','1','Root;k__Bacteria;p__Gemmatimonadetes;c__Gemm-1')),
-                    "\t".join(('1','1','Root;k__Bacteria;p__Bacteroidetes;c__Flavobacteriia;o__Flavobacteriales;f__Flavobacteriaceae')),
-            )
+            otuTableFile = os.path.join(tmp, 'two_examples' , 'two_examples_count_table.txt')
+            lines = ("\t".join(('#ID','two_examples','ConsensusLineage')),
+                    "\t".join(('0','1','Root; k__Bacteria; p__Bacteroidetes; c__Flavobacteriia; o__Flavobacteriales; f__Flavobacteriaceae')),
+                    "\t".join(('1','1','Root; k__Bacteria; p__Gemmatimonadetes; c__Gemm-1')),
+                    )
             count = 0
             for line in open(otuTableFile):
                 self.assertEqual(lines[count], line.strip())
                 count += 1
             self.assertEqual(count, 3)
-            
-    def testMcrA(self):
-        data = os.path.join(path_to_data,'2_mcra')
+        
+    def test_single_paired_read_run_16S(self): pass
+    
+    def test_multiple_forward_read_run_16S(self): pass
+    
+    def test_multiple_paired_read_run_16S(self): pass
+    
+    # Tests on searching for proteins in nucelic acid sequence
+    def test_single_forward_read_run_McrA(self): 
+        data = os.path.join(path_to_data,'mcrA.gpkg', 'eg.fa')
+        package = os.path.join(path_to_data,'mcrA.gpkg')
+
         with tempdir.TempDir() as tmp:
-            cmd = '%s -m %s/mcrA.hmm -c %s/mcrA.refpkg -f %s/eg.fa -t prot -o %s' % (
-                path_to_script,
-                data, data, data,
-                tmp
-            )
+            cmd = '%s graft --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+                                                                                               data,
+                                                                                               package,
+                                                                                               tmp)
             subprocess.check_output(cmd, shell=True)
-            otuTableFile = os.path.join(tmp, 'eg_otu_table.txt')
-            lines = (
-                "\t".join(('#OTU_ID','eg','ConsensusLineage')),
-                    "\t".join(('0','1','Root;mcrA;Euryarchaeota_mcrA;Methanomicrobia;Methanosarcinales;Methanosarcinaceae;Methanosarcina')),
-            )
+            otuTableFile = os.path.join(tmp, 'eg', 'eg_count_table.txt')
+            lines = ("\t".join(('#ID','eg','ConsensusLineage')),
+                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                     )
             count = 0
             for line in open(otuTableFile):
                 self.assertEqual(lines[count], line.strip())
                 count += 1
             self.assertEqual(count, 2)
         
+    def test_single_paired_read_run_McrA(self): pass
+    
+    def test_multiple_forward_read_run_McrA(self): pass
+    
+    def test_multiple_paired_read_run_McrA(self): pass
+
+    # tests on searching amino acid sequence....
+    #def test_multiple_forward_read_run_McrA_aa(self): pass
+    
+    #def test_multiple_paired_read_run_McrA_aa(self): pass
+
+    #def test_single_forward_read_run_McrA_aa(self): pass
+    
+    #def test_single_paired_read_run_McrA_aa(self): pass
+
 
 
 if __name__ == "__main__":

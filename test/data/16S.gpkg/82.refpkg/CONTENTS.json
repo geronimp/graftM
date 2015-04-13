@@ -1,0 +1,53 @@
+{
+    "files": {
+        "phylo_model": "phylo_model29dC9p.json", 
+        "taxonomy": "Tax.csv", 
+        "tree": "treeI9BGEc.tre", 
+        "aln_fasta": "82_otus.aln.fasta", 
+        "seq_info": "Seqinfo.csv", 
+        "tree_stats": "82.log"
+    }, 
+    "rollback": {
+        "files": {
+            "phylo_model": "phylo_model29dC9p.json", 
+            "taxonomy": "Tax.csv", 
+            "tree": "82_otus.tre", 
+            "aln_fasta": "82_otus.aln.fasta", 
+            "seq_info": "Seqinfo.csv", 
+            "tree_stats": "82.log"
+        }, 
+        "rollback": null, 
+        "metadata": {
+            "create_date": "2015-01-13 11:42:12", 
+            "format_version": "1.1", 
+            "locus": "82"
+        }, 
+        "md5": {
+            "phylo_model": "b871cb5132f00f86ed84af75f23b0d37", 
+            "taxonomy": "04b7401206ba0fb1e75b9eee7f231e28", 
+            "tree": "a5645dc2d7186c8f205716dd8a7de263", 
+            "aln_fasta": "52fe4edbe7b7cfbd963e98ee1bb350d4", 
+            "seq_info": "2f58f04ae13aacb0f4d785ce92c67723", 
+            "tree_stats": "a74ade26fe9846fe9f043421e611678a"
+        }
+    }, 
+    "log": [
+        "Rerooted", 
+        "Stripped refpkg (removed 0 files)", 
+        "Loaded initial files into empty refpkg"
+    ], 
+    "metadata": {
+        "create_date": "2015-01-13 11:42:12", 
+        "format_version": "1.1", 
+        "locus": "82"
+    }, 
+    "rollforward": null, 
+    "md5": {
+        "phylo_model": "b871cb5132f00f86ed84af75f23b0d37", 
+        "taxonomy": "04b7401206ba0fb1e75b9eee7f231e28", 
+        "tree": "b2236f004de6c8557f19037dbdb00cd0", 
+        "aln_fasta": "52fe4edbe7b7cfbd963e98ee1bb350d4", 
+        "seq_info": "2f58f04ae13aacb0f4d785ce92c67723", 
+        "tree_stats": "a74ade26fe9846fe9f043421e611678a"
+    }
+}

@@ -1,0 +1,17 @@
+Basic run statistics (count):
+
+                             Files:	sample_mcrA forward	sample_mcrA reverse
+Total number of 16S reads detected:	100	92
+Total number of 18S reads detected:	N/AN/A	N/AN/A
+    'Contaminant' eukaryotic reads:	N/A	N/A
+
+Runtime (seconds):
+                             Files:	sample_mcrA forward	sample_mcrA reverse
+                       Search step:	1	1
+                    Alignment step:	1	1
+              Eukaryote check step:	N/A	N/A
+
+               Tree insertion step:	9
+                 Summarising steps:	0
+                     Total runtime:	12
+    

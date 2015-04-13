@@ -1,0 +1,806 @@
+                                         name  desired_rank     rank                    tax_id  likelihood      origin
+  HWI-ST1243:121:D1AF9ACXX:8:1108:1267:2043_1          root     root                      Root           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1108:1267:2043_1       kingdom  kingdom                      mcrA           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1108:1267:2043_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1108:1267:2043_1         class    class           Methanomicrobia           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1108:1267:2043_1         order    order           Methanocellales           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1108:1267:2043_1        family    order           Methanocellales           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1108:1267:2043_1         genus    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:7484:79248_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:7484:79248_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:7484:79248_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:7484:79248_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:7484:79248_1         order    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:7484:79248_1        family    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:7484:79248_1         genus    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10187:65370_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10187:65370_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10187:65370_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10187:65370_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10187:65370_1         order    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10187:65370_1        family    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10187:65370_1         genus    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:7786:36313_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:7786:36313_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:7786:36313_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:7786:36313_1         class    class           Methanomicrobia    0.824979  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:7786:36313_1         class    class           Methanobacteria    0.175021  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:7786:36313_1         order    order           Methanocellales    0.824979  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:7786:36313_1         order    order        Methanobacteriales    0.175021  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:7786:36313_1        family    order           Methanocellales    0.824979  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:7786:36313_1        family   family        Methanobateriaceae   0.0266138  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:7786:36313_1        family   family       Methanobacteriaceae    0.148407  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:7786:36313_1         genus    order           Methanocellales    0.824979  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:7786:36313_1         genus    genus        Methanobrevibacter   0.0981538  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:7786:36313_1         genus    genus          Methanobacterium   0.0266138  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:7786:36313_1         genus   family       Methanobacteriaceae   0.0502532  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:19128:3488_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:19128:3488_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:19128:3488_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:19128:3488_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:19128:3488_1         order    order         Methanosarcinales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:19128:3488_1        family   family          Methanosaetaceae           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:19128:3488_1         genus    genus              Methanosaeta           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1103:19524:87834_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1103:19524:87834_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1103:19524:87834_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1103:19524:87834_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1103:19524:87834_1         order    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1103:19524:87834_1        family    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1103:19524:87834_1         genus    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:5682:60758_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:5682:60758_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:5682:60758_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:5682:60758_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:5682:60758_1         order    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:5682:60758_1        family    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:5682:60758_1         genus    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:17916:35970_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:17916:35970_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:17916:35970_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:17916:35970_1         class    class            Thermoplasmata    0.967589  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:17916:35970_1         class   phylum        Euryarchaeota_mcrA   0.0324106  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:17916:35970_1         order    order    Methanomassiliicocales    0.967589  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:17916:35970_1         order   phylum        Euryarchaeota_mcrA   0.0324106  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:17916:35970_1        family   family  Methanomassiliicoccaceae    0.967589  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:17916:35970_1        family   phylum        Euryarchaeota_mcrA   0.0324106  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:17916:35970_1         genus    genus     Methanomassiliicoccus    0.725972  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:17916:35970_1         genus   family  Methanomassiliicoccaceae    0.241617  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:17916:35970_1         genus   phylum        Euryarchaeota_mcrA   0.0324106  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:18941:61686_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:18941:61686_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:18941:61686_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:18941:61686_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:18941:61686_1         order    order         Methanosarcinales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:18941:61686_1        family   family          Methanosaetaceae           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:18941:61686_1         genus    genus              Methanosaeta           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:2930:55985_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:2930:55985_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:2930:55985_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:2930:55985_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:2930:55985_1         order    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:2930:55985_1        family    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:2930:55985_1         genus    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:20653:35584_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:20653:35584_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:20653:35584_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:20653:35584_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:20653:35584_1         order    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:20653:35584_1        family    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:20653:35584_1         genus    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19306:40501_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19306:40501_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19306:40501_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19306:40501_1         class    class           Methanomicrobia    0.757651  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19306:40501_1         class   phylum        Euryarchaeota_mcrA    0.242349  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19306:40501_1         order    order         Methanosarcinales   0.0659946  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19306:40501_1         order    class           Methanomicrobia    0.613666  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19306:40501_1         order    order           Methanocellales   0.0779908  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19306:40501_1         order   phylum        Euryarchaeota_mcrA    0.242349  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19306:40501_1        family    order         Methanosarcinales   0.0659946  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19306:40501_1        family    class           Methanomicrobia    0.613666  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19306:40501_1        family    order           Methanocellales   0.0779908  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19306:40501_1        family   phylum        Euryarchaeota_mcrA    0.242349  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19306:40501_1         genus    order         Methanosarcinales   0.0659946  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19306:40501_1         genus    class           Methanomicrobia    0.613666  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19306:40501_1         genus    order           Methanocellales   0.0779908  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19306:40501_1         genus   phylum        Euryarchaeota_mcrA    0.242349  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:6810:63372_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:6810:63372_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:6810:63372_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:6810:63372_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:6810:63372_1         order    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:6810:63372_1        family    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:6810:63372_1         genus    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19330:45265_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19330:45265_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19330:45265_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19330:45265_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19330:45265_1         order    order         Methanosarcinales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19330:45265_1        family   family          Methanosaetaceae           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:19330:45265_1         genus    genus              Methanosaeta           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:12823:26676_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:12823:26676_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:12823:26676_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:12823:26676_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:12823:26676_1         order    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:12823:26676_1        family    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:12823:26676_1         genus    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10590:18656_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10590:18656_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10590:18656_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10590:18656_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10590:18656_1         order    class           Methanomicrobia    0.987029  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10590:18656_1         order    order           Methanocellales   0.0129715  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10590:18656_1        family    class           Methanomicrobia    0.987029  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10590:18656_1        family    order           Methanocellales   0.0129715  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10590:18656_1         genus    class           Methanomicrobia    0.987029  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10590:18656_1         genus    order           Methanocellales   0.0129715  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:20783:86498_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:20783:86498_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:20783:86498_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:20783:86498_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:20783:86498_1         order    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:20783:86498_1        family    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:20783:86498_1         genus    class           Methanomicrobia           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1104:5247:9619_1          root     root                      Root           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1104:5247:9619_1       kingdom  kingdom                      mcrA           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1104:5247:9619_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1104:5247:9619_1         class    class            Thermoplasmata    0.932214  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1104:5247:9619_1         class   phylum        Euryarchaeota_mcrA   0.0677856  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1104:5247:9619_1         order    order    Methanomassiliicocales    0.932214  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1104:5247:9619_1         order   phylum        Euryarchaeota_mcrA   0.0677856  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1104:5247:9619_1        family   family  Methanomassiliicoccaceae    0.932214  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1104:5247:9619_1        family   phylum        Euryarchaeota_mcrA   0.0677856  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1104:5247:9619_1         genus    genus     Methanomassiliicoccus    0.666256  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1104:5247:9619_1         genus   family  Methanomassiliicoccaceae    0.265958  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1104:5247:9619_1         genus   phylum        Euryarchaeota_mcrA   0.0677856  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:9781:36780_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:9781:36780_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:9781:36780_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:9781:36780_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:9781:36780_1         order    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:9781:36780_1        family    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:9781:36780_1         genus    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1103:14669:78245_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1103:14669:78245_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1103:14669:78245_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1103:14669:78245_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1103:14669:78245_1         order    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1103:14669:78245_1        family    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1103:14669:78245_1         genus    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:14266:2298_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:14266:2298_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:14266:2298_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:14266:2298_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:14266:2298_1         order    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:14266:2298_1        family    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:14266:2298_1         genus    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:4478:79123_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:4478:79123_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:4478:79123_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:4478:79123_1         class    class            Thermoplasmata    0.890134  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:4478:79123_1         class   phylum        Euryarchaeota_mcrA    0.109866  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:4478:79123_1         order    order    Methanomassiliicocales    0.890134  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:4478:79123_1         order   phylum        Euryarchaeota_mcrA    0.109866  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:4478:79123_1        family   family  Methanomassiliicoccaceae    0.890134  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:4478:79123_1        family   phylum        Euryarchaeota_mcrA    0.109866  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:4478:79123_1         genus    genus     Methanomassiliicoccus   0.0606183  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:4478:79123_1         genus   family  Methanomassiliicoccaceae    0.829515  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:4478:79123_1         genus   phylum        Euryarchaeota_mcrA    0.109866  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:5003:11467_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:5003:11467_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:5003:11467_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:5003:11467_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:5003:11467_1         order    class           Methanomicrobia     0.94907  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:5003:11467_1         order    order           Methanocellales   0.0509298  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:5003:11467_1        family    class           Methanomicrobia     0.94907  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:5003:11467_1        family    order           Methanocellales   0.0509298  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:5003:11467_1         genus    class           Methanomicrobia     0.94907  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:5003:11467_1         genus    order           Methanocellales   0.0509298  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:6148:39879_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:6148:39879_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:6148:39879_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:6148:39879_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:6148:39879_1         order    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:6148:39879_1        family    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:6148:39879_1         genus    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:6535:63913_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:6535:63913_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:6535:63913_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:6535:63913_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:6535:63913_1         order    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:6535:63913_1        family    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:6535:63913_1         genus    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:5341:12289_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:5341:12289_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:5341:12289_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:5341:12289_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:5341:12289_1         order    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:5341:12289_1        family    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:5341:12289_1         genus    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:4259:28728_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:4259:28728_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:4259:28728_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:4259:28728_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:4259:28728_1         order    order        Methanomicrobiales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:4259:28728_1        family   family         Methanoregulaceae           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:4259:28728_1         genus    genus             Methanoregula           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:4257:46822_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:4257:46822_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:4257:46822_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:4257:46822_1         class    class           Methanomicrobia    0.910049  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:4257:46822_1         class   phylum        Euryarchaeota_mcrA    0.089951  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:4257:46822_1         order    class           Methanomicrobia    0.734144  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:4257:46822_1         order    order           Methanocellales    0.175905  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:4257:46822_1         order   phylum        Euryarchaeota_mcrA    0.089951  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:4257:46822_1        family    class           Methanomicrobia    0.734144  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:4257:46822_1        family    order           Methanocellales    0.161188  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:4257:46822_1        family   family         Methanocellalceae   0.0147169  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:4257:46822_1        family   phylum        Euryarchaeota_mcrA    0.089951  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:4257:46822_1         genus    class           Methanomicrobia    0.734144  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:4257:46822_1         genus    order           Methanocellales    0.161188  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:4257:46822_1         genus    genus              Methanocella   0.0147169  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:4257:46822_1         genus   phylum        Euryarchaeota_mcrA    0.089951  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:8296:61771_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:8296:61771_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:8296:61771_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:8296:61771_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:8296:61771_1         order    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:8296:61771_1        family    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:8296:61771_1         genus    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1102:17817:51519_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1102:17817:51519_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1102:17817:51519_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1102:17817:51519_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1102:17817:51519_1         order    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1102:17817:51519_1        family    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1102:17817:51519_1         genus    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:12367:39267_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:12367:39267_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:12367:39267_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:12367:39267_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:12367:39267_1         order    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:12367:39267_1        family    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:12367:39267_1         genus    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1110:13446:43703_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1110:13446:43703_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1110:13446:43703_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1110:13446:43703_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1110:13446:43703_1         order    order        Methanomicrobiales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1110:13446:43703_1        family   family         Methanoregulaceae           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1110:13446:43703_1         genus    genus             Methanoregula           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:1756:87059_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:1756:87059_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:1756:87059_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:1756:87059_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:1756:87059_1         order    order         Methanosarcinales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:1756:87059_1        family   family          Methanosaetaceae           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:1756:87059_1         genus    genus              Methanosaeta           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1104:6502:9159_1          root     root                      Root           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1104:6502:9159_1       kingdom  kingdom                      mcrA           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1104:6502:9159_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1104:6502:9159_1         class    class           Methanomicrobia           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1104:6502:9159_1         order    order           Methanocellales           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1104:6502:9159_1        family    order           Methanocellales           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1104:6502:9159_1         genus    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:13363:26127_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:13363:26127_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:13363:26127_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:13363:26127_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:13363:26127_1         order    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:13363:26127_1        family    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:13363:26127_1         genus    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1110:12299:76117_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1110:12299:76117_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1110:12299:76117_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1110:12299:76117_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1110:12299:76117_1         order    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1110:12299:76117_1        family    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1110:12299:76117_1         genus    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9615:66700_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9615:66700_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9615:66700_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9615:66700_1         class    class           Methanomicrobia    0.994878  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9615:66700_1         class   phylum        Euryarchaeota_mcrA   0.0051224  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9615:66700_1         order    class           Methanomicrobia    0.749567  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9615:66700_1         order    order           Methanocellales     0.24531  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9615:66700_1         order   phylum        Euryarchaeota_mcrA   0.0051224  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9615:66700_1        family    class           Methanomicrobia    0.749567  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9615:66700_1        family    order           Methanocellales    0.224327  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9615:66700_1        family   family         Methanocellalceae   0.0209838  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9615:66700_1        family   phylum        Euryarchaeota_mcrA   0.0051224  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9615:66700_1         genus    class           Methanomicrobia    0.749567  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9615:66700_1         genus    order           Methanocellales    0.224327  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9615:66700_1         genus    genus              Methanocella   0.0209838  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9615:66700_1         genus   phylum        Euryarchaeota_mcrA   0.0051224  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:20163:90043_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:20163:90043_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:20163:90043_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:20163:90043_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:20163:90043_1         order    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:20163:90043_1        family    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:20163:90043_1         genus    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:8371:84767_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:8371:84767_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:8371:84767_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:8371:84767_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:8371:84767_1         order    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:8371:84767_1        family    order           Methanocellales   0.0657853  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:8371:84767_1        family   family         Methanocellalceae    0.934215  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:8371:84767_1         genus    order           Methanocellales   0.0657853  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:8371:84767_1         genus    genus              Methanocella    0.934215  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1102:6995:2759_1          root     root                      Root           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1102:6995:2759_1       kingdom  kingdom                      mcrA           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1102:6995:2759_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1102:6995:2759_1         class    class           Methanomicrobia           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1102:6995:2759_1         order    class           Methanomicrobia  0.00473004  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1102:6995:2759_1         order    order           Methanocellales     0.99527  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1102:6995:2759_1        family    class           Methanomicrobia  0.00473004  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1102:6995:2759_1        family   family         Methanocellalceae     0.99527  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1102:6995:2759_1         genus    class           Methanomicrobia  0.00473004  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1102:6995:2759_1         genus    genus              Methanocella     0.99527  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:4036:46970_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:4036:46970_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:4036:46970_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:4036:46970_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:4036:46970_1         order    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:4036:46970_1        family    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:4036:46970_1         genus    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1104:17764:97808_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1104:17764:97808_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1104:17764:97808_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1104:17764:97808_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1104:17764:97808_1         order    order         Methanosarcinales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1104:17764:97808_1        family    order         Methanosarcinales  0.00842693  placements
+HWI-ST1243:121:D1AF9ACXX:8:1104:17764:97808_1        family   family          Methanosaetaceae    0.991573  placements
+HWI-ST1243:121:D1AF9ACXX:8:1104:17764:97808_1         genus    order         Methanosarcinales  0.00842693  placements
+HWI-ST1243:121:D1AF9ACXX:8:1104:17764:97808_1         genus    genus              Methanosaeta    0.991573  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:4742:34631_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:4742:34631_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:4742:34631_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:4742:34631_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:4742:34631_1         order    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:4742:34631_1        family    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:4742:34631_1         genus    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:19937:54535_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:19937:54535_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:19937:54535_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:19937:54535_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:19937:54535_1         order    class           Methanomicrobia    0.083774  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:19937:54535_1         order    order           Methanocellales    0.916226  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:19937:54535_1        family    class           Methanomicrobia    0.083774  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:19937:54535_1        family    order           Methanocellales     0.88675  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:19937:54535_1        family   family         Methanocellalceae   0.0294761  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:19937:54535_1         genus    class           Methanomicrobia    0.083774  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:19937:54535_1         genus    order           Methanocellales     0.88675  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:19937:54535_1         genus    genus              Methanocella   0.0294761  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:9974:36278_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:9974:36278_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:9974:36278_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:9974:36278_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:9974:36278_1         order    order         Methanosarcinales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:9974:36278_1        family   family          Methanosaetaceae           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:9974:36278_1         genus    genus              Methanosaeta           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:3408:44386_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:3408:44386_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:3408:44386_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:3408:44386_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:3408:44386_1         order    order         Methanosarcinales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:3408:44386_1        family   family          Methanosaetaceae           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:3408:44386_1         genus    genus              Methanosaeta           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1102:11520:68751_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1102:11520:68751_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1102:11520:68751_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1102:11520:68751_1         class    class            Thermoplasmata           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1102:11520:68751_1         order    order    Methanomassiliicocales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1102:11520:68751_1        family   family  Methanomassiliicoccaceae           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1102:11520:68751_1         genus    genus     Methanomassiliicoccus    0.503028  placements
+HWI-ST1243:121:D1AF9ACXX:8:1102:11520:68751_1         genus   family  Methanomassiliicoccaceae    0.496972  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:4712:72560_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:4712:72560_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:4712:72560_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:4712:72560_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:4712:72560_1         order    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:4712:72560_1        family    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:4712:72560_1         genus    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:15659:25049_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:15659:25049_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:15659:25049_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:15659:25049_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:15659:25049_1         order    class           Methanomicrobia    0.988857  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:15659:25049_1         order    order           Methanocellales   0.0111431  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:15659:25049_1        family    class           Methanomicrobia    0.988857  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:15659:25049_1        family    order           Methanocellales   0.0111431  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:15659:25049_1         genus    class           Methanomicrobia    0.988857  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:15659:25049_1         genus    order           Methanocellales   0.0111431  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:3463:65329_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:3463:65329_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:3463:65329_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:3463:65329_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:3463:65329_1         order    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:3463:65329_1        family    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:3463:65329_1         genus    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:3373:42284_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:3373:42284_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:3373:42284_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:3373:42284_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:3373:42284_1         order    class           Methanomicrobia    0.355034  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:3373:42284_1         order    order           Methanocellales    0.644966  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:3373:42284_1        family    class           Methanomicrobia    0.355034  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:3373:42284_1        family    order           Methanocellales    0.266924  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:3373:42284_1        family   family         Methanocellalceae    0.378041  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:3373:42284_1         genus    class           Methanomicrobia    0.355034  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:3373:42284_1         genus    order           Methanocellales    0.266924  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:3373:42284_1         genus    genus              Methanocella    0.378041  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:2058:99887_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:2058:99887_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:2058:99887_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:2058:99887_1         class    class           Methanomicrobia    0.990045  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:2058:99887_1         class   phylum        Euryarchaeota_mcrA  0.00995536  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:2058:99887_1         order    class           Methanomicrobia    0.291935  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:2058:99887_1         order    order           Methanocellales    0.698109  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:2058:99887_1         order   phylum        Euryarchaeota_mcrA  0.00995536  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:2058:99887_1        family    class           Methanomicrobia    0.291935  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:2058:99887_1        family    order           Methanocellales    0.698109  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:2058:99887_1        family   phylum        Euryarchaeota_mcrA  0.00995536  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:2058:99887_1         genus    class           Methanomicrobia    0.291935  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:2058:99887_1         genus    order           Methanocellales    0.698109  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:2058:99887_1         genus   phylum        Euryarchaeota_mcrA  0.00995536  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:15957:28833_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:15957:28833_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:15957:28833_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:15957:28833_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:15957:28833_1         order    class           Methanomicrobia   0.0431627  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:15957:28833_1         order    order           Methanocellales    0.956837  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:15957:28833_1        family    class           Methanomicrobia   0.0431627  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:15957:28833_1        family    order           Methanocellales    0.956837  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:15957:28833_1         genus    class           Methanomicrobia   0.0431627  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:15957:28833_1         genus    order           Methanocellales    0.956837  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:7108:85192_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:7108:85192_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:7108:85192_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:7108:85192_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:7108:85192_1         order    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:7108:85192_1        family    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1108:7108:85192_1         genus    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:3952:31613_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:3952:31613_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:3952:31613_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:3952:31613_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:3952:31613_1         order    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:3952:31613_1        family    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:3952:31613_1         genus    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1112:14648:7547_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1112:14648:7547_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1112:14648:7547_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1112:14648:7547_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1112:14648:7547_1         order    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1112:14648:7547_1        family    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1112:14648:7547_1         genus    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:5338:18741_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:5338:18741_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:5338:18741_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:5338:18741_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:5338:18741_1         order    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:5338:18741_1        family    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:5338:18741_1         genus    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:5783:37235_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:5783:37235_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:5783:37235_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:5783:37235_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:5783:37235_1         order    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:5783:37235_1        family    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:5783:37235_1         genus    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:8243:25006_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:8243:25006_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:8243:25006_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:8243:25006_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:8243:25006_1         order    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:8243:25006_1        family    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:8243:25006_1         genus    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:17314:81799_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:17314:81799_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:17314:81799_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:17314:81799_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:17314:81799_1         order    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:17314:81799_1        family    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:17314:81799_1         genus    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7365:90491_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7365:90491_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7365:90491_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7365:90491_1         class    class            Thermoplasmata    0.989842  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7365:90491_1         class   phylum        Euryarchaeota_mcrA    0.010158  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7365:90491_1         order    order    Methanomassiliicocales    0.989842  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7365:90491_1         order   phylum        Euryarchaeota_mcrA    0.010158  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7365:90491_1        family   family  Methanomassiliicoccaceae    0.989842  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7365:90491_1        family   phylum        Euryarchaeota_mcrA    0.010158  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7365:90491_1         genus    genus     Methanomassiliicoccus    0.230521  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7365:90491_1         genus   family  Methanomassiliicoccaceae    0.759321  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7365:90491_1         genus   phylum        Euryarchaeota_mcrA    0.010158  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:8521:94342_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:8521:94342_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:8521:94342_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:8521:94342_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:8521:94342_1         order    class           Methanomicrobia   0.0654787  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:8521:94342_1         order    order           Methanocellales    0.934521  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:8521:94342_1        family    class           Methanomicrobia   0.0654787  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:8521:94342_1        family    order           Methanocellales    0.934521  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:8521:94342_1         genus    class           Methanomicrobia   0.0654787  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1110:8521:94342_1         genus    order           Methanocellales    0.934521  placements
+HWI-ST1243:121:D1AF9ACXX:8:1109:19595:10365_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1109:19595:10365_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1109:19595:10365_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1109:19595:10365_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1109:19595:10365_1         order    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1109:19595:10365_1        family    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1109:19595:10365_1         genus    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:1309:46078_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:1309:46078_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:1309:46078_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:1309:46078_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:1309:46078_1         order    class           Methanomicrobia   0.0368894  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:1309:46078_1         order    order           Methanocellales    0.963111  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:1309:46078_1        family    class           Methanomicrobia   0.0368894  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:1309:46078_1        family    order           Methanocellales    0.963111  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:1309:46078_1         genus    class           Methanomicrobia   0.0368894  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:1309:46078_1         genus    order           Methanocellales    0.963111  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:14178:42931_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:14178:42931_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:14178:42931_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:14178:42931_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:14178:42931_1         order    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:14178:42931_1        family    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:14178:42931_1         genus    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10892:45590_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10892:45590_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10892:45590_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10892:45590_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10892:45590_1         order    order         Methanosarcinales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10892:45590_1        family   family          Methanosaetaceae           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10892:45590_1         genus    genus              Methanosaeta           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:2096:48695_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:2096:48695_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:2096:48695_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:2096:48695_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:2096:48695_1         order    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:2096:48695_1        family    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1104:2096:48695_1         genus    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1101:17503:91050_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1101:17503:91050_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1101:17503:91050_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1101:17503:91050_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1101:17503:91050_1         order    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1101:17503:91050_1        family    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1101:17503:91050_1         genus    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:15860:43564_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:15860:43564_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:15860:43564_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:15860:43564_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:15860:43564_1         order    class           Methanomicrobia    0.979918  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:15860:43564_1         order    order           Methanocellales   0.0200821  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:15860:43564_1        family    class           Methanomicrobia    0.979918  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:15860:43564_1        family    order           Methanocellales   0.0200821  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:15860:43564_1         genus    class           Methanomicrobia    0.979918  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:15860:43564_1         genus    order           Methanocellales   0.0200821  placements
+HWI-ST1243:121:D1AF9ACXX:8:1101:12684:12444_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1101:12684:12444_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1101:12684:12444_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1101:12684:12444_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1101:12684:12444_1         order    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1101:12684:12444_1        family    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1101:12684:12444_1         genus    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:10903:62575_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:10903:62575_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:10903:62575_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:10903:62575_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:10903:62575_1         order    order         Methanosarcinales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:10903:62575_1        family   family          Methanosaetaceae           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1106:10903:62575_1         genus    genus              Methanosaeta           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:20841:16873_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:20841:16873_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:20841:16873_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:20841:16873_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:20841:16873_1         order    class           Methanomicrobia    0.798257  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:20841:16873_1         order    order           Methanocellales    0.201743  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:20841:16873_1        family    class           Methanomicrobia    0.798257  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:20841:16873_1        family    order           Methanocellales    0.201743  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:20841:16873_1         genus    class           Methanomicrobia    0.798257  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:20841:16873_1         genus    order           Methanocellales    0.201743  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:4414:35570_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:4414:35570_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:4414:35570_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:4414:35570_1         class    class            Thermoplasmata    0.971333  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:4414:35570_1         class   phylum        Euryarchaeota_mcrA   0.0286673  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:4414:35570_1         order    order    Methanomassiliicocales    0.971333  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:4414:35570_1         order   phylum        Euryarchaeota_mcrA   0.0286673  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:4414:35570_1        family   family  Methanomassiliicoccaceae    0.971333  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:4414:35570_1        family   phylum        Euryarchaeota_mcrA   0.0286673  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:4414:35570_1         genus    genus     Methanomassiliicoccus    0.641435  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:4414:35570_1         genus   family  Methanomassiliicoccaceae    0.329898  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:4414:35570_1         genus   phylum        Euryarchaeota_mcrA   0.0286673  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1107:8281:30107_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1107:8281:30107_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1107:8281:30107_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1107:8281:30107_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1107:8281:30107_1         order    class           Methanomicrobia  0.00489173  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1107:8281:30107_1         order    order           Methanocellales    0.995108  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1107:8281:30107_1        family    class           Methanomicrobia  0.00489173  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1107:8281:30107_1        family   family         Methanocellalceae    0.995108  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1107:8281:30107_1         genus    class           Methanomicrobia  0.00489173  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1107:8281:30107_1         genus    genus              Methanocella    0.995108  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7565:16658_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7565:16658_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7565:16658_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7565:16658_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7565:16658_1         order    order         Methanosarcinales   0.0242534  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7565:16658_1         order    class           Methanomicrobia    0.738134  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7565:16658_1         order    order           Methanocellales    0.237613  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7565:16658_1        family    order         Methanosarcinales   0.0242534  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7565:16658_1        family    class           Methanomicrobia    0.738134  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7565:16658_1        family    order           Methanocellales   0.0106117  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7565:16658_1        family   family         Methanocellalceae    0.227001  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7565:16658_1         genus    order         Methanosarcinales   0.0242534  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7565:16658_1         genus    class           Methanomicrobia    0.738134  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7565:16658_1         genus    order           Methanocellales   0.0106117  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:7565:16658_1         genus    genus              Methanocella    0.227001  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:8893:99706_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:8893:99706_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:8893:99706_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:8893:99706_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:8893:99706_1         order    order        Methanomicrobiales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:8893:99706_1        family   family         Methanoregulaceae           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1103:8893:99706_1         genus    genus             Methanoregula           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:1480:54324_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:1480:54324_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:1480:54324_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:1480:54324_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:1480:54324_1         order    class           Methanomicrobia   0.0472086  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:1480:54324_1         order    order           Methanocellales    0.952791  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:1480:54324_1        family    class           Methanomicrobia   0.0472086  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:1480:54324_1        family    order           Methanocellales   0.0265659  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:1480:54324_1        family   family         Methanocellalceae    0.926225  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:1480:54324_1         genus    class           Methanomicrobia   0.0472086  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:1480:54324_1         genus    order           Methanocellales   0.0265659  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1106:1480:54324_1         genus    genus              Methanocella    0.926225  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:17391:14581_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:17391:14581_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:17391:14581_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:17391:14581_1         class    class           Methanomicrobia    0.987506  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:17391:14581_1         class   phylum        Euryarchaeota_mcrA   0.0124941  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:17391:14581_1         order    order         Methanosarcinales   0.0205098  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:17391:14581_1         order    class           Methanomicrobia    0.215415  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:17391:14581_1         order    order           Methanocellales    0.751581  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:17391:14581_1         order   phylum        Euryarchaeota_mcrA   0.0124941  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:17391:14581_1        family    order         Methanosarcinales   0.0205098  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:17391:14581_1        family    class           Methanomicrobia    0.215415  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:17391:14581_1        family    order           Methanocellales    0.751581  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:17391:14581_1        family   phylum        Euryarchaeota_mcrA   0.0124941  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:17391:14581_1         genus    order         Methanosarcinales   0.0205098  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:17391:14581_1         genus    class           Methanomicrobia    0.215415  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:17391:14581_1         genus    order           Methanocellales    0.751581  placements
+HWI-ST1243:121:D1AF9ACXX:8:1108:17391:14581_1         genus   phylum        Euryarchaeota_mcrA   0.0124941  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1107:3882:4277_1          root     root                      Root           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1107:3882:4277_1       kingdom  kingdom                      mcrA           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1107:3882:4277_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1107:3882:4277_1         class    class           Methanomicrobia           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1107:3882:4277_1         order    order           Methanocellales           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1107:3882:4277_1        family    order           Methanocellales           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1107:3882:4277_1         genus    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1107:4729:66204_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1107:4729:66204_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1107:4729:66204_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1107:4729:66204_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1107:4729:66204_1         order    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1107:4729:66204_1        family    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1107:4729:66204_1         genus    order           Methanocellales           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1112:6389:9075_1          root     root                      Root           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1112:6389:9075_1       kingdom  kingdom                      mcrA           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1112:6389:9075_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1112:6389:9075_1         class    class           Methanomicrobia           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1112:6389:9075_1         order    order           Methanocellales           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1112:6389:9075_1        family    order           Methanocellales           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1112:6389:9075_1         genus    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:2683:99866_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:2683:99866_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:2683:99866_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:2683:99866_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:2683:99866_1         order    order        Methanomicrobiales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:2683:99866_1        family   family         Methanoregulaceae           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1101:2683:99866_1         genus    genus             Methanoregula           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:13103:63834_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:13103:63834_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:13103:63834_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:13103:63834_1         class    class            Thermoplasmata    0.992437  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:13103:63834_1         class   phylum        Euryarchaeota_mcrA  0.00756325  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:13103:63834_1         order    order    Methanomassiliicocales    0.992437  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:13103:63834_1         order   phylum        Euryarchaeota_mcrA  0.00756325  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:13103:63834_1        family   family  Methanomassiliicoccaceae    0.992437  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:13103:63834_1        family   phylum        Euryarchaeota_mcrA  0.00756325  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:13103:63834_1         genus    genus     Methanomassiliicoccus    0.717382  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:13103:63834_1         genus   family  Methanomassiliicoccaceae    0.275055  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:13103:63834_1         genus   phylum        Euryarchaeota_mcrA  0.00756325  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1112:5886:9129_1          root     root                      Root           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1112:5886:9129_1       kingdom  kingdom                      mcrA           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1112:5886:9129_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1112:5886:9129_1         class    class            Thermoplasmata    0.950229  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1112:5886:9129_1         class   phylum        Euryarchaeota_mcrA   0.0497708  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1112:5886:9129_1         order    order    Methanomassiliicocales    0.950229  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1112:5886:9129_1         order   phylum        Euryarchaeota_mcrA   0.0497708  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1112:5886:9129_1        family   family  Methanomassiliicoccaceae    0.950229  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1112:5886:9129_1        family   phylum        Euryarchaeota_mcrA   0.0497708  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1112:5886:9129_1         genus    genus     Methanomassiliicoccus    0.729781  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1112:5886:9129_1         genus   family  Methanomassiliicoccaceae    0.220448  placements
+  HWI-ST1243:121:D1AF9ACXX:8:1112:5886:9129_1         genus   phylum        Euryarchaeota_mcrA   0.0497708  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10269:19121_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10269:19121_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10269:19121_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10269:19121_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10269:19121_1         order    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10269:19121_1        family    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1107:10269:19121_1         genus    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:16131:4275_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:16131:4275_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:16131:4275_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:16131:4275_1         class    class            Thermoplasmata    0.981116  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:16131:4275_1         class   phylum        Euryarchaeota_mcrA   0.0188843  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:16131:4275_1         order    order    Methanomassiliicocales    0.981116  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:16131:4275_1         order   phylum        Euryarchaeota_mcrA   0.0188843  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:16131:4275_1        family   family  Methanomassiliicoccaceae    0.981116  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:16131:4275_1        family   phylum        Euryarchaeota_mcrA   0.0188843  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:16131:4275_1         genus    genus     Methanomassiliicoccus    0.768745  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:16131:4275_1         genus   family  Methanomassiliicoccaceae    0.212371  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1105:16131:4275_1         genus   phylum        Euryarchaeota_mcrA   0.0188843  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:13616:37027_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:13616:37027_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:13616:37027_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:13616:37027_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:13616:37027_1         order    class           Methanomicrobia   0.0353026  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:13616:37027_1         order    order           Methanocellales    0.964697  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:13616:37027_1        family    class           Methanomicrobia   0.0353026  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:13616:37027_1        family    order           Methanocellales    0.964697  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:13616:37027_1         genus    class           Methanomicrobia   0.0353026  placements
+HWI-ST1243:121:D1AF9ACXX:8:1112:13616:37027_1         genus    order           Methanocellales    0.964697  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:6842:81534_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:6842:81534_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:6842:81534_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:6842:81534_1         class    class            Thermoplasmata           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:6842:81534_1         order    order    Methanomassiliicocales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:6842:81534_1        family   family  Methanomassiliicoccaceae           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:6842:81534_1         genus    genus     Methanomassiliicoccus    0.533186  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1111:6842:81534_1         genus   family  Methanomassiliicoccaceae    0.466814  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9791:62598_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9791:62598_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9791:62598_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9791:62598_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9791:62598_1         order    order         Methanosarcinales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9791:62598_1        family    order         Methanosarcinales   0.0641854  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9791:62598_1        family   family          Methanosaetaceae    0.935815  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9791:62598_1         genus    order         Methanosarcinales   0.0641854  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1102:9791:62598_1         genus    genus              Methanosaeta    0.935815  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:3242:23347_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:3242:23347_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:3242:23347_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:3242:23347_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:3242:23347_1         order    class           Methanomicrobia    0.658052  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:3242:23347_1         order    order           Methanocellales    0.341948  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:3242:23347_1        family    class           Methanomicrobia    0.658052  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:3242:23347_1        family    order           Methanocellales   0.0148606  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:3242:23347_1        family   family         Methanocellalceae    0.327088  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:3242:23347_1         genus    class           Methanomicrobia    0.658052  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:3242:23347_1         genus    order           Methanocellales   0.0148606  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1109:3242:23347_1         genus    genus              Methanocella    0.327088  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:12711:13298_1          root     root                      Root           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:12711:13298_1       kingdom  kingdom                      mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:12711:13298_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:12711:13298_1         class    class           Methanomicrobia           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:12711:13298_1         order    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:12711:13298_1        family    order           Methanocellales           1  placements
+HWI-ST1243:121:D1AF9ACXX:8:1111:12711:13298_1         genus    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1112:1696:32704_1          root     root                      Root           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1112:1696:32704_1       kingdom  kingdom                      mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1112:1696:32704_1        phylum   phylum        Euryarchaeota_mcrA           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1112:1696:32704_1         class    class           Methanomicrobia           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1112:1696:32704_1         order    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1112:1696:32704_1        family    order           Methanocellales           1  placements
+ HWI-ST1243:121:D1AF9ACXX:8:1112:1696:32704_1         genus    order           Methanocellales           1  placements

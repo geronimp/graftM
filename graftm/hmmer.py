@@ -14,8 +14,9 @@ FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'
 
 class Hmmer:
 
-    def __init__(self, hmm):
-        self.hmm = hmm
+    def __init__(self, search_hmm, aln_hmm):
+        self.search_hmm = search_hmm
+        self.aln_hmm = aln_hmm
         self.hk = HouseKeeping()
 
     def hmmalign(self, input_path, run_stats, cmd_log, for_file, rev_file, for_sto_file, rev_sto_file, for_conv_file, rev_conv_file):
@@ -51,14 +52,14 @@ class Hmmer:
 
             # HMMalign and convert to fasta format
             cmd = 'hmmalign --trim -o %s %s %s 2>/dev/null; seqmagick convert %s %s' % (for_sto_file,
-                                                                                        self.hmm,
+                                                                                        self.aln_hmm,
                                                                                         for_file,
                                                                                         for_sto_file,
                                                                                         for_conv_file)
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(cmd, shell=True)
             cmd = 'hmmalign --trim -o %s %s %s 2>/dev/null; seqmagick convert %s %s' % (rev_sto_file,
-                                                                                        self.hmm,
+                                                                                        self.aln_hmm,
                                                                                         rev_file,
                                                                                         rev_sto_file,
                                                                                         rev_conv_file)
@@ -68,7 +69,7 @@ class Hmmer:
         # If there are only forward reads, just hmmalign and be done with it.
         else:
             cmd = 'hmmalign --trim -o %s %s %s ; seqmagick convert %s %s' % (for_sto_file,
-                                                                             self.hmm,
+                                                                             self.aln_hmm,
                                                                              input_path,
                                                                              for_sto_file,
                                                                              for_conv_file)
@@ -79,47 +80,72 @@ class Hmmer:
         ## Run a hmmsearch on the input_path raw reads, and return the name
         ## of the output table. Keep a log of the commands.
         # Define the base hmmsearch command.
-        hmmsearch_cmd = "hmmsearch --cpu %s %s -o /dev/null --domtblout %s %s " % (threads, eval, output_path, self.hmm)
+       
+        output_table_list = []
+        tee = ' | tee'
+        hmm_number = len(self.search_hmm)
+        if hmm_number > 1:
+            for idx, hmm in enumerate(self.search_hmm):
+                out = os.path.join(os.path.split(output_path)[0], os.path.basename(hmm).split('.')[0] +'_'+ os.path.split(output_path)[1])
+                output_table_list.append(out)
+                if idx + 1 == hmm_number:
+                    tee += " | hmmsearch %s --cpu %s --domtblout %s %s - >/dev/null " % (eval, threads, out, hmm)
+                elif idx + 1 < hmm_number:
+                    tee += " >(hmmsearch %s --cpu %s --domtblout %s %s - >/dev/null) " % (eval, threads, out, hmm)
+                else:
+                    raise Exception("Programming Error.") 
+        elif hmm_number == 1:
+            tee = ' | hmmsearch %s --cpu %s --domtblout %s %s - >/dev/null' % (eval, threads, output_path, self.search_hmm[0])
+            output_table_list.append(output_path)
+        
         # Choose an input to this base command based off the file format found.
-
         if seq_type == 'nucleotide': # If the input is nucleotide sequence
-            cmd = 'orfm %s | %s /dev/stdin' % (input_path, hmmsearch_cmd) # call orfs on it, and search it
+            cmd = 'orfm %s %s ' % (input_path, tee) # call orfs on it, and search it
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(["/bin/bash", "-c", cmd])
+        
         elif seq_type == 'protein': # If the input is amino acid sequence
             if input_file_format == FORMAT_FASTQ_GZ: # If its gzipped
-                cmd = "%s <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s)) 2>&1 > /dev/null " % (hmmsearch_cmd, input_path) # Unzip it and feed it into the base command
+                cmd = "awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s) %s" % (input_path, tee) # Unzip it and feed it into the base command
                 self.hk.add_cmd(cmd_log, cmd)
                 subprocess.check_call(["/bin/bash", "-c", cmd])
             elif input_file_format == FORMAT_FASTA: # If it is in fasta format
-                cmd = "%s %s" % (hmmsearch_cmd, input_path) # It can be searched directly, no manpulation required
+                cmd = "cat %s %s" % (input_path, tee) # It can be searched directly, no manpulation required
                 self.hk.add_cmd(cmd_log, cmd)
                 subprocess.check_call(["/bin/bash", "-c", cmd])
             else:
                 raise Exception('Programming Error: error guessing input file format')
         else:
             raise Exception('Programming Error: error guessing input sequence type')
-        return output_path
+        return output_table_list
 
     def nhmmer(self, output_path, input_path, input_file_format, threads, eval, cmd_log):
         ## Run a nhmmer search on input_path file and return the name of
         ## resultant output table. Keep log of command.
-        nhmmer_cmd = "nhmmer --cpu %s %s --tblout %s %s" % (threads, eval, output_path, self.hmm)
-
+        output_table_list = []
+        tee = ''
+        hmm_number = len(self.search_hmm)
+        for idx, hmm in enumerate(self.search_hmm):
+            out = os.path.join(os.path.split(output_path)[0], os.path.basename(hmm).split('.')[0] +'_'+ os.path.split(output_path)[1])
+            output_table_list.append(out)
+            if idx + 1 == hmm_number:
+                tee += " | nhmmer %s --cpu %s --tblout %s %s - >/dev/null " % (eval, threads, out, hmm)
+            elif idx + 1 < hmm_number:
+                tee += " >(nhmmer %s --cpu %s --tblout %s %s - >/dev/null) " % (eval, threads, out, hmm)
+            else:
+                raise Exception("Programming Error.")    
         if input_file_format == FORMAT_FASTA:
-            cmd = "%s %s 2>&1 > /dev/null" % (nhmmer_cmd, input_path)
+            cmd = "cat %s | tee %s" % (input_path, tee)
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(["/bin/bash", "-c", cmd])
 
         elif input_file_format == FORMAT_FASTQ_GZ:
-            cmd = "%s <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s)) 2>&1 > /dev/null" % (nhmmer_cmd, input_path)
+            cmd = "awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s) | tee %s " % (input_path, tee)
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(["/bin/bash", "-c", cmd])
-
         else:
             raise Exception(Messenger().message('ERROR: Suffix on %s not familiar. Please submit an .fq.gz or .fa file\n' % (input_path)))
-
-        return output_path
+        return output_table_list
 
     # Filter Search
     def filter_nhmmer(self, file_path, threads, hmm_hash, cmd_log):
@@ -148,32 +174,35 @@ class Hmmer:
 
     def hmmtable_reader(self, hmmtable):
         hash = {}
-        orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
-        program = [line.rstrip().split()[2] for line in open(hmmtable).readlines() if line.startswith('# Program:')][0]
-        for hit in [line.rstrip().split() for line in open(hmmtable).readlines() if not line.startswith('#')]:
-            regex_match = orfm_regex.match(hit[0])
-            if regex_match is not None:
-                read_name = regex_match.groups(0)[0]
-            if regex_match is None:
-                read_name = hit[0]
-                
-            if program == 'hmmsearch':
-                if float(hit[17]) - float(hit[18]) > 0:
-                    len = float(hit[17]) - float(hit[18])
-                elif float(hit[17]) - float(hit[18]) < 0:
-                    len = float(hit[18]) - float(hit[17])
-                hash[read_name] = {'len': len,
-                                   'bit': float(hit[7])}
-            elif program == 'nhmmer':
-                if float(hit[6]) - float(hit[7]) > 0:
-                    len = float(hit[6]) - float(hit[7])
-                elif float(hit[6]) - float(hit[7]) < 0:
-                    len = float(hit[7]) - float(hit[6])
-                hash[read_name] = {'len': len,
-                                   'bit': float(hit[13]),
-                                   'direction': hit[11]}
-            else:
-                raise Exception('Programming Error: hmmtable_reader')
+        seen = []
+        for table in hmmtable:
+            orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
+            program = [line.rstrip().split()[2] for line in open(table).readlines() if line.startswith('# Program:')][0]
+            for hit in [line.rstrip().split() for line in open(table).readlines() if not line.startswith('#')]:
+                if hit not in seen:
+                    regex_match = orfm_regex.match(hit[0])
+                    if regex_match is not None:
+                        read_name = regex_match.groups(0)[0]
+                    if regex_match is None:
+                        read_name = hit[0]
+                    if program == 'hmmsearch':
+                        if float(hit[17]) - float(hit[18]) > 0:
+                            len = float(hit[17]) - float(hit[18])
+                        elif float(hit[17]) - float(hit[18]) < 0:
+                            len = float(hit[18]) - float(hit[17])
+                        hash[read_name] = {'len': len,
+                                           'bit': float(hit[7])}
+                    elif program == 'nhmmer':
+                        if float(hit[6]) - float(hit[7]) > 0:
+                            len = float(hit[6]) - float(hit[7])
+                        elif float(hit[6]) - float(hit[7]) < 0:
+                            len = float(hit[7]) - float(hit[6])
+                        hash[read_name] = {'len': len,
+                                           'bit': float(hit[13]),
+                                           'direction': hit[11]}
+                    else:
+                        raise Exception('Programming Error: hmmtable_reader')
+                    seen.append(read_name)
         return hash
         
     def check_euk_contamination(self, output_path, euk_free_output_path, input_path, run_stats, input_file_format, check_total_euks, threads, evalue, raw_reads, base, cmd_log, euk_hmm):
@@ -203,7 +232,7 @@ class Hmmer:
             subprocess.check_call(cmd, shell = True)
         # check for evalues that are lower, after eliminating hits with an
         # alignment length of < 90% the length of the whole read.
-        euk_reads = self.hmmtable_reader(output_path)
+        euk_reads = self.hmmtable_reader([output_path])
         euk_crossover = [x for x in euk_reads.keys() if x in run_stats['reads'].keys()]
         reads_unique_to_eukaryotes = [x for x in euk_reads.keys() if x not in run_stats['reads'].keys()]
         
@@ -258,7 +287,9 @@ class Hmmer:
 
     def csv_to_titles(self, output_path, input_path, run_stats):
         ## process hmmsearch/nhmmer results into a list of titles to <base_filename>_readnames.txt
+
         run_stats['reads'] = self.hmmtable_reader(input_path)
+
         try:
             if [run_stats['reads'][x]['direction'] for x in run_stats['reads'].keys() if run_stats['reads'][x]['direction'] == '-']:
                 run_stats['rev_true'] = True
@@ -268,7 +299,7 @@ class Hmmer:
             run_stats['rev_true'] = False
     
         if len(run_stats['reads'].keys()) > 0:
-            Messenger().message('Found %s read(s) in %s' % (len(run_stats['reads'].keys()), os.path.basename(input_path).split('.')[0]))
+            Messenger().message('%s read(s) found' % (len(run_stats['reads'].keys())))
         else:
             Messenger().message('%s reads found, cannot continue with %s' % (len(run_stats['reads'].keys()), os.path.basename(input_path).split('.')[0]))
             return run_stats, False
@@ -341,27 +372,47 @@ class Hmmer:
                     output_file.write(fasta_id)
                 output_file.write(fasta_seq)
 
-    def extract_orfs(self, input_path, raw_orf_path, hmmsearch_out_path, orf_titles_path, orf_out_path, hmm, cmd_log):
+    def extract_orfs(self, input_path, raw_orf_path, hmmsearch_out_path, orf_titles_path, orf_out_path, cmd_log):
         ## Extract only the orfs that hit the hmm, return sequence file with
         ## within.
         
+        # Build the command
+        output_table_list = []
+        tee = ' | tee'
+        hmm_number = len(self.search_hmm)
+        if hmm_number > 1:
+            for idx, hmm in enumerate(self.search_hmm):
+                out = os.path.join(os.path.split(hmmsearch_out_path)[0], os.path.basename(hmm).split('.')[0] +'_'+ os.path.split(hmmsearch_out_path)[1])
+                output_table_list.append(out)
+                if idx + 1 == hmm_number:
+                    tee += " | hmmsearch --domtblout %s %s - >/dev/null " % (out, hmm)
+                elif idx + 1 < hmm_number:
+                    tee += " >(hmmsearch --domtblout %s %s - >/dev/null) " % (out, hmm)
+                else:
+                    raise Exception("Programming Error.") 
+        elif hmm_number == 1:
+            tee = ' | hmmsearch --domtblout %s %s - >/dev/null' % (hmmsearch_out_path, self.search_hmm[0])
+            output_table_list.append(hmmsearch_out_path)
         
         # Call orfs on the sequences
         cmd = 'orfm %s > %s' % (input_path, raw_orf_path)
         self.hk.add_cmd(cmd_log, cmd)
         subprocess.check_call(cmd, shell=True)
 
-        # Search for the correct reading fram
-        cmd = 'hmmsearch -o /dev/null --tblout %s %s %s' % (hmmsearch_out_path, hmm, raw_orf_path)
+        cmd = 'cat %s %s' % (raw_orf_path, tee)
         self.hk.add_cmd(cmd_log, cmd)
         subprocess.check_call(cmd, shell=True)
-
-        # Extract hit orf names
-        with open(orf_titles_path, 'w') as output:
-            for title in [x.split(' ')[0] for x in open(hmmsearch_out_path).readlines() if not x.startswith('#')]:
-                output.write(str(title) + '\n')
-
         
+        with open(orf_titles_path, 'w') as output:
+            seen = []
+            for table in output_table_list:
+                for title in [x.split(' ')[0] for x in open(table).readlines() if not x.startswith('#')]:
+                    if title not in seen:
+                        output.write(str(title) + '\n')
+                        seen.append(title)
+                    else:
+                        pass
+                    
         # Extract the reads using the titles.
         cmd = 'fxtract -H -X -f %s %s > %s' % (orf_titles_path, raw_orf_path, orf_out_path)
         self.hk.add_cmd(cmd_log, cmd)
@@ -401,7 +452,6 @@ class Hmmer:
                                          files.orf_hmmsearch_output_path(base),
                                          files.orf_titles_output_path(base),
                                          files.orf_fasta_output_path(base),
-                                         args.hmm_file,
                                          files.command_log_path())
         elif args.input_sequence_type == 'protein':
             hit_orfs = hit_reads

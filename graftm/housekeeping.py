@@ -19,18 +19,18 @@ class HouseKeeping:
     def __init__(self): pass
 
     def contents(self, path):
-        contents = os.path.join(path, 'CONTENTS.txt')
+        contents = os.path.join(path, 'CONTENTS.json')
         if os.path.isfile(contents):
-            return json.load(open(contents, 'w'))
+            return json.load(open(contents, 'r'))
         else:
             return None
         
     def guess_sequence_input_file_format(self, sequence_file_path):
         ## Given a sequence file, guess the format and return. Raise an 
         ## exception if it cannot be guessed
-        if sequence_file_path.endswith(('.fa', '.faa', '.fna')):  # Check the file type
+        if sequence_file_path.endswith(('.fa', '.faa', '.fna', '.fasta')):  # Check the file type
             return FORMAT_FASTA
-        elif sequence_file_path.endswith(('.fq.gz', '.fastq.gz')):
+        elif sequence_file_path.endswith(('.fq.gz', '.fastq.gz', 'fasta.gz', 'fa.gz', 'faa.gz', 'fna.gz')):
             return FORMAT_FASTQ_GZ
         else:
             raise Exception("Unable to guess file format of sequence file: %s" % sequence_file_path)
@@ -49,7 +49,7 @@ class HouseKeeping:
             cmd = "head -n2 <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s 2> /dev/null) 2> /dev/null ) > %s " % (input_file, filename)
             subprocess.check_call(["/bin/bash", "-c", cmd])
             input_file = filename
-
+        
         with open(input_file) as in_file:
             head = [next(in_file).rstrip() for x in xrange(2)]
             for nucl in set(head[1]):
@@ -166,7 +166,7 @@ class HouseKeeping:
             else:
                 uninstalled_programs.append(program)
         if uninstalled_programs:
-            Messenger().header("Following programs must be installed to run graftM\n")
+            Messenger().header("Following programs must be installed to run GraftM\n")
             for program in uninstalled_programs:
                 print '\t%s\t%s' % (program, prerequisites[program])
             exit(0)
@@ -184,11 +184,15 @@ class HouseKeeping:
                     setattr(args, 'reference_package', os.path.join(args.graftm_package, [x for x in os.listdir(args.graftm_package) if x.endswith('.refpkg')][0]))
             elif self.contents(args.graftm_package) is not None:
                 c = self.contents(args.graftm_package)
-                if hasattr(args, 'hmm_file'): # If a hmm is specified, overwrite the one graftM package
-                    setattr(args, 'reference_package', c['refpkg'])
+                if hasattr(args, 'search_hmm_file'): # If a hmm is specified, overwrite the one graftM package
+                    setattr(args, 'aln_hmm_file', os.path.join(args.graftm_package, c['aln_hmm']))
+                    setattr(args, 'reference_package', os.path.join(args.graftm_package, c['rfpkg']))
                 elif not hasattr(args, 'hmm_file'): 
-                    setattr(args, 'hmm_file', c['seach_hmm'])
-                    setattr(args, 'reference_package', c['refpkg'])
+                    setattr(args, 'search_hmm_file', [])
+                    for hmm in c['search_hmm']:
+                        args.search_hmm_file.append(os.path.join(args.graftm_package, hmm))
+                    setattr(args, 'aln_hmm_file', os.path.join(args.graftm_package, c['aln_hmm']))
+                    setattr(args, 'reference_package', os.path.join(args.graftm_package, c['rfpkg']))
         elif not hasattr(args, 'graftm_package'): # Or if no graftM package and hmm is specified
             if hasattr(args, 'hmm_file') and args.search_only: # and the placement step is skipped
                 pass # That's okay
@@ -200,7 +204,7 @@ class HouseKeeping:
         return
     
     def which(self, program):
-        '''from: BamM and http://stackoverflow.com/questions/377017/test-if-executable-exists-in-python'''
+        '''Credits to BamM and http://stackoverflow.com/questions/377017/test-if-executable-exists-in-python'''
         def is_exe(fpath):
             return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
         fpath, fname = os.path.split(program)

@@ -29,7 +29,7 @@ class Run:
         self.e = Extract()
         if args.subparser_name == 'graft':
             self.hk.set_attributes(self.args)
-            self.h = Hmmer(self.args.hmm_file)
+            self.h = Hmmer(self.args.search_hmm_file, self.args.aln_hmm_file)
             self.sequence_pair_list, self.input_file_format = self.hk.parameter_checks(args)
             self.p = Pplacer(self.args.reference_package)
 
@@ -45,8 +45,7 @@ class Run:
         else:
             raise Exception('Programming Error: Assigning run_stats hash')
         # Tell user what is being searched with what
-        Messenger().message('Searching %s using %s' % (os.path.basename(sequence_file),
-                                                       os.path.basename(self.args.hmm_file)))
+        Messenger().message('Searching %s' % (os.path.basename(sequence_file)))
         # Search for reads using hmmsearch
         hit_reads, run_stats = self.h.p_search(self.gmf,
                                                self.args,
@@ -89,8 +88,7 @@ class Run:
             raise Exception('Programming Error: Assigning run_stats hash')
 
         # Search for reads using nhmmer
-        Messenger().message('Searching %s using %s' % (os.path.basename(sequence_file),
-                                                       os.path.basename(self.args.hmm_file)))
+        Messenger().message('Searching %s' % os.path.basename(sequence_file))
         hit_reads, run_stats = self.h.d_search(self.gmf,
                                                self.args,
                                                run_stats,
@@ -152,7 +150,7 @@ class Run:
 
             # Generate coverage table
             Messenger().message('Building coverage table for %s' % base)
-            self.s.coverage_of_hmm(self.args.hmm_file,
+            self.s.coverage_of_hmm(self.args.aln_hmm_file,
                                      self.gmf.summary_table_output_path(base),
                                      self.gmf.coverage_table_path(base),
                                      summary_dict[base]['read_length'])
@@ -256,7 +254,7 @@ class Run:
                 summary_table[base] = {}
 
             # Set pipeline and evalue by checking HMM format
-            hmm_type, hmm_tc = self.hk.setpipe(self.args.hmm_file)
+            hmm_type, hmm_tc = self.hk.setpipe(self.args.aln_hmm_file)
             setattr(self.args, 'type', hmm_type)
             if hmm_tc:
                 setattr(self.args, 'eval', hmm_type)

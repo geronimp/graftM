@@ -1,0 +1,53 @@
+{
+    "files": {
+        "phylo_model": "phylo_modelvdG_ac.json", 
+        "taxonomy": "mcrA_methanocren_taxonomy.csv", 
+        "tree": "treezKtsyD.tre", 
+        "aln_fasta": "mcrs_all.aln.hmm.aln.better_named.faa", 
+        "seq_info": "mcrA_methanocren_seq.csv", 
+        "tree_stats": "fasttree.log"
+    }, 
+    "rollback": {
+        "files": {
+            "phylo_model": "phylo_modelvdG_ac.json", 
+            "taxonomy": "mcrA_methanocren_taxonomy.csv", 
+            "tree": "mcrs_all.aln.hmm.aln.better_named.faa.tre", 
+            "aln_fasta": "mcrs_all.aln.hmm.aln.better_named.faa", 
+            "seq_info": "mcrA_methanocren_seq.csv", 
+            "tree_stats": "fasttree.log"
+        }, 
+        "rollback": null, 
+        "metadata": {
+            "create_date": "2014-10-03 14:21:10", 
+            "format_version": "1.1", 
+            "locus": "mcrA_methanocren"
+        }, 
+        "md5": {
+            "phylo_model": "92ceec29934ce4ceb65a42f271737e02", 
+            "taxonomy": "72439b7a8d9908c0bec803fece3ce010", 
+            "tree": "02c46358a155994bbc278e9829b6f2d6", 
+            "aln_fasta": "73a15e0f97ea57b3f0514bd71bf5bfaf", 
+            "seq_info": "bdcec01caa3ce92701216c034434e8cc", 
+            "tree_stats": "ca944c6d426eba46d64781e85ddf5b4a"
+        }
+    }, 
+    "log": [
+        "Rerooted", 
+        "Stripped refpkg (removed 0 files)", 
+        "Loaded initial files into empty refpkg"
+    ], 
+    "metadata": {
+        "create_date": "2014-10-03 14:21:10", 
+        "format_version": "1.1", 
+        "locus": "mcrA_methanocren"
+    }, 
+    "rollforward": null, 
+    "md5": {
+        "phylo_model": "92ceec29934ce4ceb65a42f271737e02", 
+        "taxonomy": "72439b7a8d9908c0bec803fece3ce010", 
+        "tree": "9f7bf339d13f7ab63d8c51bca929b720", 
+        "aln_fasta": "73a15e0f97ea57b3f0514bd71bf5bfaf", 
+        "seq_info": "bdcec01caa3ce92701216c034434e8cc", 
+        "tree_stats": "ca944c6d426eba46d64781e85ddf5b4a"
+    }
+}

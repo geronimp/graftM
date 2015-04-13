@@ -1,0 +1,9 @@
+orfm sample_mcrA.1.fa | hmmsearch --cpu 5 -E 1e-5 -o /dev/null --domtblout test_single_forward_read_run_McrA/sample_mcrA/sample_mcrA.hmmout.csv ../data/mcrA.gpkg/mcrA.hmm  /dev/stdin
+fxtract -H -X -f test_single_forward_read_run_McrA/sample_mcrA/sample_mcrA_readnames.txt  sample_mcrA.1.fa > test_single_forward_read_run_McrA/sample_mcrA/sample_mcrA_hits.fa
+orfm test_single_forward_read_run_McrA/sample_mcrA/sample_mcrA_hits.fa > test_single_forward_read_run_McrA/sample_mcrA/sample_mcrA_orf
+hmmsearch -o /dev/null --tblout test_single_forward_read_run_McrA/sample_mcrA/sample_mcrA_orf.hmmout.csv ../data/mcrA.gpkg/mcrA.hmm test_single_forward_read_run_McrA/sample_mcrA/sample_mcrA_orf
+fxtract -H -X -f test_single_forward_read_run_McrA/sample_mcrA/sample_mcrA_orf.titles test_single_forward_read_run_McrA/sample_mcrA/sample_mcrA_orf > test_single_forward_read_run_McrA/sample_mcrA/sample_mcrA_orf.fa
+hmmalign --trim -o test_single_forward_read_run_McrA/sample_mcrA/sample_mcrA.for.sto ../data/mcrA.gpkg/mcrA.hmm test_single_forward_read_run_McrA/sample_mcrA/sample_mcrA_orf.fa ; seqmagick convert test_single_forward_read_run_McrA/sample_mcrA/sample_mcrA.for.sto test_single_forward_read_run_McrA/sample_mcrA/sample_mcrA_conv_for.faa
+pplacer -j 5 --verbosity 0 --out-dir test_single_forward_read_run_McrA -c ../data/mcrA.gpkg/mcrA.refpkg test_single_forward_read_run_McrA/combined_alignment.aln.fa
+guppy classify -c ../data/mcrA.gpkg/mcrA.refpkg test_single_forward_read_run_McrA/sample_mcrA/placements.jplace > test_single_forward_read_run_McrA/placements.guppy
+ktImportText -o test_single_forward_read_run_McrA/krona.html /tmp/CommunityMkronatkIEyS,sample_mcrA 1>/dev/null 

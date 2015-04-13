@@ -203,6 +203,8 @@ class Compare:
                 r_read = read
             comparison_hash[read] = {} # make an entry for each read
             comparison_hash['trusted_placements'][read] = [] # Set up a taxonomy entry in trusted placements
+            import IPython
+            IPython.embed()
             if len(forward_gup[f_read]['placement']) == len(reverse_gup[r_read]['placement']): # If the level of placement matches
                 comparison_hash[read]['rank_length_match'] = True # Store True
             elif len(forward_gup[f_read]['placement']) != len(reverse_gup[r_read]['placement']):

@@ -1,0 +1,11 @@
+#ID     20110816_S1D    ConsensusLineage
+0	0.232	Root;
+1	0.29	Root;
+2	0.116	Root;
+3	0.232	Root;
+4	0.058	Root;
+5	0.116	Root;
+6	1.742	Root;
+7	0.058	Root;
+8	0.029	Root;
+9	0.029	Root;

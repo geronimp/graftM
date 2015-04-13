@@ -203,15 +203,14 @@ class Compare:
                 r_read = read
             comparison_hash[read] = {} # make an entry for each read
             comparison_hash['trusted_placements'][read] = [] # Set up a taxonomy entry in trusted placements
-            import IPython
-            IPython.embed()
+            
             if len(forward_gup[f_read]['placement']) == len(reverse_gup[r_read]['placement']): # If the level of placement matches
                 comparison_hash[read]['rank_length_match'] = True # Store True
             elif len(forward_gup[f_read]['placement']) != len(reverse_gup[r_read]['placement']):
                 comparison_hash[read]['rank_length_match'] = False # Otherwise store False
             else:
                 raise Exception('Programming Error: Comparison of placement resolution')
-            for idx, (f_rank, r_rank) in enumerate(zip(forward_gup[f_read]['placement'], reverse_gup[r_read]['placement'])): # For the each rank in the read placement
+            for idx, (f_rank, r_rank) in enumerate(zip(forward_gup[f_read]['placement'], reverse_gup[r_read]['placement'])): # For the each rank in the read placement                    
                 if f_rank == r_rank: # If the classification at this rank matches
                     comparison_hash[read]['all_ranks_match'] = True # Maintain the all ranks match are true
                     if comparison_hash[read]['rank_length_match']: # If both reads are to the same resolution
@@ -235,14 +234,16 @@ class Compare:
                     reverse_confidence = reverse_gup[r_read]['confidence'][idx]
                     if float(forward_confidence) > float(reverse_confidence): # If the forward read has more confidence
                         comparison_hash['trusted_placements'][read] += forward_gup[f_read]['placement'][idx:] # Store the taxonomy of that read from that point on
+                        break
                     elif float(reverse_confidence) > float(forward_confidence): # Do the opposite if reverse read has more confidence
                         comparison_hash['trusted_placements'][read] += reverse_gup[r_read]['placement'][idx:]
+                        break
                     elif float(reverse_confidence) == float(forward_confidence): # If they are of the same value
                         break # Do nothing, because a decision cannot be made if the confidence is equal.
                     else:
                         raise Exception('Programming Error: Comparing confidence values')
                 else:
-                    raise Exception('Programming Error: Comparison of placement resolution')
-        hash['comparison_hash'] = comparison_hash       
+                    raise Exception('Programming Error: Comparison of placement resolution')               
+        hash['comparison_hash'] = comparison_hash
         return hash # Return the hash
 

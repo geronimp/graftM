@@ -125,15 +125,19 @@ class Hmmer:
         output_table_list = []
         tee = ''
         hmm_number = len(self.search_hmm)
-        for idx, hmm in enumerate(self.search_hmm):
-            out = os.path.join(os.path.split(output_path)[0], os.path.basename(hmm).split('.')[0] +'_'+ os.path.split(output_path)[1])
-            output_table_list.append(out)
-            if idx + 1 == hmm_number:
-                tee += " | nhmmer %s --cpu %s --tblout %s %s - >/dev/null " % (eval, threads, out, hmm)
-            elif idx + 1 < hmm_number:
-                tee += " >(nhmmer %s --cpu %s --tblout %s %s - >/dev/null) " % (eval, threads, out, hmm)
-            else:
-                raise Exception("Programming Error.")    
+        if hmm_number > 1:
+            for idx, hmm in enumerate(self.search_hmm):
+                out = os.path.join(os.path.split(output_path)[0], os.path.basename(hmm).split('.')[0] +'_'+ os.path.split(output_path)[1])
+                output_table_list.append(out)
+                if idx + 1 == hmm_number:
+                    tee += " | nhmmer %s --cpu %s --tblout %s %s - >/dev/null " % (eval, threads, out, hmm)
+                elif idx + 1 < hmm_number:
+                    tee += " >(nhmmer %s --cpu %s --tblout %s %s - >/dev/null) " % (eval, threads, out, hmm)
+                else:
+                    raise Exception("Programming Error.")    
+        elif hmm_number == 1:
+            tee = ' | nhmmer %s --cpu %s --tblout %s %s - >/dev/null' % (eval, threads, output_path, self.search_hmm[0])
+            output_table_list.append(output_path) 
         if input_file_format == FORMAT_FASTA:
             cmd = "cat %s | tee %s" % (input_path, tee)
             self.hk.add_cmd(cmd_log, cmd)

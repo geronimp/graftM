@@ -177,11 +177,7 @@ class HouseKeeping:
         
         if hasattr(args, 'graftm_package'):
             if self.contents(args.graftm_package) is None:
-                if hasattr(args, 'hmm_file'): # If a hmm is specified, overwrite the one graftM package
-                    setattr(args, 'reference_package', os.path.join(args.graftm_package, [x for x in os.listdir(args.graftm_package) if x.endswith('.refpkg')][0]))
-                elif not hasattr(args, 'hmm_file'): 
-                    setattr(args, 'hmm_file', os.path.join(args.graftm_package, [x for x in os.listdir(args.graftm_package) if x.endswith('.hmm')][0]))
-                    setattr(args, 'reference_package', os.path.join(args.graftm_package, [x for x in os.listdir(args.graftm_package) if x.endswith('.refpkg')][0]))
+                raise Exception('Misformatted GraftM package')
             elif self.contents(args.graftm_package) is not None:
                 c = self.contents(args.graftm_package)
                 if hasattr(args, 'search_hmm_file'): # If a hmm is specified, overwrite the one graftM package

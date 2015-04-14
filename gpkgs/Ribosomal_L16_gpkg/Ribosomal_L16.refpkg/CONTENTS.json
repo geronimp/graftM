@@ -1,0 +1,29 @@
+{
+    "files": {
+        "phylo_model": "phylo_modelP55NCH.json", 
+        "taxonomy": "tax_info.csv", 
+        "tree": "rerooted2.tree", 
+        "aln_fasta": "aligned.fasta", 
+        "seq_info": "seq_info.csv", 
+        "tree_stats": "rerooted.log"
+    }, 
+    "rollback": null, 
+    "log": [
+        "Stripped refpkg (removed 0 files)", 
+        "Loaded initial files into empty refpkg"
+    ], 
+    "metadata": {
+        "create_date": "2015-04-13 12:34:40", 
+        "format_version": "1.1", 
+        "locus": "Ribosomal_L16"
+    }, 
+    "rollforward": null, 
+    "md5": {
+        "phylo_model": "8343375eb19c3b511f321a45ea308639", 
+        "taxonomy": "390c7ed5cadd73fefa5d22261d28c71d", 
+        "tree": "d29fb6b95e98353dcadc2ba57479bf4a", 
+        "aln_fasta": "55bed0b512e5a9bc0684f64fa4c764fe", 
+        "seq_info": "6b75ab603601d2e52a410a7c7976e665", 
+        "tree_stats": "5da6303b49343e13c5cabd0b1ddb7aa2"
+    }
+}

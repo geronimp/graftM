@@ -201,9 +201,12 @@ class Compare:
             else:
                 f_read = read
                 r_read = read
+            # Check read was placed
+            if forward_gup.get(f_read) is None or reverse_gup.get(r_read) is None:
+                Messenger().message('Warning: %s was not inserted into tree' % str(f_read))
+                continue # Skip read for now
             comparison_hash[read] = {} # make an entry for each read
             comparison_hash['trusted_placements'][read] = [] # Set up a taxonomy entry in trusted placements
-            
             if len(forward_gup[f_read]['placement']) == len(reverse_gup[r_read]['placement']): # If the level of placement matches
                 comparison_hash[read]['rank_length_match'] = True # Store True
             elif len(forward_gup[f_read]['placement']) != len(reverse_gup[r_read]['placement']):

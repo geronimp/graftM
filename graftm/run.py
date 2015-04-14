@@ -257,7 +257,7 @@ class Run:
             hmm_type, hmm_tc = self.hk.setpipe(self.args.aln_hmm_file)
             setattr(self.args, 'type', hmm_type)
             if hmm_tc:
-                setattr(self.args, 'eval', hmm_type)
+                setattr(self.args, 'eval', '--cut_tc')
                 
             # Guess the sequence file type, if not already specified to GraftM
             if not hasattr(self.args, 'input_sequence_type'):

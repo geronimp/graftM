@@ -1,0 +1,29 @@
+{
+    "files": {
+        "phylo_model": "phylo_modelsVAxnt.json", 
+        "taxonomy": "tax_info.csv", 
+        "tree": "rerooted2.tree", 
+        "aln_fasta": "aligned.fasta", 
+        "seq_info": "seq_info.csv", 
+        "tree_stats": "rerooted.log"
+    }, 
+    "rollback": null, 
+    "log": [
+        "Stripped refpkg (removed 0 files)", 
+        "Loaded initial files into empty refpkg"
+    ], 
+    "metadata": {
+        "create_date": "2015-04-13 14:52:50", 
+        "format_version": "1.1", 
+        "locus": "Ribosomal_L4-L1e"
+    }, 
+    "rollforward": null, 
+    "md5": {
+        "phylo_model": "d6b6aea387c46db3d51dcd64deb27267", 
+        "taxonomy": "390c7ed5cadd73fefa5d22261d28c71d", 
+        "tree": "d3e08f5b26f492dbab2a4814a879c4c5", 
+        "aln_fasta": "214df16b419fa585710b1dbbb71cd994", 
+        "seq_info": "8d6df883e899b12fa7106d7d9594318c", 
+        "tree_stats": "8ac9607211172f6d2cfcf252e8bf1fe0"
+    }
+}

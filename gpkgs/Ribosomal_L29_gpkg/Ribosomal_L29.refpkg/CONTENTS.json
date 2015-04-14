@@ -1,0 +1,29 @@
+{
+    "files": {
+        "phylo_model": "phylo_model16cWZw.json", 
+        "taxonomy": "tax_info.csv", 
+        "tree": "rerooted2.tree", 
+        "aln_fasta": "aligned.fasta", 
+        "seq_info": "seq_info.csv", 
+        "tree_stats": "rerooted.log"
+    }, 
+    "rollback": null, 
+    "log": [
+        "Stripped refpkg (removed 0 files)", 
+        "Loaded initial files into empty refpkg"
+    ], 
+    "metadata": {
+        "create_date": "2015-04-13 13:57:37", 
+        "format_version": "1.1", 
+        "locus": "Ribosomal_L29"
+    }, 
+    "rollforward": null, 
+    "md5": {
+        "phylo_model": "58255670f802e482ad501cecab12e41a", 
+        "taxonomy": "390c7ed5cadd73fefa5d22261d28c71d", 
+        "tree": "399bbb9ad77f9cecb7b046a87abe2cbe", 
+        "aln_fasta": "b90b03a3dd382bc579b3bf1925e58820", 
+        "seq_info": "eaf88fc0b49521e758b47fc4c5c4e9ef", 
+        "tree_stats": "31b5d18afc0a3f8f9ec5f2415ec4e859"
+    }
+}

@@ -1,0 +1,29 @@
+{
+    "files": {
+        "phylo_model": "phylo_model5F6joN.json", 
+        "taxonomy": "tax_info.csv", 
+        "tree": "rerooted2.tree", 
+        "aln_fasta": "aligned.fasta", 
+        "seq_info": "seq_info.csv", 
+        "tree_stats": "rerooted.log"
+    }, 
+    "rollback": null, 
+    "log": [
+        "Stripped refpkg (removed 0 files)", 
+        "Loaded initial files into empty refpkg"
+    ], 
+    "metadata": {
+        "create_date": "2015-04-15 02:26:52", 
+        "format_version": "1.1", 
+        "locus": "RNase_HII"
+    }, 
+    "rollforward": null, 
+    "md5": {
+        "phylo_model": "2ce287bfc933d3d82933ab7fedb09455", 
+        "taxonomy": "24c9bdf2736217b882d5169603dbcec7", 
+        "tree": "c0c847fdcd65d5dc6d9f8c4ece60caf6", 
+        "aln_fasta": "78672352a39f0c014932cf7376cffd9c", 
+        "seq_info": "4c9fb0ddaa2bedff3fc1eb3df52b5505", 
+        "tree_stats": "583c1d65e1f9f81ec8663abcb102e81e"
+    }
+}

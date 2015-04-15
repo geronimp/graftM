@@ -1,0 +1,53 @@
+{
+    "files": {
+        "phylo_model": "phylo_modelxiNi46.json", 
+        "taxonomy": "mer_taxonomy2.csv", 
+        "tree": "treerQrL2D.tre", 
+        "aln_fasta": "mer.faa.fasta", 
+        "seq_info": "mer_seq.csv", 
+        "tree_stats": "mer.faa.fasta.tre.log"
+    }, 
+    "rollback": {
+        "files": {
+            "phylo_model": "phylo_modelxiNi46.json", 
+            "taxonomy": "mer_taxonomy2.csv", 
+            "tree": "mer.faa.fasta.tre", 
+            "aln_fasta": "mer.faa.fasta", 
+            "seq_info": "mer_seq.csv", 
+            "tree_stats": "mer.faa.fasta.tre.log"
+        }, 
+        "rollback": null, 
+        "metadata": {
+            "create_date": "2014-04-27 12:04:44", 
+            "format_version": "1.1", 
+            "locus": "mer1"
+        }, 
+        "md5": {
+            "phylo_model": "0372364b83b7af188982153f3cea5b12", 
+            "taxonomy": "9d669b220447303419326a3db79780e3", 
+            "tree": "b655e1e8d26e24b87c3b59139d3438f7", 
+            "aln_fasta": "66bd38311c79e0715db6456c2b4c211a", 
+            "seq_info": "1ccf492b5aeb16dd158aea65fd675656", 
+            "tree_stats": "6bb6c129695b89661540a344433fcb15"
+        }
+    }, 
+    "log": [
+        "Rerooted", 
+        "Stripped refpkg (removed 0 files)", 
+        "Loaded initial files into empty refpkg"
+    ], 
+    "metadata": {
+        "create_date": "2014-04-27 12:04:44", 
+        "format_version": "1.1", 
+        "locus": "mer1"
+    }, 
+    "rollforward": null, 
+    "md5": {
+        "phylo_model": "0372364b83b7af188982153f3cea5b12", 
+        "taxonomy": "9d669b220447303419326a3db79780e3", 
+        "tree": "703939a9d6835ef7a00856ee6eea8db8", 
+        "aln_fasta": "66bd38311c79e0715db6456c2b4c211a", 
+        "seq_info": "1ccf492b5aeb16dd158aea65fd675656", 
+        "tree_stats": "6bb6c129695b89661540a344433fcb15"
+    }
+}

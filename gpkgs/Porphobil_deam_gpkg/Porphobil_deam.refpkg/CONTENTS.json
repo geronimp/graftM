@@ -1,0 +1,29 @@
+{
+    "files": {
+        "phylo_model": "phylo_modelory74u.json", 
+        "taxonomy": "tax_info.csv", 
+        "tree": "rerooted2.tree", 
+        "aln_fasta": "aligned.fasta", 
+        "seq_info": "seq_info.csv", 
+        "tree_stats": "rerooted.log"
+    }, 
+    "rollback": null, 
+    "log": [
+        "Stripped refpkg (removed 0 files)", 
+        "Loaded initial files into empty refpkg"
+    ], 
+    "metadata": {
+        "create_date": "2015-04-14 12:53:46", 
+        "format_version": "1.1", 
+        "locus": "Porphobil_deam"
+    }, 
+    "rollforward": null, 
+    "md5": {
+        "phylo_model": "7df410a119da11cdc5f27992b5e8b91e", 
+        "taxonomy": "24c9bdf2736217b882d5169603dbcec7", 
+        "tree": "d2485d1747f95f1deae3d9bad6e28d88", 
+        "aln_fasta": "8283c442df5d37dd9aed942eaf5ed455", 
+        "seq_info": "7d8f446cb6beddca9af5072f45dfeef0", 
+        "tree_stats": "0963314c531dd2fccb336bd2a70176c5"
+    }
+}

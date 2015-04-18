@@ -17,10 +17,15 @@ __maintainer__ = "Joel Boyd, Ben Woodcroft"
 __email__ = "joel.boyd near uq.net.au, b.woodcroft near uq.edu.au"
 __status__ = "Development"
 
-import graftm
 import argparse
 import sys
+import os
 
+try:
+    from graftm.run import Run
+except ImportError:
+    sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),'..'))
+import graftm
 from graftm.run import Run
 
 def phelp():
@@ -113,9 +118,7 @@ if __name__ == '__main__':
 
     if(len(sys.argv) == 1 or sys.argv[1] == '-h' or sys.argv[1] == '--help'):
         phelp()
-        exit(0)
     else:
         args = parser.parse_args()
+        Run(args).main()
 
-    Run(args).main()
-    exit(0)

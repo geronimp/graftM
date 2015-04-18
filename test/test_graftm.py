@@ -25,7 +25,6 @@ import unittest
 import subprocess
 import os.path
 import tempdir
-import IPython
 
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')

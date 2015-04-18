@@ -5,7 +5,6 @@ import subprocess
 import json
 
 from graftm.messenger import Messenger
-from test.test_MimeWriter import OUTPUT
 
 # Constants - don't change them evar.
 FORMAT_FASTA = 'FORMAT_FASTA'

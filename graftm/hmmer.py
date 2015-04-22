@@ -14,7 +14,7 @@ FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'
 
 class Hmmer:
 
-    def __init__(self, search_hmm, aln_hmm):
+    def __init__(self, search_hmm, aln_hmm=None):
         self.search_hmm = search_hmm
         self.aln_hmm = aln_hmm
         self.hk = HouseKeeping()
@@ -150,31 +150,6 @@ class Hmmer:
         else:
             raise Exception(Messenger().message('ERROR: Suffix on %s not familiar. Please submit an .fq.gz or .fa file\n' % (input_path)))
         return output_table_list
-
-    # Filter Search
-    def filter_nhmmer(self, file_path, threads, hmm_hash, cmd_log):
-        suffix = [for_out_path, rev_out_path]
-        table_title_list = []
-        for seq_file in sequence_file_list:
-            hmmout_table_title = suffix.pop(0)
-            table_title_list.append(hmmout_table_title)
-            nhmmer_cmd = "nhmmer --cpu %s %s --tblout %s %s" % (threads, eval, hmmout_table_title, self.hmm)
-
-            if input_file_format == FORMAT_FASTA:
-                cmd = "%s %s 2>&1 > /dev/null" % (nhmmer_cmd, seq_file)
-                self.hk.add_cmd(cmd_log, cmd)
-                subprocess.check_call(["/bin/bash", "-c", cmd])
-
-            elif input_file_format == FORMAT_FASTQ_GZ:
-                cmd = "%s <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s)) 2>&1 > /dev/null" % (nhmmer_cmd, seq_file)
-                self.hk.add_cmd(cmd_log, cmd)
-                subprocess.check_call(["/bin/bash", "-c", cmd])
-
-            else:
-                Messenger().message('ERROR: Suffix on %s not familiar. Please submit an .fq.gz or .fa file\n' % (seq_file))
-                exit(1)
-
-        return table_title_list
 
     def hmmtable_reader(self, hmmtable):
         hash = {}
@@ -405,7 +380,7 @@ class Hmmer:
 
         cmd = 'cat %s %s' % (raw_orf_path, tee)
         self.hk.add_cmd(cmd_log, cmd)
-        subprocess.check_call(cmd, shell=True)
+        subprocess.check_call(['bash','-c',cmd])
         
         with open(orf_titles_path, 'w') as output:
             seen = []

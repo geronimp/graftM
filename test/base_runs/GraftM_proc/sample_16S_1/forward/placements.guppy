@@ -1,36 +1,4 @@
                                          name  desired_rank     rank                          tax_id  likelihood      origin
- HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0          root     root                            Root           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0       kingdom  kingdom                     k__Bacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0        phylum   phylum               p__Proteobacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0         class    class                         c__TA18    0.251111  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0         class    class          c__Alphaproteobacteria    0.748889  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0         order    order                  o__Rhizobiales    0.748889  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0         order    class                         c__TA18    0.251111  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0        family   family                 f__Rhizobiaceae    0.706029  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0        family   family            f__Hyphomicrobiaceae   0.0428601  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0        family    class                         c__TA18    0.251111  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0         genus    genus                g__Agrobacterium    0.521125  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0         genus   family                 f__Rhizobiaceae    0.184903  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0         genus   family            f__Hyphomicrobiaceae   0.0428601  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0         genus    class                         c__TA18    0.251111  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0       species    genus                g__Agrobacterium    0.521125  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0       species   family                 f__Rhizobiaceae    0.184903  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0       species   family            f__Hyphomicrobiaceae   0.0428601  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0       species    class                         c__TA18    0.251111  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0          root     root                            Root           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0       kingdom  kingdom                     k__Bacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0        phylum   phylum               p__Actinobacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0         class    class               c__Actinobacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0         order    order              o__Actinomycetales           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0        family    order              o__Actinomycetales    0.319962  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0        family   family                 f__Nocardiaceae   0.0531274  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0        family   family           f__Corynebacteriaceae    0.626911  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0         genus    order              o__Actinomycetales    0.319962  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0         genus    genus              g__Corynebacterium    0.626911  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0         genus   family                 f__Nocardiaceae   0.0531274  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0       species    order              o__Actinomycetales    0.319962  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0       species    genus              g__Corynebacterium    0.626911  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0       species   family                 f__Nocardiaceae   0.0531274  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:17068:42952_0          root     root                            Root           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:17068:42952_0       kingdom  kingdom                     k__Bacteria           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:17068:42952_0        phylum   phylum               p__Proteobacteria    0.365252  placements
@@ -58,6 +26,24 @@ HWI-ST1243:156:D1K83ACXX:2:1101:17068:42952_0       species    order            
 HWI-ST1243:156:D1K83ACXX:2:1101:17068:42952_0       species    genus                g__Agrobacterium    0.148802  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:17068:42952_0       species    class          c__Alphaproteobacteria     0.21645  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:17068:42952_0       species    class                       c__4C0d-2     0.22502  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0          root     root                            Root           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0       kingdom  kingdom                     k__Bacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0        phylum   phylum               p__Proteobacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0         class    class                         c__TA18    0.251111  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0         class    class          c__Alphaproteobacteria    0.748889  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0         order    order                  o__Rhizobiales    0.748889  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0         order    class                         c__TA18    0.251111  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0        family   family                 f__Rhizobiaceae    0.706029  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0        family   family            f__Hyphomicrobiaceae   0.0428601  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0        family    class                         c__TA18    0.251111  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0         genus    genus                g__Agrobacterium    0.521125  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0         genus   family                 f__Rhizobiaceae    0.184903  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0         genus   family            f__Hyphomicrobiaceae   0.0428601  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0         genus    class                         c__TA18    0.251111  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0       species    genus                g__Agrobacterium    0.521125  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0       species   family                 f__Rhizobiaceae    0.184903  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0       species   family            f__Hyphomicrobiaceae   0.0428601  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:2911:94420_0       species    class                         c__TA18    0.251111  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:15188:80853_0          root     root                            Root           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:15188:80853_0       kingdom  kingdom                     k__Bacteria           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:15188:80853_0        phylum   phylum              p__Armatimonadetes   0.0673413  placements
@@ -72,6 +58,20 @@ HWI-ST1243:156:D1K83ACXX:2:1101:15188:80853_0         genus   phylum            
 HWI-ST1243:156:D1K83ACXX:2:1101:15188:80853_0         genus    order             o__Acidimicrobiales    0.932659  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:15188:80853_0       species   phylum              p__Armatimonadetes   0.0673413  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:15188:80853_0       species    order             o__Acidimicrobiales    0.932659  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0          root     root                            Root           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0       kingdom  kingdom                     k__Bacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0        phylum   phylum               p__Actinobacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0         class    class               c__Actinobacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0         order    order              o__Actinomycetales           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0        family    order              o__Actinomycetales    0.319962  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0        family   family                 f__Nocardiaceae   0.0531274  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0        family   family           f__Corynebacteriaceae    0.626911  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0         genus    order              o__Actinomycetales    0.319962  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0         genus    genus              g__Corynebacterium    0.626911  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0         genus   family                 f__Nocardiaceae   0.0531274  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0       species    order              o__Actinomycetales    0.319962  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0       species    genus              g__Corynebacterium    0.626911  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:13871:19947_0       species   family                 f__Nocardiaceae   0.0531274  placements
  HWI-ST1243:156:D1K83ACXX:2:1102:5337:22211_0          root     root                            Root           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1102:5337:22211_0       kingdom  kingdom                     k__Bacteria           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1102:5337:22211_0        phylum   phylum                        p__WPS-2           1  placements
@@ -102,6 +102,28 @@ HWI-ST1243:156:D1K83ACXX:2:1101:14656:10765_0       species    order            
 HWI-ST1243:156:D1K83ACXX:2:1101:14656:10765_0       species    order              o__Caulobacterales   0.0744266  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:14656:10765_0       species   family            f__Rhodospirillaceae     0.10766  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:14656:10765_0       species   family                  f__Gaiellaceae      0.5525  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0          root     root                            Root           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0       kingdom  kingdom                     k__Bacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0        phylum   phylum                 p__Spirochaetes           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0         class   phylum                 p__Spirochaetes    0.758579  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0         class    class               c__[Brachyspirae]    0.087396  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0         class    class                         c__GN05    0.154025  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0         order   phylum                 p__Spirochaetes    0.758579  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0         order    order             o__[Brachyspirales]    0.087396  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0         order    order                    o__SBYZ_6080    0.115515  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0         order    class                         c__GN05   0.0385102  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0        family   phylum                 p__Spirochaetes    0.758579  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0        family    order             o__[Brachyspirales]    0.087396  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0        family    order                    o__SBYZ_6080    0.115515  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0        family    class                         c__GN05   0.0385102  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0         genus   phylum                 p__Spirochaetes    0.758579  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0         genus    order             o__[Brachyspirales]    0.087396  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0         genus    order                    o__SBYZ_6080    0.115515  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0         genus    class                         c__GN05   0.0385102  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0       species   phylum                 p__Spirochaetes    0.758579  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0       species    order             o__[Brachyspirales]    0.087396  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0       species    order                    o__SBYZ_6080    0.115515  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0       species    class                         c__GN05   0.0385102  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:10448:52573_0          root     root                            Root           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:10448:52573_0       kingdom  kingdom                     k__Bacteria           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:10448:52573_0        phylum   phylum                        p__WPS-2           1  placements
@@ -126,28 +148,19 @@ HWI-ST1243:156:D1K83ACXX:2:1101:15346:96060_0         genus   family            
 HWI-ST1243:156:D1K83ACXX:2:1101:15346:96060_0       species   phylum                p__Acidobacteria   0.0716584  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:15346:96060_0       species    order             o__Acidobacteriales     0.51188  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:15346:96060_0       species   family              f__Koribacteraceae    0.416462  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0          root     root                            Root           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0       kingdom  kingdom                     k__Bacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0        phylum   phylum                 p__Spirochaetes           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0         class   phylum                 p__Spirochaetes    0.758579  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0         class    class               c__[Brachyspirae]    0.087396  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0         class    class                         c__GN05    0.154025  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0         order   phylum                 p__Spirochaetes    0.758579  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0         order    order             o__[Brachyspirales]    0.087396  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0         order    order                    o__SBYZ_6080    0.115515  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0         order    class                         c__GN05   0.0385102  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0        family   phylum                 p__Spirochaetes    0.758579  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0        family    order             o__[Brachyspirales]    0.087396  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0        family    order                    o__SBYZ_6080    0.115515  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0        family    class                         c__GN05   0.0385102  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0         genus   phylum                 p__Spirochaetes    0.758579  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0         genus    order             o__[Brachyspirales]    0.087396  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0         genus    order                    o__SBYZ_6080    0.115515  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0         genus    class                         c__GN05   0.0385102  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0       species   phylum                 p__Spirochaetes    0.758579  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0       species    order             o__[Brachyspirales]    0.087396  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0       species    order                    o__SBYZ_6080    0.115515  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6112:82871_0       species    class                         c__GN05   0.0385102  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0          root     root                            Root           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0       kingdom  kingdom                     k__Bacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0        phylum   phylum              p__Armatimonadetes           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0         class   phylum              p__Armatimonadetes     0.91609  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0         class    class             c__Chthonomonadetes   0.0839104  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0         order   phylum              p__Armatimonadetes     0.91609  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0         order    order             o__Chthonomonadales   0.0839104  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0        family   phylum              p__Armatimonadetes     0.91609  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0        family    order             o__Chthonomonadales   0.0839104  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0         genus   phylum              p__Armatimonadetes     0.91609  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0         genus    order             o__Chthonomonadales   0.0839104  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0       species   phylum              p__Armatimonadetes     0.91609  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0       species    order             o__Chthonomonadales   0.0839104  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:4635:30085_0          root     root                            Root           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:4635:30085_0       kingdom  kingdom                     k__Bacteria           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:4635:30085_0        phylum   phylum               p__Planctomycetes   0.0382792  placements
@@ -181,19 +194,6 @@ HWI-ST1243:156:D1K83ACXX:2:1101:15346:96060_0       species   family            
  HWI-ST1243:156:D1K83ACXX:2:1101:4635:30085_0       species   family              f__Koribacteraceae   0.0522259  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:4635:30085_0       species    class         c__[Chloracidobacteria]   0.0384117  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:4635:30085_0       species    class                        c__OM190   0.0382792  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0          root     root                            Root           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0       kingdom  kingdom                     k__Bacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0        phylum   phylum              p__Armatimonadetes           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0         class   phylum              p__Armatimonadetes     0.91609  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0         class    class             c__Chthonomonadetes   0.0839104  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0         order   phylum              p__Armatimonadetes     0.91609  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0         order    order             o__Chthonomonadales   0.0839104  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0        family   phylum              p__Armatimonadetes     0.91609  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0        family    order             o__Chthonomonadales   0.0839104  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0         genus   phylum              p__Armatimonadetes     0.91609  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0         genus    order             o__Chthonomonadales   0.0839104  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0       species   phylum              p__Armatimonadetes     0.91609  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9639:56502_0       species    order             o__Chthonomonadales   0.0839104  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:5225:21156_0          root     root                            Root           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:5225:21156_0       kingdom  kingdom                     k__Bacteria           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:5225:21156_0        phylum   phylum               p__Proteobacteria           1  placements
@@ -217,19 +217,6 @@ HWI-ST1243:156:D1K83ACXX:2:1101:16998:50744_0         genus   phylum            
 HWI-ST1243:156:D1K83ACXX:2:1101:16998:50744_0         genus   family                        f__OPB35    0.945797  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:16998:50744_0       species   phylum              p__Verrucomicrobia   0.0542032  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:16998:50744_0       species   family                        f__OPB35    0.945797  placements
-  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0          root     root                            Root           1  placements
-  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0       kingdom  kingdom                     k__Bacteria           1  placements
-  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0        phylum   phylum              p__Verrucomicrobia           1  placements
-  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0         class   phylum              p__Verrucomicrobia    0.441613  placements
-  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0         class    class             c__[Spartobacteria]    0.558387  placements
-  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0         order   phylum              p__Verrucomicrobia    0.441613  placements
-  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0         order    order         o__[Chthoniobacterales]    0.558387  placements
-  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0        family   phylum              p__Verrucomicrobia    0.441613  placements
-  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0        family   family        f__[Chthoniobacteraceae]    0.558387  placements
-  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0         genus   phylum              p__Verrucomicrobia    0.441613  placements
-  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0         genus   family        f__[Chthoniobacteraceae]    0.558387  placements
-  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0       species   phylum              p__Verrucomicrobia    0.441613  placements
-  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0       species   family        f__[Chthoniobacteraceae]    0.558387  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:12942:58196_0          root     root                            Root           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:12942:58196_0       kingdom  kingdom                     k__Bacteria           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:12942:58196_0        phylum   phylum                p__Acidobacteria           1  placements
@@ -246,6 +233,19 @@ HWI-ST1243:156:D1K83ACXX:2:1101:12942:58196_0         genus   family            
 HWI-ST1243:156:D1K83ACXX:2:1101:12942:58196_0       species   phylum                p__Acidobacteria   0.0239492  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:12942:58196_0       species    order             o__Acidobacteriales    0.221871  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:12942:58196_0       species   family              f__Koribacteraceae    0.754179  placements
+  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0          root     root                            Root           1  placements
+  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0       kingdom  kingdom                     k__Bacteria           1  placements
+  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0        phylum   phylum              p__Verrucomicrobia           1  placements
+  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0         class   phylum              p__Verrucomicrobia    0.441613  placements
+  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0         class    class             c__[Spartobacteria]    0.558387  placements
+  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0         order   phylum              p__Verrucomicrobia    0.441613  placements
+  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0         order    order         o__[Chthoniobacterales]    0.558387  placements
+  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0        family   phylum              p__Verrucomicrobia    0.441613  placements
+  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0        family   family        f__[Chthoniobacteraceae]    0.558387  placements
+  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0         genus   phylum              p__Verrucomicrobia    0.441613  placements
+  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0         genus   family        f__[Chthoniobacteraceae]    0.558387  placements
+  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0       species   phylum              p__Verrucomicrobia    0.441613  placements
+  HWI-ST1243:156:D1K83ACXX:2:1101:9873:5424_0       species   family        f__[Chthoniobacteraceae]    0.558387  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:18848:12165_0          root     root                            Root           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:18848:12165_0       kingdom  kingdom                     k__Bacteria           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:18848:12165_0        phylum   phylum               p__Proteobacteria    0.649495  placements
@@ -278,14 +278,6 @@ HWI-ST1243:156:D1K83ACXX:2:1101:18654:89251_0         order    order            
 HWI-ST1243:156:D1K83ACXX:2:1101:18654:89251_0        family    order                o__Aeromonadales           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:18654:89251_0         genus    order                o__Aeromonadales           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:18654:89251_0       species    order                o__Aeromonadales           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:17133:90074_0          root     root                            Root           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:17133:90074_0       kingdom  kingdom                     k__Bacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:17133:90074_0        phylum   phylum               p__Proteobacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:17133:90074_0         class    class           c__Betaproteobacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:17133:90074_0         order    order              o__Burkholderiales           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:17133:90074_0        family   family               f__Comamonadaceae           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:17133:90074_0         genus   family               f__Comamonadaceae           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:17133:90074_0       species   family               f__Comamonadaceae           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:7533:51465_0          root     root                            Root           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:7533:51465_0       kingdom  kingdom                     k__Bacteria           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:7533:51465_0        phylum   phylum               p__Proteobacteria           1  placements
@@ -314,6 +306,14 @@ HWI-ST1243:156:D1K83ACXX:2:1101:11578:57838_0         order    order            
 HWI-ST1243:156:D1K83ACXX:2:1101:11578:57838_0        family   family               f__Alcaligenaceae           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:11578:57838_0         genus   family               f__Alcaligenaceae           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:11578:57838_0       species   family               f__Alcaligenaceae           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:17133:90074_0          root     root                            Root           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:17133:90074_0       kingdom  kingdom                     k__Bacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:17133:90074_0        phylum   phylum               p__Proteobacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:17133:90074_0         class    class           c__Betaproteobacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:17133:90074_0         order    order              o__Burkholderiales           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:17133:90074_0        family   family               f__Comamonadaceae           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:17133:90074_0         genus   family               f__Comamonadaceae           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:17133:90074_0       species   family               f__Comamonadaceae           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:11081:38106_0          root     root                            Root           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:11081:38106_0       kingdom  kingdom                     k__Bacteria           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:11081:38106_0        phylum   phylum               p__Planctomycetes           1  placements
@@ -399,14 +399,6 @@ HWI-ST1243:156:D1K83ACXX:2:1101:14383:56249_0       species   family            
  HWI-ST1243:156:D1K83ACXX:2:1101:8007:35063_0        family    order             o__Rhodospirillales           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:8007:35063_0         genus    order             o__Rhodospirillales           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:8007:35063_0       species    order             o__Rhodospirillales           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:20174:52965_0          root     root                            Root           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:20174:52965_0       kingdom  kingdom                     k__Bacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:20174:52965_0        phylum   phylum                p__Acidobacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:20174:52965_0         class    class                 c__Solibacteres           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:20174:52965_0         order    order               o__Solibacterales           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:20174:52965_0        family    order               o__Solibacterales           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:20174:52965_0         genus    order               o__Solibacterales           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:20174:52965_0       species    order               o__Solibacterales           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:4093:93428_0          root     root                            Root           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:4093:93428_0       kingdom  kingdom                     k__Bacteria           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:4093:93428_0        phylum   phylum               p__Proteobacteria           1  placements
@@ -427,6 +419,22 @@ HWI-ST1243:156:D1K83ACXX:2:1101:20174:52965_0       species    order            
  HWI-ST1243:156:D1K83ACXX:2:1101:4093:93428_0       species   family               f__Rickettsiaceae    0.028869  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:4093:93428_0       species   family            f__Rhodospirillaceae     0.71931  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:4093:93428_0       species    class          c__Alphaproteobacteria   0.0331048  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:20174:52965_0          root     root                            Root           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:20174:52965_0       kingdom  kingdom                     k__Bacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:20174:52965_0        phylum   phylum                p__Acidobacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:20174:52965_0         class    class                 c__Solibacteres           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:20174:52965_0         order    order               o__Solibacterales           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:20174:52965_0        family    order               o__Solibacterales           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:20174:52965_0         genus    order               o__Solibacterales           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:20174:52965_0       species    order               o__Solibacterales           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:21303:42225_0          root     root                            Root           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:21303:42225_0       kingdom  kingdom                     k__Bacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:21303:42225_0        phylum   phylum                p__Acidobacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:21303:42225_0         class    class               c__Acidobacteriia           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:21303:42225_0         order    order             o__Acidobacteriales           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:21303:42225_0        family    order             o__Acidobacteriales           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:21303:42225_0         genus    order             o__Acidobacteriales           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:21303:42225_0       species    order             o__Acidobacteriales           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:5252:17632_0          root     root                            Root           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:5252:17632_0       kingdom  kingdom                     k__Bacteria           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:5252:17632_0        phylum   phylum              p__Verrucomicrobia           1  placements
@@ -440,14 +448,6 @@ HWI-ST1243:156:D1K83ACXX:2:1101:20174:52965_0       species    order            
  HWI-ST1243:156:D1K83ACXX:2:1101:5252:17632_0         genus   family          f__Verrucomicrobiaceae    0.978781  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:5252:17632_0       species   phylum              p__Verrucomicrobia   0.0212193  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:5252:17632_0       species   family          f__Verrucomicrobiaceae    0.978781  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:21303:42225_0          root     root                            Root           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:21303:42225_0       kingdom  kingdom                     k__Bacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:21303:42225_0        phylum   phylum                p__Acidobacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:21303:42225_0         class    class               c__Acidobacteriia           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:21303:42225_0         order    order             o__Acidobacteriales           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:21303:42225_0        family    order             o__Acidobacteriales           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:21303:42225_0         genus    order             o__Acidobacteriales           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:21303:42225_0       species    order             o__Acidobacteriales           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:20584:98626_0          root     root                            Root           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:20584:98626_0       kingdom  kingdom                     k__Bacteria           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:20584:98626_0        phylum   phylum                        p__WPS-2    0.893933  placements
@@ -531,6 +531,18 @@ HWI-ST1243:156:D1K83ACXX:2:1101:11088:39370_0         genus    class          c_
 HWI-ST1243:156:D1K83ACXX:2:1101:11088:39370_0       species    order                 o__Myxococcales   0.0748568  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:11088:39370_0       species   family  f__[Thermodesulfovibrionaceae]    0.854586  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:11088:39370_0       species    class          c__Deltaproteobacteria   0.0705573  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0          root     root                            Root           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0       kingdom  kingdom                     k__Bacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0        phylum   phylum                p__Fibrobacteres           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0         class    class                c__Fibrobacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0         order    order              o__Fibrobacterales    0.151956  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0         order    class                c__Fibrobacteria    0.848044  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0        family    order              o__Fibrobacterales    0.151956  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0        family    class                c__Fibrobacteria    0.848044  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0         genus    order              o__Fibrobacterales    0.151956  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0         genus    class                c__Fibrobacteria    0.848044  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0       species    order              o__Fibrobacterales    0.151956  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0       species    class                c__Fibrobacteria    0.848044  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:12301:30849_0          root     root                            Root           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:12301:30849_0       kingdom  kingdom                     k__Bacteria           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:12301:30849_0        phylum   phylum               p__Proteobacteria           1  placements
@@ -559,51 +571,6 @@ HWI-ST1243:156:D1K83ACXX:2:1101:12301:30849_0       species   family            
  HWI-ST1243:156:D1K83ACXX:2:1101:3037:25248_0         genus   family              f__Koribacteraceae    0.151833  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:3037:25248_0       species    order             o__Acidobacteriales    0.848167  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:3037:25248_0       species   family              f__Koribacteraceae    0.151833  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0          root     root                            Root           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0       kingdom  kingdom                     k__Bacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0        phylum   phylum                p__Fibrobacteres           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0         class    class                c__Fibrobacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0         order    order              o__Fibrobacterales    0.151956  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0         order    class                c__Fibrobacteria    0.848044  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0        family    order              o__Fibrobacterales    0.151956  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0        family    class                c__Fibrobacteria    0.848044  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0         genus    order              o__Fibrobacterales    0.151956  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0         genus    class                c__Fibrobacteria    0.848044  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0       species    order              o__Fibrobacterales    0.151956  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:9571:11278_0       species    class                c__Fibrobacteria    0.848044  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:7965:64964_0          root     root                            Root           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:7965:64964_0       kingdom  kingdom                     k__Bacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:7965:64964_0        phylum   phylum               p__Proteobacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:7965:64964_0         class    class          c__Gammaproteobacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:7965:64964_0         order    order              o__Xanthomonadales           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:7965:64964_0        family   family              f__Sinobacteraceae           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:7965:64964_0         genus   family              f__Sinobacteraceae           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:7965:64964_0       species   family              f__Sinobacteraceae           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0          root     root                            Root           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0       kingdom  kingdom                     k__Bacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0        phylum   phylum              p__Verrucomicrobia    0.653321  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0        phylum   phylum                p__Cyanobacteria    0.114802  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0        phylum  kingdom                     k__Bacteria    0.231877  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         class   phylum              p__Verrucomicrobia    0.477039  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         class  kingdom                     k__Bacteria    0.231877  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         class    class          c__[Methylacidiphilae]    0.176282  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         class    class                    c__ML635J-21    0.114802  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         order   phylum              p__Verrucomicrobia    0.477039  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         order  kingdom                     k__Bacteria    0.231877  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         order    class          c__[Methylacidiphilae]    0.176282  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         order    class                    c__ML635J-21    0.114802  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0        family   phylum              p__Verrucomicrobia    0.477039  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0        family  kingdom                     k__Bacteria    0.231877  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0        family    class          c__[Methylacidiphilae]    0.176282  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0        family    class                    c__ML635J-21    0.114802  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         genus   phylum              p__Verrucomicrobia    0.477039  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         genus  kingdom                     k__Bacteria    0.231877  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         genus    class          c__[Methylacidiphilae]    0.176282  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         genus    class                    c__ML635J-21    0.114802  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0       species   phylum              p__Verrucomicrobia    0.477039  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0       species  kingdom                     k__Bacteria    0.231877  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0       species    class          c__[Methylacidiphilae]    0.176282  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0       species    class                    c__ML635J-21    0.114802  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:2348:57636_0          root     root                            Root           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:2348:57636_0       kingdom  kingdom                     k__Bacteria           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:2348:57636_0        phylum   phylum              p__Verrucomicrobia           1  placements
@@ -636,6 +603,39 @@ HWI-ST1243:156:D1K83ACXX:2:1101:12301:30849_0       species   family            
  HWI-ST1243:156:D1K83ACXX:2:1101:2348:57636_0       species   family          f__Verrucomicrobiaceae   0.0395499  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:2348:57636_0       species   family                        f__OPB35   0.0377614  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:2348:57636_0       species    class          c__[Methylacidiphilae]    0.613855  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0          root     root                            Root           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0       kingdom  kingdom                     k__Bacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0        phylum   phylum              p__Verrucomicrobia    0.653321  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0        phylum   phylum                p__Cyanobacteria    0.114802  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0        phylum  kingdom                     k__Bacteria    0.231877  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         class   phylum              p__Verrucomicrobia    0.477039  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         class  kingdom                     k__Bacteria    0.231877  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         class    class          c__[Methylacidiphilae]    0.176282  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         class    class                    c__ML635J-21    0.114802  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         order   phylum              p__Verrucomicrobia    0.477039  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         order  kingdom                     k__Bacteria    0.231877  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         order    class          c__[Methylacidiphilae]    0.176282  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         order    class                    c__ML635J-21    0.114802  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0        family   phylum              p__Verrucomicrobia    0.477039  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0        family  kingdom                     k__Bacteria    0.231877  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0        family    class          c__[Methylacidiphilae]    0.176282  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0        family    class                    c__ML635J-21    0.114802  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         genus   phylum              p__Verrucomicrobia    0.477039  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         genus  kingdom                     k__Bacteria    0.231877  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         genus    class          c__[Methylacidiphilae]    0.176282  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0         genus    class                    c__ML635J-21    0.114802  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0       species   phylum              p__Verrucomicrobia    0.477039  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0       species  kingdom                     k__Bacteria    0.231877  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0       species    class          c__[Methylacidiphilae]    0.176282  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:3162:31108_0       species    class                    c__ML635J-21    0.114802  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:7965:64964_0          root     root                            Root           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:7965:64964_0       kingdom  kingdom                     k__Bacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:7965:64964_0        phylum   phylum               p__Proteobacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:7965:64964_0         class    class          c__Gammaproteobacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:7965:64964_0         order    order              o__Xanthomonadales           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:7965:64964_0        family   family              f__Sinobacteraceae           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:7965:64964_0         genus   family              f__Sinobacteraceae           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:7965:64964_0       species   family              f__Sinobacteraceae           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:17966:85913_0          root     root                            Root           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:17966:85913_0       kingdom  kingdom                     k__Bacteria           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:17966:85913_0        phylum   phylum               p__Proteobacteria           1  placements
@@ -673,14 +673,6 @@ HWI-ST1243:156:D1K83ACXX:2:1101:17979:30883_0         order    order            
 HWI-ST1243:156:D1K83ACXX:2:1101:17979:30883_0        family    order                         o__DH61           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:17979:30883_0         genus    order                         o__DH61           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:17979:30883_0       species    order                         o__DH61           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:7500:17615_0          root     root                            Root           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:7500:17615_0       kingdom  kingdom                     k__Bacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:7500:17615_0        phylum   phylum                        p__WPS-2           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:7500:17615_0         class   phylum                        p__WPS-2           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:7500:17615_0         order   phylum                        p__WPS-2           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:7500:17615_0        family   phylum                        p__WPS-2           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:7500:17615_0         genus   phylum                        p__WPS-2           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:7500:17615_0       species   phylum                        p__WPS-2           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:4318:55142_0          root     root                            Root           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:4318:55142_0       kingdom  kingdom                     k__Bacteria           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:4318:55142_0        phylum   phylum               p__Proteobacteria           1  placements
@@ -696,6 +688,14 @@ HWI-ST1243:156:D1K83ACXX:2:1101:17979:30883_0       species    order            
  HWI-ST1243:156:D1K83ACXX:2:1101:4318:55142_0       species    order              o__Methylophilales  0.00486102  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:4318:55142_0       species   family             f__Oxalobacteraceae    0.446468  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:4318:55142_0       species   family             f__Methylophilaceae    0.548671  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:7500:17615_0          root     root                            Root           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:7500:17615_0       kingdom  kingdom                     k__Bacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:7500:17615_0        phylum   phylum                        p__WPS-2           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:7500:17615_0         class   phylum                        p__WPS-2           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:7500:17615_0         order   phylum                        p__WPS-2           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:7500:17615_0        family   phylum                        p__WPS-2           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:7500:17615_0         genus   phylum                        p__WPS-2           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:7500:17615_0       species   phylum                        p__WPS-2           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:20087:68494_0          root     root                            Root           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:20087:68494_0       kingdom  kingdom                     k__Bacteria           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:20087:68494_0        phylum   phylum                p__Bacteroidetes           1  placements
@@ -710,18 +710,6 @@ HWI-ST1243:156:D1K83ACXX:2:1101:20087:68494_0         genus   family            
 HWI-ST1243:156:D1K83ACXX:2:1101:20087:68494_0       species    order                o__Bacteroidales    0.536177  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:20087:68494_0       species   family                f__Rikenellaceae    0.379242  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:20087:68494_0       species   family              f__Marinilabiaceae   0.0845806  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0          root     root                            Root           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0       kingdom  kingdom                     k__Bacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0        phylum   phylum               p__Proteobacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0         class    class          c__Gammaproteobacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0         order    order                o__Legionellales    0.914731  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0         order    class          c__Gammaproteobacteria   0.0852688  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0        family   family                 f__Coxiellaceae    0.914731  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0        family    class          c__Gammaproteobacteria   0.0852688  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0         genus   family                 f__Coxiellaceae    0.914731  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0         genus    class          c__Gammaproteobacteria   0.0852688  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0       species   family                 f__Coxiellaceae    0.914731  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0       species    class          c__Gammaproteobacteria   0.0852688  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:18658:30520_0          root     root                            Root           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:18658:30520_0       kingdom  kingdom                     k__Bacteria           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:18658:30520_0        phylum   phylum               p__Proteobacteria           1  placements
@@ -750,6 +738,48 @@ HWI-ST1243:156:D1K83ACXX:2:1101:13399:20531_0         genus    order            
 HWI-ST1243:156:D1K83ACXX:2:1101:13399:20531_0         genus    order             o__Acidimicrobiales    0.961804  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:13399:20531_0       species    order                      o__Sva0725   0.0381957  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:13399:20531_0       species    order             o__Acidimicrobiales    0.961804  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0          root     root                            Root           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0       kingdom  kingdom                     k__Bacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0        phylum   phylum               p__Proteobacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0         class    class          c__Gammaproteobacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0         order    order                o__Legionellales    0.914731  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0         order    class          c__Gammaproteobacteria   0.0852688  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0        family   family                 f__Coxiellaceae    0.914731  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0        family    class          c__Gammaproteobacteria   0.0852688  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0         genus   family                 f__Coxiellaceae    0.914731  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0         genus    class          c__Gammaproteobacteria   0.0852688  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0       species   family                 f__Coxiellaceae    0.914731  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:13550:9093_0       species    class          c__Gammaproteobacteria   0.0852688  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0          root     root                            Root           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0       kingdom  kingdom                     k__Bacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0        phylum   phylum                          p__FBP    0.563977  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0        phylum   phylum              p__Armatimonadetes    0.122836  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0        phylum   phylum               p__Actinobacteria    0.313188  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         class   phylum                          p__FBP    0.563977  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         class   phylum               p__Actinobacteria    0.130965  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         class    class             c__[Fimbriimonadia]    0.122836  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         class    class               c__Actinobacteria    0.140748  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         class    class               c__Acidimicrobiia   0.0414748  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         order   phylum                          p__FBP    0.563977  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         order   phylum               p__Actinobacteria    0.130965  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         order    order           o__[Fimbriimonadales]    0.122836  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         order    order             o__Acidimicrobiales   0.0414748  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         order    class               c__Actinobacteria    0.140748  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0        family   phylum                          p__FBP    0.563977  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0        family   phylum               p__Actinobacteria    0.130965  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0        family    order           o__[Fimbriimonadales]    0.122836  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0        family    order             o__Acidimicrobiales   0.0414748  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0        family    class               c__Actinobacteria    0.140748  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         genus   phylum                          p__FBP    0.563977  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         genus   phylum               p__Actinobacteria    0.130965  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         genus    order           o__[Fimbriimonadales]    0.122836  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         genus    order             o__Acidimicrobiales   0.0414748  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         genus    class               c__Actinobacteria    0.140748  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0       species   phylum                          p__FBP    0.563977  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0       species   phylum               p__Actinobacteria    0.130965  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0       species    order           o__[Fimbriimonadales]    0.122836  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0       species    order             o__Acidimicrobiales   0.0414748  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0       species    class               c__Actinobacteria    0.140748  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:6414:21605_0          root     root                            Root           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:6414:21605_0       kingdom  kingdom                     k__Bacteria           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:6414:21605_0        phylum   phylum               p__Proteobacteria           1  placements
@@ -801,66 +831,6 @@ HWI-ST1243:156:D1K83ACXX:2:1101:13399:20531_0       species    order            
  HWI-ST1243:156:D1K83ACXX:2:1101:10049:7882_0       species  kingdom                     k__Bacteria    0.480472  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:10049:7882_0       species   family                  f__Gaiellaceae    0.167547  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:10049:7882_0       species    class                    c__ML635J-21    0.324121  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0          root     root                            Root           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0       kingdom  kingdom                     k__Bacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0        phylum   phylum                          p__FBP    0.563977  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0        phylum   phylum              p__Armatimonadetes    0.122836  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0        phylum   phylum               p__Actinobacteria    0.313188  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         class   phylum                          p__FBP    0.563977  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         class   phylum               p__Actinobacteria    0.130965  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         class    class             c__[Fimbriimonadia]    0.122836  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         class    class               c__Actinobacteria    0.140748  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         class    class               c__Acidimicrobiia   0.0414748  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         order   phylum                          p__FBP    0.563977  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         order   phylum               p__Actinobacteria    0.130965  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         order    order           o__[Fimbriimonadales]    0.122836  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         order    order             o__Acidimicrobiales   0.0414748  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         order    class               c__Actinobacteria    0.140748  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0        family   phylum                          p__FBP    0.563977  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0        family   phylum               p__Actinobacteria    0.130965  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0        family    order           o__[Fimbriimonadales]    0.122836  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0        family    order             o__Acidimicrobiales   0.0414748  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0        family    class               c__Actinobacteria    0.140748  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         genus   phylum                          p__FBP    0.563977  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         genus   phylum               p__Actinobacteria    0.130965  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         genus    order           o__[Fimbriimonadales]    0.122836  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         genus    order             o__Acidimicrobiales   0.0414748  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0         genus    class               c__Actinobacteria    0.140748  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0       species   phylum                          p__FBP    0.563977  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0       species   phylum               p__Actinobacteria    0.130965  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0       species    order           o__[Fimbriimonadales]    0.122836  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0       species    order             o__Acidimicrobiales   0.0414748  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:10655:17597_0       species    class               c__Actinobacteria    0.140748  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:19571:77661_0          root     root                            Root           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:19571:77661_0       kingdom  kingdom                     k__Bacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:19571:77661_0        phylum   phylum                        p__WPS-2           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:19571:77661_0         class   phylum                        p__WPS-2           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:19571:77661_0         order   phylum                        p__WPS-2           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:19571:77661_0        family   phylum                        p__WPS-2           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:19571:77661_0         genus   phylum                        p__WPS-2           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:19571:77661_0       species   phylum                        p__WPS-2           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0          root     root                            Root           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0       kingdom  kingdom                     k__Bacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0        phylum   phylum               p__Proteobacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0         class    class          c__Alphaproteobacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0         order    order             o__Rhodospirillales    0.674181  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0         order    order              o__Rhodobacterales    0.130171  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0         order    class          c__Alphaproteobacteria    0.195648  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0        family    order             o__Rhodospirillales    0.191321  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0        family   family            f__Rhodospirillaceae    0.482859  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0        family   family             f__Rhodobacteraceae   0.0948589  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0        family   family              f__Hyphomonadaceae   0.0353124  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0        family    class          c__Alphaproteobacteria    0.195648  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0         genus    order             o__Rhodospirillales    0.191321  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0         genus   family            f__Rhodospirillaceae    0.482859  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0         genus   family             f__Rhodobacteraceae   0.0948589  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0         genus   family              f__Hyphomonadaceae   0.0353124  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0         genus    class          c__Alphaproteobacteria    0.195648  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0       species    order             o__Rhodospirillales    0.191321  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0       species   family            f__Rhodospirillaceae    0.482859  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0       species   family             f__Rhodobacteraceae   0.0948589  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0       species   family              f__Hyphomonadaceae   0.0353124  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0       species    class          c__Alphaproteobacteria    0.195648  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:10005:7537_0          root     root                            Root           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:10005:7537_0       kingdom  kingdom                     k__Bacteria           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:10005:7537_0        phylum   phylum              p__Verrucomicrobia    0.917682  placements
@@ -885,6 +855,14 @@ HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0       species    class          c_
  HWI-ST1243:156:D1K83ACXX:2:1101:10005:7537_0       species   family        f__[Chthoniobacteraceae]    0.360599  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:10005:7537_0       species    class          c__[Methylacidiphilae]   0.0937258  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:10005:7537_0       species    class                    c__ML635J-21   0.0823177  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:19571:77661_0          root     root                            Root           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:19571:77661_0       kingdom  kingdom                     k__Bacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:19571:77661_0        phylum   phylum                        p__WPS-2           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:19571:77661_0         class   phylum                        p__WPS-2           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:19571:77661_0         order   phylum                        p__WPS-2           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:19571:77661_0        family   phylum                        p__WPS-2           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:19571:77661_0         genus   phylum                        p__WPS-2           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:19571:77661_0       species   phylum                        p__WPS-2           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1102:15168:18346_0          root     root                            Root           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1102:15168:18346_0       kingdom  kingdom                     k__Bacteria           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1102:15168:18346_0        phylum   phylum               p__Proteobacteria    0.547666  placements
@@ -904,20 +882,40 @@ HWI-ST1243:156:D1K83ACXX:2:1102:15168:18346_0         genus   family            
 HWI-ST1243:156:D1K83ACXX:2:1102:15168:18346_0       species  kingdom                     k__Bacteria    0.452334  placements
 HWI-ST1243:156:D1K83ACXX:2:1102:15168:18346_0       species   family            f__Rhodospirillaceae    0.204727  placements
 HWI-ST1243:156:D1K83ACXX:2:1102:15168:18346_0       species   family                f__Moraxellaceae    0.342939  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0          root     root                            Root           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0       kingdom  kingdom                     k__Bacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0        phylum   phylum                          p__ZB3    0.895952  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0        phylum   phylum                          p__WS2    0.104048  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0         class   phylum                          p__ZB3    0.895952  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0         class   phylum                          p__WS2    0.104048  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0         order   phylum                          p__ZB3    0.895952  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0         order   phylum                          p__WS2    0.104048  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0        family   phylum                          p__ZB3    0.895952  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0        family   phylum                          p__WS2    0.104048  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0         genus   phylum                          p__ZB3    0.895952  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0         genus   phylum                          p__WS2    0.104048  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0       species   phylum                          p__ZB3    0.895952  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0       species   phylum                          p__WS2    0.104048  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0          root     root                            Root           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0       kingdom  kingdom                     k__Bacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0        phylum   phylum               p__Proteobacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0         class    class          c__Alphaproteobacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0         order    order             o__Rhodospirillales    0.674181  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0         order    order              o__Rhodobacterales    0.130171  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0         order    class          c__Alphaproteobacteria    0.195648  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0        family    order             o__Rhodospirillales    0.191321  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0        family   family            f__Rhodospirillaceae    0.482859  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0        family   family             f__Rhodobacteraceae   0.0948589  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0        family   family              f__Hyphomonadaceae   0.0353124  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0        family    class          c__Alphaproteobacteria    0.195648  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0         genus    order             o__Rhodospirillales    0.191321  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0         genus   family            f__Rhodospirillaceae    0.482859  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0         genus   family             f__Rhodobacteraceae   0.0948589  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0         genus   family              f__Hyphomonadaceae   0.0353124  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0         genus    class          c__Alphaproteobacteria    0.195648  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0       species    order             o__Rhodospirillales    0.191321  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0       species   family            f__Rhodospirillaceae    0.482859  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0       species   family             f__Rhodobacteraceae   0.0948589  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0       species   family              f__Hyphomonadaceae   0.0353124  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:13670:13525_0       species    class          c__Alphaproteobacteria    0.195648  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0          root     root                            Root           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0       kingdom  kingdom                     k__Bacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0        phylum   phylum               p__Proteobacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0         class    class           c__Betaproteobacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0         order    order                 o__Neisseriales    0.948055  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0         order    class           c__Betaproteobacteria   0.0519451  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0        family   family                f__Neisseriaceae    0.948055  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0        family    class           c__Betaproteobacteria   0.0519451  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0         genus   family                f__Neisseriaceae    0.948055  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0         genus    class           c__Betaproteobacteria   0.0519451  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0       species   family                f__Neisseriaceae    0.948055  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0       species    class           c__Betaproteobacteria   0.0519451  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:2598:86550_0          root     root                            Root           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:2598:86550_0       kingdom  kingdom                     k__Bacteria           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:2598:86550_0        phylum   phylum               p__Proteobacteria           1  placements
@@ -934,18 +932,20 @@ HWI-ST1243:156:D1K83ACXX:2:1102:15168:18346_0       species   family            
  HWI-ST1243:156:D1K83ACXX:2:1101:2598:86550_0       species   family            f__Procabacteriaceae   0.0950076  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:2598:86550_0       species   family                f__Neisseriaceae  0.00721776  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:2598:86550_0       species    class           c__Betaproteobacteria    0.897775  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0          root     root                            Root           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0       kingdom  kingdom                     k__Bacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0        phylum   phylum               p__Proteobacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0         class    class           c__Betaproteobacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0         order    order                 o__Neisseriales    0.948055  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0         order    class           c__Betaproteobacteria   0.0519451  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0        family   family                f__Neisseriaceae    0.948055  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0        family    class           c__Betaproteobacteria   0.0519451  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0         genus   family                f__Neisseriaceae    0.948055  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0         genus    class           c__Betaproteobacteria   0.0519451  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0       species   family                f__Neisseriaceae    0.948055  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16134:18088_0       species    class           c__Betaproteobacteria   0.0519451  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0          root     root                            Root           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0       kingdom  kingdom                     k__Bacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0        phylum   phylum                          p__ZB3    0.895952  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0        phylum   phylum                          p__WS2    0.104048  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0         class   phylum                          p__ZB3    0.895952  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0         class   phylum                          p__WS2    0.104048  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0         order   phylum                          p__ZB3    0.895952  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0         order   phylum                          p__WS2    0.104048  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0        family   phylum                          p__ZB3    0.895952  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0        family   phylum                          p__WS2    0.104048  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0         genus   phylum                          p__ZB3    0.895952  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0         genus   phylum                          p__WS2    0.104048  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0       species   phylum                          p__ZB3    0.895952  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10474:9694_0       species   phylum                          p__WS2    0.104048  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:18888:19927_0          root     root                            Root           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:18888:19927_0       kingdom  kingdom                     k__Bacteria           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:18888:19927_0        phylum   phylum                 p__Spirochaetes   0.0283609  placements
@@ -1023,62 +1023,6 @@ HWI-ST1243:156:D1K83ACXX:2:1101:18136:50389_0       species    order            
  HWI-ST1243:156:D1K83ACXX:2:1101:4029:25081_0        family    order                         o__DH61           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:4029:25081_0         genus    order                         o__DH61           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:4029:25081_0       species    order                         o__DH61           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:19480:5726_0          root     root                            Root           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:19480:5726_0       kingdom  kingdom                     k__Bacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:19480:5726_0        phylum   phylum              p__Verrucomicrobia           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:19480:5726_0         class    class               c__[Pedosphaerae]           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:19480:5726_0         order    order             o__[Pedosphaerales]           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:19480:5726_0        family    order             o__[Pedosphaerales]   0.0251302  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:19480:5726_0        family   family                        f__OPB35     0.97487  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:19480:5726_0         genus    order             o__[Pedosphaerales]   0.0251302  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:19480:5726_0         genus   family                        f__OPB35     0.97487  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:19480:5726_0       species    order             o__[Pedosphaerales]   0.0251302  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:19480:5726_0       species   family                        f__OPB35     0.97487  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6403:39902_0          root     root                            Root           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6403:39902_0       kingdom  kingdom                     k__Bacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6403:39902_0        phylum   phylum               p__Proteobacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6403:39902_0         class    class          c__Gammaproteobacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6403:39902_0         order    order              o__Xanthomonadales           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6403:39902_0        family   family              f__Sinobacteraceae           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6403:39902_0         genus   family              f__Sinobacteraceae           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:6403:39902_0       species   family              f__Sinobacteraceae           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0          root     root                            Root           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0       kingdom  kingdom                     k__Bacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0        phylum   phylum               p__Proteobacteria     0.82643  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0        phylum   phylum             p__Gemmatimonadetes     0.17357  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0         class   phylum             p__Gemmatimonadetes     0.17357  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0         class    class           c__Zetaproteobacteria   0.0217624  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0         class    class          c__Deltaproteobacteria    0.804667  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0         order   phylum             p__Gemmatimonadetes     0.17357  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0         order    order              o__Mariprofundales   0.0217624  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0         order    order                     o__GMD14H09    0.804667  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0        family   phylum             p__Gemmatimonadetes     0.17357  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0        family    order                     o__GMD14H09    0.804667  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0        family   family             f__Mariprofundaceae   0.0217624  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0         genus   phylum             p__Gemmatimonadetes     0.17357  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0         genus    order                     o__GMD14H09    0.804667  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0         genus   family             f__Mariprofundaceae   0.0217624  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0       species   phylum             p__Gemmatimonadetes     0.17357  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0       species    order                     o__GMD14H09    0.804667  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0       species   family             f__Mariprofundaceae   0.0217624  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0          root     root                            Root           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0       kingdom  kingdom                     k__Bacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0        phylum   phylum              p__Verrucomicrobia           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0         class   phylum              p__Verrucomicrobia    0.169832  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0         class    class             c__[Spartobacteria]    0.752729  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0         class    class             c__Verrucomicrobiae   0.0774393  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0         order   phylum              p__Verrucomicrobia    0.169832  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0         order    order         o__[Chthoniobacterales]    0.752729  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0         order    order           o__Verrucomicrobiales   0.0774393  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0        family   phylum              p__Verrucomicrobia    0.169832  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0        family   family        f__[Chthoniobacteraceae]    0.752729  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0        family   family          f__Verrucomicrobiaceae   0.0774393  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0         genus   phylum              p__Verrucomicrobia    0.169832  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0         genus   family        f__[Chthoniobacteraceae]    0.752729  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0         genus   family          f__Verrucomicrobiaceae   0.0774393  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0       species   phylum              p__Verrucomicrobia    0.169832  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0       species   family        f__[Chthoniobacteraceae]    0.752729  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0       species   family          f__Verrucomicrobiaceae   0.0774393  placements
  HWI-ST1243:156:D1K83ACXX:2:1102:19456:7230_0          root     root                            Root           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1102:19456:7230_0       kingdom  kingdom                     k__Bacteria           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1102:19456:7230_0        phylum   phylum              p__Verrucomicrobia           1  placements
@@ -1107,6 +1051,84 @@ HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0       species   family            
  HWI-ST1243:156:D1K83ACXX:2:1102:19456:7230_0       species   family          f__Verrucomicrobiaceae    0.445342  placements
  HWI-ST1243:156:D1K83ACXX:2:1102:19456:7230_0       species    class          c__[Methylacidiphilae]    0.058366  placements
  HWI-ST1243:156:D1K83ACXX:2:1102:19456:7230_0       species    class                     c__Opitutae   0.0215603  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:19480:5726_0          root     root                            Root           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:19480:5726_0       kingdom  kingdom                     k__Bacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:19480:5726_0        phylum   phylum              p__Verrucomicrobia           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:19480:5726_0         class    class               c__[Pedosphaerae]           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:19480:5726_0         order    order             o__[Pedosphaerales]           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:19480:5726_0        family    order             o__[Pedosphaerales]   0.0251302  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:19480:5726_0        family   family                        f__OPB35     0.97487  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:19480:5726_0         genus    order             o__[Pedosphaerales]   0.0251302  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:19480:5726_0         genus   family                        f__OPB35     0.97487  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:19480:5726_0       species    order             o__[Pedosphaerales]   0.0251302  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:19480:5726_0       species   family                        f__OPB35     0.97487  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6403:39902_0          root     root                            Root           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6403:39902_0       kingdom  kingdom                     k__Bacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6403:39902_0        phylum   phylum               p__Proteobacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6403:39902_0         class    class          c__Gammaproteobacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6403:39902_0         order    order              o__Xanthomonadales           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6403:39902_0        family   family              f__Sinobacteraceae           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6403:39902_0         genus   family              f__Sinobacteraceae           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:6403:39902_0       species   family              f__Sinobacteraceae           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0          root     root                            Root           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0       kingdom  kingdom                     k__Bacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0        phylum   phylum              p__Verrucomicrobia           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0         class   phylum              p__Verrucomicrobia    0.169832  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0         class    class             c__[Spartobacteria]    0.752729  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0         class    class             c__Verrucomicrobiae   0.0774393  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0         order   phylum              p__Verrucomicrobia    0.169832  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0         order    order         o__[Chthoniobacterales]    0.752729  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0         order    order           o__Verrucomicrobiales   0.0774393  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0        family   phylum              p__Verrucomicrobia    0.169832  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0        family   family        f__[Chthoniobacteraceae]    0.752729  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0        family   family          f__Verrucomicrobiaceae   0.0774393  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0         genus   phylum              p__Verrucomicrobia    0.169832  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0         genus   family        f__[Chthoniobacteraceae]    0.752729  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0         genus   family          f__Verrucomicrobiaceae   0.0774393  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0       species   phylum              p__Verrucomicrobia    0.169832  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0       species   family        f__[Chthoniobacteraceae]    0.752729  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:6220:18178_0       species   family          f__Verrucomicrobiaceae   0.0774393  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0          root     root                            Root           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0       kingdom  kingdom                     k__Bacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0        phylum   phylum               p__Proteobacteria     0.82643  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0        phylum   phylum             p__Gemmatimonadetes     0.17357  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0         class   phylum             p__Gemmatimonadetes     0.17357  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0         class    class           c__Zetaproteobacteria   0.0217624  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0         class    class          c__Deltaproteobacteria    0.804667  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0         order   phylum             p__Gemmatimonadetes     0.17357  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0         order    order              o__Mariprofundales   0.0217624  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0         order    order                     o__GMD14H09    0.804667  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0        family   phylum             p__Gemmatimonadetes     0.17357  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0        family    order                     o__GMD14H09    0.804667  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0        family   family             f__Mariprofundaceae   0.0217624  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0         genus   phylum             p__Gemmatimonadetes     0.17357  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0         genus    order                     o__GMD14H09    0.804667  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0         genus   family             f__Mariprofundaceae   0.0217624  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0       species   phylum             p__Gemmatimonadetes     0.17357  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0       species    order                     o__GMD14H09    0.804667  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0       species   family             f__Mariprofundaceae   0.0217624  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:11254:73197_0          root     root                            Root           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:11254:73197_0       kingdom  kingdom                     k__Bacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:11254:73197_0        phylum   phylum              p__Verrucomicrobia           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:11254:73197_0         class    class               c__[Pedosphaerae]           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:11254:73197_0         order    order             o__[Pedosphaerales]           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:11254:73197_0        family    order             o__[Pedosphaerales]    0.559002  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:11254:73197_0        family   family                        f__OPB35    0.440998  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:11254:73197_0         genus    order             o__[Pedosphaerales]    0.559002  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:11254:73197_0         genus   family                        f__OPB35    0.440998  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:11254:73197_0       species    order             o__[Pedosphaerales]    0.559002  placements
+HWI-ST1243:156:D1K83ACXX:2:1101:11254:73197_0       species   family                        f__OPB35    0.440998  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:12081:13049_0          root     root                            Root           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:12081:13049_0       kingdom  kingdom                     k__Bacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:12081:13049_0        phylum   phylum                p__Acidobacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:12081:13049_0         class    class               c__Acidobacteriia           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:12081:13049_0         order    order             o__Acidobacteriales           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:12081:13049_0        family    order             o__Acidobacteriales    0.037379  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:12081:13049_0        family   family              f__Koribacteraceae    0.962621  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:12081:13049_0         genus    order             o__Acidobacteriales    0.037379  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:12081:13049_0         genus   family              f__Koribacteraceae    0.962621  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:12081:13049_0       species    order             o__Acidobacteriales    0.037379  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:12081:13049_0       species   family              f__Koribacteraceae    0.962621  placements
   HWI-ST1243:156:D1K83ACXX:2:1102:3809:6612_0          root     root                            Root           1  placements
   HWI-ST1243:156:D1K83ACXX:2:1102:3809:6612_0       kingdom  kingdom                     k__Bacteria           1  placements
   HWI-ST1243:156:D1K83ACXX:2:1102:3809:6612_0        phylum   phylum               p__Proteobacteria           1  placements
@@ -1128,17 +1150,6 @@ HWI-ST1243:156:D1K83ACXX:2:1101:16561:86402_0       species   family            
   HWI-ST1243:156:D1K83ACXX:2:1102:3809:6612_0       species   family              f__Sinobacteraceae    0.968165  placements
   HWI-ST1243:156:D1K83ACXX:2:1102:3809:6612_0       species   family                f__Moraxellaceae  0.00756215  placements
   HWI-ST1243:156:D1K83ACXX:2:1102:3809:6612_0       species   family          f__Desulfovibrionaceae  0.00624119  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:12081:13049_0          root     root                            Root           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:12081:13049_0       kingdom  kingdom                     k__Bacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:12081:13049_0        phylum   phylum                p__Acidobacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:12081:13049_0         class    class               c__Acidobacteriia           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:12081:13049_0         order    order             o__Acidobacteriales           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:12081:13049_0        family    order             o__Acidobacteriales    0.037379  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:12081:13049_0        family   family              f__Koribacteraceae    0.962621  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:12081:13049_0         genus    order             o__Acidobacteriales    0.037379  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:12081:13049_0         genus   family              f__Koribacteraceae    0.962621  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:12081:13049_0       species    order             o__Acidobacteriales    0.037379  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:12081:13049_0       species   family              f__Koribacteraceae    0.962621  placements
   HWI-ST1243:156:D1K83ACXX:2:1102:9497:6585_0          root     root                            Root           1  placements
   HWI-ST1243:156:D1K83ACXX:2:1102:9497:6585_0       kingdom  kingdom                     k__Bacteria           1  placements
   HWI-ST1243:156:D1K83ACXX:2:1102:9497:6585_0        phylum   phylum                        p__WPS-2           1  placements
@@ -1147,17 +1158,6 @@ HWI-ST1243:156:D1K83ACXX:2:1102:12081:13049_0       species   family            
   HWI-ST1243:156:D1K83ACXX:2:1102:9497:6585_0        family   phylum                        p__WPS-2           1  placements
   HWI-ST1243:156:D1K83ACXX:2:1102:9497:6585_0         genus   phylum                        p__WPS-2           1  placements
   HWI-ST1243:156:D1K83ACXX:2:1102:9497:6585_0       species   phylum                        p__WPS-2           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:11254:73197_0          root     root                            Root           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:11254:73197_0       kingdom  kingdom                     k__Bacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:11254:73197_0        phylum   phylum              p__Verrucomicrobia           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:11254:73197_0         class    class               c__[Pedosphaerae]           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:11254:73197_0         order    order             o__[Pedosphaerales]           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:11254:73197_0        family    order             o__[Pedosphaerales]    0.559002  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:11254:73197_0        family   family                        f__OPB35    0.440998  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:11254:73197_0         genus    order             o__[Pedosphaerales]    0.559002  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:11254:73197_0         genus   family                        f__OPB35    0.440998  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:11254:73197_0       species    order             o__[Pedosphaerales]    0.559002  placements
-HWI-ST1243:156:D1K83ACXX:2:1101:11254:73197_0       species   family                        f__OPB35    0.440998  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:13898:74523_0          root     root                            Root           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:13898:74523_0       kingdom  kingdom                     k__Bacteria           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:13898:74523_0        phylum   phylum               p__Actinobacteria           1  placements
@@ -1233,17 +1233,6 @@ HWI-ST1243:156:D1K83ACXX:2:1101:20591:72023_0       species    order            
  HWI-ST1243:156:D1K83ACXX:2:1101:7426:79813_0       species    genus                  g__Meiothermus   0.0399039  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:7426:79813_0       species    class                c__Phycisphaerae   0.0390748  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:7426:79813_0       species    class                c__Fibrobacteria    0.425401  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:16187:13746_0          root     root                            Root           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:16187:13746_0       kingdom  kingdom                     k__Bacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:16187:13746_0        phylum   phylum                p__Acidobacteria           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:16187:13746_0         class    class               c__Acidobacteriia           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:16187:13746_0         order    order             o__Acidobacteriales           1  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:16187:13746_0        family    order             o__Acidobacteriales   0.0825659  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:16187:13746_0        family   family              f__Koribacteraceae    0.917434  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:16187:13746_0         genus    order             o__Acidobacteriales   0.0825659  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:16187:13746_0         genus   family              f__Koribacteraceae    0.917434  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:16187:13746_0       species    order             o__Acidobacteriales   0.0825659  placements
-HWI-ST1243:156:D1K83ACXX:2:1102:16187:13746_0       species   family              f__Koribacteraceae    0.917434  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:20753:14754_0          root     root                            Root           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:20753:14754_0       kingdom  kingdom                     k__Bacteria           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:20753:14754_0        phylum   phylum                p__Bacteroidetes           1  placements
@@ -1260,6 +1249,17 @@ HWI-ST1243:156:D1K83ACXX:2:1101:20753:14754_0         genus   family            
 HWI-ST1243:156:D1K83ACXX:2:1101:20753:14754_0       species    order              o__[Saprospirales]   0.0680026  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:20753:14754_0       species    order           o__Sphingobacteriales    0.871151  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:20753:14754_0       species   family             f__Chitinophagaceae   0.0608463  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:16187:13746_0          root     root                            Root           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:16187:13746_0       kingdom  kingdom                     k__Bacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:16187:13746_0        phylum   phylum                p__Acidobacteria           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:16187:13746_0         class    class               c__Acidobacteriia           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:16187:13746_0         order    order             o__Acidobacteriales           1  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:16187:13746_0        family    order             o__Acidobacteriales   0.0825659  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:16187:13746_0        family   family              f__Koribacteraceae    0.917434  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:16187:13746_0         genus    order             o__Acidobacteriales   0.0825659  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:16187:13746_0         genus   family              f__Koribacteraceae    0.917434  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:16187:13746_0       species    order             o__Acidobacteriales   0.0825659  placements
+HWI-ST1243:156:D1K83ACXX:2:1102:16187:13746_0       species   family              f__Koribacteraceae    0.917434  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:3185:65470_0          root     root                            Root           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:3185:65470_0       kingdom  kingdom                     k__Bacteria           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:3185:65470_0        phylum   phylum               p__Proteobacteria           1  placements
@@ -1293,36 +1293,6 @@ HWI-ST1243:156:D1K83ACXX:2:1101:20753:14754_0       species   family            
  HWI-ST1243:156:D1K83ACXX:2:1101:2891:39362_0       species    order                        o__DS-18    0.613256  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:2891:39362_0       species    class                       c__iii1-8    0.147958  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:2891:39362_0       species    class                      c__PAUC37f    0.211482  placements
-  HWI-ST1243:156:D1K83ACXX:2:1101:8710:7607_0          root     root                            Root           1  placements
-  HWI-ST1243:156:D1K83ACXX:2:1101:8710:7607_0       kingdom  kingdom                     k__Bacteria           1  placements
-  HWI-ST1243:156:D1K83ACXX:2:1101:8710:7607_0        phylum   phylum               p__Proteobacteria           1  placements
-  HWI-ST1243:156:D1K83ACXX:2:1101:8710:7607_0         class    class          c__Alphaproteobacteria           1  placements
-  HWI-ST1243:156:D1K83ACXX:2:1101:8710:7607_0         order    class          c__Alphaproteobacteria           1  placements
-  HWI-ST1243:156:D1K83ACXX:2:1101:8710:7607_0        family    class          c__Alphaproteobacteria           1  placements
-  HWI-ST1243:156:D1K83ACXX:2:1101:8710:7607_0         genus    class          c__Alphaproteobacteria           1  placements
-  HWI-ST1243:156:D1K83ACXX:2:1101:8710:7607_0       species    class          c__Alphaproteobacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:1914:75692_0          root     root                            Root           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:1914:75692_0       kingdom  kingdom                     k__Bacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:1914:75692_0        phylum   phylum               p__Proteobacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:1914:75692_0         class    class          c__Gammaproteobacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:1914:75692_0         order    order              o__Xanthomonadales           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:1914:75692_0        family   family              f__Sinobacteraceae           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:1914:75692_0         genus   family              f__Sinobacteraceae           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:1914:75692_0       species   family              f__Sinobacteraceae           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0          root     root                            Root           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0       kingdom  kingdom                     k__Bacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0        phylum   phylum               p__Proteobacteria    0.273612  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0        phylum   phylum                p__Acidobacteria    0.726388  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0         class    class          c__Deltaproteobacteria    0.273612  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0         class    class               c__Acidobacteriia    0.726388  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0         order    order                 o__Myxococcales    0.273612  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0         order    order             o__Acidobacteriales    0.726388  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0        family    order                 o__Myxococcales    0.273612  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0        family   family              f__Koribacteraceae    0.726388  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0         genus    order                 o__Myxococcales    0.273612  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0         genus   family              f__Koribacteraceae    0.726388  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0       species    order                 o__Myxococcales    0.273612  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0       species   family              f__Koribacteraceae    0.726388  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:6709:14245_0          root     root                            Root           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:6709:14245_0       kingdom  kingdom                     k__Bacteria           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:6709:14245_0        phylum   phylum               p__Actinobacteria           1  placements
@@ -1340,6 +1310,22 @@ HWI-ST1243:156:D1K83ACXX:2:1101:20753:14754_0       species   family            
  HWI-ST1243:156:D1K83ACXX:2:1101:6709:14245_0       species    genus                 g__Streptomyces    0.278938  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:6709:14245_0       species   family               f__Micrococcaceae   0.0104572  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:6709:14245_0       species   family             f__Actinomycetaceae    0.335568  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:1914:75692_0          root     root                            Root           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:1914:75692_0       kingdom  kingdom                     k__Bacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:1914:75692_0        phylum   phylum               p__Proteobacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:1914:75692_0         class    class          c__Gammaproteobacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:1914:75692_0         order    order              o__Xanthomonadales           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:1914:75692_0        family   family              f__Sinobacteraceae           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:1914:75692_0         genus   family              f__Sinobacteraceae           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:1914:75692_0       species   family              f__Sinobacteraceae           1  placements
+  HWI-ST1243:156:D1K83ACXX:2:1101:8710:7607_0          root     root                            Root           1  placements
+  HWI-ST1243:156:D1K83ACXX:2:1101:8710:7607_0       kingdom  kingdom                     k__Bacteria           1  placements
+  HWI-ST1243:156:D1K83ACXX:2:1101:8710:7607_0        phylum   phylum               p__Proteobacteria           1  placements
+  HWI-ST1243:156:D1K83ACXX:2:1101:8710:7607_0         class    class          c__Alphaproteobacteria           1  placements
+  HWI-ST1243:156:D1K83ACXX:2:1101:8710:7607_0         order    class          c__Alphaproteobacteria           1  placements
+  HWI-ST1243:156:D1K83ACXX:2:1101:8710:7607_0        family    class          c__Alphaproteobacteria           1  placements
+  HWI-ST1243:156:D1K83ACXX:2:1101:8710:7607_0         genus    class          c__Alphaproteobacteria           1  placements
+  HWI-ST1243:156:D1K83ACXX:2:1101:8710:7607_0       species    class          c__Alphaproteobacteria           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1102:14168:11221_0          root     root                            Root           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1102:14168:11221_0       kingdom  kingdom                     k__Bacteria           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1102:14168:11221_0        phylum   phylum                          p__TM7           1  placements
@@ -1353,54 +1339,20 @@ HWI-ST1243:156:D1K83ACXX:2:1102:14168:11221_0         genus   phylum            
 HWI-ST1243:156:D1K83ACXX:2:1102:14168:11221_0         genus    class                        c__TM7-1    0.948832  placements
 HWI-ST1243:156:D1K83ACXX:2:1102:14168:11221_0       species   phylum                          p__TM7    0.051168  placements
 HWI-ST1243:156:D1K83ACXX:2:1102:14168:11221_0       species    class                        c__TM7-1    0.948832  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0          root     root                            Root           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0       kingdom  kingdom                     k__Bacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0        phylum   phylum                p__Cyanobacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0         class    class                       c__4C0d-2           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0         order    order                       o__SM2F09    0.874876  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0         order    class                       c__4C0d-2    0.125124  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0        family    order                       o__SM2F09    0.874876  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0        family    class                       c__4C0d-2    0.125124  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0         genus    order                       o__SM2F09    0.874876  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0         genus    class                       c__4C0d-2    0.125124  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0       species    order                       o__SM2F09    0.874876  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0       species    class                       c__4C0d-2    0.125124  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0          root     root                            Root           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0       kingdom  kingdom                     k__Bacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0        phylum   phylum                  p__Chloroflexi   0.0121962  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0        phylum   phylum               p__Actinobacteria    0.987804  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0         class    class                 c__Anaerolineae   0.0121962  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0         class    class               c__Actinobacteria    0.987804  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0         order    order               o__Anaerolineales   0.0121962  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0         order    order              o__Actinomycetales    0.987804  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0        family    order              o__Actinomycetales    0.987804  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0        family   family               f__Anaerolinaceae   0.0121962  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0         genus    order              o__Actinomycetales    0.987804  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0         genus   family               f__Anaerolinaceae   0.0121962  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0       species    order              o__Actinomycetales    0.987804  placements
- HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0       species   family               f__Anaerolinaceae   0.0121962  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0          root     root                            Root           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0       kingdom  kingdom                     k__Bacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0        phylum   phylum               p__Actinobacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0         class   phylum               p__Actinobacteria   0.0127357  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0         class    class              c__Thermoleophilia    0.597066  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0         class    class                    c__MB-A2-108    0.390199  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0         order   phylum               p__Actinobacteria   0.0127357  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0         order    order                   o__Gaiellales    0.597066  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0         order    order                    o__0319-7L14     0.20545  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0         order    class                    c__MB-A2-108    0.184748  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0        family   phylum               p__Actinobacteria   0.0127357  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0        family    order                    o__0319-7L14     0.20545  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0        family   family                  f__Gaiellaceae    0.597066  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0        family    class                    c__MB-A2-108    0.184748  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0         genus   phylum               p__Actinobacteria   0.0127357  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0         genus    order                    o__0319-7L14     0.20545  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0         genus   family                  f__Gaiellaceae    0.597066  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0         genus    class                    c__MB-A2-108    0.184748  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0       species   phylum               p__Actinobacteria   0.0127357  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0       species    order                    o__0319-7L14     0.20545  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0       species   family                  f__Gaiellaceae    0.597066  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0       species    class                    c__MB-A2-108    0.184748  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0          root     root                            Root           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0       kingdom  kingdom                     k__Bacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0        phylum   phylum               p__Proteobacteria    0.273612  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0        phylum   phylum                p__Acidobacteria    0.726388  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0         class    class          c__Deltaproteobacteria    0.273612  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0         class    class               c__Acidobacteriia    0.726388  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0         order    order                 o__Myxococcales    0.273612  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0         order    order             o__Acidobacteriales    0.726388  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0        family    order                 o__Myxococcales    0.273612  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0        family   family              f__Koribacteraceae    0.726388  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0         genus    order                 o__Myxococcales    0.273612  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0         genus   family              f__Koribacteraceae    0.726388  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0       species    order                 o__Myxococcales    0.273612  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9766:50757_0       species   family              f__Koribacteraceae    0.726388  placements
  HWI-ST1243:156:D1K83ACXX:2:1102:20450:8225_0          root     root                            Root           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1102:20450:8225_0       kingdom  kingdom                     k__Bacteria           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1102:20450:8225_0        phylum   phylum                  p__Tenericutes    0.016217  placements
@@ -1423,6 +1375,54 @@ HWI-ST1243:156:D1K83ACXX:2:1102:14168:11221_0       species    class            
  HWI-ST1243:156:D1K83ACXX:2:1102:20450:8225_0       species    order                o__Clostridiales   0.0104459  placements
  HWI-ST1243:156:D1K83ACXX:2:1102:20450:8225_0       species   family           f__Acholeplasmataceae    0.016217  placements
  HWI-ST1243:156:D1K83ACXX:2:1102:20450:8225_0       species    class                   c__Clostridia   0.0120148  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0          root     root                            Root           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0       kingdom  kingdom                     k__Bacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0        phylum   phylum                  p__Chloroflexi   0.0121962  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0        phylum   phylum               p__Actinobacteria    0.987804  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0         class    class                 c__Anaerolineae   0.0121962  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0         class    class               c__Actinobacteria    0.987804  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0         order    order               o__Anaerolineales   0.0121962  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0         order    order              o__Actinomycetales    0.987804  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0        family    order              o__Actinomycetales    0.987804  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0        family   family               f__Anaerolinaceae   0.0121962  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0         genus    order              o__Actinomycetales    0.987804  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0         genus   family               f__Anaerolinaceae   0.0121962  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0       species    order              o__Actinomycetales    0.987804  placements
+ HWI-ST1243:156:D1K83ACXX:2:1102:10230:9392_0       species   family               f__Anaerolinaceae   0.0121962  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0          root     root                            Root           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0       kingdom  kingdom                     k__Bacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0        phylum   phylum                p__Cyanobacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0         class    class                       c__4C0d-2           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0         order    order                       o__SM2F09    0.874876  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0         order    class                       c__4C0d-2    0.125124  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0        family    order                       o__SM2F09    0.874876  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0        family    class                       c__4C0d-2    0.125124  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0         genus    order                       o__SM2F09    0.874876  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0         genus    class                       c__4C0d-2    0.125124  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0       species    order                       o__SM2F09    0.874876  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:7350:95922_0       species    class                       c__4C0d-2    0.125124  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0          root     root                            Root           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0       kingdom  kingdom                     k__Bacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0        phylum   phylum               p__Actinobacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0         class   phylum               p__Actinobacteria   0.0127357  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0         class    class              c__Thermoleophilia    0.597066  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0         class    class                    c__MB-A2-108    0.390199  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0         order   phylum               p__Actinobacteria   0.0127357  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0         order    order                   o__Gaiellales    0.597066  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0         order    order                    o__0319-7L14     0.20545  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0         order    class                    c__MB-A2-108    0.184748  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0        family   phylum               p__Actinobacteria   0.0127357  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0        family    order                    o__0319-7L14     0.20545  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0        family   family                  f__Gaiellaceae    0.597066  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0        family    class                    c__MB-A2-108    0.184748  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0         genus   phylum               p__Actinobacteria   0.0127357  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0         genus    order                    o__0319-7L14     0.20545  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0         genus   family                  f__Gaiellaceae    0.597066  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0         genus    class                    c__MB-A2-108    0.184748  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0       species   phylum               p__Actinobacteria   0.0127357  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0       species    order                    o__0319-7L14     0.20545  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0       species   family                  f__Gaiellaceae    0.597066  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:4656:90229_0       species    class                    c__MB-A2-108    0.184748  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:1569:25135_0          root     root                            Root           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:1569:25135_0       kingdom  kingdom                     k__Bacteria           1  placements
  HWI-ST1243:156:D1K83ACXX:2:1101:1569:25135_0        phylum   phylum               p__Proteobacteria           1  placements
@@ -1447,6 +1447,17 @@ HWI-ST1243:156:D1K83ACXX:2:1101:17185:35964_0         order    order            
 HWI-ST1243:156:D1K83ACXX:2:1101:17185:35964_0        family   family            f__Rhodospirillaceae           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:17185:35964_0         genus   family            f__Rhodospirillaceae           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:17185:35964_0       species   family            f__Rhodospirillaceae           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9591:35502_0          root     root                            Root           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9591:35502_0       kingdom  kingdom                     k__Bacteria           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9591:35502_0        phylum   phylum              p__Verrucomicrobia           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9591:35502_0         class    class               c__[Pedosphaerae]           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9591:35502_0         order    order             o__[Pedosphaerales]           1  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9591:35502_0        family    order             o__[Pedosphaerales]   0.0607693  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9591:35502_0        family   family                        f__OPB35    0.939231  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9591:35502_0         genus    order             o__[Pedosphaerales]   0.0607693  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9591:35502_0         genus   family                        f__OPB35    0.939231  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9591:35502_0       species    order             o__[Pedosphaerales]   0.0607693  placements
+ HWI-ST1243:156:D1K83ACXX:2:1101:9591:35502_0       species   family                        f__OPB35    0.939231  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:14717:53203_0          root     root                            Root           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:14717:53203_0       kingdom  kingdom                     k__Bacteria           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:14717:53203_0        phylum   phylum               p__Proteobacteria           1  placements
@@ -1461,17 +1472,6 @@ HWI-ST1243:156:D1K83ACXX:2:1101:14717:53203_0         genus   family           f
 HWI-ST1243:156:D1K83ACXX:2:1101:14717:53203_0       species    genus                  g__Pseudomonas    0.380588  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:14717:53203_0       species   family             f__Pseudomonadaceae    0.442628  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:14717:53203_0       species   family           f__Enterobacteriaceae    0.176785  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9591:35502_0          root     root                            Root           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9591:35502_0       kingdom  kingdom                     k__Bacteria           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9591:35502_0        phylum   phylum              p__Verrucomicrobia           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9591:35502_0         class    class               c__[Pedosphaerae]           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9591:35502_0         order    order             o__[Pedosphaerales]           1  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9591:35502_0        family    order             o__[Pedosphaerales]   0.0607693  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9591:35502_0        family   family                        f__OPB35    0.939231  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9591:35502_0         genus    order             o__[Pedosphaerales]   0.0607693  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9591:35502_0         genus   family                        f__OPB35    0.939231  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9591:35502_0       species    order             o__[Pedosphaerales]   0.0607693  placements
- HWI-ST1243:156:D1K83ACXX:2:1101:9591:35502_0       species   family                        f__OPB35    0.939231  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:15265:93920_0          root     root                            Root           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:15265:93920_0       kingdom  kingdom                     k__Bacteria           1  placements
 HWI-ST1243:156:D1K83ACXX:2:1101:15265:93920_0        phylum   phylum                      p__SBR1093    0.331878  placements

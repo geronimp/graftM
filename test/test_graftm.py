@@ -52,11 +52,11 @@ class Tests(unittest.TestCase):
                 count += 1
             self.assertEqual(count, 3)
         
-    def test_single_paired_read_run_16S(self): pass
+    #def test_single_paired_read_run_16S(self): pass
     
-    def test_multiple_forward_read_run_16S(self): pass
+    #def test_multiple_forward_read_run_16S(self): pass
     
-    def test_multiple_paired_read_run_16S(self): pass
+    #def test_multiple_paired_read_run_16S(self): pass
     
     # Tests on searching for proteins in nucelic acid sequence
     def test_single_forward_read_run_McrA(self): 
@@ -79,11 +79,11 @@ class Tests(unittest.TestCase):
                 count += 1
             self.assertEqual(count, 2)
         
-    def test_single_paired_read_run_McrA(self): pass
+    #def test_single_paired_read_run_McrA(self): pass
     
-    def test_multiple_forward_read_run_McrA(self): pass
+    #def test_multiple_forward_read_run_McrA(self): pass
     
-    def test_multiple_paired_read_run_McrA(self): pass
+    #def test_multiple_paired_read_run_McrA(self): pass
 
     # tests on searching amino acid sequence....
     #def test_multiple_forward_read_run_McrA_aa(self): pass

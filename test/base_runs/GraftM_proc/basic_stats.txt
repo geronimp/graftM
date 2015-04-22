@@ -1,0 +1,17 @@
+Basic run statistics (count):
+
+                             Files:	sample_16S_1 forward	sample_16S_1 reverse
+Total number of 16S reads detected:	99	82
+Total number of 18S reads detected:	N/A	N/A
+    'Contaminant' eukaryotic reads:	0	0
+
+Runtime (seconds):
+                             Files:	sample_16S_1 forward	sample_16S_1 reverse
+                       Search step:	1	1
+                    Alignment step:	3	3
+              Eukaryote check step:	1	1
+
+               Tree insertion step:	22
+                 Summarising steps:	0
+                     Total runtime:	33
+    

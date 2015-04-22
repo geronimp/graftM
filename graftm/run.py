@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import timeit
-import tempfile
 import os
 
 from graftm.messenger import Messenger
@@ -29,9 +28,10 @@ class Run:
         self.e = Extract()
         if args.subparser_name == 'graft':
             self.hk.set_attributes(self.args)
-            self.h = Hmmer(self.args.search_hmm_file, self.args.aln_hmm_file)
+            self.h = Hmmer(self.args.search_hmm_files, self.args.aln_hmm_file)
             self.sequence_pair_list, self.input_file_format = self.hk.parameter_checks(args)
-            self.p = Pplacer(self.args.reference_package)
+            if hasattr(args, 'reference_package'):
+                self.p = Pplacer(self.args.reference_package)
 
     def protein_pipeline(self, base, summary_dict, sequence_file, direction):
         ## The main pipeline for GraftM searching for protein sequence

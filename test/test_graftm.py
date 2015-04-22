@@ -25,6 +25,7 @@ import unittest
 import subprocess
 import os.path
 import tempdir
+from pandas.util.testing import assertRaises
 
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
@@ -64,6 +65,8 @@ class Tests(unittest.TestCase):
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
         with tempdir.TempDir() as tmp:
+            
+            tmp = '/tmp/f'
             cmd = '%s graft --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                data,
                                                                                                package,
@@ -93,7 +96,90 @@ class Tests(unittest.TestCase):
     #def test_single_forward_read_run_McrA_aa(self): pass
     
     #def test_single_paired_read_run_McrA_aa(self): pass
+    
+    def test_search_only(self):
+        data = os.path.join(path_to_data,'mcrA.gpkg', 'eg.fa')
+        package = os.path.join(path_to_data,'mcrA.gpkg')
 
+        with tempdir.TempDir() as tmp:
+            cmd = '%s graft --search_only --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+                                                                                               data,
+                                                                                               package,
+                                                                                               tmp)
+            subprocess.check_output(cmd, shell=True)
+            otuTableFile = os.path.join(tmp, 'eg', 'eg_count_table.txt')
+            # otu table should not exist
+            self.assertFalse(os.path.isfile(otuTableFile))
+            
+            expected = ['>example_partial_mcra',
+                        '-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GGVGFTQYATAAYTDDILDNNVYYNIDYINDKYKTDNKVKATLEVVKDIATESTIYGIETYEKFPTALEDHFGXSQRATVLAAAAGVXSALATANANAGLSGWYLSMYLHKEAWGRLGFFGYDLQDQCGATNVLSYQGDEGLPDELRGPNYPNYAM----------------------------------------------------------------------']
+            count = 0
+            alnFile = os.path.join(tmp, 'eg', 'eg_hits.aln.fa')
+            for line in open(alnFile):
+                self.assertEqual(expected[count], line.strip())
+                count += 1
+            self.assertEqual(count, len(expected))
+        
+    def test_search_only_specifying_hmm(self):
+        data = os.path.join(path_to_data,'mcrA.gpkg', 'eg.fa')
+        hmm = os.path.join(path_to_data,'mcrA.gpkg','mcrA.hmm')
+
+        with tempdir.TempDir() as tmp:
+            cmd = '%s graft --search_only --forward %s --search_hmm_files %s --output_directory %s --force' % (path_to_script,
+                                                                                               data,
+                                                                                               hmm,
+                                                                                               tmp)
+            subprocess.check_output(cmd, shell=True)
+            otuTableFile = os.path.join(tmp, 'eg', 'eg_count_table.txt')
+            # otu table should not exist
+            self.assertFalse(os.path.isfile(otuTableFile))
+            
+            expected = ['>example_partial_mcra',
+                        '-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GGVGFTQYATAAYTDDILDNNVYYNIDYINDKYKTDNKVKATLEVVKDIATESTIYGIETYEKFPTALEDHFGXSQRATVLAAAAGVXSALATANANAGLSGWYLSMYLHKEAWGRLGFFGYDLQDQCGATNVLSYQGDEGLPDELRGPNYPNYAM----------------------------------------------------------------------']
+            count = 0
+            alnFile = os.path.join(tmp, 'eg', 'eg_hits.aln.fa')
+            for line in open(alnFile):
+                self.assertEqual(expected[count], line.strip())
+                count += 1
+            self.assertEqual(count, len(expected))
+            
+    def test_search_only_specifying_multiple_hmms_but_no_aln_file(self):
+        data = os.path.join(path_to_data,'mcrA.gpkg', 'eg.fa')
+        hmm = os.path.join(path_to_data,'mcrA.gpkg','mcrA.hmm')
+        hmm2 = os.path.join(path_to_data,'mcrA_second_half.gpkg','mcrA.300-557.aln.fasta.hmm')
+
+        with tempdir.TempDir() as tmp:
+            cmd = '%s graft --search_only --forward %s --search_hmm_files %s %s --output_directory %s --force 2>/dev/null' % (path_to_script,
+                                                                                               data,
+                                                                                               hmm, hmm2,
+                                                                                               tmp)
+            with assertRaises(subprocess.CalledProcessError):
+                subprocess.check_output(cmd, shell=True)
+                
+    def test_search_only_specifying_multiple_hmms_and_aln_file(self):
+        data = os.path.join(path_to_data,'mcrA.gpkg', 'eg.fa')
+        hmm = os.path.join(path_to_data,'mcrA.gpkg','mcrA.hmm')
+        hmm2 = os.path.join(path_to_data,'mcrA_second_half.gpkg','mcrA.300-557.aln.fasta.hmm')
+
+        with tempdir.TempDir() as tmp:
+            cmd = '%s graft --search_only --forward %s --search_hmm_files %s %s --aln_hmm_file %s --output_directory %s --force' % (path_to_script,
+                                                                                               data,
+                                                                                               hmm2,hmm,
+                                                                                               hmm,
+                                                                                               tmp)
+            subprocess.check_output(cmd, shell=True)
+            otuTableFile = os.path.join(tmp, 'eg', 'eg_count_table.txt')
+            # otu table should not exist
+            self.assertFalse(os.path.isfile(otuTableFile))
+            
+            expected = ['>example_partial_mcra',
+                        '-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GGVGFTQYATAAYTDDILDNNVYYNIDYINDKYKTDNKVKATLEVVKDIATESTIYGIETYEKFPTALEDHFGXSQRATVLAAAAGVXSALATANANAGLSGWYLSMYLHKEAWGRLGFFGYDLQDQCGATNVLSYQGDEGLPDELRGPNYPNYAM----------------------------------------------------------------------']
+            count = 0
+            alnFile = os.path.join(tmp, 'eg', 'eg_hits.aln.fa')
+            for line in open(alnFile):
+                self.assertEqual(expected[count], line.strip())
+                count += 1
+            self.assertEqual(count, len(expected))
 
 
 if __name__ == "__main__":

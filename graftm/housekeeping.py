@@ -10,6 +10,9 @@ from graftm.messenger import Messenger
 FORMAT_FASTA = 'FORMAT_FASTA'
 FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'
 
+class UninstalledProgramError(Exception):
+    pass
+
 class HouseKeeping:
     ### Functions for setting up the graftM pipeline to run correctly, and 
     ### general housekeeping things like adding and removing directories and 
@@ -42,7 +45,7 @@ class HouseKeeping:
         nas = set(['A', 'T', 'G', 'C', 'N', 'U'])
         # If its Gzipped and fastqm make a small sample of the sequence to be 
         # read
-        if file_format == 'FORMAT_FASTQ_GZ':
+        if file_format == FORMAT_FASTQ_GZ:
             filename = "/tmp/graftM_sample_"+str(random.randint(1, 100))+".fa"
             #unzip, and head into tmp_file, read tmp file, and return sequence type
             cmd = "head -n2 <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s 2> /dev/null) 2> /dev/null ) > %s " % (input_file, filename)
@@ -165,10 +168,13 @@ class HouseKeeping:
             else:
                 uninstalled_programs.append(program)
         if uninstalled_programs:
-            Messenger().header("Following programs must be installed to run GraftM\n")
+            msg = "The following programs must be installed to run GraftM\n"
+            Messenger().header(msg)
             for program in uninstalled_programs:
-                print '\t%s\t%s' % (program, prerequisites[program])
-            exit(0)
+                l = '\t%s\t%s' % (program, prerequisites[program])
+                print l
+                msg += l+"\n"
+            raise UninstalledProgramError(msg)
         else:
             pass
         
@@ -179,23 +185,23 @@ class HouseKeeping:
                 raise Exception('Misformatted GraftM package')
             elif self.contents(args.graftm_package) is not None:
                 c = self.contents(args.graftm_package)
-                if hasattr(args, 'search_hmm_file'): # If a hmm is specified, overwrite the one graftM package
+                if hasattr(args, 'search_hmm_files'): # If a hmm is specified, overwrite the one graftM package
                     setattr(args, 'aln_hmm_file', os.path.join(args.graftm_package, c['aln_hmm']))
                     setattr(args, 'reference_package', os.path.join(args.graftm_package, c['rfpkg']))
-                elif not hasattr(args, 'hmm_file'): 
-                    setattr(args, 'search_hmm_file', [])
+                else:
+                    setattr(args, 'search_hmm_files', [])
                     for hmm in c['search_hmm']:
-                        args.search_hmm_file.append(os.path.join(args.graftm_package, hmm))
+                        args.search_hmm_files.append(os.path.join(args.graftm_package, hmm))
                     setattr(args, 'aln_hmm_file', os.path.join(args.graftm_package, c['aln_hmm']))
                     setattr(args, 'reference_package', os.path.join(args.graftm_package, c['rfpkg']))
-        elif not hasattr(args, 'graftm_package'): # Or if no graftM package and hmm is specified
-            if hasattr(args, 'hmm_file') and args.search_only: # and the placement step is skipped
-                pass # That's okay
-                setattr(args, 'reference_package', None)
-            elif hasattr(args, 'hmm_file') and not args.search_only: # But if a hmm is specified
-                raise Exception('No refpkg specified: Need to provide a GraftM package or provide the --search_only path')
+        elif hasattr(args, 'search_hmm_files'):
+            if not hasattr(args, 'aln_hmm_file'):
+                if len(args.search_hmm_files) == 1:
+                    setattr(args, 'aln_hmm_file', args.search_hmm_files[0])
+                else:
+                    raise Exception("Multiple search HMMs specified, but aln_hmm_file not specified")
         else:
-            raise Exception("Programming Error: Assigning hmm and refpkg attributes to args")       
+            raise Exception('No refpkg or HMM specified: Do not know what to search with.')
         return
     
     def which(self, program):

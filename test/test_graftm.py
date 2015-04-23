@@ -31,36 +31,36 @@ path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
 
 class Tests(unittest.TestCase):
-    
+
     # Tests on searching for rRNA sequence in nucleic acid sequence
     def test_single_forward_read_run_16S(self):
         data = os.path.join(path_to_data,'16S.gpkg', 'two_examples.fa')
         package = os.path.join(path_to_data,'16S.gpkg')
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script, 
-                                                                                               data, 
+            cmd = '%s graft --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+                                                                                               data,
                                                                                                package,
                                                                                                tmp)
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'two_examples' , 'two_examples_count_table.txt')
             lines = ("\t".join(('#ID','two_examples','ConsensusLineage')),
-                    "\t".join(('0','1','Root; k__Bacteria; p__Bacteroidetes; c__Flavobacteriia; o__Flavobacteriales; f__Flavobacteriaceae')),
-                    "\t".join(('1','1','Root; k__Bacteria; p__Gemmatimonadetes; c__Gemm-1')),
+                     "\t".join(('0','1','k__Bacteria; p__Gemmatimonadetes; c__Gemm-1')),
+                     "\t".join(('1','1','k__Bacteria; p__Bacteroidetes; c__Flavobacteriia; o__Flavobacteriales; f__Flavobacteriaceae')),
                     )
             count = 0
             for line in open(otuTableFile):
                 self.assertEqual(lines[count], line.strip())
                 count += 1
             self.assertEqual(count, 3)
-        
+
     #def test_single_paired_read_run_16S(self): pass
-    
+
     #def test_multiple_forward_read_run_16S(self): pass
-    
+
     #def test_multiple_paired_read_run_16S(self): pass
-    
+
     # Tests on searching for proteins in nucelic acid sequence
-    def test_single_forward_read_run_McrA(self): 
+    def test_single_forward_read_run_McrA(self):
         data = os.path.join(path_to_data,'mcrA.gpkg', 'eg.fa')
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
@@ -72,29 +72,29 @@ class Tests(unittest.TestCase):
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'eg', 'eg_count_table.txt')
             lines = ("\t".join(('#ID','eg','ConsensusLineage')),
-                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                     "\t".join(('0','1','mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
             for line in open(otuTableFile):
                 self.assertEqual(lines[count], line.strip())
                 count += 1
             self.assertEqual(count, 2)
-        
+
     #def test_single_paired_read_run_McrA(self): pass
-    
+
     #def test_multiple_forward_read_run_McrA(self): pass
-    
+
     #def test_multiple_paired_read_run_McrA(self): pass
 
     # tests on searching amino acid sequence....
     #def test_multiple_forward_read_run_McrA_aa(self): pass
-    
+
     #def test_multiple_paired_read_run_McrA_aa(self): pass
 
     #def test_single_forward_read_run_McrA_aa(self): pass
-    
+
     #def test_single_paired_read_run_McrA_aa(self): pass
-    
+
     def test_search_only(self):
         data = os.path.join(path_to_data,'mcrA.gpkg', 'eg.fa')
         package = os.path.join(path_to_data,'mcrA.gpkg')
@@ -108,7 +108,7 @@ class Tests(unittest.TestCase):
             otuTableFile = os.path.join(tmp, 'eg', 'eg_count_table.txt')
             # otu table should not exist
             self.assertFalse(os.path.isfile(otuTableFile))
-            
+
             expected = ['>example_partial_mcra',
                         '-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GGVGFTQYATAAYTDDILDNNVYYNIDYINDKYKTDNKVKATLEVVKDIATESTIYGIETYEKFPTALEDHFGXSQRATVLAAAAGVXSALATANANAGLSGWYLSMYLHKEAWGRLGFFGYDLQDQCGATNVLSYQGDEGLPDELRGPNYPNYAM----------------------------------------------------------------------']
             count = 0
@@ -117,7 +117,7 @@ class Tests(unittest.TestCase):
                 self.assertEqual(expected[count], line.strip())
                 count += 1
             self.assertEqual(count, len(expected))
-        
+
     def test_search_only_specifying_hmm(self):
         data = os.path.join(path_to_data,'mcrA.gpkg', 'eg.fa')
         hmm = os.path.join(path_to_data,'mcrA.gpkg','mcrA.hmm')
@@ -131,7 +131,7 @@ class Tests(unittest.TestCase):
             otuTableFile = os.path.join(tmp, 'eg', 'eg_count_table.txt')
             # otu table should not exist
             self.assertFalse(os.path.isfile(otuTableFile))
-            
+
             expected = ['>example_partial_mcra',
                         '-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GGVGFTQYATAAYTDDILDNNVYYNIDYINDKYKTDNKVKATLEVVKDIATESTIYGIETYEKFPTALEDHFGXSQRATVLAAAAGVXSALATANANAGLSGWYLSMYLHKEAWGRLGFFGYDLQDQCGATNVLSYQGDEGLPDELRGPNYPNYAM----------------------------------------------------------------------']
             count = 0
@@ -140,7 +140,7 @@ class Tests(unittest.TestCase):
                 self.assertEqual(expected[count], line.strip())
                 count += 1
             self.assertEqual(count, len(expected))
-            
+
     def test_search_only_specifying_multiple_hmms_but_no_aln_file(self):
         data = os.path.join(path_to_data,'mcrA.gpkg', 'eg.fa')
         hmm = os.path.join(path_to_data,'mcrA.gpkg','mcrA.hmm')
@@ -153,7 +153,7 @@ class Tests(unittest.TestCase):
                                                                                                tmp)
             with assertRaises(subprocess.CalledProcessError):
                 subprocess.check_output(cmd, shell=True)
-                
+
     def test_search_only_specifying_multiple_hmms_and_aln_file(self):
         data = os.path.join(path_to_data,'mcrA.gpkg', 'eg.fa')
         hmm = os.path.join(path_to_data,'mcrA.gpkg','mcrA.hmm')
@@ -169,7 +169,7 @@ class Tests(unittest.TestCase):
             otuTableFile = os.path.join(tmp, 'eg', 'eg_count_table.txt')
             # otu table should not exist
             self.assertFalse(os.path.isfile(otuTableFile))
-            
+
             expected = ['>example_partial_mcra',
                         '-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GGVGFTQYATAAYTDDILDNNVYYNIDYINDKYKTDNKVKATLEVVKDIATESTIYGIETYEKFPTALEDHFGXSQRATVLAAAAGVXSALATANANAGLSGWYLSMYLHKEAWGRLGFFGYDLQDQCGATNVLSYQGDEGLPDELRGPNYPNYAM----------------------------------------------------------------------']
             count = 0

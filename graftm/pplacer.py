@@ -46,40 +46,6 @@ class Pplacer:
                 file_number += 1
         return alias_hash
 
-    def guppy_class(self, main_guppy_path, jplace_list, cmd_log):
-        ## Run guppy classify, and parse the output to the appropriate paths
-
-        # Create concatenated guppy classify file from all .jplace files
-        # created in the placement step
-        cmd = 'guppy classify -c %s %s > %s' % (self.refpkg, ' '.join(jplace_list), main_guppy_path)
-        self.hk.add_cmd(cmd_log, cmd)
-        subprocess.check_call(cmd, shell=True)
-        # Create list of guppys
-        all_guppys = [x.rstrip() for x in open(main_guppy_path, 'r').readlines()]
-        gup = []
-        guppys = []
-        for line in all_guppys:
-            if 'name' in line and len(gup) == 0:
-                gup.append(line)
-            elif 'name' in line and len(gup) >= 0:
-                guppys.append(gup)
-                gup = [line]
-            else:
-                gup.append(line)
-        guppys.append(gup)
-
-        # Parse the guppy files.
-        for idx, gup in enumerate(guppys):
-            gup = [x for x in gup if x] # For each of the guppys remove empty components of the list
-            out = os.path.join(os.path.dirname(jplace_list[idx]), 'placements.guppy') # Find the output
-            r_num = len(list(set( [x.split()[0] for x in gup if 'name' not in x]))) # Calculate the number of placements
-            with open(out, 'w') as out_guppy:
-                for line in gup:
-                    out_guppy.write(line + '\n')
-        self.hk.delete([main_guppy_path])
-
-        return
-
     def jplace_split(self, jplace_file, alias_hash, summary_dict):
         ## Split the jplace file into their respective directories
 

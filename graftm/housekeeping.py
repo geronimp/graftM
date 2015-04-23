@@ -159,7 +159,6 @@ class HouseKeeping:
                         'hmmsearch': 'http://hmmer.janelia.org/',
                         'fxtract': 'https://github.com/ctSkennerton/fxtract',
                         'pplacer': 'http://matsen.fhcrc.org/pplacer/',
-                        'guppy': 'http://matsen.fhcrc.org/pplacer/',
                         'seqmagick': 'https://github.com/fhcrc/seqmagick',
                         'ktImportText': 'http://sourceforge.net/p/krona/home/krona/'}
         for program in prerequisites.keys():

@@ -149,11 +149,11 @@ class Run:
             otu_tables.append(self.gmf.summary_table_output_path(base))
 
             # Generate coverage table
-            Messenger().message('Building coverage table for %s' % base)
-            self.s.coverage_of_hmm(self.args.aln_hmm_file,
-                                     self.gmf.summary_table_output_path(base),
-                                     self.gmf.coverage_table_path(base),
-                                     summary_dict[base]['read_length'])
+            #Messenger().message('Building coverage table for %s' % base)
+            #self.s.coverage_of_hmm(self.args.aln_hmm_file,
+            #                         self.gmf.summary_table_output_path(base),
+            #                         self.gmf.coverage_table_path(base),
+            #                         summary_dict[base]['read_length'])
 
         Messenger().message('Building summary krona plot')
         self.kb.otuTablePathListToKrona(otu_tables,
@@ -166,7 +166,7 @@ class Run:
         summary_dict['stop_all'] = timeit.default_timer()
         summary_dict['all_t'] = str(int(round((summary_dict['stop_all'] - summary_dict['start_all']), 0)) )
         self.s.build_basic_statistics(summary_dict, self.gmf.basic_stats_path(), self.args.type)
-
+        
         # Delete unnecessary files
         Messenger().message('Cleaning up')
         for base in summary_dict['base_list']:

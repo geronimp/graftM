@@ -5,6 +5,7 @@ import timeit
 
 from Bio import SeqIO
 
+from graftm.classify import Classify
 from graftm.messenger import Messenger
 from graftm.assembler import TaxoGroup
 from graftm.housekeeping import HouseKeeping
@@ -126,23 +127,28 @@ class Pplacer:
 
         # Split the jplace file
         summary_dict = self.jplace_split(jplace, alias_hash, summary_dict)
+        
+        #Read the json of refpkg
+        tax_descr=json.load(open(self.refpkg+'/CONTENTS.json'))['files']['taxonomy']
+        classifications=Classify(os.path.join(self.refpkg,tax_descr)).assignPlacement(jplace, args.placements_cutoff, 'reads')
         self.hk.delete([jplace])
-        # Run guppy classify and parse the output
-        self.guppy_class(files.main_guppy_path(), summary_dict['jplace_path_list'], files.command_log_path())
 
         # If the reverse pipe has been specified, run the comparisons between the two pipelines. If not then just return.
 
-        for base in summary_dict['base_list']:
+        for idx, base in enumerate(summary_dict['base_list']):
             if summary_dict['reverse_pipe']:
                 summary_dict[base] = Compare().compare_hits(summary_dict[base], base)
-                summary_dict[base] = Compare().compare_placements(os.path.join(args.output_directory, base, 'forward', 'placements.guppy'),
-                                                                  os.path.join(args.output_directory, base, 'reverse', 'placements.guppy'),
+
+                forward_gup=classifications.pop(sorted(classifications.keys())[0]) 
+                reverse_gup=classifications.pop(sorted(classifications.keys())[0])
+                summary_dict[base] = Compare().compare_placements(forward_gup,
+                                                                  reverse_gup,
                                                                   summary_dict[base],
                                                                   args.placements_cutoff)
+
             elif not summary_dict['reverse_pipe']: # Set the trusted placements as
                 summary_dict[base]['trusted_placements'] = {}
-                tc = TaxoGroup().guppy_splitter(os.path.join(args.output_directory,base,'placements.guppy'), args.placements_cutoff)
-                for read, entry in tc.iteritems():
+                for read, entry in classifications[str(idx)].iteritems():
                     summary_dict[base]['trusted_placements'][read] = entry['placement']
         return summary_dict
 
@@ -183,15 +189,13 @@ class Compare:
         else:
             raise Exception
         # Return the hash
+
         return hash 
 
-    def compare_placements(self, forward_guppy, reverse_guppy, hash, placement_cutoff):
+    def compare_placements(self, forward_gup, reverse_gup, hash, placement_cutoff):
         ## Take guppy placement file for the forward and reverse reads, compare
         ## the placement, and make a call as to which is to be trusted. Return
         ## a list of trusted reads for use by the summary step in GraftM
-        # Read in guppy files
-        forward_gup = TaxoGroup().guppy_splitter(forward_guppy, placement_cutoff)
-        reverse_gup = TaxoGroup().guppy_splitter(reverse_guppy, placement_cutoff)
         # Report and record trusted placements
         comparison_hash = {'trusted_placements': {}} # Set up a hash that will record info on each placement
         for read in hash['crossover']:
@@ -207,6 +211,7 @@ class Compare:
                 continue # Skip read for now
             comparison_hash[read] = {} # make an entry for each read
             comparison_hash['trusted_placements'][read] = [] # Set up a taxonomy entry in trusted placements
+
             if len(forward_gup[f_read]['placement']) == len(reverse_gup[r_read]['placement']): # If the level of placement matches
                 comparison_hash[read]['rank_length_match'] = True # Store True
             elif len(forward_gup[f_read]['placement']) != len(reverse_gup[r_read]['placement']):
@@ -247,6 +252,7 @@ class Compare:
                         raise Exception('Programming Error: Comparing confidence values')
                 else:
                     raise Exception('Programming Error: Comparison of placement resolution')               
+
         hash['comparison_hash'] = comparison_hash
         return hash # Return the hash
 

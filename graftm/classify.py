@@ -47,7 +47,6 @@ class Classify:
             for placement in placement_list:
                 rank=placement[0]
                 confidence=placement[lwr_idx]
-                print rank, confidence
                 if placement[0] not in seen:
                     seen[rank]={'c':confidence,
                                 'p':self.taxonomy[rank]}

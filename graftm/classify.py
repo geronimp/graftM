@@ -42,11 +42,12 @@ class Classify:
             else:
                 raise Exception("Programming error.")
 
-        def consolidatePlacements(placement_list, cutoff):
+        def consolidatePlacements(placement_list, cutoff, lwr_idx, c_idx):
             seen={}
             for placement in placement_list:
                 rank=placement[0]
-                confidence=placement[3]
+                confidence=placement[lwr_idx]
+                print rank, confidence
                 if placement[0] not in seen:
                     seen[rank]={'c':confidence,
                                 'p':self.taxonomy[rank]}
@@ -61,17 +62,22 @@ class Classify:
                 raise Exception("Programming Error: Classify; assignPlacement; consolidatePlacements")
 
         placement_hash=json.load(open(placement_json_path)) # read in placement json
-
-        for placement_group in placement_hash['placements']:
-            best_place=consolidatePlacements(placement_group['p'], cutoff)
-            if best_place:
-                reads=[x[0] for x in placement_group['nm']]
-                for read in reads:
-                    if read[-1] in all_placements_reads.keys():
-                        all_placements_reads[read[-1]][read[:-2]] = best_place
+        try: # Search for the idx of the like field ratio and classification 
+            lwr_idx=placement_hash['fields'].index('like_weight_ratio')
+            c_idx=placement_hash['fields'].index('classification')
+        except ValueError: # If they can't be found, FAAAAAIIILL.
+            raise Exception('Fatal error in refpkg, classification or like_weight_ratio fields missing')
+            
+        for placement_group in placement_hash['placements']: # for each placement
+            best_place=consolidatePlacements(placement_group['p'], cutoff, lwr_idx, c_idx) # Find the best placement
+            if best_place: # if it exists
+                reads=[x[0] for x in placement_group['nm']] # make a list of the reads assigned to that placement
+                for read in reads: # and for each read
+                    if read[-1] in all_placements_reads.keys(): # Sort each read by its file index and enter it into hash, with the best placement as the value
+                        all_placements_reads[read[-1]][read[:-2]] = best_place 
                     else:
                         all_placements_reads[read[-1]] = {read[:-2]: best_place}
-            else:
+            else: # If the best placement doesn't exist, fail.
                 raise Exception("Programming Error: Failed to retrieve taxonomy for %s"  % (' '.join([x[0] for x in placement_group['nm']])))
 
         return all_placements_reads

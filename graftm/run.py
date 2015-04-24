@@ -235,7 +235,7 @@ class Run:
 
         # Set the output directory if not specified and create that directory
         if not hasattr(self.args, 'output_directory'):
-            self.args.output_directory = "GraftM_proc"
+            self.args.output_directory = "GraftM_output"
         self.hk.make_working_directory(self.args.output_directory,
                                        self.args.force)
 

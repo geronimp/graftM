@@ -3,6 +3,7 @@
 import subprocess
 import os
 import json
+import shutil
 
 import graftm.getaxnseq 
 
@@ -57,6 +58,7 @@ class Create:
     def compile(self, base, refpkg, hmm, contents): 
         gpkg = base + ".gpkg"
         if os.path.isdir(gpkg): 
+            self.the_trash += [base+'.hmm', base+'.refpkg']
             self.cleanup(self.the_trash)
             raise Exception("Detected gpkg with name %s" % (gpkg))
             
@@ -69,7 +71,10 @@ class Create:
         
     def cleanup(self, the_trashcan):
         for every_piece_of_junk in the_trashcan:
-            os.remove(every_piece_of_junk)
+            if os.path.isdir(every_piece_of_junk):
+                shutil.rmtree(every_piece_of_junk)
+            else:
+                os.remove(every_piece_of_junk)
         
     def main(self, hmm, alignment, sequences, taxonomy): 
         base=os.path.basename(sequences).split('.')[0]

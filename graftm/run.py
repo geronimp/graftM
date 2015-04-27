@@ -12,6 +12,7 @@ from graftm.summarise import Stats_And_Summary
 from graftm.pplacer import Pplacer
 from graftm.krona_from_community_profiles import KronaBuilder
 from graftm.assembler import TaxoGroup
+from graftm.create import Create
 
 class Run:
     ### Functions that make up pipelines in GraftM
@@ -221,7 +222,7 @@ class Run:
                                                   ______|
           _- - _                         ________|      |_____/
            - -            -             |        |____/_
-           - _     --->  -   --->   ____|
+           - _     >>>>  -   >>>>   ____|
           - _-  -         -             |      ______
              - _                        |_____|
            -                                  |______
@@ -345,13 +346,30 @@ class Run:
 
           _- - _               ___            __/
            -                  /___\____      /\/
-           - _     --->   ___/       \_\     \/
+           - _     >>>>   ___/       \_\     \/
           - _-           /_/            \    /
              - _        /                \__/
                        /
 '''
         self.tg.main(self.args)
 
+    def create(self):
+        print '''
+                            CREATE
+
+                   Joel Boyd, Ben Woodcroft
+                     
+                                                    /                
+              >a                                   /
+              -------------                       /            
+              >b                        |        |
+              --------          >>>     |  GPKG  |
+              >c                        |________|
+              ----------     
+'''
+        self.hk.checkCreatePrerequisites()
+        Create().main(self.args.hmm, self.args.alignment, self.args.sequences, self.args.taxonomy)
+    
     def main(self):
 
         if self.args.subparser_name == 'graft':
@@ -360,7 +378,8 @@ class Run:
         elif self.args.subparser_name == 'assemble':
             self.assemble()
 
-
         elif self.args.subparser_name == 'manage':
             self.manage()
 
+        elif self.args.subparser_name == 'create':
+            self.create()

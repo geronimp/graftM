@@ -1,19 +1,22 @@
+#!/usr/bin/env python
+
 import re
 import sets
 
 import pprint as pp
 
-def main(arguments):
-    seqinfo = arguments.output_seqinfo
-    if seqinfo is None: seqinfo = "Seqinfo.csv"
-    output_tax = arguments.output_taxonomy
-    if output_tax is None: output_tax = "Tax.csv"
-    Tax_n_Seq_builder().gg_taxonomy_builder(arguments.taxonomy, output_tax, seqinfo)
+def main(base, taxonomy_file):
+    seqinfo = base+"_seqinfo.csv"
+    output_tax = base+"_taxonomy.csv"
+    
+    Getaxnseq().gg_taxonomy_builder(taxonomy_file, output_tax, seqinfo)
+    
+    return seqinfo, output_tax
 
-class Tax_n_Seq_builder:
+class Getaxnseq:
 
     def __init__(self): pass
-
+    
     def taxonomy_line(self, level_index, taxon_array):
         if level_index == 0:
             return '%s,Root,kingdom,%s,%s,%s,,,,,,' % (taxon_array[level_index], taxon_array[level_index], 'Root', taxon_array[level_index])

@@ -42,7 +42,7 @@ COMMUNITY PROFILING
     graft       -       Search for and phylogenetically classify reads associated with a single
                         marker gene, and construct a community profile
                         e.g. usage:
-                            graftM graft --forward <READS> --graftm_package <GRAFTM_PACKAGE>
+                            $ graftM graft --forward <READS> --graftm_package <GRAFTM_PACKAGE>
 
 =====================================================================================================
 UTILITIES
@@ -52,7 +52,19 @@ UTILITIES
                             * --return - Return reads assigned to a given lineage
 
                         e.g. usage:
-                            graftM manage --profile <GRAFTM_PROFILE> --seqs <LINEAGE>
+                            $ graftM manage --profile <GRAFTM_PROFILE> --seqs <LINEAGE>
+                            
+    create      -       Create a graftM package of from aligned sequences or a hmm, and a 
+                        taxonomy file.
+                        
+                        e.g. usage
+                            > With aligned sequences:
+                            $ graftm create --sequences <SEQUENCES> --alignment <ALIGNED_SEQUENCES> 
+                              --taxonomy <GREENGENES_FORMAT_TAXONOMY>
+                            
+                            > With a HMM:
+                            $ graftm create --sequences <SEQUENCES> --hmm <HMM> 
+                              --taxonomy <GREENGENES_FORMAT_TAXONOMY>
 
 =====================================================================================================
 """ % (graftm.__version__)
@@ -111,6 +123,16 @@ if __name__ == '__main__':
     manage_parser.add_argument('--non_cumil', action = 'store_true', help='Return all sequences exclusively at this taxonomic rank (i.e. do not return sequences that were classified to a higher resolution, default=False)', default=False)
     manage_parser.add_argument('--file', action = 'store_true', help='Lineages are in a file, one entry per line (default=False)', default=False)
 
+    # Create - Create a gpkg from a sequence database and a hmm
+    manage_parser = subparsers.add_parser('create',
+                                            description='Create GraftM packages from sequences, and a hmm',
+                                            epilog='Joel Boyd, Ben Woodcroft')
+    manage_parser.add_argument('--sequences', metavar='sequences', help='Sequences with which to create a graftM package', required=True)
+    manage_parser.add_argument('--hmm', metavar='HMM', help='HMM used to create the GraftM package (default: Build HMM from sequences.)', default=None)
+    manage_parser.add_argument('--taxonomy', metavar='tax', help='File containing two tab separated columns, the first with the ID of the sequences, the second with the taxonomy string (GreenGenes taxonomy file format).', required=True)
+    manage_parser.add_argument('--alignment', metavar='aln', help='An alignment with which to build a custom HMM.', default=None)
+
+    
     # Pathfinder - Find a whole pathway of genes in a metagenome/transcriptome.
     pathfinder_parser = subparsers.add_parser('pathfinder',
                                               description='Find a whole pathway of genes in a metagenome/transcriptome.',

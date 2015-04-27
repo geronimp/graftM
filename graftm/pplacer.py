@@ -84,9 +84,10 @@ class Pplacer:
 
         # Merge the alignments so they can all be placed at once.
         alias_hash = self.alignment_merger(summary_dict['seqs_list'], files.comb_aln_fa())
-
+        
         # Run pplacer on merged file
         jplace = self.pplacer(files.jplace_output_path(), args.output_directory, files.comb_aln_fa(), args.threads, files.command_log_path())
+        Messenger().message("Placements finished")
 
         stop = timeit.default_timer() # stop placement timer and log
         summary_dict['place_t'] = str( int(round((stop - start), 0)) )
@@ -95,10 +96,11 @@ class Pplacer:
         summary_dict = self.jplace_split(jplace, alias_hash, summary_dict)
         
         #Read the json of refpkg
+        Messenger().message("Reading classifications")
         tax_descr=json.load(open(self.refpkg+'/CONTENTS.json'))['files']['taxonomy']
         classifications=Classify(os.path.join(self.refpkg,tax_descr)).assignPlacement(jplace, args.placements_cutoff, 'reads')
-        self.hk.delete([jplace])
-
+        Messenger().message("Reads classified.")
+        
         # If the reverse pipe has been specified, run the comparisons between the two pipelines. If not then just return.
 
         for idx, base in enumerate(summary_dict['base_list']):

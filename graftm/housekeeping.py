@@ -150,7 +150,26 @@ class HouseKeeping:
             return sequence_file_list, input_file_format
         else:
             return
-        
+    
+    def checkCreatePrerequisites(self):
+        uninstalled_programs = []
+        prerequisites = {'taxit': 'https://github.com/fhcrc/taxtastic',
+                         'FastTree': 'http://www.microbesonline.org/fasttree/',
+                         'seqmagick': 'https://github.com/fhcrc/seqmagick'}
+        for program in prerequisites.keys():
+            if self.which(program):
+                pass
+            else:
+                uninstalled_programs.append(program)
+        if uninstalled_programs:
+            msg = "The following programs must be installed to run GraftM create\n"
+            Messenger().header(msg)
+            for program in uninstalled_programs:
+                l = '\t%s\t%s' % (program, prerequisites[program])
+                print l
+                msg += l+"\n"
+            exit(0)
+            
     def set_attributes(self, args):
         # Check the presence of all prerequisite programs needed for GraftM
         uninstalled_programs = []

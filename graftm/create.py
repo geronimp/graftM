@@ -105,7 +105,7 @@ class Create:
         # Compile the gpkg
         Messenger().message("Compiling gpkg")
         contents = {"aln_hmm": hmm,
-                    "search_hmm": hmm,
+                    "search_hmm": [hmm],
                     "rfpkg": refpkg,
                     "TC":False}
         self.compile(base, refpkg, hmm, contents)

@@ -58,7 +58,10 @@ class Stats_And_Summary:
                         tot_18S += [str(hash[base]['euk_contamination'] + hash[base]['forward']['euk_uniq'])]
                     except:
                         tot_18S += ['N/A']
-                    cont_18S += [str(summary_hash[base]['euk_contamination'])]
+                    try:
+                        cont_18S += [str(summary_hash[base]['euk_contamination'])]
+                    except:
+                        cont_18S += ['N/A']
                     search_step += [hash[base]['search_t']]
                     aln_step += [hash[base]['aln_t']]
                     euk_check_step += [hash[base]['euk_check_t']]

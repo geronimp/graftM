@@ -218,11 +218,12 @@ class Run:
                                 GRAFT
         
                        Joel Boyd, Ben Woodcroft
+                       
                                                          __/__
-                                                  ______|
+                                                  ______|\\
           _- - _                         ________|      |_____/
            - -            -             |        |____/_
-           - _     >>>>  -   >>>>   ____|
+           - _     >>>>  -   >>>>   ____|          \\
           - _-  -         -             |      ______
              - _                        |_____|
            -                                  |______
@@ -331,7 +332,15 @@ class Run:
                             MANAGE
 
                    Joel Boyd, Ben Woodcroft
-
+                                  _
+                         __/__/    |        >a
+                  ______| \\        |->>>>   --------
+         ________|      |_____/   _|        >b
+        |        |____/_                    -------
+    ____|
+        |      ______
+        |_____|
+              |______
 '''
 
         if self.args.seq:
@@ -342,7 +351,6 @@ class Run:
                            ASSEMBLE
 
                    Joel Boyd, Ben Woodcroft
-
 
           _- - _               ___            __/
            -                  /___\____      /\/
@@ -378,8 +386,8 @@ class Run:
         elif self.args.subparser_name == 'assemble':
             self.assemble()
 
-        elif self.args.subparser_name == 'manage':
-            self.manage()
+        elif self.args.subparser_name == 'extract':
+            self.extract()
 
         elif self.args.subparser_name == 'create':
             self.create()

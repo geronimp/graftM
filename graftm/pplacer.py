@@ -99,6 +99,7 @@ class Pplacer:
         Messenger().message("Reading classifications")
         tax_descr=json.load(open(self.refpkg+'/CONTENTS.json'))['files']['taxonomy']
         classifications=Classify(os.path.join(self.refpkg,tax_descr)).assignPlacement(jplace, args.placements_cutoff, 'reads')
+        self.hk.delete([jplace])# Remove combined split, not really useful
         Messenger().message("Reads classified.")
         
         # If the reverse pipe has been specified, run the comparisons between the two pipelines. If not then just return.
@@ -146,6 +147,7 @@ class Compare:
             reverse_read_names = set(hash['reverse']['reads'].keys())
         # Report and record the crossover
         crossover_hits = [x for x in forward_read_names if x in reverse_read_names]
+
         hash['crossover'] = crossover_hits
         # Check if there are reads to continue with.
         if len(crossover_hits) > 0:

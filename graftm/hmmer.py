@@ -26,6 +26,7 @@ class Hmmer:
             reverse = []
             forward = []
             records = list(SeqIO.parse(open(input_path), 'fasta'))
+
             # Split the reads into reverse and forward lists
             for record in records:
 
@@ -80,7 +81,6 @@ class Hmmer:
         ## Run a hmmsearch on the input_path raw reads, and return the name
         ## of the output table. Keep a log of the commands.
         # Define the base hmmsearch command.
-       
         output_table_list = []
         tee = ' | tee'
         hmm_number = len(self.search_hmm)
@@ -153,7 +153,7 @@ class Hmmer:
 
     def hmmtable_reader(self, hmmtable):
         hash = {}
-        seen = []
+        seen = {}
         
         def buildHash(hit, program):
             if program == 'hmmsearch':
@@ -181,21 +181,17 @@ class Hmmer:
                              'alito':hit[7]}
             return read_hash
         
-        for table in hmmtable:
-            orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
+        for idx, table in enumerate(hmmtable):
             program = [line.rstrip().split()[2] for line in open(table).readlines() if line.startswith('# Program:')][0]
             for hit in [line.rstrip().split() for line in open(table).readlines() if not line.startswith('#')]:                
-                regex_match = orfm_regex.match(hit[0])
-                if regex_match is not None:
-                    read_name = regex_match.groups(0)[0]
-                if regex_match is None:
-                    read_name = hit[0]
-
-                if read_name in seen: # If the read name has been seen before.. 
-                    hash[read_name].append(buildHash(hit, program))
+                read_name = hit[0]
+                
+                if read_name in seen.keys(): # If the read name has been seen before.. 
+                    if seen[read_name]==idx:
+                        hash[read_name].append(buildHash(hit, program))
                 else:
                     hash[read_name]=[buildHash(hit, program)]
-                seen.append(read_name)
+                seen[read_name]=idx
         return hash
         
     def check_euk_contamination(self, output_path, euk_free_output_path, input_path, run_stats, input_file_format, check_total_euks, threads, evalue, raw_reads, base, cmd_log, euk_hmm):
@@ -283,27 +279,31 @@ class Hmmer:
         ## process hmmsearch/nhmmer results into a list of titles to <base_filename>_readnames.txt
         run_stats['reads'] = self.hmmtable_reader(input_path)
         count=sum([len(x) for x in run_stats['reads'].values()])
+
         # See if there are any reads in there reverse direction. Store True if so for later reference
+
         try:
-            for key in run_stats['reads']:
-                if '-' in [x['hmmfrom'] for x in run_stats['reads'][key]]:
-                    run_stats['rev_true'] = True
-                    break
-                else:
-                    run_stats['rev_true'] = False
+            if any([x for x in sum(run_stats['reads'].values(), []) if x['direction'] =='-']):
+                run_stats['rev_true'] = True
+            else:
+                run_stats['rev_true'] = False
         except KeyError:
             run_stats['rev_true'] = False
 
         if count > 0: # Return if there weren't any reads found
             Messenger().message('%s read(s) found' % (count))
         else: # Otherwise, report the number of reads
-            Messenger().message('%s reads found, cannot continue with %s' % (len(run_stats['reads'].keys()), os.path.basename(input_path).split('.')[0]))
+            Messenger().message('%s reads found, cannot continue with no information' % (len(run_stats['reads'].keys())))
             return run_stats, False
         # And write the read names to output
+        orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
         with open(output_path, 'w') as output_file:
             for record in run_stats['reads'].keys():
-                output_file.write(record + '\n')
-
+                regex_match = orfm_regex.match(record)
+                if regex_match is not None:
+                    output_file.write(regex_match.groups(0)[0]+'\n')
+                if regex_match is None:
+                    output_file.write(record+'\n')
         return run_stats, output_path
 
     def extract_from_raw_reads(self, output_path, input_path, raw_sequences_path, input_file_format, cmd_log, read_stats):
@@ -313,6 +313,7 @@ class Hmmer:
             # Extra function that reads in hits and splits out the regions 
             # (usually in a contig) that hit the HMM as a distinct match.
             reads=SeqIO.to_dict(SeqIO.parse(reads_path, "fasta"))
+            new_stats={}
             out_reads={}
             for key,item in stats.iteritems():
                 if len(item)>1:
@@ -320,17 +321,20 @@ class Hmmer:
                     for entry in item:
                         f=int(entry['alifrom'])-1
                         t=int(entry['alito'])-1
-                        out_reads[key + '_%s' % str(counter)]=str(reads[key].seq)[f:t]
+                        read_rename=key + '_%s' % str(counter)
+                        out_reads[read_rename]=str(reads[key].seq)[f:t]
+                        new_stats[read_rename]=entry
                         counter+=1
                 else:
                     out_reads[key]=str(reads[key].seq)
+                    new_stats[key]=item[0]
             out_path = reads_path[:-3]+'_split.fa'
             with open(out_path, 'w') as out:
                 for key,item in out_reads.iteritems():
                     out.write(">%s\n" % (str(key)))
                     out.write("%s\n" % (str(item)))
-            return out_path
-           
+                    
+            return new_stats, out_path
         # Run fxtract to obtain reads form original sequence file
         fxtract_cmd = "fxtract -H -X -f %s " % input_path
         if input_file_format == FORMAT_FASTA:
@@ -343,12 +347,15 @@ class Hmmer:
             subprocess.check_call(cmd, shell=True)
         else:
             raise Exception("Programming error")
-        
         # Check if there are reads that need splitting
-        if any([x for x in read_stats if len(x)>1]):
-            output_path=extractMultipleHits(output_path, read_stats) 
-        
-        return output_path
+        if any([x for x in read_stats if len(read_stats[x])>1]):
+            read_stats, output_path=extractMultipleHits(output_path, read_stats) 
+        else:
+            new_stats={}
+            for key, item in read_stats.iteritems():
+                new_stats[key]=item[0]
+            read_stats=new_stats
+        return read_stats, output_path
 
     def check_read_length(self, reads, pipe):
         lengths = []
@@ -364,6 +371,7 @@ class Hmmer:
         if pipe == "P":
             return (sum(lengths) / float(len(lengths)))/3
         elif pipe =="D":
+
             return sum(lengths) / float(len(lengths))
         
     def alignment_correcter(self, alignment_file_list, output_file_name):
@@ -454,12 +462,12 @@ class Hmmer:
         if not hit_readnames:
             return False, run_stats
         # Extract the hits form the original raw read file
-        hit_reads = self.extract_from_raw_reads(files.fa_output_path(base),
-                                                hit_readnames,
-                                                raw_reads,
-                                                input_file_format,
-                                                files.command_log_path(),
-                                                run_stats['reads'])
+        run_stats['reads'], hit_reads = self.extract_from_raw_reads(files.fa_output_path(base),
+                                                                    hit_readnames,
+                                                                    raw_reads,
+                                                                    input_file_format,
+                                                                    files.command_log_path(),
+                                                                    run_stats['reads'])
         
         if args.input_sequence_type == 'nucleotide':
             # Extract the orfs of these reads that hit the original search
@@ -507,13 +515,12 @@ class Hmmer:
             return False, run_stats
 
         # And extract them from the original sequence file
-        hit_reads = self.extract_from_raw_reads(files.fa_output_path(base),
-                                                hit_readnames,
-                                                raw_reads,
-                                                input_file_format,
-                                                files.command_log_path(),
-                                                run_stats['reads'])
-        
+        run_stats['reads'], hit_reads = self.extract_from_raw_reads(files.fa_output_path(base),
+                                                                    hit_readnames,
+                                                                    raw_reads,
+                                                                    input_file_format,
+                                                                    files.command_log_path(),
+                                                                    run_stats['reads'])
         # Define the read length
         run_stats['read_length'] = self.check_read_length(hit_reads, "D")
 

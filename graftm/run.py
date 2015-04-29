@@ -189,7 +189,9 @@ class Run:
                                     self.gmf.orf_hmmsearch_output_path(base),
                                     self.gmf.hmmsearch_output_path(base),
                                     self.gmf.orf_output_path(base),
-                                    self.gmf.comb_aln_fa()])
+                                    self.gmf.comb_aln_fa(),
+                                    self.gmf.output_for_path(base),
+                                    self.gmf.output_rev_path(base)])
             elif not summary_dict['reverse_pipe']:
                 self.gmf = GraftMFiles(base, self.args.output_directory, False)
                 self.hk.delete([self.gmf.for_aln_path(base),
@@ -206,7 +208,9 @@ class Run:
                                 self.gmf.hmmsearch_output_path(base),
                                 self.gmf.orf_hmmsearch_output_path(base),
                                 self.gmf.orf_output_path(base),
-                                self.gmf.comb_aln_fa()])
+                                self.gmf.comb_aln_fa(),                                    
+                                self.gmf.output_for_path(base),
+                                self.gmf.output_rev_path(base)])
 
         Messenger().message('Done, thanks for using graftM!\n')
 

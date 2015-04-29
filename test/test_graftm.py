@@ -25,13 +25,44 @@ import unittest
 import subprocess
 import os.path
 import tempdir
+import tempfile
 from pandas.util.testing import assertRaises
 
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
 
 class Tests(unittest.TestCase):
-
+    
+    def test_finds_reverse_complement(self):
+        reads='''>NS500333:16:H16F3BGXX:1:11101:11211:1402 1:N:0:CGAGGCTG+CTCCTTAC
+GAGCGCAACCCTCGCCTTCAGTTGCCATCAGGTTTGGCTGGGCACTCTGAAGGAACTGCCGGTGACAAGCCGGAGGAAGGTGGGGATGACGTCAAGTCCTCATGGCCCTTATGTCCTGGGCTACACACGTGCTACAATGGCGGTGACAGTG
+>NS500333:16:H16F3BGXX:1:11101:25587:3521 1:N:0:CGAGGCTG+CTCCTTAC
+GAGTCCGGACCGTGTCTCAGTTCCGGTGTGGCTGGTCGTCCTCTCAGACCAGCTACGGATTGTCGCCTTGGTGAGCCATTACCTCACCAACTAGCTAATCCGACTTTGGCTCATCCAATAGCGCGAGGTCTTACGATCCCCCGCTTTCT'''
+        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+            fasta.write(reads)
+            fasta.flush()
+            data = fasta.name
+            package = os.path.join(path_to_data,'16S.gpkg')
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --forward %s --graftm_package %s --output_directory %s --force --search_only' % (path_to_script,
+                                                                                                                 data,
+                                                                                                                 package,
+                                                                                                                 tmp)
+                subprocess.check_output(cmd, shell=True)
+                sample_name = os.path.basename(fasta.name[:-3])
+                alnFile = os.path.join(tmp, sample_name, '%s_hits.aln.fa' % sample_name)
+                expected_aln = '''>NS500333:16:H16F3BGXX:1:11101:11211:1402
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GAGCGCAACCCTCGCCTTCAGTTGCCATCATGGGCACTCTGAAGGAACTGCCGGTGACAAGCCGGAGGAAGGTGGGGATGACGTCAAGTCCTCATGGCCCTTATGTCCTGGGCTACACACGTGCTACAATGGCGGT---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+>NS500333:16:H16F3BGXX:1:11101:25587:3521
+-----------------------------------------------------------------------------------------------------------------------------------------------------------GCGCTATTGGATGAGCCAAAGTCGGATTAGCTAGTTGGTGAGGTAATGGCTCACCAAGGCGACAATCCGTAGCTGGTCTGAGAGGACGACCAGCCACACCGGAACTGAGACACGGTCCGGACTC--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+'''.split()
+                count = 0
+                for line in open(alnFile):
+                    self.assertEqual(expected_aln[count], line.strip())
+                    count += 1
+                self.assertEqual(count, len(open(alnFile).readlines()))
+                
+                
     def test_multiple_hits_on_same_contig(self):
         contig = '''>AB11.qc.1_(paired)_contig_360665
 CTGCTGGCGAAACTCGGCTGAAAAAAAGAGATAAAAAGTAGGCACGAATGCCTACTCTGT
@@ -463,7 +494,7 @@ TGCTTTTACCTTGTTG'''
             # otu table should not exist
             self.assertFalse(os.path.isfile(otuTableFile))
 
-            expected = ['>example_partial_mcra',
+            expected = ['>example_partial_mcra_1_1_8',
                         '-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GGVGFTQYATAAYTDDILDNNVYYNIDYINDKYKTDNKVKATLEVVKDIATESTIYGIETYEKFPTALEDHFGXSQRATVLAAAAGVXSALATANANAGLSGWYLSMYLHKEAWGRLGFFGYDLQDQCGATNVLSYQGDEGLPDELRGPNYPNYAM----------------------------------------------------------------------']
             count = 0
             alnFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_hits.aln.fa')
@@ -486,7 +517,7 @@ TGCTTTTACCTTGTTG'''
             # otu table should not exist
             self.assertFalse(os.path.isfile(otuTableFile))
 
-            expected = ['>example_partial_mcra',
+            expected = ['>example_partial_mcra_1_1_8',
                         '-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GGVGFTQYATAAYTDDILDNNVYYNIDYINDKYKTDNKVKATLEVVKDIATESTIYGIETYEKFPTALEDHFGXSQRATVLAAAAGVXSALATANANAGLSGWYLSMYLHKEAWGRLGFFGYDLQDQCGATNVLSYQGDEGLPDELRGPNYPNYAM----------------------------------------------------------------------']
             count = 0
             alnFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_hits.aln.fa')
@@ -524,7 +555,7 @@ TGCTTTTACCTTGTTG'''
             # otu table should not exist
             self.assertFalse(os.path.isfile(otuTableFile))
 
-            expected = ['>example_partial_mcra',
+            expected = ['>example_partial_mcra_1_1_8',
                         '-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GGVGFTQYATAAYTDDILDNNVYYNIDYINDKYKTDNKVKATLEVVKDIATESTIYGIETYEKFPTALEDHFGXSQRATVLAAAAGVXSALATANANAGLSGWYLSMYLHKEAWGRLGFFGYDLQDQCGATNVLSYQGDEGLPDELRGPNYPNYAM----------------------------------------------------------------------']
             count = 0
             alnFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_hits.aln.fa')

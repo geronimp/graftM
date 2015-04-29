@@ -76,7 +76,7 @@ class Create:
             else:
                 os.remove(every_piece_of_junk)
         
-    def main(self, hmm, alignment, sequences, taxonomy): 
+    def main(self, hmm, alignment, sequences, taxonomy, tree, tree_stats): 
         base=os.path.basename(sequences).split('.')[0]
         
         Messenger().header("Building gpkg for %s" % base)
@@ -90,8 +90,12 @@ class Create:
         output_alignment = self.alignSequences(hmm, sequences, base)
         
         # Build the tree
-        Messenger().message("Building tree")
-        log_file, tre_file = self.buildTree(output_alignment, base)
+        if tree and tree_stats:
+            log_file = tree_stats
+            tre_file = tree
+        else:
+            Messenger().message("Building tree")
+            log_file, tre_file = self.buildTree(output_alignment, base)
         
         # Create tax and seqinfo .csv files
         Messenger().message("Building seqinfo and taxonomy file")

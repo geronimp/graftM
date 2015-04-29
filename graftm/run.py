@@ -379,8 +379,14 @@ class Run:
               >c                        |________|
               ----------     
 '''
+        if self.args.tree and not self.args.tree_stats:
+            Messenger().header("If --tree is specified, then --tree_stats must also be specified")
+            exit(1)
+        if self.args.tree_stats and not self.args.tree:
+            Messenger().header("If --tree_stats is specified, then --tree must also be specified")
+            exit(1)
         self.hk.checkCreatePrerequisites()
-        Create().main(self.args.hmm, self.args.alignment, self.args.sequences, self.args.taxonomy)
+        Create().main(self.args.hmm, self.args.alignment, self.args.sequences, self.args.taxonomy, self.args.tree, self.args.tree_stats)
     
     def main(self):
 

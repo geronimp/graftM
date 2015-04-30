@@ -2,6 +2,7 @@ import subprocess
 import os
 import re
 import timeit
+import itertools
 
 from Bio import SeqIO
 from collections import OrderedDict
@@ -43,13 +44,15 @@ class Hmmer:
             # Write reverse complement and forward reads to files
             with open(for_file, 'w') as for_aln:
                 for record in forward:
-                    for_aln.write('>'+record.id+'\n')
-                    for_aln.write(str(record.seq)+'\n')
+                    if record.id and record.seq: # Check that both the sequence and ID fields are there, HMMalign will segfault if not.
+                        for_aln.write('>'+record.id+'\n')
+                        for_aln.write(str(record.seq)+'\n')
 
             with open(rev_file, 'w') as rev_aln:
                 for record in reverse:
-                    rev_aln.write('>'+record.id+'\n')
-                    rev_aln.write(str(record.seq.reverse_complement())+'\n')
+                    if record.id and record.seq:
+                        rev_aln.write('>'+record.id+'\n')
+                        rev_aln.write(str(record.seq.reverse_complement())+'\n')
 
             # HMMalign and convert to fasta format
             cmd = 'hmmalign --trim -o %s %s %s 2>/dev/null; seqmagick convert %s %s' % (for_sto_file,
@@ -64,6 +67,7 @@ class Hmmer:
                                                                                         rev_file,
                                                                                         rev_sto_file,
                                                                                         rev_conv_file)
+            
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(cmd, shell=True)
 
@@ -309,6 +313,23 @@ class Hmmer:
     def extract_from_raw_reads(self, output_path, input_path, raw_sequences_path, input_file_format, cmd_log, read_stats):
         # Use the readnames specified to extract from the original sequence
         # file to a fasta formatted file.
+        
+        def removeOverlaps(item):
+            for a, b in itertools.combinations(item, 2):
+                fromto_a=[int(a['alifrom']),int(a['alito'])]
+                fromto_b=[int(b['alifrom']),int(b['alito'])]
+                range_a=range(min(fromto_a), max(fromto_a))
+                range_b=range(min(fromto_b), max(fromto_b))
+                intersect_length=len(set(range_a).intersection(set(range_b)))
+                if intersect_length > 0:
+                    if range_a > range_b:
+                        item.remove(b)
+                    elif a in item:
+                        item.remove(a)
+                else:
+                    continue
+            return item
+                    
         def extractMultipleHits(reads_path, stats):
             # Extra function that reads in hits and splits out the regions 
             # (usually in a contig) that hit the HMM as a distinct match.
@@ -316,6 +337,7 @@ class Hmmer:
             new_stats={}
             out_reads={}
             for key,item in stats.iteritems():
+                item=removeOverlaps(item)
                 if len(item)>1:
                     counter=0
                     for entry in item:

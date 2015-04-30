@@ -77,9 +77,10 @@ class Hmmer:
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(cmd, shell=True)
 
-    def hmmsearch(self, output_path, input_path, input_file_format, seq_type, threads, eval, cmd_log):
-        ## Run a hmmsearch on the input_path raw reads, and return the name
-        ## of the output table. Keep a log of the commands.
+    def hmmsearch(self, output_path, input_path, input_file_format, seq_type, threads, eval, min_orf_length, restrict_read_length, cmd_log):
+        '''Run a hmmsearch on the input_path raw reads, and return the name
+        of the output table. Keep a log of the commands.'''
+        
         # Define the base hmmsearch command.
         output_table_list = []
         tee = ' | tee'
@@ -93,14 +94,15 @@ class Hmmer:
                 elif idx + 1 < hmm_number:
                     tee += " >(hmmsearch %s --cpu %s --domtblout %s %s - >/dev/null) " % (eval, threads, out, hmm)
                 else:
-                    raise Exception("Programming Error.") 
+                    raise Exception("Programming Error.")
         elif hmm_number == 1:
             tee = ' | hmmsearch %s --cpu %s --domtblout %s %s - >/dev/null' % (eval, threads, output_path, self.search_hmm[0])
             output_table_list.append(output_path)
         
         # Choose an input to this base command based off the file format found.
         if seq_type == 'nucleotide': # If the input is nucleotide sequence
-            cmd = 'orfm %s %s ' % (input_path, tee) # call orfs on it, and search it
+            orfm_cmdline = self.orfm_command_line(min_orf_length, restrict_read_length)
+            cmd = '%s %s %s ' % (orfm_cmdline, input_path, tee)
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(["/bin/bash", "-c", cmd])
         
@@ -393,10 +395,19 @@ class Hmmer:
             for fasta_id, fasta_seq in corrected_sequences.iteritems():
                 output_file.write(fasta_id)
                 output_file.write(fasta_seq)
+                
+    def orfm_command_line(self, min_orf_length, restrict_read_length):
+        '''Return a string to run OrfM with, assuming sequences are incoming on
+        stdin'''
+        if restrict_read_length:
+            orfm_arg_l = " -l %d" % restrict_read_length
+        else:
+            orfm_arg_l = ''
+        
+        return 'orfm -m %d %s ' % (min_orf_length, orfm_arg_l) # call orfs on it, and search it
 
-    def extract_orfs(self, input_path, raw_orf_path, hmmsearch_out_path, orf_titles_path, orf_out_path, cmd_log):
-        ## Extract only the orfs that hit the hmm, return sequence file with
-        ## within.
+    def extract_orfs(self, input_path, raw_orf_path, hmmsearch_out_path, orf_titles_path, min_orf_length, restrict_read_length, orf_out_path, cmd_log):
+        'Extract only the orfs that hit the hmm, return sequence file with within.'
         
         # Build the command
         output_table_list = []
@@ -416,7 +427,8 @@ class Hmmer:
             tee = ' | hmmsearch --domtblout %s %s - >/dev/null' % (hmmsearch_out_path, self.search_hmm[0])
             output_table_list.append(hmmsearch_out_path)
         # Call orfs on the sequences
-        cmd = 'orfm %s > %s' % (input_path, raw_orf_path)
+        orfm_cmd = self.orfm_command_line(min_orf_length, restrict_read_length)
+        cmd = '%s %s > %s' % (orfm_cmd, input_path, raw_orf_path)
         self.hk.add_cmd(cmd_log, cmd)
         subprocess.check_call(cmd, shell=True)
 
@@ -453,6 +465,8 @@ class Hmmer:
                                    args.input_sequence_type,
                                    args.threads,
                                    args.eval,
+                                   args.min_orf_length,
+                                   args.restrict_read_length,
                                    files.command_log_path())
         # Processing the output table to give you the readnames of the hits
         run_stats, hit_readnames = self.csv_to_titles(files.readnames_output_path(base),
@@ -475,6 +489,8 @@ class Hmmer:
                                          files.orf_output_path(base),
                                          files.orf_hmmsearch_output_path(base),
                                          files.orf_titles_output_path(base),
+                                         args.min_orf_length,
+                                         args.restrict_read_length,
                                          files.orf_fasta_output_path(base),
                                          files.command_log_path())
         elif args.input_sequence_type == 'protein':

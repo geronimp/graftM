@@ -35,7 +35,7 @@ class Run:
                 self.p = Pplacer(self.args.reference_package)
 
     def protein_pipeline(self, base, summary_dict, sequence_file, direction):
-        ## The main pipeline for GraftM searching for protein sequence
+        'The main pipeline for GraftM finding protein hits in the input sequence'
 
         # Set a variable to store the run statistics, to be added later to
         # the summary_dict
@@ -77,7 +77,7 @@ class Run:
         return summary_dict, hit_aligned_reads
 
     def dna_pipeline(self, base, summary_dict, sequence_file, direction):
-        ## The main pipeline for GraftM searching for DNA sequence
+        'The main pipeline for GraftM searching for DNA sequence'
 
         # Set a variable to store the run statistics, to be added later to
         # the summary_dict

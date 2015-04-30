@@ -21,6 +21,7 @@ class Create:
         
         cmd = "hmmbuild --dna %s %s >/dev/null" % (hmm, alignment) # Build the command to build the hmm
         subprocess.check_call(cmd, shell=True) # Call the command
+        self.the_trash.append(hmm)
         return hmm
     
     def alignSequences(self, hmm, sequences, base): 
@@ -56,18 +57,11 @@ class Create:
         return refpkg
     
     def compile(self, base, refpkg, hmm, contents): 
-        gpkg = base + ".gpkg"
-        if os.path.isdir(gpkg): 
-            self.the_trash += [base+'.hmm', base+'.refpkg']
-            self.cleanup(self.the_trash)
-            raise Exception("Detected gpkg with name %s" % (gpkg))
-            
+        gpkg = self.gpkg_name(base)
         os.mkdir(gpkg)
         os.rename(refpkg, os.path.join(gpkg, refpkg))
-        os.rename(hmm, os.path.join(gpkg, hmm))
+        shutil.copyfile(hmm, os.path.join(gpkg, os.path.basename(hmm)))
         json.dump(contents, open(os.path.join(gpkg, 'CONTENTS.json'), 'w'))
-        
-        return
         
     def cleanup(self, the_trashcan):
         for every_piece_of_junk in the_trashcan:
@@ -75,9 +69,21 @@ class Create:
                 shutil.rmtree(every_piece_of_junk)
             else:
                 os.remove(every_piece_of_junk)
+                
+    def gpkg_name(self, base):
+        return "%s.gpkg" % base
         
-    def main(self, hmm, alignment, sequences, taxonomy, tree, tree_stats): 
+    def main(self, hmm, 
+             alignment, 
+             sequences, 
+             taxonomy, 
+             tree, 
+             tree_stats,
+             sequences_aligned_to_hmm): 
         base=os.path.basename(sequences).split('.')[0]
+        
+        if os.path.isdir(self.gpkg_name(base)):
+            raise Exception("Output directory %s already exists!" % self.gpkg_name(base))    
         
         Messenger().header("Building gpkg for %s" % base)
         # Initially, build the HMM if one is not provided.
@@ -85,9 +91,13 @@ class Create:
             Messenger().message("Building HMM")
             hmm=self.buildHmm(alignment, base)
         
-        # Use the hmm to re-align the sequences.
-        Messenger().message("Aligning sequences to HMM")
-        output_alignment = self.alignSequences(hmm, sequences, base)
+        # Use the hmm to re-align the sequences if necessary
+        if sequences_aligned_to_hmm:
+            Messenger().message("Using sequences previously aligned to HMM: %s" % sequences_aligned_to_hmm)
+            output_alignment = sequences_aligned_to_hmm
+        else:
+            Messenger().message("Aligning sequences to HMM")
+            output_alignment = self.alignSequences(hmm, sequences, base)
         
         # Build the tree
         if tree and tree_stats:

@@ -130,6 +130,7 @@ if __name__ == '__main__':
     create_parser.add_argument('--taxonomy', metavar='tax', help='File containing two tab separated columns, the first with the ID of the sequences, the second with the taxonomy string (GreenGenes taxonomy file format).', required=True)
     
     create_parser.add_argument('--hmm', metavar='HMM', help='HMM used to create the GraftM package (default: Build HMM from sequences.)', default=None)
+    create_parser.add_argument('--sequences_aligned_to_hmm', metavar='sequences', help='Aligned FASTA format of sequences previously aligned to HMM (default: generate alignment.)', default=None)
     create_parser.add_argument('--tree', metavar='tree', help='Newick-format tree file made from the alignment (default: make tree from alignment.)', default=None)
     create_parser.add_argument('--tree_stats', metavar='tree_stats', help='Stats/log file created with tree creation (default: generate during tree creation.)', default=None)
 

@@ -385,8 +385,12 @@ class Run:
         if self.args.tree_stats and not self.args.tree:
             Messenger().header("If --tree_stats is specified, then --tree must also be specified")
             exit(1)
+        if self.args.sequences_aligned_to_hmm and not self.args.hmm:
+            Messenger().header("If --sequences_aligned_to_hmm is specified, then --hmm must also be specified")
+            exit(1)
+            
         self.hk.checkCreatePrerequisites()
-        Create().main(self.args.hmm, self.args.alignment, self.args.sequences, self.args.taxonomy, self.args.tree, self.args.tree_stats)
+        Create().main(self.args.hmm, self.args.alignment, self.args.sequences, self.args.taxonomy, self.args.tree, self.args.tree_stats, self.args.sequences_aligned_to_hmm)
     
     def main(self):
 

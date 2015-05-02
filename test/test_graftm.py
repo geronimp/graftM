@@ -26,7 +26,6 @@ import subprocess
 import os.path
 import tempdir
 import tempfile
-from pandas.util.testing import assertRaises
 
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
@@ -536,7 +535,7 @@ TGCTTTTACCTTGTTG'''
                                                                                                data,
                                                                                                hmm, hmm2,
                                                                                                tmp)
-            with assertRaises(subprocess.CalledProcessError):
+            with self.assertRaises(subprocess.CalledProcessError):
                 subprocess.check_output(cmd, shell=True)
 
     def test_search_only_specifying_multiple_hmms_and_aln_file(self):

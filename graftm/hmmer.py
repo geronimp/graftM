@@ -362,7 +362,6 @@ class Hmmer:
     def check_read_length(self, reads, pipe):
         lengths = []
         record_list = []
-        suffixes = ['_for', '_rev']
         # First check if the reverse pipe is happening, because the read names
         # are different.
 
@@ -373,7 +372,6 @@ class Hmmer:
         if pipe == "P":
             return (sum(lengths) / float(len(lengths)))/3
         elif pipe =="D":
-
             return sum(lengths) / float(len(lengths))
         
     def alignment_correcter(self, alignment_file_list, output_file_name):

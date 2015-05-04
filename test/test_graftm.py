@@ -664,6 +664,42 @@ CCGACTGCCCTTGAAGACCACTTCG
                     count += 1
                 self.assertEqual(count, len(open(alnFile).readlines()))
 
+    def test_fastq_gz_input(self):
+        reads='''@NS500333:16:H16F3BGXX:1:11101:11211:1402 1:N:0:CGAGGCTG+CTCCTTAC
+GAGCGCAACCCTCGCCTTCAGTTGCCATCAGGTTTGGCTGGGCACTCTGAAGGAACTGCCGGTGACAAGCCGGAGGAAGGTGGGGATGACGTCAAGTCCTCATGGCCCTTATGTCCTGGGCTACACACGTGCTACAATGGCGGTGACAGTG
++
+DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+@NS500333:16:H16F3BGXX:1:11101:25587:3521 1:N:0:CGAGGCTG+CTCCTTAC
+GAGTCCGGACCGTGTCTCAGTTCCGGTGTGGCTGGTCGTCCTCTCAGACCAGCTACGGATTGTCGCCTTGGTGAGCCATTACCTCACCAACTAGCTAATCCGACTTTGGCTCATCCAATAGCGCGAGGTCTTACGATCCCCCGCTTTCT
++
+DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+'''
+        with tempfile.NamedTemporaryFile(suffix='.fq.gz') as fastq_gz:
+            with tempfile.NamedTemporaryFile(suffix='.fq') as fastq:
+                fastq.write(reads)
+                fastq.flush()
+                cmd = 'gzip -c %s > %s' % (fastq.name, fastq_gz.name)
+                subprocess.check_output(cmd, shell=True)
+                data = fastq_gz.name
+                package = os.path.join(path_to_data,'16S.gpkg')
+                with tempdir.TempDir() as tmp:
+                    cmd = '%s graft --forward %s --graftm_package %s --output_directory %s --force --search_only' % (path_to_script,
+                                                                                                                     data,
+                                                                                                                     package,
+                                                                                                                     tmp)
+                    subprocess.check_output(cmd, shell=True)
+                    sample_name = os.path.basename(fastq.name[:-3])
+                    alnFile = os.path.join(tmp, sample_name, '%s_hits.aln.fa' % sample_name)
+                    expected_aln = '''>NS500333:16:H16F3BGXX:1:11101:11211:1402
+    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GAGCGCAACCCTCGCCTTCAGTTGCCATCATGGGCACTCTGAAGGAACTGCCGGTGACAAGCCGGAGGAAGGTGGGGATGACGTCAAGTCCTCATGGCCCTTATGTCCTGGGCTACACACGTGCTACAATGGCGGT---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    >NS500333:16:H16F3BGXX:1:11101:25587:3521
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------GCGCTATTGGATGAGCCAAAGTCGGATTAGCTAGTTGGTGAGGTAATGGCTCACCAAGGCGACAATCCGTAGCTGGTCTGAGAGGACGACCAGCCACACCGGAACTGAGACACGGTCCGGACTC--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    '''.split()
+                    count = 0
+                    for line in open(alnFile):
+                        self.assertEqual(expected_aln[count], line.strip())
+                        count += 1
+                    self.assertEqual(count, len(open(alnFile).readlines()))
         
     
 if __name__ == "__main__":

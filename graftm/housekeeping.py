@@ -5,6 +5,7 @@ import subprocess
 import json
 
 from graftm.messenger import Messenger
+import tempfile
 
 # Constants - don't change them evar.
 FORMAT_FASTA = 'FORMAT_FASTA'
@@ -38,40 +39,37 @@ class HouseKeeping:
             raise Exception("Unable to guess file format of sequence file: %s" % sequence_file_path)
 
     def guess_sequence_type(self, input_file, file_format):
-        ## Guess the type of input sequence provided to graftM (i.e. nucleotide
-        ## or amino acid) and return
+        '''Guess the type of input sequence provided to graftM (i.e. nucleotide
+        or amino acid) and return'''
+        
         # Define expected residues for each sequence type
         aas = set(['P','V','L','I','M','F','Y','W','H','K','R','Q','N','E','D','S'])
         nas = set(['A', 'T', 'G', 'C', 'N', 'U'])
-        # If its Gzipped and fastqm make a small sample of the sequence to be 
+        
+        # If its Gzipped and fastq make a small sample of the sequence to be 
         # read
         if file_format == FORMAT_FASTQ_GZ:
-            filename = "/tmp/graftM_sample_"+str(random.randint(1, 100))+".fa"
-            #unzip, and head into tmp_file, read tmp file, and return sequence type
-            cmd = "head -n2 <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s 2> /dev/null) 2> /dev/null ) > %s " % (input_file, filename)
-            subprocess.check_call(["/bin/bash", "-c", cmd])
-            input_file = filename
-        
-        with open(input_file) as in_file:
-            head = [next(in_file).rstrip() for x in xrange(2)]
-            for nucl in set(head[1]):
-                if nucl not in nas and nucl in aas:
-                    return 'protein'
-                elif nucl not in nas and nucl not in aas:
-                    raise Exception(Messenger().error_message('Encountered unexpected character when attempting to guess sequence type: %s' % (nucl)))
-                else:
-                    continue
             return 'nucleotide'
+        else:
+            with open(input_file) as in_file:
+                head = [next(in_file).rstrip() for x in xrange(2)]
+                for nucl in set(head[1]):
+                    if nucl not in nas and nucl in aas:
+                        return 'protein'
+                    elif nucl not in nas and nucl not in aas:
+                        raise Exception(Messenger().error_message('Encountered unexpected character when attempting to guess sequence type: %s' % (nucl)))
+                    else:
+                        continue
+                return 'nucleotide'
 
     def set_euk_hmm(self, args):
-        ## Set the hmm used by graftM to cross check for euks.
+        'Set the hmm used by graftM to cross check for euks.'
         if hasattr(args, 'euk_hmm_file'):
             pass
         elif not hasattr(args, 'euk_hmm_file'):
             setattr(args, 'euk_hmm_file', os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'constants', '18S.hmm'))
         else:
-            raise Exception('Programming Error: setting the euk HMM')    
-        return
+            raise Exception('Programming Error: setting the euk HMM')
     
     def setpipe(self, hmm):
         ## Read in the hmm file and return the evalue trusted cutoff and the

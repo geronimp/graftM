@@ -344,7 +344,7 @@ class Hmmer:
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(cmd, shell=True)
         elif input_file_format == FORMAT_FASTQ_GZ:
-            cmd = "%s %s | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > %s" % (fxtract_cmd, raw_sequences_path, output_path)
+            cmd = "%s -z %s | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > %s" % (fxtract_cmd, raw_sequences_path, output_path)
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(cmd, shell=True)
         else:

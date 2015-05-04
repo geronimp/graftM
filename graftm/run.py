@@ -224,10 +224,10 @@ class Run:
                        Joel Boyd, Ben Woodcroft
                        
                                                          __/__
-                                                  ______|\\
+                                                  ______|
           _- - _                         ________|      |_____/
            - -            -             |        |____/_
-           - _     >>>>  -   >>>>   ____|          \\
+           - _     >>>>  -   >>>>   ____|          
           - _-  -         -             |      ______
              - _                        |_____|
            -                                  |______
@@ -338,7 +338,7 @@ class Run:
                    Joel Boyd, Ben Woodcroft
                                   _
                          __/__/    |        >a
-                  ______| \\        |->>>>   --------
+                  ______|          |->>>>   --------
          ________|      |_____/   _|        >b
         |        |____/_                    -------
     ____|
@@ -380,7 +380,7 @@ class Run:
               ----------     
 '''
         self.hk.checkCreatePrerequisites()
-        Create().main(self.args.hmm, self.args.alignment, self.args.sequences, self.args.taxonomy)
+        Create().main(self.args.hmm, self.args.alignment, self.args.sequences, self.args.taxonomy, self.args.output)
     
     def main(self):
 

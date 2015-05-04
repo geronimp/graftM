@@ -32,7 +32,7 @@ path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
 
 class Tests(unittest.TestCase):
-    
+
     def test_finds_reverse_complement(self):
         reads='''>NS500333:16:H16F3BGXX:1:11101:11211:1402 1:N:0:CGAGGCTG+CTCCTTAC
 GAGCGCAACCCTCGCCTTCAGTTGCCATCAGGTTTGGCTGGGCACTCTGAAGGAACTGCCGGTGACAAGCCGGAGGAAGGTGGGGATGACGTCAAGTCCTCATGGCCCTTATGTCCTGGGCTACACACGTGCTACAATGGCGGTGACAGTG
@@ -61,8 +61,8 @@ GAGTCCGGACCGTGTCTCAGTTCCGGTGTGGCTGGTCGTCCTCTCAGACCAGCTACGGATTGTCGCCTTGGTGAGCCATT
                     self.assertEqual(expected_aln[count], line.strip())
                     count += 1
                 self.assertEqual(count, len(open(alnFile).readlines()))
-                
-                
+
+
     def test_multiple_hits_on_same_contig(self):
         contig = '''>AB11.qc.1_(paired)_contig_360665
 CTGCTGGCGAAACTCGGCTGAAAAAAAGAGATAAAAAGTAGGCACGAATGCCTACTCTGT
@@ -94,7 +94,7 @@ TGCTTTTACCTTGTTG'''
 
                 otuTableFile = os.path.join(tmp, sample_name, '%s_count_table.txt' % sample_name)
                 lines = ("\t".join(('#ID',sample_name,'ConsensusLineage')),
-                         "\t".join(('0','2','mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                         "\t".join(('0','2','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                          )
                 count = 0
                 for line in open(otuTableFile):
@@ -125,8 +125,8 @@ TGCTTTTACCTTGTTG'''
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, '16S_1' , '16S_1_count_table.txt')
             lines = ("\t".join(('#ID','16S_1','ConsensusLineage')),
-                     "\t".join(('0','1','k__Bacteria; p__Gemmatimonadetes; c__Gemm-1')),
-                     "\t".join(('1','1','k__Bacteria; p__Bacteroidetes; c__Flavobacteriia; o__Flavobacteriales; f__Flavobacteriaceae')),
+                     "\t".join(('0','1','Root; k__Bacteria; p__Bacteroidetes; c__Flavobacteriia; o__Flavobacteriales; f__Flavobacteriaceae')),
+                     "\t".join(('1','1','Root; k__Bacteria; p__Gemmatimonadetes; c__Gemm-1')),
                     )
             count = 0
             for line in open(otuTableFile):
@@ -149,8 +149,8 @@ TGCTTTTACCTTGTTG'''
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, '16S_1' , '16S_1_count_table.txt')
             lines = ("\t".join(('#ID','16S_1','ConsensusLineage')),
-                     "\t".join(('0','1','k__Bacteria; p__Gemmatimonadetes; c__Gemm-1')),
-                     "\t".join(('1','1','k__Bacteria; p__Bacteroidetes; c__Flavobacteriia; o__Flavobacteriales; f__Flavobacteriaceae')),
+                     "\t".join(('0','1','Root; k__Bacteria; p__Bacteroidetes; c__Flavobacteriia; o__Flavobacteriales; f__Flavobacteriaceae')),
+                     "\t".join(('1','1','Root; k__Bacteria; p__Gemmatimonadetes; c__Gemm-1')),
                     )
             count = 0
             for line in open(otuTableFile):
@@ -174,8 +174,8 @@ TGCTTTTACCTTGTTG'''
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, '16S_1' , '16S_1_count_table.txt')
             lines = ("\t".join(('#ID','16S_1','ConsensusLineage')),
-                     "\t".join(('0','1','k__Bacteria; p__Gemmatimonadetes; c__Gemm-1')),
-                     "\t".join(('1','1','k__Bacteria; p__Bacteroidetes; c__Flavobacteriia; o__Flavobacteriales; f__Flavobacteriaceae')),
+                     "\t".join(('0','1','Root; k__Bacteria; p__Bacteroidetes; c__Flavobacteriia; o__Flavobacteriales; f__Flavobacteriaceae')),
+                     "\t".join(('1','1','Root; k__Bacteria; p__Gemmatimonadetes; c__Gemm-1')),
                     )
             count = 0
             for line in open(otuTableFile):
@@ -185,8 +185,8 @@ TGCTTTTACCTTGTTG'''
 
             otuTableFile = os.path.join(tmp, '16S_2' , '16S_2_count_table.txt')
             lines = ("\t".join(('#ID','16S_2','ConsensusLineage')),
-                     "\t".join(('0','1','k__Bacteria; p__Gemmatimonadetes; c__Gemm-1')),
-                     "\t".join(('1','1','k__Bacteria; p__Bacteroidetes; c__Flavobacteriia; o__Flavobacteriales; f__Flavobacteriaceae')),
+                     "\t".join(('0','1','Root; k__Bacteria; p__Bacteroidetes; c__Flavobacteriia; o__Flavobacteriales; f__Flavobacteriaceae')),
+                     "\t".join(('1','1','Root; k__Bacteria; p__Gemmatimonadetes; c__Gemm-1')),
                     )
             count = 0
             for line in open(otuTableFile):
@@ -211,8 +211,8 @@ TGCTTTTACCTTGTTG'''
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, '16S_1' , '16S_1_count_table.txt')
             lines = ("\t".join(('#ID','16S_1','ConsensusLineage')),
-                     "\t".join(('0','1','k__Bacteria; p__Gemmatimonadetes; c__Gemm-1')),
-                     "\t".join(('1','1','k__Bacteria; p__Bacteroidetes; c__Flavobacteriia; o__Flavobacteriales; f__Flavobacteriaceae')),
+                     "\t".join(('0','1','Root; k__Bacteria; p__Bacteroidetes; c__Flavobacteriia; o__Flavobacteriales; f__Flavobacteriaceae')),
+                     "\t".join(('1','1','Root; k__Bacteria; p__Gemmatimonadetes; c__Gemm-1')),
                     )
             count = 0
             for line in open(otuTableFile):
@@ -222,8 +222,8 @@ TGCTTTTACCTTGTTG'''
 
             otuTableFile = os.path.join(tmp, '16S_2' , '16S_2_count_table.txt')
             lines = ("\t".join(('#ID','16S_2','ConsensusLineage')),
-                     "\t".join(('0','1','k__Bacteria; p__Gemmatimonadetes; c__Gemm-1')),
-                     "\t".join(('1','1','k__Bacteria; p__Bacteroidetes; c__Flavobacteriia; o__Flavobacteriales; f__Flavobacteriaceae')),
+                     "\t".join(('0','1','Root; k__Bacteria; p__Bacteroidetes; c__Flavobacteriia; o__Flavobacteriales; f__Flavobacteriaceae')),
+                     "\t".join(('1','1','Root; k__Bacteria; p__Gemmatimonadetes; c__Gemm-1')),
                     )
             count = 0
             for line in open(otuTableFile):
@@ -250,7 +250,7 @@ TGCTTTTACCTTGTTG'''
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_count_table.txt')
             lines = ("\t".join(('#ID','mcrA_1','ConsensusLineage')),
-                     "\t".join(('0','1','mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
             for line in open(otuTableFile):
@@ -272,7 +272,7 @@ TGCTTTTACCTTGTTG'''
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_count_table.txt')
             lines = ("\t".join(('#ID','mcrA_1','ConsensusLineage')),
-                     "\t".join(('0','1','mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
             for line in open(otuTableFile):
@@ -297,7 +297,7 @@ TGCTTTTACCTTGTTG'''
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_count_table.txt')
             lines = ("\t".join(('#ID','mcrA_1','ConsensusLineage')),
-                     "\t".join(('0','1','mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
             for line in open(otuTableFile):
@@ -308,7 +308,7 @@ TGCTTTTACCTTGTTG'''
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'mcrA_2', 'mcrA_2_count_table.txt')
             lines = ("\t".join(('#ID','mcrA_2','ConsensusLineage')),
-                     "\t".join(('0','1','mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
             for line in open(otuTableFile):
@@ -335,7 +335,7 @@ TGCTTTTACCTTGTTG'''
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_count_table.txt')
             lines = ("\t".join(('#ID','mcrA_1','ConsensusLineage')),
-                     "\t".join(('0','1','mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
             for line in open(otuTableFile):
@@ -346,7 +346,7 @@ TGCTTTTACCTTGTTG'''
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'mcrA_2', 'mcrA_2_count_table.txt')
             lines = ("\t".join(('#ID','mcrA_2','ConsensusLineage')),
-                     "\t".join(('0','1','mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
             for line in open(otuTableFile):
@@ -374,7 +374,7 @@ TGCTTTTACCTTGTTG'''
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_count_table.txt')
             lines = ("\t".join(('#ID','mcrA_1','ConsensusLineage')),
-                     "\t".join(('0','1','mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
             for line in open(otuTableFile):
@@ -385,7 +385,7 @@ TGCTTTTACCTTGTTG'''
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'mcrA_2', 'mcrA_2_count_table.txt')
             lines = ("\t".join(('#ID','mcrA_2','ConsensusLineage')),
-                     "\t".join(('0','1','mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
             for line in open(otuTableFile):
@@ -411,7 +411,7 @@ TGCTTTTACCTTGTTG'''
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_count_table.txt')
             lines = ("\t".join(('#ID','mcrA_1','ConsensusLineage')),
-                     "\t".join(('0','1','mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
             for line in open(otuTableFile):
@@ -422,7 +422,7 @@ TGCTTTTACCTTGTTG'''
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'mcrA_2', 'mcrA_2_count_table.txt')
             lines = ("\t".join(('#ID','mcrA_2','ConsensusLineage')),
-                     "\t".join(('0','1','mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
             for line in open(otuTableFile):
@@ -447,7 +447,7 @@ TGCTTTTACCTTGTTG'''
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_count_table.txt')
             lines = ("\t".join(('#ID','mcrA_1','ConsensusLineage')),
-                     "\t".join(('0','1','mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
             for line in open(otuTableFile):
@@ -469,7 +469,7 @@ TGCTTTTACCTTGTTG'''
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_count_table.txt')
             lines = ("\t".join(('#ID','mcrA_1','ConsensusLineage')),
-                     "\t".join(('0','1','mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
             for line in open(otuTableFile):

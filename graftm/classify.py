@@ -48,6 +48,7 @@ class Classify:
                 confidence=placement[lwr_idx]
                 if placement[0] not in seen:
                     taxonomy_string=self.taxonomy[rank]
+
                     seen[rank]={'c':confidence,
                                 'p':taxonomy_string}
                 else:

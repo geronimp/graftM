@@ -26,7 +26,6 @@ import subprocess
 import os.path
 import tempdir
 import tempfile
-from pandas.util.testing import assertRaises
 
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
@@ -536,7 +535,7 @@ TGCTTTTACCTTGTTG'''
                                                                                                data,
                                                                                                hmm, hmm2,
                                                                                                tmp)
-            with assertRaises(subprocess.CalledProcessError):
+            with self.assertRaises(subprocess.CalledProcessError):
                 subprocess.check_output(cmd, shell=True)
 
     def test_search_only_specifying_multiple_hmms_and_aln_file(self):
@@ -563,6 +562,144 @@ TGCTTTTACCTTGTTG'''
                 self.assertEqual(expected[count], line.strip())
                 count += 1
             self.assertEqual(count, len(expected))
+
+    def test_min_orf_length(self):
+        fa = '''>long_partial_mcra_488bp
+GGTGGTGTCGGATTCACACAGTATGCTACAGCTGCATACACTGATGATATCCTCGACAATAACGTGTACT
+ACAACATCGACTACATCAACGACAAGTACAAGGGTGCTGCAAACATCGGCACGGACAACAAGGTAAAAGC
+AACTCTCGAAGTCGTAAAGGACATCGCAACCGAGTCCACAATCTATGGTATCGAGACCTACGAGAAGTTC
+CCGACTGCCCTTGAAGACCACTTCGGTGGNTCCCAGAGAGCAACCGTGCTCGCAGCCGCAGCCGGTGTCN
+GTAGTGCCCTCGCAACCGCAAACGCAAATGCCGGTCTCTCTGGCTGGTACCTCTCCATGTACCTGCACAA
+GGAAGCATGGGGCCGTCTCGGCTTCTTCGGATACGACCTGCAGGACCAGTGCGGTGCCACAAATGTTCTG
+TCCTACCAGGGCGACGAAGGTCTCCCAGACGAACTCCGTGGTCCAAACTATCCTAACTACGCAATGAA
+>short_partial_mcra_235bp
+GGTGGTGTCGGATTCACACAGTATGCTACAGCTGCATACACTGATGATATCCTCGACAATAACGTGTACT
+ACAACATCGACTACATCAACGACAAGTACAAGGGTGCTGCAAACATCGGCACGGACAACAAGGTAAAAGC
+AACTCTCGAAGTCGTAAAGGACATCGCAACCGAGTCCACAATCTATGGTATCGAGACCTACGAGAAGTTC
+CCGACTGCCCTTGAAGACCACTTCG
+'''
+        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+            fasta.write(fa)
+            fasta.flush()
+
+            data = fasta.name
+            package = os.path.join(path_to_data,'mcrA.gpkg')
+
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --min_orf_length 300 --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+                                                                                                   data,
+                                                                                                   package,
+                                                                                                   tmp)
+                subprocess.check_output(cmd, shell=True)
+                sample_name = os.path.basename(fasta.name[:-3])
+
+                otuTableFile = os.path.join(tmp, sample_name, '%s_count_table.txt' % sample_name)
+                lines = ("\t".join(('#ID',sample_name,'ConsensusLineage')),
+                         "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                         )
+                count = 0
+                for line in open(otuTableFile):
+                    self.assertEqual(lines[count], line.strip())
+                    count += 1
+                self.assertEqual(count, 2)
+
+                alnFile = os.path.join(tmp, sample_name, '%s_hits.aln.fa' % sample_name)
+                expected_aln = '''>long_partial_mcra_488bp_1_1_3
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GGVGFTQYATAAYTDDILDNNVYYNIDYINDKYKTDNKVKATLEVVKDIATESTIYGIETYEKFPTALEDHFGXSQRATVLAAAAGVXSALATANANAGLSGWYLSMYLHKEAWGRLGFFGYDLQDQCGATNVLSYQGDEGLPDELRGPNYPNYAM----------------------------------------------------------------------
+'''.split()
+                count = 0
+                for line in open(alnFile):
+                    self.assertEqual(expected_aln[count], line.strip())
+                    count += 1
+                self.assertEqual(count, len(open(alnFile).readlines()))
+
+    def test_restrict_read_length(self):
+        fa = '''>long_partial_mcra_488bp_with_As
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+GGTGGTGTCGGATTCACACAGTATGCTACAGCTGCATACACTGATGATATCCTCGACAATAACGTGTACT
+ACAACATCGACTACATCAACGACAAGTACAAGGGTGCTGCAAACATCGGCACGGACAACAAGGTAAAAGC
+AACTCTCGAAGTCGTAAAGGACATCGCAACCGAGTCCACAATCTATGGTATCGAGACCTACGAGAAGTTC
+CCGACTGCCCTTGAAGACCACTTCGGTGGNTCCCAGAGAGCAACCGTGCTCGCAGCCGCAGCCGGTGTCN
+GTAGTGCCCTCGCAACCGCAAACGCAAATGCCGGTCTCTCTGGCTGGTACCTCTCCATGTACCTGCACAA
+GGAAGCATGGGGCCGTCTCGGCTTCTTCGGATACGACCTGCAGGACCAGTGCGGTGCCACAAATGTTCTG
+TCCTACCAGGGCGACGAAGGTCTCCCAGACGAACTCCGTGGTCCAAACTATCCTAACTACGCAATGAA
+>short_partial_mcra_235bp
+GGTGGTGTCGGATTCACACAGTATGCTACAGCTGCATACACTGATGATATCCTCGACAATAACGTGTACT
+ACAACATCGACTACATCAACGACAAGTACAAGGGTGCTGCAAACATCGGCACGGACAACAAGGTAAAAGC
+AACTCTCGAAGTCGTAAAGGACATCGCAACCGAGTCCACAATCTATGGTATCGAGACCTACGAGAAGTTC
+CCGACTGCCCTTGAAGACCACTTCG
+'''
+        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+            fasta.write(fa)
+            fasta.flush()
+
+            data = fasta.name
+            package = os.path.join(path_to_data,'mcrA.gpkg')
+
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --restrict_read_length 102 --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+                                                                                                   data,
+                                                                                                   package,
+                                                                                                   tmp)
+                subprocess.check_output(cmd, shell=True)
+                sample_name = os.path.basename(fasta.name[:-3])
+
+                otuTableFile = os.path.join(tmp, sample_name, '%s_count_table.txt' % sample_name)
+                lines = ("\t".join(('#ID',sample_name,'ConsensusLineage')),
+                         "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae')),
+                         )
+                count = 0
+                for line in open(otuTableFile):
+                    self.assertEqual(lines[count], line.strip())
+                    count += 1
+                self.assertEqual(count, len(lines))
+
+                alnFile = os.path.join(tmp, sample_name, '%s_hits.aln.fa' % sample_name)
+                expected_aln = '''>short_partial_mcra_235bp_1_1_1
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GGVGFTQYATAAYTDDILDNNVYYNIDYINDKYK------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+'''.split()
+                count = 0
+                for line in open(alnFile):
+                    self.assertEqual(expected_aln[count], line.strip())
+                    count += 1
+                self.assertEqual(count, len(open(alnFile).readlines()))
+
+    def test_fastq_gz_input(self):
+        reads='''@NS500333:16:H16F3BGXX:1:11101:11211:1402 1:N:0:CGAGGCTG+CTCCTTAC
+GAGCGCAACCCTCGCCTTCAGTTGCCATCAGGTTTGGCTGGGCACTCTGAAGGAACTGCCGGTGACAAGCCGGAGGAAGGTGGGGATGACGTCAAGTCCTCATGGCCCTTATGTCCTGGGCTACACACGTGCTACAATGGCGGTGACAGTG
++
+DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+@NS500333:16:H16F3BGXX:1:11101:25587:3521 1:N:0:CGAGGCTG+CTCCTTAC
+GAGTCCGGACCGTGTCTCAGTTCCGGTGTGGCTGGTCGTCCTCTCAGACCAGCTACGGATTGTCGCCTTGGTGAGCCATTACCTCACCAACTAGCTAATCCGACTTTGGCTCATCCAATAGCGCGAGGTCTTACGATCCCCCGCTTTCT
++
+DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+'''
+        with tempfile.NamedTemporaryFile(suffix='.fq.gz') as fastq_gz:
+            with tempfile.NamedTemporaryFile(suffix='.fq') as fastq:
+                fastq.write(reads)
+                fastq.flush()
+                cmd = 'gzip -c %s > %s' % (fastq.name, fastq_gz.name)
+                subprocess.check_output(cmd, shell=True)
+                data = fastq_gz.name
+                package = os.path.join(path_to_data,'16S.gpkg')
+                with tempdir.TempDir() as tmp:
+                    cmd = '%s graft --forward %s --graftm_package %s --output_directory %s --force --search_only' % (path_to_script,
+                                                                                                                     data,
+                                                                                                                     package,
+                                                                                                                     tmp)
+                    subprocess.check_output(cmd, shell=True)
+                    sample_name = os.path.basename(fastq_gz.name[:-6])
+                    alnFile = os.path.join(tmp, sample_name, '%s_hits.aln.fa' % sample_name)
+                    expected_aln = '''>NS500333:16:H16F3BGXX:1:11101:11211:1402
+    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GAGCGCAACCCTCGCCTTCAGTTGCCATCATGGGCACTCTGAAGGAACTGCCGGTGACAAGCCGGAGGAAGGTGGGGATGACGTCAAGTCCTCATGGCCCTTATGTCCTGGGCTACACACGTGCTACAATGGCGGT---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    >NS500333:16:H16F3BGXX:1:11101:25587:3521
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------GCGCTATTGGATGAGCCAAAGTCGGATTAGCTAGTTGGTGAGGTAATGGCTCACCAAGGCGACAATCCGTAGCTGGTCTGAGAGGACGACCAGCCACACCGGAACTGAGACACGGTCCGGACTC--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    '''.split()
+                    count = 0
+                    for line in open(alnFile):
+                        self.assertEqual(expected_aln[count], line.strip())
+                        count += 1
+                    self.assertEqual(count, len(open(alnFile).readlines()))
 
 
 if __name__ == "__main__":

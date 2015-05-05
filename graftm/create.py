@@ -14,6 +14,7 @@ from graftm.hmmer import Hmmer
 from graftm.messenger import Messenger
 from graftm.housekeeping import HouseKeeping
 
+
 class Create:
     
     def __init__(self): 
@@ -58,7 +59,6 @@ class Create:
         #seq_format=self.hk.guess_sequence_input_file_format(alignment)
         return len(list(SeqIO.parse(open(alignment, 'r'), 'fasta'))[0].seq)
         
-        
     def alignSequences(self, hmm, sequences, base): 
         stockholm_alignment = base +".aln.sto" # Set an output path for the alignment
         fasta_alignment = base+".insertions.aln.fa" # Set an output path for the alignment
@@ -76,7 +76,6 @@ class Create:
     def buildTree(self, alignment, base, ptype): 
         log_file = base + ".tre.log"
         tre_file = base + ".tre"
-        
         if ptype == 'na': # If it's a nucleotide sequence
             cmd = "FastTreeMP -quiet -gtr -nt -log %s %s > %s 2>/dev/null" % (log_file, alignment, tre_file)
             subprocess.check_call(cmd, shell=True) # Call the command
@@ -92,10 +91,8 @@ class Create:
             refpkg = prefix + ".refpkg"
         else:
             refpkg = base + ".refpkg"
-        
         cmd = "taxit create --quiet -f %s -P %s -t %s -s %s -c -l  %s -T %s -i %s 1>/dev/null" % (aln_file, refpkg, tre, tre_log, base, tax, seq)
         subprocess.check_call(cmd, shell=True)
-        
         return refpkg
     
     def compile(self, base, refpkg, hmm, contents, prefix): 
@@ -103,19 +100,16 @@ class Create:
             gpkg = prefix + ".gpkg"
         else:
             gpkg = base + ".gpkg"
-            
         if os.path.isdir(gpkg): 
             self.the_trash += [base+'.hmm', base+'.refpkg']
             self.cleanup(self.the_trash)
             raise Exception("Detected gpkg with name %s" % (gpkg))
-            
         os.mkdir(gpkg)
         os.rename(refpkg, os.path.join(gpkg, refpkg))
         os.rename(hmm, os.path.join(gpkg, hmm))
         json.dump(contents, open(os.path.join(gpkg, 'CONTENTS.json'), 'w'))
-        
         return
-        
+
     def cleanup(self, the_trashcan):
         for every_piece_of_junk in the_trashcan:
             if os.path.isdir(every_piece_of_junk):
@@ -154,7 +148,6 @@ class Create:
             # Build the tree
             Messenger().message("Building tree")
             log_file, tre_file = self.buildTree(output_alignment, base, ptype)
-        
         else:
             if not tree:
                 raise Exception("No Tree provided for log file")
@@ -166,7 +159,6 @@ class Create:
                 log_file=log
             except:
                 raise Exception("No alignment file provided")
-            
         # Create tax and seqinfo .csv files
         Messenger().message("Building seqinfo and taxonomy file")
         seq, tax = graftm.getaxnseq.main(base, taxonomy)
@@ -175,6 +167,7 @@ class Create:
         # Create the reference package
         Messenger().message("Creating reference package")
         refpkg = self.callTaxitCreate(base, output_alignment, tre_file, log_file, tax, seq, prefix)
+
         
         # Compile the gpkg
         Messenger().message("Compiling gpkg")
@@ -183,6 +176,7 @@ class Create:
                     "rfpkg": refpkg,
                     "TC":False}
         self.compile(base, refpkg, hmm, contents, prefix)
+
 
         Messenger().message("Cleaning up")
         self.cleanup(self.the_trash)

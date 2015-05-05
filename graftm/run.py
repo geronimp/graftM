@@ -95,7 +95,8 @@ class Run:
                                                run_stats,
                                                base,
                                                self.input_file_format,
-                                               sequence_file)
+                                               sequence_file,
+                                               summary_dict['euks_checked'])
         
         if not hit_reads:
             return summary_dict, False
@@ -233,7 +234,7 @@ class Run:
            -                                  |______
             '''
         # Set up a dictionary that will record stats as the pipeline is running
-        summary_table = {'euks_checked': self.args.check_total_euks,
+        summary_table = {'euks_checked': self.args.euk_check,
                          'base_list': [],
                          'seqs_list': [],
                          'start_all': timeit.default_timer(),

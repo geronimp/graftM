@@ -89,7 +89,7 @@ if __name__ == '__main__':
     graft_parser.add_argument('--aln_hmm_file', help='Specify a single .hmm file to use in align step (default: the search_hmm_file if there is only 1)', default=argparse.SUPPRESS)
     graft_parser.add_argument('--euk_hmm_file', help='Specify the .hmm file to use in the check for euk contamination', default=argparse.SUPPRESS)
     graft_parser.add_argument('--search_only', action="store_true", help='Stop after reads have been identified (default=False)', default=False)
-    graft_parser.add_argument('--check_total_euks', action="store_true", help='Search whole sample for 18S and attempt to estimate relative percentage of Eukaryotes (default=False)', default=False)
+    graft_parser.add_argument('--euk_check', action="store_true", help='Search whole sample for 18S and attempt to estimate relative percentage of Eukaryotes (default=False)', default=False)
     graft_parser.add_argument('--output_directory', metavar='reference_package', type=str, help='Output directory name. If unspecified, this file will be named GraftM_proc', default=argparse.SUPPRESS)
 
 

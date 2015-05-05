@@ -198,43 +198,37 @@ class Hmmer:
                 seen[read_name]=idx
         return hash
         
-    def check_euk_contamination(self, output_path, euk_free_output_path, input_path, run_stats, input_file_format, check_total_euks, threads, evalue, raw_reads, base, cmd_log, euk_hmm):
+    def check_euk_contamination(self, output_path, euk_free_output_path, input_path, run_stats, input_file_format, threads, evalue, raw_reads, base, cmd_log, euk_hmm):
         reads_with_better_euk_hit = []
         reads_unique_to_eukaryotes = []
         cutoff = float(0.9*run_stats['read_length'])
         # do a nhmmer using a Euk specific hmm
-        if check_total_euks:
-            nhmmer_cmd = "nhmmer --cpu %s %s --tblout %s %s" % (threads, evalue, output_path, euk_hmm)
+        nhmmer_cmd = "nhmmer --cpu %s %s --tblout %s %s" % (threads, evalue, output_path, euk_hmm)
 
-            if input_file_format == FORMAT_FASTA:
-                cmd = "%s %s 2>&1 > /dev/null" % (nhmmer_cmd, raw_reads)
-                self.hk.add_cmd(cmd_log, cmd)
-                subprocess.check_call(cmd, shell = True)
-
-            elif input_file_format == FORMAT_FASTQ_GZ:
-                cmd = "%s <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s )) 2>&1 > /dev/null" %  (nhmmer_cmd, raw_reads)
-                self.hk.add_cmd(cmd_log, cmd)
-                subprocess.check_call(["/bin/bash", "-c", cmd])
-
-            else:
-                raise Exception(Messenger().error_message('Suffix on %s not familiar. Please submit an .fq.gz or .fa file\n' % (raw_reads)))
-
-        else:
-            cmd = "nhmmer --cpu %s %s --tblout %s %s %s 2>&1 > /dev/null " % (threads, evalue, output_path, euk_hmm, input_path)
+        if input_file_format == FORMAT_FASTA:
+            cmd = "%s %s 2>&1 > /dev/null" % (nhmmer_cmd, raw_reads)
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(cmd, shell = True)
+
+        elif input_file_format == FORMAT_FASTQ_GZ:
+            cmd = "%s <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s )) 2>&1 > /dev/null" %  (nhmmer_cmd, raw_reads)
+            self.hk.add_cmd(cmd_log, cmd)
+            subprocess.check_call(["/bin/bash", "-c", cmd])
+
+        else:
+            raise Exception(Messenger().error_message('Suffix on %s not familiar. Please submit an .fq.gz or .fa file\n' % (raw_reads)))
+
         # check for evalues that are lower, after eliminating hits with an
         # alignment length of < 90% the length of the whole read.
         euk_reads = self.hmmtable_reader([output_path])
         euk_crossover = [x for x in euk_reads.keys() if x in run_stats['reads'].keys()]
         reads_unique_to_eukaryotes = [x for x in euk_reads.keys() if x not in run_stats['reads'].keys()]
-
-        for entry in euk_crossover:
-
-            if euk_reads[entry]['bit'] >= float(run_stats['reads'][entry]['bit']):
-                if euk_reads[entry]['len'] > cutoff:
+        
+        for entry in euk_crossover: # for every cross match
+            if euk_reads[entry][0]['bit'] >= float(run_stats['reads'][entry]['bit']):
+                if euk_reads[entry][0]['len'] > cutoff:
                     reads_with_better_euk_hit.append(entry)
-                elif euk_reads[entry]['len'] < cutoff:
+                elif euk_reads[entry][0]['len'] < cutoff:
                     continue
             else:
                 continue
@@ -244,7 +238,7 @@ class Hmmer:
             Messenger().message("No contaminating eukaryotic reads detected in %s" % (os.path.basename(raw_reads)))
 
         else:
-            Messenger().message("Found %s read(s) that may be eukaryotic, continuing without it/them" % len(reads_with_better_euk_hit))
+            Messenger().message("Found %s read(s) that may be eukaryotic" % len(reads_with_better_euk_hit + reads_unique_to_eukaryotes))
 
         # Write a file with the Euk free reads.
         with open(euk_free_output_path, 'w') as euk_free_output:
@@ -252,13 +246,9 @@ class Hmmer:
                 if record.id not in reads_with_better_euk_hit:
                     SeqIO.write(record, euk_free_output, "fasta")
 
-        if check_total_euks:
-            run_stats['euk_uniq'] = len(reads_unique_to_eukaryotes)
-            run_stats['euk_contamination'] = len(reads_with_better_euk_hit)
+        run_stats['euk_uniq'] = len(reads_unique_to_eukaryotes)
+        run_stats['euk_contamination'] = len(reads_with_better_euk_hit)
 
-        else:
-            run_stats['euk_uniq'] = 'N/A'
-            run_stats['euk_contamination'] = len(reads_with_better_euk_hit)
 
         return run_stats, euk_free_output_path
 
@@ -515,7 +505,7 @@ class Hmmer:
         # Return hit reads, and summary hash
         return hit_orfs, run_stats
 
-    def d_search(self, files, args, run_stats, base, input_file_format, raw_reads):
+    def d_search(self, files, args, run_stats, base, input_file_format, raw_reads, euk_check):
         # Main pipe of search step in nucleotide pipeline:
         # recieves reads, and returns hits
         start = timeit.default_timer() # Start search timer
@@ -552,15 +542,13 @@ class Hmmer:
         start = timeit.default_timer()
 
         # Check for Eukarytoic contamination
-        Messenger().message("Checking for Eukaryotic contamination")
-        euk_check=False
         if euk_check:
+            Messenger().message("Checking for Eukaryotic contamination")
             run_stats, hit_reads = self.check_euk_contamination(files.euk_contam_path(base),
                                                                 files.euk_free_path(base),
                                                                 hit_reads,
                                                                 run_stats,
                                                                 input_file_format,
-                                                                args.check_total_euks,
                                                                 args.threads,
                                                                 args.eval,
                                                                 raw_reads,

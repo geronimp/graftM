@@ -402,7 +402,7 @@ class Hmmer:
         else:
             orfm_arg_l = ''
         
-        return 'orfm -m %d %s ' % (min_orf_length, orfm_arg_l) # call orfs on it, and search it
+        return 'orfm -m %d %s ' % (min_orf_length, orfm_arg_l)
 
     def extract_orfs(self, input_path, raw_orf_path, hmmsearch_out_path, orf_titles_path, min_orf_length, restrict_read_length, orf_out_path, cmd_log):
         'Extract only the orfs that hit the hmm, return sequence file with within.'

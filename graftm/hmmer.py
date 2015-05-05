@@ -4,6 +4,7 @@ import re
 import timeit
 import itertools
 
+
 from Bio import SeqIO
 from collections import OrderedDict
 
@@ -54,6 +55,7 @@ class Hmmer:
                         rev_aln.write('>'+record.id+'\n')
                         rev_aln.write(str(record.seq.reverse_complement())+'\n')
 
+
             # HMMalign and convert to fasta format
             cmd = 'hmmalign --trim -o %s %s %s 2>/dev/null; seqmagick convert %s %s' % (for_sto_file,
                                                                                         self.aln_hmm,
@@ -67,7 +69,7 @@ class Hmmer:
                                                                                         rev_file,
                                                                                         rev_sto_file,
                                                                                         rev_conv_file)
-            
+
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(cmd, shell=True)
 
@@ -81,9 +83,10 @@ class Hmmer:
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(cmd, shell=True)
 
-    def hmmsearch(self, output_path, input_path, input_file_format, seq_type, threads, eval, cmd_log):
-        ## Run a hmmsearch on the input_path raw reads, and return the name
-        ## of the output table. Keep a log of the commands.
+
+    def hmmsearch(self, output_path, input_path, input_file_format, seq_type, threads, eval, min_orf_length, restrict_read_length, cmd_log):
+        '''Run a hmmsearch on the input_path raw reads, and return the name
+        of the output table. Keep a log of the commands.'''
         # Define the base hmmsearch command.
         output_table_list = []
         tee = ' | tee'
@@ -98,13 +101,15 @@ class Hmmer:
                     tee += " >(hmmsearch %s --cpu %s --domtblout %s %s - >/dev/null) " % (eval, threads, out, hmm)
                 else:
                     raise Exception("Programming Error.") 
+
         elif hmm_number == 1:
             tee = ' | hmmsearch %s --cpu %s --domtblout %s %s - >/dev/null' % (eval, threads, output_path, self.search_hmm[0])
             output_table_list.append(output_path)
         
         # Choose an input to this base command based off the file format found.
         if seq_type == 'nucleotide': # If the input is nucleotide sequence
-            cmd = 'orfm %s %s ' % (input_path, tee) # call orfs on it, and search it
+            orfm_cmdline = self.orfm_command_line(min_orf_length, restrict_read_length)
+            cmd = '%s %s %s ' % (orfm_cmdline, input_path, tee)
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(["/bin/bash", "-c", cmd])
         
@@ -218,6 +223,7 @@ class Hmmer:
         else:
             raise Exception(Messenger().error_message('Suffix on %s not familiar. Please submit an .fq.gz or .fa file\n' % (raw_reads)))
 
+
         # check for evalues that are lower, after eliminating hits with an
         # alignment length of < 90% the length of the whole read.
         euk_reads = self.hmmtable_reader([output_path])
@@ -239,17 +245,13 @@ class Hmmer:
 
         else:
             Messenger().message("Found %s read(s) that may be eukaryotic" % len(reads_with_better_euk_hit + reads_unique_to_eukaryotes))
-
         # Write a file with the Euk free reads.
         with open(euk_free_output_path, 'w') as euk_free_output:
             for record in list(SeqIO.parse(open(input_path, 'r'), 'fasta')):
                 if record.id not in reads_with_better_euk_hit:
                     SeqIO.write(record, euk_free_output, "fasta")
-
         run_stats['euk_uniq'] = len(reads_unique_to_eukaryotes)
         run_stats['euk_contamination'] = len(reads_with_better_euk_hit)
-
-
         return run_stats, euk_free_output_path
 
     def filter_hmmsearch(self, output_hash, contents, args, input_file_format, cmd_log):
@@ -289,7 +291,6 @@ class Hmmer:
         else: # Otherwise, report the number of reads
             Messenger().message('%s reads found, cannot continue with no information' % (len(run_stats['reads'].keys())))
             return run_stats, False
-
         # And write the read names to output
         orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
         with open(output_path, 'w') as output_file:
@@ -303,8 +304,7 @@ class Hmmer:
 
     def extract_from_raw_reads(self, output_path, input_path, raw_sequences_path, input_file_format, cmd_log, read_stats):
         # Use the readnames specified to extract from the original sequence
-        # file to a fasta formatted file.
-        
+        # file to a fasta formatted file.        
         def removeOverlaps(item):
             for a, b in itertools.combinations(item, 2):
                 fromto_a=[int(a['alifrom']),int(a['alito'])]
@@ -329,6 +329,7 @@ class Hmmer:
             out_reads={}
             for key,item in stats.iteritems():
                 item=removeOverlaps(item)
+
                 if len(item)>1:
                     counter=0
                     for entry in item:
@@ -355,7 +356,7 @@ class Hmmer:
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(cmd, shell=True)
         elif input_file_format == FORMAT_FASTQ_GZ:
-            cmd = "%s %s | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > %s" % (fxtract_cmd, raw_sequences_path, output_path)
+            cmd = "%s -z %s | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > %s" % (fxtract_cmd, raw_sequences_path, output_path)
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(cmd, shell=True)
         else:
@@ -373,18 +374,14 @@ class Hmmer:
     def check_read_length(self, reads, pipe):
         lengths = []
         record_list = []
-        suffixes = ['_for', '_rev']
         # First check if the reverse pipe is happening, because the read names
         # are different.
-
         record_list += list(SeqIO.parse(open(reads, 'r'), 'fasta'))
-
         for record in record_list:
             lengths.append(len(record.seq))
         if pipe == "P":
             return (sum(lengths) / float(len(lengths)))/3
         elif pipe =="D":
-
             return sum(lengths) / float(len(lengths))
         
     def alignment_correcter(self, alignment_file_list, output_file_name):
@@ -406,11 +403,19 @@ class Hmmer:
             for fasta_id, fasta_seq in corrected_sequences.iteritems():
                 output_file.write(fasta_id)
                 output_file.write(fasta_seq)
-
-    def extract_orfs(self, input_path, raw_orf_path, hmmsearch_out_path, orf_titles_path, orf_out_path, cmd_log):
-        ## Extract only the orfs that hit the hmm, return sequence file with
-        ## within.
+      
+    def orfm_command_line(self, min_orf_length, restrict_read_length):
+        '''Return a string to run OrfM with, assuming sequences are incoming on
+        stdin'''
+        if restrict_read_length:
+            orfm_arg_l = " -l %d" % restrict_read_length
+        else:
+            orfm_arg_l = ''
         
+        return 'orfm -m %d %s ' % (min_orf_length, orfm_arg_l) # call orfs on it, and search it
+
+    def extract_orfs(self, input_path, raw_orf_path, hmmsearch_out_path, orf_titles_path, min_orf_length, restrict_read_length, orf_out_path, cmd_log):
+        'Extract only the orfs that hit the hmm, return sequence file with within.'        
         # Build the command
         output_table_list = []
         tee = ' | tee'
@@ -429,7 +434,9 @@ class Hmmer:
             tee = ' | hmmsearch --domtblout %s %s - >/dev/null' % (hmmsearch_out_path, self.search_hmm[0])
             output_table_list.append(hmmsearch_out_path)
         # Call orfs on the sequences
-        cmd = 'orfm %s > %s' % (input_path, raw_orf_path)
+
+        orfm_cmd = self.orfm_command_line(min_orf_length, restrict_read_length)
+        cmd = '%s %s > %s' % (orfm_cmd, input_path, raw_orf_path)
         self.hk.add_cmd(cmd_log, cmd)
         subprocess.check_call(cmd, shell=True)
 
@@ -466,6 +473,8 @@ class Hmmer:
                                    args.input_sequence_type,
                                    args.threads,
                                    args.eval,
+                                   args.min_orf_length,
+                                   args.restrict_read_length,
                                    files.command_log_path())
         # Processing the output table to give you the readnames of the hits
         run_stats, hit_readnames = self.csv_to_titles(files.readnames_output_path(base),
@@ -488,6 +497,8 @@ class Hmmer:
                                          files.orf_output_path(base),
                                          files.orf_hmmsearch_output_path(base),
                                          files.orf_titles_output_path(base),
+                                         args.min_orf_length,
+                                         args.restrict_read_length,
                                          files.orf_fasta_output_path(base),
                                          files.command_log_path())
         elif args.input_sequence_type == 'protein':

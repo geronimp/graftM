@@ -35,8 +35,7 @@ class Run:
                 self.p = Pplacer(self.args.reference_package)
 
     def protein_pipeline(self, base, summary_dict, sequence_file, direction):
-        ## The main pipeline for GraftM searching for protein sequence
-
+        'The main pipeline for GraftM finding protein hits in the input sequence'
         # Set a variable to store the run statistics, to be added later to
         # the summary_dict
         if direction:
@@ -77,8 +76,7 @@ class Run:
         return summary_dict, hit_aligned_reads
 
     def dna_pipeline(self, base, summary_dict, sequence_file, direction):
-        ## The main pipeline for GraftM searching for DNA sequence
-
+        'The main pipeline for GraftM searching for DNA sequence'
         # Set a variable to store the run statistics, to be added later to
         # the summary_dict
         if direction:
@@ -96,7 +94,7 @@ class Run:
                                                base,
                                                self.input_file_format,
                                                sequence_file,
-                                               summary_dict['euks_checked'])
+                                               summary_dict['euks_checked'] )
         
         if not hit_reads:
             return summary_dict, False
@@ -234,6 +232,7 @@ class Run:
            -                                  |______
             '''
         # Set up a dictionary that will record stats as the pipeline is running
+
         summary_table = {'euks_checked': self.args.euk_check,
                          'base_list': [],
                          'seqs_list': [],
@@ -331,7 +330,6 @@ class Run:
         elif not readstoplace:
             Messenger().header('No hits in any of the provided files. Cannot continue with no reads to place.\n')
             exit(0)
-            
         # Tell the user we're on to placing the sequences into the tree.
         self.gmf = GraftMFiles('',
                                self.args.output_directory,
@@ -388,6 +386,7 @@ class Run:
               >c                        |________|
               ----------     
 '''
+
         self.hk.checkCreatePrerequisites()
         Create().main(self.args.hmm, self.args.alignment, self.args.sequences, self.args.taxonomy, self.args.tree, self.args.log, self.args.output)
     

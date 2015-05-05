@@ -9,6 +9,7 @@ class Classify:
         taxonomy_hash={}
         for line in [[y for y in x.rstrip().split(',') if y] for x in open(taxonomy_file).readlines() if not x.startswith('tax_id')]:
             taxonomy_hash[line[0]] = ['Root']+line[5:]
+
         return taxonomy_hash
 
     def assignPlacement(self, placement_json_path, cutoff, type):
@@ -48,7 +49,6 @@ class Classify:
                 confidence=placement[lwr_idx]
                 if placement[0] not in seen:
                     taxonomy_string=self.taxonomy[rank]
-
                     seen[rank]={'c':confidence,
                                 'p':taxonomy_string}
                 else:
@@ -68,7 +68,7 @@ class Classify:
             raise Exception('Fatal error in refpkg, classification or like_weight_ratio fields missing')
 
         for placement_group in placement_hash['placements']: # for each placement
-            best_place=consolidatePlacements(placement_group['p'], cutoff, lwr_idx, c_idx) # Find the best placement      
+            best_place=consolidatePlacements(placement_group['p'], cutoff, lwr_idx, c_idx) # Find the best placement       
             if best_place: # if it exists
                 reads=[x[0] for x in placement_group['nm']] # make a list of the reads assigned to that placement
                 for read in reads: # and for each read

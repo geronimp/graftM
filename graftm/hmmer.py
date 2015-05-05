@@ -289,6 +289,7 @@ class Hmmer:
         else: # Otherwise, report the number of reads
             Messenger().message('%s reads found, cannot continue with no information' % (len(run_stats['reads'].keys())))
             return run_stats, False
+
         # And write the read names to output
         orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
         with open(output_path, 'w') as output_file:
@@ -522,7 +523,6 @@ class Hmmer:
         run_stats, hit_readnames = self.csv_to_titles(files.readnames_output_path(base),
                                                       hit_table,
                                                       run_stats)
-                
         if not hit_readnames:
             return False, run_stats
 

@@ -123,37 +123,50 @@ class Create:
             else:
                 os.remove(every_piece_of_junk)
         
-    def main(self, hmm, alignment, sequences, taxonomy, prefix): 
+    def main(self, hmm, alignment, sequences, taxonomy, tree, log, prefix): 
         if sequences:
             base=os.path.basename(sequences).split('.')[0]
         else:
             base=os.path.basename(alignment).split('.')[0]
         Messenger().header("Building gpkg for %s" % base)
         # Initially, build the HMM if one is not provided.
-        if hmm and alignment:
-            ptype,leng=self.pipeType(hmm)
-            if str(self.checkAlnLength(alignment)) != str(leng):
-                Messenger().message("Alignment length does not match the HMM length, building a new HMM")
+        if not tree and not log:
+            if hmm and alignment:
+                ptype,leng=self.pipeType(hmm)
+                if str(self.checkAlnLength(alignment)) != str(leng):
+                    Messenger().message("Alignment length does not match the HMM length, building a new HMM")
+                    hmm=self.buildHmm(alignment, base)
+                    Messenger().message("Aligning to HMM built from alignment")
+                    output_alignment = self.alignSequences(hmm, sequences, base)
+                else:
+                    Messenger().message("Alignment length matches the HMM length, no need to align")
+                    output_alignment=alignment
+            elif hmm and not alignment:
+                Messenger().message("Using provided HMM to align")
+                output_alignment = self.alignSequences(hmm, sequences, base)
+            elif alignment and not hmm:
+                Messenger().message("Building HMM from alignment")
                 hmm=self.buildHmm(alignment, base)
                 Messenger().message("Aligning to HMM built from alignment")
                 output_alignment = self.alignSequences(hmm, sequences, base)
-            else:
-                Messenger().message("Alignment length matches the HMM length, no need to align")
+            
+            ptype,leng=self.pipeType(hmm)
+            # Build the tree
+            Messenger().message("Building tree")
+            log_file, tre_file = self.buildTree(output_alignment, base, ptype)
+        
+        else:
+            if not tree:
+                raise Exception("No Tree provided for log file")
+            if not log:
+                raise Exception("No log provided for tree")
+            try:
                 output_alignment=alignment
-        elif hmm and not alignment:
-            Messenger().message("Using provided HMM to align")
-            output_alignment = self.alignSequences(hmm, sequences, base)
-        elif alignment and not hmm:
-            Messenger().message("Building HMM from alignment")
-            hmm=self.buildHmm(alignment, base)
-            Messenger().message("Aligning to HMM built from alignment")
-            output_alignment = self.alignSequences(hmm, sequences, base)
-        
-        ptype,leng=self.pipeType(hmm)
-        # Build the tree
-        Messenger().message("Building tree")
-        log_file, tre_file = self.buildTree(output_alignment, base, ptype)
-        
+                tre_file=tree
+                log_file=log
+            except:
+                raise Exception("No alignment file provided")
+            
         # Create tax and seqinfo .csv files
         Messenger().message("Building seqinfo and taxonomy file")
         seq, tax = graftm.getaxnseq.main(base, taxonomy)

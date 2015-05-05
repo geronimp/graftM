@@ -245,7 +245,9 @@ class Run:
             self.args.output_directory = "GraftM_output"
         self.hk.make_working_directory(self.args.output_directory,
                                        self.args.force)
-
+        
+        readstoplace=False # An extra check to make sure there are reads to place with
+        
         # For each pair (or single file passed to GraftM)
         for pair in self.sequence_pair_list:
 
@@ -314,6 +316,8 @@ class Run:
                                                                         direction)
                 if not hit_aligned_reads:
                     continue
+                else:
+                    readstoplace=True
 
                 # Add the run stats and the completed run to the summary table
                 summary_table['seqs_list'].append(hit_aligned_reads)
@@ -324,6 +328,10 @@ class Run:
         if self.args.search_only:
             Messenger().header('Stopping before placement\n')
             exit(0)
+        elif not readstoplace:
+            Messenger().header('No hits in any of the provided files. Cannot continue with no reads to place.\n')
+            exit(0)
+            
         # Tell the user we're on to placing the sequences into the tree.
         self.gmf = GraftMFiles('',
                                self.args.output_directory,
@@ -381,7 +389,7 @@ class Run:
               ----------     
 '''
         self.hk.checkCreatePrerequisites()
-        Create().main(self.args.hmm, self.args.alignment, self.args.sequences, self.args.taxonomy, self.args.output)
+        Create().main(self.args.hmm, self.args.alignment, self.args.sequences, self.args.taxonomy, self.args.tree, self.args.log, self.args.output)
     
     def main(self):
 

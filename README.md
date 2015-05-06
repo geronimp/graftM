@@ -7,7 +7,7 @@ Basically, GraftM is a pipeline used for identifying and classifying marker gene
 
 Head on over to the [GraftM page](http://geronimp.github.io/graftM/) for more general information.
 
-Because GraftM is still being actively developed backwards incompatability may happen in the future, although we will aim to minimise this as much as possible.
+Because GraftM is still being actively developed backwards incompatibility may happen in the future, although we will aim to minimise this as much as possible.
 
 ---
 
@@ -27,10 +27,10 @@ GraftM requires a few extra binary applications as well, unfortunately:
 ---
 
 ## Help + Contact
-if you have any comments, complaints or reccomendations about GraftM. I'm happy to help, just ask through GitHub.
-A [manual](https://github.com/geronimp/graftM/wiki) is available in the form of the wiki here on github . Please just let us know if you think something might be useful to add to it.
+A [manual](https://github.com/geronimp/graftM/wiki) is available in the form of the wiki here on github.
 
-Software by Joel A. Boyd and Ben J. Woodcroft
-Released under GPL3 - see LICENCE.txt for licencing details
+If you have any further comments, complaints or recomendations about GraftM, drop an email to the [SupportM](https://groups.google.com/forum/?hl=en#!forum/supportm) public help forum.
 
 ---
+Software by Joel A. Boyd (@geronimp) and [Ben J. Woodcroft](http://www.ecogenomic.org/users/ben-woodcroft) (@wwood) at the [Australian Centre for Ecogenomics](http://ecogenomic.org)
+Released under GPL3 - see LICENCE.txt for licencing details

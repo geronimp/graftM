@@ -36,7 +36,7 @@ class Stats_And_Summary:
             tot_18S = []
             cont_18S = []
             search_step = []
-            placed_reads = []
+            placed_reads = 0
 
             aln_step = []
             euk_check_step = []
@@ -60,9 +60,10 @@ class Stats_And_Summary:
                     files += [base]
                     tot_16S += [str(len(hash[base]['reads'].keys()))]
                     try:
-                        placed_reads=[str(int(tot_16S[0])-int(hash[base]['euk_contamination']))]
+                        placed_reads+=int(tot_16S[0])-int(hash[base]['euk_contamination'])
                     except:
-                        placed_reads=tot_16S
+
+                        placed_reads+=int(tot_16S[0])
                     try:
                         tot_18S += [str(hash[base]['euk_contamination'] + hash[base]['euk_uniq'])]
 
@@ -77,7 +78,7 @@ class Stats_And_Summary:
                     euk_check_step += [hash[base]['euk_check_t']]
                 else:
                     raise Exception('Programming Error')
-            return '\t'.join(files), '\t'.join(tot_16S), '\t'.join(tot_18S), '\t'.join(cont_18S), '\t'.join(placed_reads), '\t'.join(files), '\t'.join(search_step), '\t'.join(aln_step), '\t'.join(euk_check_step), hash['place_t'], hash['summary_t'], hash['all_t']
+            return '\t'.join(files), '\t'.join(tot_16S), '\t'.join(tot_18S), '\t'.join(cont_18S), str(placed_reads), '\t'.join(files), '\t'.join(search_step), '\t'.join(aln_step), '\t'.join(euk_check_step), hash['place_t'], hash['summary_t'], hash['all_t']
         
 
         stats = """Basic run statistics (count):

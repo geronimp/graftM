@@ -30,7 +30,7 @@ from graftm.run import Run
 
 def phelp():
     print """
-                                       GraftM  %s
+                                       GraftM  %s asdf
 
              A suite of tools for the rapid analysis of large sequence datasets.
 

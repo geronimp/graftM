@@ -42,6 +42,10 @@ class Classify:
             else:
                 raise Exception("Programming error.")
 
+        def forcePlacement(placement_list, rank): 
+            ranks=['kingdom', 'class', 'phylum', 'order', 'family', 'species']
+            rank_idx=ranks.index(rank)
+            
         def consolidatePlacements(placement_list, cutoff, lwr_idx, c_idx):
             seen={}
             for placement in placement_list:

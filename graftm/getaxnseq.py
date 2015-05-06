@@ -68,10 +68,6 @@ class Getaxnseq:
         known_duplicates = sets.Set([])
         for j, array in enumerate(first_pass_id_and_taxonomies):
             taxonomy = array[1:]
-
-
-
-
             for i, tax in enumerate(taxonomy):
                 if i==0: continue #top levels don't have parents
                 ancestry = taxonomy[i-1]
@@ -109,16 +105,11 @@ class Getaxnseq:
             seqout.write('seqname,tax_id\n')
             # write each taxonomic association
             for array in first_pass_id_and_taxonomies:
-                if len(array) == 8:
-                    seqout.write("%s,%s\n" % (array[0], array[-2]))
-                else:
-                    seqout.write("%s,%s\n" % (array[0], array[-1]))
-
+                seqout.write("%s,%s\n" % (array[0], array[-1]))
 
         # Write the taxonomy file
         noted_taxonomies = sets.Set([])
         with open(output_taxonomy, 'w') as seqout:
-
             # write header and root line
             seqout.write('tax_id,parent_id,rank,tax_name,root,kingdom,phylum,class,order,family,genus,species\n')
             seqout.write('Root,Root,root,Root,Root,,,,,,,\n')

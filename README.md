@@ -12,15 +12,16 @@ Because GraftM is still being actively developed backwards incompatability may h
 ---
 
 ## Installation
-Currently, GraftM has a few depedancies making installation a bit more difficult that simply using pip. We're currently working on a way to make installation of GraftM this as smooth as possible.
-For now though, installation will have to be manual but very soon we hope to make this easier.
+The python code can be installed through pip:
+```
+pip install graftm
+```
 ### Dependencies
-* biopython v. >= 1.64 (http://biopython.org/wiki/Main_Page)
-* orfm v. >= 0.1.1 (https://github.com/wwood/OrfM)
+GraftM requires a few extra binary applications as well, unfortunately:
+* orfm v. >= 0.2.0 (https://github.com/wwood/OrfM)
 * hmmer v. >= 3.1b1 (http://hmmer.janelia.org/)
 * fxtract (https://github.com/ctSkennerton/fxtract)
 * pplacer v. >= 2.6.32 (http://matsen.fhcrc.org/pplacer/)
-* seqmagick v. >= 0.6.0 (https://github.com/fhcrc/seqmagick)
 * krona v. >= 2.4 (http://sourceforge.net/p/krona/home/krona/)
 
 ---

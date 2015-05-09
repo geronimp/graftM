@@ -14,6 +14,10 @@ class GraftMFiles:
     
     def hmmsearch_output_path(self, out_path):
         return os.path.join(self.outdir, out_path, "%s.hmmout.csv" % self.basename)
+    
+    def read_tax_output_path(self, out_path):
+
+        return os.path.join(self.outdir, out_path, "%s_read_tax.tsv" % self.basename)
 
     def jplace_output_path(self):
         return "placements.jplace"

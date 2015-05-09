@@ -27,6 +27,10 @@ class Stats_And_Summary:
             for entry in write:
                 ct.write(entry)
 
+    def readTax(self, placements, output_path):
+        with open(output_path, 'w') as out:
+            for read, tax in placements.iteritems():
+                out.write("%s\t%s\n" % (read, '; '.join(tax)))
 
     def build_basic_statistics(self, summary_hash, output, pipe):
         

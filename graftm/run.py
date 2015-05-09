@@ -143,6 +143,7 @@ class Run:
 
             self.gmf = GraftMFiles(base, self.args.output_directory, False) # Assign the output directory to place output in
             Messenger().message('Building summary table for %s' % base)
+            self.s.readTax(placements, self.gmf.read_tax_output_path(base))
             self.s.otu_builder(placements,
                                  self.gmf.summary_table_output_path(base),
                                  base)
@@ -166,7 +167,7 @@ class Run:
         summary_dict['stop_all'] = timeit.default_timer()
         summary_dict['all_t'] = str(int(round((summary_dict['stop_all'] - summary_dict['start_all']), 0)) )
         self.s.build_basic_statistics(summary_dict, self.gmf.basic_stats_path(), self.args.type)
-        
+
         # Delete unnecessary files
         Messenger().message('Cleaning up')
         for base in summary_dict['base_list']:

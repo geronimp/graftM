@@ -31,13 +31,17 @@ class HouseKeeping:
     def guess_sequence_input_file_format(self, sequence_file_path):
         ## Given a sequence file, guess the format and return. Raise an 
         ## exception if it cannot be guessed
-        if sequence_file_path.endswith(('.fa', '.faa', '.fna', '.fasta')):  # Check the file type
-            return FORMAT_FASTA
-        elif sequence_file_path.endswith(('.fq.gz', '.fastq.gz', 'fasta.gz', 'fa.gz', 'faa.gz', 'fna.gz')):
-            return FORMAT_FASTQ_GZ
+        missing_files=[x for x in sequence_file_path.split(',') if not os.path.isfile(x)]
+        if not any(missing_files):
+            if sequence_file_path.endswith(('.fa', '.faa', '.fna', '.fasta')):  # Check the file type
+                return FORMAT_FASTA
+            elif sequence_file_path.endswith(('.fq.gz', '.fastq.gz', 'fasta.gz', 'fa.gz', 'faa.gz', 'fna.gz')):
+                return FORMAT_FASTQ_GZ
+            else:
+                raise Exception("Unable to guess file format of sequence file: %s" % sequence_file_path)
         else:
-            raise Exception("Unable to guess file format of sequence file: %s" % sequence_file_path)
-
+            raise Exception('%s do(es) not exist. Are you sure you provided the correct sequence files?' % ', and '.join(missing_files))
+        
     def guess_sequence_type(self, input_file, file_format):
         '''Guess the type of input sequence provided to graftM (i.e. nucleotide
         or amino acid) and return'''
@@ -198,6 +202,8 @@ class HouseKeeping:
         # Read graftM package and assign HMM and refpkg file
         
         if hasattr(args, 'graftm_package'):
+            if not os.path.isdir(args.graftm_package):
+                raise Exception("%s does not exist. Are you sure you provided the correct path?" % args.graftm_package)
             if self.contents(args.graftm_package) is None:
                 raise Exception('Misformatted GraftM package')
             elif self.contents(args.graftm_package) is not None:

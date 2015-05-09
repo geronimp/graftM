@@ -1,9 +1,11 @@
 import os
+import json
 
 from Bio import SeqIO
 
 from graftm.messenger import Messenger
 from graftm.assembler import TaxoGroup
+from graftm.classify import Classify
 
 class Extract:
 
@@ -22,15 +24,16 @@ class Extract:
                     prefix = ['forward', 'reverse']
                     for f in files:
                         p = prefix.pop(0)
-                        d[os.path.basename(r) + '_' + p] = {'guppy': os.path.join(f, 'placements.guppy'),
+                        d[os.path.basename(r) + '_' + p] = {'jplace': os.path.join(f, 'placements.jplace'),
                                                   'reads': os.path.join(f, os.path.basename(r) + '_%s_hits.fa' % p)}
                 elif len([f for f in os.listdir(r) if f == 'reverse' or f == 'forward']) == 0:
-                    d[os.path.basename(r)] = {'guppy': os.path.join(r, 'placements.guppy'),
+                    d[os.path.basename(r)] = {'jplace': os.path.join(r, 'placements.jplace'),
                                               'reads': os.path.join(r, os.path.basename(r) + '_hits.fa')}           
             for run in d.keys():
                 try:
                     reads = SeqIO.to_dict(SeqIO.parse(d[run]["reads"], "fasta"))
-                    guppy = TaxoGroup().guppy_splitter(d[run]["guppy"], args.cutoff)
+                    guppy=Classify('/srv/db/graftm/0/SILVA_p94_e91.gpkg/SILVA_p94_e91.refpkg/p94_e91_taxinfo.txt').assignPlacement(d[run]["jplace"], args.cutoff, 'reads')
+
                 except:
                     Messenger().message("Cannot use unfinished run: %s" % run)
                     continue
@@ -44,12 +47,15 @@ class Extract:
                         if args.non_cumil:
                             with open(os.path.join(out_path, run+'_'+lin+'_non_cumil_seqs.fa'), 'w') as output:
                                 for entry in guppy:
+
                                     if guppy[entry]['placement'][-1] == lin:
                                         output.write('>' + entry + '\n')
                                         output.write(str(reads[entry].seq) + '\n')
                         elif not args.non_cumil:
                             with open(os.path.join(out_path, run+'_'+lin+'_seqs.fa'), 'w') as output:
                                 for entry in guppy:
+                                    import IPython
+                                    IPython.embed()
                                     if lin in guppy[entry]['placement']:
                                         output.write('>' + entry + '\n')
                                         output.write(str(reads[entry].seq) + '\n')

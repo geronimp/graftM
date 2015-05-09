@@ -234,6 +234,7 @@ class Run:
         # Set up a dictionary that will record stats as the pipeline is running
 
         summary_table = {'euks_checked': self.args.euk_check,
+                         'resolve_placements': self.args.resolve_placements,
                          'base_list': [],
                          'seqs_list': [],
                          'start_all': timeit.default_timer(),
@@ -282,6 +283,9 @@ class Run:
 
             # for each of the paired end read files
             for read_file in pair:
+                if not os.path.isfile(read_file): # Check file exists
+                    Messenger().header('%s does not exist! Skipping this file..' % read_file)
+                    continue
                 # Set the output file_name
                 if summary_table['reverse_pipe']:
                     direction = pair_direction.pop(0)
@@ -338,27 +342,13 @@ class Run:
         self.placement(summary_table)
 
 
-    def manage(self):
-        print '''
-                            MANAGE
+    def main(self):
 
-                   Joel Boyd, Ben Woodcroft
-                                  _
-                         __/__/    |        >a
-                  ______|          |->>>>   --------
-         ________|      |_____/   _|        >b
-        |        |____/_                    -------
-    ____|
-        |      ______
-        |_____|
-              |______
-'''
+        if self.args.subparser_name == 'graft':
+            self.graft()
 
-        if self.args.seq:
-            self.e.extract(self.args)
-
-    def assemble(self):
-        print '''
+        elif self.args.subparser_name == 'assemble':
+            print '''
                            ASSEMBLE
 
                    Joel Boyd, Ben Woodcroft
@@ -370,10 +360,29 @@ class Run:
              - _        /                \__/
                        /
 '''
-        self.tg.main(self.args)
+            self.tg.main(self.args)
 
-    def create(self):
-        print '''
+        elif self.args.subparser_name == 'extract':
+            print '''
+                           EXTRACT
+
+                   Joel Boyd, Ben Woodcroft
+                                  _
+                         __/__/    |        >a
+                  ______|          |->>>>   --------
+         ________|      |_____/   _|        >b
+        |        |____/_                    -------
+    ____|                                   >c
+        |      ______                       ----------
+        |_____|
+              |______
+'''
+
+            if self.args.seq:
+                self.e.extract(self.args)
+
+        elif self.args.subparser_name == 'create':
+            print '''
                             CREATE
 
                    Joel Boyd, Ben Woodcroft
@@ -387,19 +396,6 @@ class Run:
               ----------     
 '''
 
-        self.hk.checkCreatePrerequisites()
-        Create().main(self.args.hmm, self.args.alignment, self.args.sequences, self.args.taxonomy, self.args.tree, self.args.log, self.args.output)
+            self.hk.checkCreatePrerequisites()
+            Create().main(self.args.hmm, self.args.alignment, self.args.sequences, self.args.taxonomy, self.args.tree, self.args.log, self.args.output)
     
-    def main(self):
-
-        if self.args.subparser_name == 'graft':
-            self.graft()
-
-        elif self.args.subparser_name == 'assemble':
-            self.assemble()
-
-        elif self.args.subparser_name == 'extract':
-            self.extract()
-
-        elif self.args.subparser_name == 'create':
-            self.create()

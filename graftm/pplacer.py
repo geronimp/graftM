@@ -98,7 +98,7 @@ class Pplacer:
         #Read the json of refpkg
         Messenger().message("Reading classifications")
         tax_descr=json.load(open(self.refpkg+'/CONTENTS.json'))['files']['taxonomy']
-        classifications=Classify(os.path.join(self.refpkg,tax_descr)).assignPlacement(jplace, args.placements_cutoff, 'reads')
+        classifications=Classify(os.path.join(self.refpkg,tax_descr)).assignPlacement(jplace, args.placements_cutoff, 'reads', summary_dict['resolve_placements'])
         self.hk.delete([jplace])# Remove combined split, not really useful
         Messenger().message("Reads classified.")
         

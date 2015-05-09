@@ -136,7 +136,7 @@ class Create:
                     Messenger().message("Alignment length matches the HMM length, no need to align")
                     output_alignment=alignment
             elif hmm and not alignment:
-                Messenger().message("Using provided HMM to align")
+                Messenger().message("Using provided HMM to align sequences")
                 output_alignment = self.alignSequences(hmm, sequences, base)
             elif alignment and not hmm:
                 Messenger().message("Building HMM from alignment")

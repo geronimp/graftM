@@ -646,7 +646,7 @@ CCGACTGCCCTTGAAGACCACTTCG
 
                 otuTableFile = os.path.join(tmp, sample_name, '%s_count_table.txt' % sample_name)
                 lines = ("\t".join(('#ID',sample_name,'ConsensusLineage')),
-                         "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae')),
+                         "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                          )
                 count = 0
                 for line in open(otuTableFile):

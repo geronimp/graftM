@@ -329,7 +329,7 @@ class Run:
                     summary_table['base_list'].append(base)
 
         # Leave the pipeline if search only was specified
-        if self.args.search_only:
+        if self.args.search_and_align_only:
             Messenger().header('Stopping before placement\n')
             exit(0)
         elif not readstoplace:

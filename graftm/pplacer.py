@@ -117,6 +117,7 @@ class Pplacer:
 
             elif not summary_dict['reverse_pipe']: # Set the trusted placements as
                 summary_dict[base]['trusted_placements'] = {}
+
                 for read, entry in classifications[str(idx)].iteritems():
                     summary_dict[base]['trusted_placements'][read] = entry['placement']
         return summary_dict

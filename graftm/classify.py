@@ -111,10 +111,12 @@ class Classify:
             if best_place: # if it exists
                 reads=[x[0] for x in placement_group['nm']] # make a list of the reads assigned to that placement
                 for read in reads: # and for each read
-                    if read[-1] in all_placements_reads.keys(): # Sort each read by its file index and enter it into hash, with the best placement as the value
-                        all_placements_reads[read[-1]][read[:-2]] = best_place 
+                    file_idx=read.split('_')[-1]
+                    read_name='_'.join(read.split('_')[:-1])
+                    if file_idx in all_placements_reads.keys(): # Sort each read by its file index and enter it into hash, with the best placement as the value
+                        all_placements_reads[file_idx][read_name] = best_place 
                     else:
-                        all_placements_reads[read[-1]] = {read[:-2]: best_place}
+                        all_placements_reads[file_idx] = {read_name: best_place}
             else: # If the best placement doesn't exist, fail.
                 raise Exception("Programming Error: Failed to retrieve taxonomy for %s"  % (' '.join([x[0] for x in placement_group['nm']])))
 

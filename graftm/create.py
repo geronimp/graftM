@@ -101,12 +101,10 @@ class Create:
         else:
             gpkg = base + ".gpkg"
         if os.path.isdir(gpkg): 
-            self.the_trash += [base+'.hmm', base+'.refpkg']
-            self.cleanup(self.the_trash)
             raise Exception("Detected gpkg with name %s" % (gpkg))
         os.mkdir(gpkg)
         os.rename(refpkg, os.path.join(gpkg, refpkg))
-        os.rename(hmm, os.path.join(gpkg, hmm))
+        shutil.copyfile(hmm, os.path.join(gpkg, os.path.basename(hmm)))
         json.dump(contents, open(os.path.join(gpkg, 'CONTENTS.json'), 'w'))
         return
 
@@ -159,6 +157,7 @@ class Create:
                 log_file=log
             except:
                 raise Exception("No alignment file provided")
+
         # Create tax and seqinfo .csv files
         Messenger().message("Building seqinfo and taxonomy file")
         seq, tax = graftm.getaxnseq.main(base, taxonomy)
@@ -168,7 +167,6 @@ class Create:
         Messenger().message("Creating reference package")
         refpkg = self.callTaxitCreate(base, output_alignment, tre_file, log_file, tax, seq, prefix)
 
-        
         # Compile the gpkg
         Messenger().message("Compiling gpkg")
         contents = {"aln_hmm": hmm,
@@ -176,7 +174,6 @@ class Create:
                     "rfpkg": refpkg,
                     "TC":False}
         self.compile(base, refpkg, hmm, contents, prefix)
-
 
         Messenger().message("Cleaning up")
         self.cleanup(self.the_trash)

@@ -82,7 +82,7 @@ class HmmSearcher:
 
             
     def __hmm_command(self, input_pipe, pairs_to_run):
-        r"""Internal method for getting cmdline for running a batch of HMMs.
+        r"""INTERNAL method for getting cmdline for running a batch of HMMs.
         
         Parameters
         ----------
@@ -97,12 +97,12 @@ class HmmSearcher:
         """
             
         element = pairs_to_run.pop()
-        hmmsearch_cmd = self.__individual_hmm_command(element[0][0],
+        hmmsearch_cmd = self._individual_hmm_command(element[0][0],
                                                       element[0][1],
                                                       element[1])
         while len(pairs_to_run) > 0:
             element = pairs_to_run.pop()
-            hmmsearch_cmd = "tee >(%s) | %s" % (self.__individual_hmm_command(element[0][0],
+            hmmsearch_cmd = "tee >(%s) | %s" % (self._individual_hmm_command(element[0][0],
                                                                               element[0][1],
                                                                               element[1]),
                                                 hmmsearch_cmd)
@@ -111,10 +111,18 @@ class HmmSearcher:
         hmmsearch_cmd = "%s | %s" % (input_pipe, hmmsearch_cmd)
         return hmmsearch_cmd
             
-    def __individual_hmm_command(self, hmm, output_file, num_cpus):
+    def _individual_hmm_command(self, hmm, output_file, num_cpus):
         return "hmmsearch %s --cpu %s --domtblout %s %s - >/dev/null" % (self._extra_args,
                                                                          num_cpus,
                                                                          output_file,
                                                                          hmm)
         
+class NhmmerSearcher(HmmSearcher):
+    r"""Runs nhmmer given one or many HMMs in a scalable and fast way""" 
+            
+    def _individual_hmm_command(self, hmm, output_file, num_cpus):
+        return "nhmmer %s --cpu %s --tblout %s %s - >/dev/null" % (self._extra_args,
+                                                                   num_cpus,
+                                                                   output_file,
+                                                                   hmm)
         

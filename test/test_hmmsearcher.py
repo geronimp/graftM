@@ -89,6 +89,11 @@ example_partial_mcra8 -            162 mcrA.fasta           -            557    
             observed = re.sub(r'\t', ' ', open(output.name).read()).split("\n")
             self.assertEqual(expected, observed[:5])
         
+    def test_nhmmer_searcher(self):
+        searcher = graftm.hmmsearcher.NhmmerSearcher(20)
+        cmd = searcher._HmmSearcher__hmm_command('cat some', [(['hmm1','out1'],10)])
+        self.assertEqual('cat some | nhmmer  --cpu 10 --tblout out1 hmm1 - >/dev/null', cmd)        
+        
 
 
 if __name__ == "__main__":

@@ -10,7 +10,7 @@ from collections import OrderedDict
 
 from graftm.messenger import Messenger
 from graftm.housekeeping import HouseKeeping
-from graftm.hmmsearcher import HmmSearcher
+from graftm.hmmsearcher import HmmSearcher, NhmmerSearcher
 
 FORMAT_FASTA = 'FORMAT_FASTA'
 FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'
@@ -124,32 +124,26 @@ class Hmmer:
         ## Run a nhmmer search on input_path file and return the name of
         ## resultant output table. Keep log of command.
         output_table_list = []
-        tee = ''
-        hmm_number = len(self.search_hmm)
-        if hmm_number > 1:
-            for idx, hmm in enumerate(self.search_hmm):
+        if len(self.search_hmm) > 1:
+            for hmm in self.search_hmm:
                 out = os.path.join(os.path.split(output_path)[0], os.path.basename(hmm).split('.')[0] +'_'+ os.path.split(output_path)[1])
                 output_table_list.append(out)
-                if idx + 1 == hmm_number:
-                    tee += " | nhmmer %s --cpu %s --tblout %s %s - >/dev/null " % (eval, threads, out, hmm)
-                elif idx + 1 < hmm_number:
-                    tee += " >(nhmmer %s --cpu %s --tblout %s %s - >/dev/null) " % (eval, threads, out, hmm)
-                else:
-                    raise Exception("Programming Error.")    
-        elif hmm_number == 1:
-            tee = ' | nhmmer %s --cpu %s --tblout %s %s - >/dev/null' % (eval, threads, output_path, self.search_hmm[0])
-            output_table_list.append(output_path) 
-        if input_file_format == FORMAT_FASTA:
-            cmd = "cat %s | tee %s" % (input_path, tee)
-            self.hk.add_cmd(cmd_log, cmd)
-            subprocess.check_call(["/bin/bash", "-c", cmd])
-
-        elif input_file_format == FORMAT_FASTQ_GZ:
-            cmd = "awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s) | tee %s " % (input_path, tee)
-            self.hk.add_cmd(cmd_log, cmd)
-            subprocess.check_call(["/bin/bash", "-c", cmd])
+        elif len(self.search_hmm) == 1:
+            output_table_list.append(output_path)
         else:
-            raise Exception(Messenger().message('ERROR: Suffix on %s not familiar. Please submit an .fq.gz or .fa file\n' % (input_path)))
+            raise Exception("Programming error: Expected 1 or more HMMs")
+            
+        
+        if input_file_format == FORMAT_FASTA:
+            input_pipe = "cat %s" % input_path
+        elif input_file_format == FORMAT_FASTQ_GZ:
+            input_pipe = "awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s)" % input_path
+        else:
+            raise Exception("Programming error: Unexpected input file format %s" % input_file_format)
+        
+        searcher = NhmmerSearcher(threads, extra_args=eval)
+        searcher.hmmsearch(input_pipe, self.search_hmm, output_table_list)
+        
         return output_table_list
 
     def hmmtable_reader(self, hmmtable):

@@ -23,7 +23,7 @@ class Pplacer:
     # Run pplacer
     def pplacer(self, output_file, output_path, input_path, threads, cmd_log):
         ## Runs pplacer on concatenated alignment file
-        cmd = "pplacer -j %s --verbosity 0 --out-dir %s -c %s %s" % (threads, output_path, self.refpkg, input_path) # Set command
+        cmd = "pplacer -j %s --verbosity 0 --out-dir %s -c %s %s" % (str(threads), output_path, self.refpkg, input_path) # Set command
         self.hk.add_cmd(cmd_log, cmd) # Log it
         subprocess.check_call(cmd, shell=True) # Run it
         output_path = '.'.join(input_path.split('.')[:-1]) + '.jplace'

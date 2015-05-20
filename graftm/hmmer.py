@@ -10,6 +10,7 @@ from collections import OrderedDict
 
 from graftm.messenger import Messenger
 from graftm.housekeeping import HouseKeeping
+from graftm.hmmsearcher import HmmSearcher
 
 FORMAT_FASTA = 'FORMAT_FASTA'
 FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'
@@ -89,43 +90,34 @@ class Hmmer:
         of the output table. Keep a log of the commands.'''
         # Define the base hmmsearch command.
         output_table_list = []
-        tee = ' | tee'
-        hmm_number = len(self.search_hmm)
-        if hmm_number > 1:
-            for idx, hmm in enumerate(self.search_hmm):
+        if len(self.search_hmm) > 1:
+            for hmm in self.search_hmm:
                 out = os.path.join(os.path.split(output_path)[0], os.path.basename(hmm).split('.')[0] +'_'+ os.path.split(output_path)[1])
                 output_table_list.append(out)
-                if idx + 1 == hmm_number:
-                    tee += " | hmmsearch %s --cpu %s --domtblout %s %s - >/dev/null " % (eval, threads, out, hmm)
-                elif idx + 1 < hmm_number:
-                    tee += " >(hmmsearch %s --cpu %s --domtblout %s %s - >/dev/null) " % (eval, threads, out, hmm)
-                else:
-                    raise Exception("Programming Error.") 
-
-        elif hmm_number == 1:
-            tee = ' | hmmsearch %s --cpu %s --domtblout %s %s - >/dev/null' % (eval, threads, output_path, self.search_hmm[0])
+        elif len(self.search_hmm) == 1:
             output_table_list.append(output_path)
+        else:
+            raise Exception("Programming error: expected 1 or more HMMs")
         
         # Choose an input to this base command based off the file format found.
         if seq_type == 'nucleotide': # If the input is nucleotide sequence
             orfm_cmdline = self.orfm_command_line(min_orf_length, restrict_read_length)
-            cmd = '%s %s %s ' % (orfm_cmdline, input_path, tee)
-            self.hk.add_cmd(cmd_log, cmd)
-            subprocess.check_call(["/bin/bash", "-c", cmd])
+            input_cmd = '%s %s' % (orfm_cmdline, input_path)
         
         elif seq_type == 'protein': # If the input is amino acid sequence
             if input_file_format == FORMAT_FASTQ_GZ: # If its gzipped
-                cmd = "awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s) %s" % (input_path, tee) # Unzip it and feed it into the base command
-                self.hk.add_cmd(cmd_log, cmd)
-                subprocess.check_call(["/bin/bash", "-c", cmd])
+                input_cmd = "awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s)" % (input_path) # Unzip it and feed it into the base command
             elif input_file_format == FORMAT_FASTA: # If it is in fasta format
-                cmd = "cat %s %s" % (input_path, tee) # It can be searched directly, no manpulation required
-                self.hk.add_cmd(cmd_log, cmd)
-                subprocess.check_call(["/bin/bash", "-c", cmd])
+                input_cmd = "cat %s" % input_path # It can be searched directly, no manpulation required
             else:
                 raise Exception('Programming Error: error guessing input file format')
         else:
             raise Exception('Programming Error: error guessing input sequence type')
+        
+        # Run the HMMsearches
+        searcher = HmmSearcher(threads, eval)
+        searcher.hmmsearch(input_cmd, self.search_hmm, output_table_list)
+        
         return output_table_list
 
     def nhmmer(self, output_path, input_path, input_file_format, threads, eval, cmd_log):
@@ -418,31 +410,24 @@ class Hmmer:
         'Extract only the orfs that hit the hmm, return sequence file with within.'        
         # Build the command
         output_table_list = []
-        tee = ' | tee'
-        hmm_number = len(self.search_hmm)
-        if hmm_number > 1:
-            for idx, hmm in enumerate(self.search_hmm):
+        if len(self.search_hmm) > 1:
+            for hmm in self.search_hmm:
                 out = os.path.join(os.path.split(hmmsearch_out_path)[0], os.path.basename(hmm).split('.')[0] +'_'+ os.path.split(hmmsearch_out_path)[1])
                 output_table_list.append(out)
-                if idx + 1 == hmm_number:
-                    tee += " | hmmsearch --domtblout %s %s - >/dev/null " % (out, hmm)
-                elif idx + 1 < hmm_number:
-                    tee += " >(hmmsearch --domtblout %s %s - >/dev/null) " % (out, hmm)
-                else:
-                    raise Exception("Programming Error.") 
-        elif hmm_number == 1:
-            tee = ' | hmmsearch --domtblout %s %s - >/dev/null' % (hmmsearch_out_path, self.search_hmm[0])
+        elif len(self.search_hmm) == 1:
             output_table_list.append(hmmsearch_out_path)
+        else:
+            raise Exception("Programming error: expected 1 or more HMMs")
+        
         # Call orfs on the sequences
-
         orfm_cmd = self.orfm_command_line(min_orf_length, restrict_read_length)
         cmd = '%s %s > %s' % (orfm_cmd, input_path, raw_orf_path)
         self.hk.add_cmd(cmd_log, cmd)
         subprocess.check_call(cmd, shell=True)
 
-        cmd = 'cat %s %s' % (raw_orf_path, tee)
-        self.hk.add_cmd(cmd_log, cmd)
-        subprocess.check_call(['bash','-c',cmd])
+        cmd = 'cat %s' % raw_orf_path
+        searcher = HmmSearcher(1)
+        searcher.hmmsearch(cmd, self.search_hmm, output_table_list)
         
         with open(orf_titles_path, 'w') as output:
             seen = []

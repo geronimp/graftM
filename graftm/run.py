@@ -177,8 +177,6 @@ class Run:
                     self.gmf = GraftMFiles(base, self.args.output_directory, directions[i])
                     self.hk.delete([self.gmf.for_aln_path(base),
                                     self.gmf.rev_aln_path(base),
-                                    self.gmf.sto_for_output_path(base),
-                                    self.gmf.sto_rev_output_path(base),
                                     self.gmf.conv_output_rev_path(base),
                                     self.gmf.conv_output_for_path(base),
                                     self.gmf.euk_free_path(base),
@@ -196,8 +194,6 @@ class Run:
                 self.gmf = GraftMFiles(base, self.args.output_directory, False)
                 self.hk.delete([self.gmf.for_aln_path(base),
                                 self.gmf.rev_aln_path(base),
-                                self.gmf.sto_for_output_path(base),
-                                self.gmf.sto_rev_output_path(base),
                                 self.gmf.conv_output_rev_path(base),
                                 self.gmf.conv_output_for_path(base),
                                 self.gmf.euk_free_path(base),

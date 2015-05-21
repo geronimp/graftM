@@ -21,7 +21,7 @@ class Hmmer:
         self.aln_hmm = aln_hmm
         self.hk = HouseKeeping()
 
-    def hmmalign(self, input_path, run_stats, cmd_log, for_file, rev_file, for_sto_file, rev_sto_file, for_conv_file, rev_conv_file):
+    def hmmalign(self, input_path, run_stats, cmd_log, for_file, rev_file, for_conv_file, rev_conv_file):
         # Align input reads to a specified hmm.
         if run_stats['rev_true']:
             read_info = run_stats['reads']
@@ -57,17 +57,13 @@ class Hmmer:
 
 
             # HMMalign and convert to fasta format
-            cmd = 'hmmalign --trim -o %s %s %s 2>/dev/null; seqmagick convert %s %s' % (for_sto_file,
-                                                                                        self.aln_hmm,
+            cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (self.aln_hmm,
                                                                                         for_file,
-                                                                                        for_sto_file,
                                                                                         for_conv_file)
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(cmd, shell=True)
-            cmd = 'hmmalign --trim -o %s %s %s 2>/dev/null; seqmagick convert %s %s' % (rev_sto_file,
-                                                                                        self.aln_hmm,
+            cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (self.aln_hmm,
                                                                                         rev_file,
-                                                                                        rev_sto_file,
                                                                                         rev_conv_file)
 
             self.hk.add_cmd(cmd_log, cmd)
@@ -75,10 +71,8 @@ class Hmmer:
 
         # If there are only forward reads, just hmmalign and be done with it.
         else:
-            cmd = 'hmmalign --trim -o %s %s %s ; seqmagick convert %s %s' % (for_sto_file,
-                                                                             self.aln_hmm,
+            cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (self.aln_hmm,
                                                                              input_path,
-                                                                             for_sto_file,
                                                                              for_conv_file)
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(cmd, shell=True)
@@ -587,8 +581,6 @@ class Hmmer:
                       files.command_log_path(),
                       files.output_for_path(base),
                       files.output_rev_path(base),
-                      files.sto_for_output_path(base),
-                      files.sto_rev_output_path(base),
                       files.conv_output_for_path(base),
                       files.conv_output_rev_path(base))
 

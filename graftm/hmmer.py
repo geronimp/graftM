@@ -3,12 +3,11 @@ import os
 import re
 import timeit
 import itertools
-
+import logging
 
 from Bio import SeqIO
 from collections import OrderedDict
 
-from graftm.messenger import Messenger
 from graftm.housekeeping import HouseKeeping
 from graftm.hmmsearcher import HmmSearcher, NhmmerSearcher
 
@@ -40,7 +39,7 @@ class Hmmer:
                     reverse.append(record)
 
                 else:
-                    raise Exception(Messenger().error_message('Programming error: hmmalign'))
+                    raise Exception(logging.error('Programming error: hmmalign'))
                     exit(1)
 
             # Write reverse complement and forward reads to files
@@ -201,7 +200,7 @@ class Hmmer:
             subprocess.check_call(["/bin/bash", "-c", cmd])
 
         else:
-            raise Exception(Messenger().error_message('Suffix on %s not familiar. Please submit an .fq.gz or .fa file\n' % (raw_reads)))
+            raise Exception(logging.error('Suffix on %s not familiar. Please submit an .fq.gz or .fa file\n' % (raw_reads)))
 
 
         # check for evalues that are lower, after eliminating hits with an
@@ -221,10 +220,10 @@ class Hmmer:
 
         # Return Euk contamination
         if len(reads_with_better_euk_hit) == 0:
-            Messenger().message("No contaminating eukaryotic reads detected in %s" % (os.path.basename(raw_reads)))
+            logging.info("No contaminating eukaryotic reads detected in %s" % (os.path.basename(raw_reads)))
 
         else:
-            Messenger().message("Found %s read(s) that may be eukaryotic" % len(reads_with_better_euk_hit + reads_unique_to_eukaryotes))
+            logging.info("Found %s read(s) that may be eukaryotic" % len(reads_with_better_euk_hit + reads_unique_to_eukaryotes))
         # Write a file with the Euk free reads.
         with open(euk_free_output_path, 'w') as euk_free_output:
             for record in list(SeqIO.parse(open(input_path, 'r'), 'fasta')):
@@ -250,9 +249,9 @@ class Hmmer:
             run_stats['rev_true'] = False
 
         if count > 0: # Return if there weren't any reads found
-            Messenger().message('%s read(s) found' % (count))
+            logging.info('%s read(s) found' % (count))
         else: # Otherwise, report the number of reads
-            Messenger().message('%s reads found, cannot continue with no information' % (len(run_stats['reads'].keys())))
+            logging.info('%s reads found, cannot continue with no information' % (len(run_stats['reads'].keys())))
             return run_stats, False
         # And write the read names to output
         orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
@@ -511,7 +510,7 @@ class Hmmer:
 
         # Check for Eukarytoic contamination
         if euk_check:
-            Messenger().message("Checking for Eukaryotic contamination")
+            logging.info("Checking for Eukaryotic contamination")
             run_stats, hit_reads = self.check_euk_contamination(files.euk_contam_path(base),
                                                                 files.euk_free_path(base),
                                                                 hit_reads,

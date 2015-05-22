@@ -4,8 +4,7 @@ import shutil
 import subprocess
 import json
 import tempfile
-
-from graftm.messenger import Messenger
+import logging
 
 # Constants - don't change them evar.
 FORMAT_FASTA = 'FORMAT_FASTA'
@@ -61,7 +60,7 @@ class HouseKeeping:
                     if nucl not in nas and nucl in aas:
                         return 'protein'
                     elif nucl not in nas and nucl not in aas:
-                        raise Exception(Messenger().error_message('Encountered unexpected character when attempting to guess sequence type: %s' % (nucl)))
+                        raise Exception(logging.error('Encountered unexpected character when attempting to guess sequence type: %s' % (nucl)))
                     else:
                         continue
                 return 'nucleotide'
@@ -128,7 +127,7 @@ class HouseKeeping:
         if args.subparser_name == 'graft':
             # Check that the placement cutoff is between 0.5 and 1
             if float(args.placements_cutoff) < float(0.5) or float(args.placements_cutoff) > float(1.0):
-                Messenger().message('Please specify a confidence level (-d) between 0.5 and 1.0! Found: %s' % args.placements_cutoff)
+                logging.info('Please specify a confidence level (-d) between 0.5 and 1.0! Found: %s' % args.placements_cutoff)
                 exit(1)
 
             # Set string for hmmsearch evalue
@@ -149,7 +148,7 @@ class HouseKeeping:
                     f = [f]
                     sequence_file_list.append(f)
             else:
-                Messenger().error_message('Confusing input. Did you specify the same amount of reverse and forward read files?')
+                logging.error('Confusing input. Did you specify the same amount of reverse and forward read files?')
             return sequence_file_list, input_file_format
         else:
             return

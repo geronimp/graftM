@@ -2,8 +2,8 @@
 
 import timeit
 import os
+import logging
 
-from graftm.messenger import Messenger
 from graftm.graftm_output_paths import GraftMFiles
 from graftm.extract_sequences import Extract
 from graftm.hmmer import Hmmer
@@ -45,7 +45,7 @@ class Run:
         else:
             raise Exception('Programming Error: Assigning run_stats hash')
         # Tell user what is being searched with what
-        Messenger().message('Searching %s' % (os.path.basename(sequence_file)))
+        logging.info('Searching %s' % (os.path.basename(sequence_file)))
         # Search for reads using hmmsearch
         hit_reads, run_stats = self.h.p_search(self.gmf,
                                                self.args,
@@ -56,7 +56,7 @@ class Run:
         if not hit_reads:
             return summary_dict, False
         # Align the reads.
-        Messenger().message('Aligning reads to reference package database')
+        logging.info('Aligning reads to reference package database')
         hit_aligned_reads, run_stats = self.h.align(self.gmf,
                                                     self.args,
                                                     run_stats,
@@ -87,7 +87,7 @@ class Run:
             raise Exception('Programming Error: Assigning run_stats hash')
 
         # Search for reads using nhmmer
-        Messenger().message('Searching %s' % os.path.basename(sequence_file))
+        logging.info('Searching %s' % os.path.basename(sequence_file))
         hit_reads, run_stats = self.h.d_search(self.gmf,
                                                self.args,
                                                run_stats,
@@ -100,7 +100,7 @@ class Run:
             return summary_dict, False
         
         # Otherwise, run through the alignment
-        Messenger().message('Aligning reads to reference package database')
+        logging.info('Aligning reads to reference package database')
         hit_aligned_reads, run_stats = self.h.align(self.gmf,
                                                     self.args,
                                                     run_stats,
@@ -145,18 +145,18 @@ class Run:
             placements_list.append(placements)
 
         # Generate coverage table
-        #Messenger().message('Building coverage table for %s' % base)
+        #logging.info('Building coverage table for %s' % base)
         #self.s.coverage_of_hmm(self.args.aln_hmm_file,
         #                         self.gmf.summary_table_output_path(base),
         #                         self.gmf.coverage_table_path(base),
         #                         summary_dict[base]['read_length'])
-        Messenger().message('Building summary table')
+        logging.info('Building summary table')
         self.s.otu_builder(placements_list,
                            otu_tables,
                            summary_dict['base_list'],
                            self.gmf.combined_summary_table_output_path())
         
-        Messenger().message('Building summary krona plot')
+        logging.info('Building summary krona plot')
         self.kb.otuTablePathListToKrona(otu_tables,
                                         self.gmf.krona_output_path(),
                                         self.gmf.command_log_path())
@@ -169,7 +169,7 @@ class Run:
         self.s.build_basic_statistics(summary_dict, self.gmf.basic_stats_path(), self.args.type)
 
         # Delete unnecessary files
-        Messenger().message('Cleaning up')
+        logging.info('Cleaning up')
         for base in summary_dict['base_list']:
             directions = ['forward', 'reverse']
             if summary_dict['reverse_pipe']:
@@ -208,7 +208,7 @@ class Run:
                                 self.gmf.output_for_path(base),
                                 self.gmf.output_rev_path(base)])
 
-        Messenger().message('Done, thanks for using graftM!\n')
+        logging.info('Done, thanks for using graftM!\n')
 
     def graft(self):
         # The Graft pipeline:
@@ -228,26 +228,19 @@ class Run:
              - _                        |_____|
            -                                  |______
             '''
+        readstoplace=False # An extra check to make sure there are reads to place with
         # Set up a dictionary that will record stats as the pipeline is running
-
         summary_table = {'euks_checked': self.args.euk_check,
                          'resolve_placements': self.args.resolve_placements,
                          'base_list': [],
                          'seqs_list': [],
                          'start_all': timeit.default_timer(),
                          'reverse_pipe': False}
-
         # Set the output directory if not specified and create that directory
-        if not hasattr(self.args, 'output_directory'):
-            self.args.output_directory = "GraftM_output"
         self.hk.make_working_directory(self.args.output_directory,
                                        self.args.force)
-        
-        readstoplace=False # An extra check to make sure there are reads to place with
-        
         # For each pair (or single file passed to GraftM)
         for pair in self.sequence_pair_list:
-
             # Set the basename, and make an entry to the summary table.
             base = os.path.basename(pair[0]).split('.')[0]
 
@@ -276,17 +269,17 @@ class Run:
                                            self.args.force)
 
             # tell the user which file/s is being processed
-            Messenger().header("Working on %s" % base)
+            logging.info("Working on %s" % base)
 
             # for each of the paired end read files
             for read_file in pair:
                 if not os.path.isfile(read_file): # Check file exists
-                    Messenger().header('%s does not exist! Skipping this file..' % read_file)
+                    logging.info('%s does not exist! Skipping this file..' % read_file)
                     continue
                 # Set the output file_name
                 if summary_table['reverse_pipe']:
                     direction = pair_direction.pop(0)
-                    Messenger().header("Working on %s reads" % direction)
+                    logging.info("Working on %s reads" % direction)
                     self.gmf = GraftMFiles(base,
                                            self.args.output_directory,
                                            direction)
@@ -335,7 +328,7 @@ class Run:
         self.gmf = GraftMFiles('',
                                self.args.output_directory,
                                False)
-        Messenger().header("Placing reads into phylogenetic tree")
+        logging.info("Placing reads into phylogenetic tree")
         self.placement(summary_table)
 
 

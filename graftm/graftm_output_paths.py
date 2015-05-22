@@ -26,9 +26,6 @@ class GraftMFiles:
     
     def euk_contam_path(self, out_path):
         return os.path.join(self.outdir, out_path, "%s_euk_contam.txt" % self.basename)
-
-    def guppy_file_output_path(self):
-        return os.path.join(self.outdir, out_path, "placements.guppy" % self.basename)
     
     def main_guppy_path(self):
         return os.path.join(self.outdir, "placements.guppy")
@@ -68,9 +65,6 @@ class GraftMFiles:
     
     def comb_aln_fa(self):
         return os.path.join(self.outdir, "combined_alignment.aln.fa")
-    
-    def conv_output_rev_path(self, out_path):
-        return os.path.join(self.outdir, out_path, "%s_conv_rev.faa" % self.basename)
 
     def reverse_read_hmmsearch_output_path(self, out_path):
         return os.path.join(self.outdir, out_path, "%s_rev.hmmout.csv" % self.basename)
@@ -80,12 +74,6 @@ class GraftMFiles:
         
     def readnames_output_path(self, out_path):
         return os.path.join(self.outdir, out_path, "%s_readnames.txt" % self.basename)
-
-    def sto_for_output_path(self, out_path):
-        return os.path.join(self.outdir, out_path, "%s.for.sto" % self.basename)
-    
-    def sto_rev_output_path(self, out_path):
-        return os.path.join(self.outdir, out_path, "%s.rev.sto" % self.basename)
     
     def sto_output_path(self, out_path):
         return os.path.join(self.outdir, out_path, "%s.sto" % self.basename)

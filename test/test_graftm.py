@@ -43,7 +43,7 @@ GAGTCCGGACCGTGTCTCAGTTCCGGTGTGGCTGGTCGTCCTCTCAGACCAGCTACGGATTGTCGCCTTGGTGAGCCATT
             data = fasta.name
             package = os.path.join(path_to_data,'16S.gpkg')
             with tempdir.TempDir() as tmp:
-                cmd = '%s graft --forward %s --graftm_package %s --output_directory %s --force --search_only' % (path_to_script,
+                cmd = '%s graft --forward %s --graftm_package %s --output_directory %s --force --search_and_align_only' % (path_to_script,
                                                                                                                  data,
                                                                                                                  package,
                                                                                                                  tmp)
@@ -479,12 +479,12 @@ TGCTTTTACCTTGTTG'''
             self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_1', 'forward'))) # Check forward and reverse reads exist.
             self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_1', 'reverse')))
 
-    def test_search_only(self):
+    def test_search_and_align_only(self):
         data = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.1.fna')
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --search_only --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --search_and_align_only --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                data,
                                                                                                package,
                                                                                                tmp)
@@ -502,12 +502,12 @@ TGCTTTTACCTTGTTG'''
                 count += 1
             self.assertEqual(count, len(expected))
 
-    def test_search_only_specifying_hmm(self):
+    def test_search_and_align_only_specifying_hmm(self):
         data = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.1.fna')
         hmm = os.path.join(path_to_data,'mcrA.gpkg','mcrA.hmm')
 
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --search_only --forward %s --search_hmm_files %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --search_and_align_only --forward %s --search_hmm_files %s --output_directory %s --force' % (path_to_script,
                                                                                                data,
                                                                                                hmm,
                                                                                                tmp)
@@ -525,26 +525,26 @@ TGCTTTTACCTTGTTG'''
                 count += 1
             self.assertEqual(count, len(expected))
 
-    def test_search_only_specifying_multiple_hmms_but_no_aln_file(self):
+    def test_search_and_align_only_specifying_multiple_hmms_but_no_aln_file(self):
         data = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.1.fna')
         hmm = os.path.join(path_to_data,'mcrA.gpkg','mcrA.hmm')
         hmm2 = os.path.join(path_to_data,'mcrA_second_half.gpkg','mcrA.300-557.aln.fasta.hmm')
 
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --search_only --forward %s --search_hmm_files %s %s --output_directory %s --force 2>/dev/null' % (path_to_script,
+            cmd = '%s graft --search_and_align_only --forward %s --search_hmm_files %s %s --output_directory %s --force 2>/dev/null' % (path_to_script,
                                                                                                data,
                                                                                                hmm, hmm2,
                                                                                                tmp)
             with self.assertRaises(subprocess.CalledProcessError):
                 subprocess.check_output(cmd, shell=True)
 
-    def test_search_only_specifying_multiple_hmms_and_aln_file(self):
+    def test_search_and_align_only_specifying_multiple_hmms_and_aln_file(self):
         data = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.1.fna')
         hmm = os.path.join(path_to_data,'mcrA.gpkg','mcrA.hmm')
         hmm2 = os.path.join(path_to_data,'mcrA_second_half.gpkg','mcrA.300-557.aln.fasta.hmm')
 
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --search_only --forward %s --search_hmm_files %s %s --aln_hmm_file %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --search_and_align_only --forward %s --search_hmm_files %s %s --aln_hmm_file %s --output_directory %s --force' % (path_to_script,
                                                                                                data,
                                                                                                hmm2,hmm,
                                                                                                hmm,
@@ -683,7 +683,7 @@ DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
                 data = fastq_gz.name
                 package = os.path.join(path_to_data,'16S.gpkg')
                 with tempdir.TempDir() as tmp:
-                    cmd = '%s graft --forward %s --graftm_package %s --output_directory %s --force --search_only' % (path_to_script,
+                    cmd = '%s graft --forward %s --graftm_package %s --output_directory %s --force --search_and_align_only' % (path_to_script,
                                                                                                                      data,
                                                                                                                      package,
                                                                                                                      tmp)

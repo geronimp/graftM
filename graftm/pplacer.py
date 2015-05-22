@@ -7,7 +7,6 @@ import logging
 from Bio import SeqIO
 
 from graftm.classify import Classify
-from graftm.messenger import Messenger
 from graftm.assembler import TaxoGroup
 from graftm.housekeeping import HouseKeeping
 

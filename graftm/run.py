@@ -141,7 +141,7 @@ class Run:
             else:
                 raise Exception('Programming Error: Assigning placements hash')
                 
-            self.s.readTax(placements, self.gmf.read_tax_output_path(base))
+            self.s.readTax(placements, GraftMFiles(base, self.args.output_directory, False).read_tax_output_path(base))
             placements_list.append(placements)
 
         # Generate coverage table
@@ -230,25 +230,25 @@ class Run:
             '''
         readstoplace=False # An extra check to make sure there are reads to place with
         # Set up a dictionary that will record stats as the pipeline is running
-        summary_table = {'euks_checked': self.args.euk_check,
+        summary_table = {'euks_checked'      : self.args.euk_check,
                          'resolve_placements': self.args.resolve_placements,
-                         'base_list': [],
-                         'seqs_list': [],
-                         'start_all': timeit.default_timer(),
-                         'reverse_pipe': False}
+                         'base_list'         : [],
+                         'seqs_list'         : [],
+                         'start_all'         : timeit.default_timer(),
+                         'reverse_pipe'      : False}
         # Set the output directory if not specified and create that directory
         self.hk.make_working_directory(self.args.output_directory,
                                        self.args.force)
         # For each pair (or single file passed to GraftM)
         for pair in self.sequence_pair_list:
             # Set the basename, and make an entry to the summary table.
-            base = os.path.basename(pair[0]).split('.')[0]
-
+            base = os.path.splitext(pair[0])[0]
             # Set reverse pipe if more than one pair
             if hasattr(self.args, 'reverse'):
                 summary_table['reverse_pipe'] = True
-                summary_table[base] = {'reverse':{}, 'forward':{}}
-                pair_direction = ['forward', 'reverse']
+                summary_table[base]           = {'reverse':{}, 
+                                                 'forward':{}}
+                pair_direction                = ['forward', 'reverse']
             else:
                 summary_table[base] = {}
 
@@ -259,7 +259,9 @@ class Run:
                 setattr(self.args, 'eval', '--cut_tc')
                 
             # Guess the sequence file type, if not already specified to GraftM
-            if not hasattr(self.args, 'input_sequence_type'):
+            if hasattr(self.args, 'input_sequence_type'): 
+                pass
+            else:
                 setattr(self.args, 'input_sequence_type',
                         self.hk.guess_sequence_type(pair[0],
                                                     self.input_file_format))
@@ -319,10 +321,10 @@ class Run:
 
         # Leave the pipeline if search only was specified
         if self.args.search_and_align_only:
-            Messenger().header('Stopping before placement\n')
+            logging.info('Stopping before placement\n')
             exit(0)
         elif not readstoplace:
-            Messenger().header('No hits in any of the provided files. Cannot continue with no reads to place.\n')
+            logging.error('No hits in any of the provided files. Cannot continue with no reads to place.\n')
             exit(0)
         # Tell the user we're on to placing the sequences into the tree.
         self.gmf = GraftMFiles('',

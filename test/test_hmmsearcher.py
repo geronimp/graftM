@@ -33,17 +33,17 @@ class HmmsearcherTests(unittest.TestCase):
     def test_generates_correct_cmd_single_hmm(self):
         searcher = graftm.hmmsearcher.HmmSearcher(1)
         cmd = searcher._HmmSearcher__hmm_command('orfm some', [(['hmm1','out1'],1)])
-        self.assertEqual('orfm some | hmmsearch  --cpu 1 --domtblout out1 hmm1 - >/dev/null', cmd)
+        self.assertEqual('orfm some | hmmsearch  --cpu 1 -o /dev/null --noali --domtblout out1 hmm1 -', cmd)
         
     def test_generates_correct_cmd_extra_args(self):
         searcher = graftm.hmmsearcher.HmmSearcher(1, extra_args='-E 1e-99')
         cmd = searcher._HmmSearcher__hmm_command('orfm some', [(['hmm1','out1'],1)])
-        self.assertEqual('orfm some | hmmsearch -E 1e-99 --cpu 1 --domtblout out1 hmm1 - >/dev/null', cmd)
+        self.assertEqual('orfm some | hmmsearch -E 1e-99 --cpu 1 -o /dev/null --noali --domtblout out1 hmm1 -', cmd)
         
     def test_generates_multi_hmms(self):
         searcher = graftm.hmmsearcher.HmmSearcher(1)
         cmd = searcher._HmmSearcher__hmm_command('orfm some', [(['hmm1','out1'],1), (['hmm2','out2'],2)])
-        self.assertEqual('orfm some | tee >(hmmsearch  --cpu 1 --domtblout out1 hmm1 - >/dev/null) | hmmsearch  --cpu 2 --domtblout out2 hmm2 - >/dev/null', cmd)
+        self.assertEqual('orfm some | tee >(hmmsearch  --cpu 1 -o /dev/null --noali --domtblout out1 hmm1 -) | hmmsearch  --cpu 2 -o /dev/null --noali --domtblout out2 hmm2 -', cmd)
         
     def test_munch_off_batch_single_cpu(self):
         searcher = graftm.hmmsearcher.HmmSearcher(1)
@@ -92,7 +92,7 @@ example_partial_mcra8 -            162 mcrA.fasta           -            557    
     def test_nhmmer_searcher(self):
         searcher = graftm.hmmsearcher.NhmmerSearcher(20)
         cmd = searcher._HmmSearcher__hmm_command('cat some', [(['hmm1','out1'],10)])
-        self.assertEqual('cat some | nhmmer  --cpu 10 --tblout out1 hmm1 - >/dev/null', cmd)        
+        self.assertEqual('cat some | nhmmer  --cpu 10 -o /dev/null --noali --tblout out1 hmm1 -', cmd)        
         
 
 

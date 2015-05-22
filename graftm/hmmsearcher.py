@@ -112,7 +112,7 @@ class HmmSearcher:
         return hmmsearch_cmd
             
     def _individual_hmm_command(self, hmm, output_file, num_cpus):
-        return "hmmsearch %s --cpu %s --domtblout %s %s - >/dev/null" % (self._extra_args,
+        return "hmmsearch %s --cpu %s -o /dev/null --noali --domtblout %s %s -" % (self._extra_args,
                                                                          num_cpus,
                                                                          output_file,
                                                                          hmm)
@@ -121,7 +121,7 @@ class NhmmerSearcher(HmmSearcher):
     r"""Runs nhmmer given one or many HMMs in a scalable and fast way""" 
             
     def _individual_hmm_command(self, hmm, output_file, num_cpus):
-        return "nhmmer %s --cpu %s --tblout %s %s - >/dev/null" % (self._extra_args,
+        return "nhmmer %s --cpu %s -o /dev/null --noali --tblout %s %s -" % (self._extra_args,
                                                                    num_cpus,
                                                                    output_file,
                                                                    hmm)

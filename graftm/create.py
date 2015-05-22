@@ -40,6 +40,7 @@ class Create:
         return hmm
     
     def pipeType(self, hmm):
+
         type=[x.split() for x in open(hmm).readlines() if x.startswith('ALPH') or x.startswith('LENG')]
         for item in type:
             if item[0]=='ALPH':       
@@ -141,7 +142,6 @@ class Create:
                 hmm=self.buildHmm(alignment, base)
                 Messenger().message("Aligning to HMM built from alignment")
                 output_alignment = self.alignSequences(hmm, sequences, base)
-            
             ptype,leng=self.pipeType(hmm)
             # Build the tree
             Messenger().message("Building tree")

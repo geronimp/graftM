@@ -110,27 +110,50 @@ Runtime (seconds):
             stats_file.write(stats)
 
 
-    def otu_builder(self, hash, output, base):
+    def otu_builder(self, hash_list, output_list, base_list, combined_output):
         ## A function that takes a hash of trusted placements, and compiles them
         ## into an OTU-esque table.
         # Start an output list and hash that will contain consolidated numbers
-        # for each taxonomic rank...
-        output_table = [['#ID', base, 'ConsensusLineage']]
-        c_hash = {}
-        rank_id = 0
-        # Consolidate the placement list into a simplified hash with taxonomic
-        # rank, and number. Simple.
-        for read_name, placement_list in hash.iteritems():
-            try:
-                c_hash['; '.join(placement_list)] += 1
-            except:
-                c_hash['; '.join(placement_list)] = 1
-        # Make an entry into the output list
-        for rank, count in c_hash.iteritems():
-            output_table.append([str(rank_id), str(count), rank])
-            rank_id += 1
-        # And write to a file
-        with open(output, 'w') as out:
+        # for each taxonomic rank...    
+        all_hashes={}
+        ps=[]
+        for idx, base in enumerate(base_list):
+            output_table = [['#ID', base, 'ConsensusLineage']]
+            c_hash       = {}
+            rank_id      = 0
+            # Consolidate the placement list into a simplified hash with taxonomic
+            # rank, and number. Simple.
+            p=['; '.join(x) for x in hash_list[idx].values()]
+            ps.append(p)
+            for placement_list in p:
+                try:
+                    c_hash[placement_list] += 1
+                except:
+                    c_hash[placement_list] = 1
+                    all_hashes[placement_list]=[]
+            # Make an entry into the output list
+            for rank, count in c_hash.iteritems():
+                output_table.append([str(rank_id), str(count), rank])
+                rank_id += 1
+            # And write to a file
+            with open(output_list[idx], 'w') as out:
+                for line in output_table:
+                    out.write('\t'.join(line)+'\n')
+        output_table = [['#ID', '\t'.join(base_list), 'ConsensusLineage']]
+        rank_id=0
+        for p in ps:
+            for place in all_hashes.keys():
+                try:
+                    all_hashes[place].append(p.count(place))
+                except:
+                    all_hashes[place].append(0)
+        for key, item in all_hashes.iteritems():
+            output_table.append([str(rank_id), '\t'.join([str(x) for x in item]), key])
+            rank_id+=1
+        with open(combined_output, 'w') as out:
             for line in output_table:
                 out.write('\t'.join(line)+'\n')
 
+            
+        
+        

@@ -33,6 +33,9 @@ class GraftMFiles:
     def summary_table_output_path(self, out_path):
         return os.path.join(self.outdir, out_path, "%s_count_table.txt" % self.basename)
     
+    def combined_summary_table_output_path(self):
+        return os.path.join(self.outdir, "combined_count_table.txt")
+    
     def krona_output_path(self):
         return os.path.join(self.outdir, "krona.html")
     

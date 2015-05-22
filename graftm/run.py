@@ -126,13 +126,13 @@ class Run:
                                     self.gmf,
                                     self.args)
         # Summary steps.
-        start = timeit.default_timer()
-        otu_tables = []
-        for idx, base in enumerate(summary_dict['base_list']):
+        start           = timeit.default_timer()
+        otu_tables      = [GraftMFiles(base, self.args.output_directory, False).summary_table_output_path(base) for base in summary_dict['base_list']]
+        placements_list = []
+        for base in summary_dict['base_list']:
             # First assign the hash that contains all of the trusted placements
             # to a variable to it can be passed to otu_builder, to be written
             # to a file. :)
-
             if summary_dict['reverse_pipe']:
                 placements = summary_dict[base]['comparison_hash']['trusted_placements']
                 summary_dict[base]['read_length'] = (summary_dict[base]['forward']['read_length'] + summary_dict[base]['reverse']['read_length'])/2
@@ -140,22 +140,22 @@ class Run:
                 placements = summary_dict[base]['trusted_placements']
             else:
                 raise Exception('Programming Error: Assigning placements hash')
-
-            self.gmf = GraftMFiles(base, self.args.output_directory, False) # Assign the output directory to place output in
-            Messenger().message('Building summary table for %s' % base)
+                
             self.s.readTax(placements, self.gmf.read_tax_output_path(base))
-            self.s.otu_builder(placements,
-                                 self.gmf.summary_table_output_path(base),
-                                 base)
-            otu_tables.append(self.gmf.summary_table_output_path(base))
+            placements_list.append(placements)
 
-            # Generate coverage table
-            #Messenger().message('Building coverage table for %s' % base)
-            #self.s.coverage_of_hmm(self.args.aln_hmm_file,
-            #                         self.gmf.summary_table_output_path(base),
-            #                         self.gmf.coverage_table_path(base),
-            #                         summary_dict[base]['read_length'])
-
+        # Generate coverage table
+        #Messenger().message('Building coverage table for %s' % base)
+        #self.s.coverage_of_hmm(self.args.aln_hmm_file,
+        #                         self.gmf.summary_table_output_path(base),
+        #                         self.gmf.coverage_table_path(base),
+        #                         summary_dict[base]['read_length'])
+        Messenger().message('Building summary table')
+        self.s.otu_builder(placements_list,
+                           otu_tables,
+                           summary_dict['base_list'],
+                           self.gmf.combined_summary_table_output_path())
+        
         Messenger().message('Building summary krona plot')
         self.kb.otuTablePathListToKrona(otu_tables,
                                         self.gmf.krona_output_path(),

@@ -400,9 +400,10 @@ class Hmmer:
                     del new_seq[position] # Delete that inserted position in every sequence
                 corrected_sequences['>'+sequence.id+'\n'] = ''.join(new_seq)+'\n'
         with open(output_file_name, 'w') as output_file: # Create an open file to write the new sequences to
-            for fasta_id, fasta_seq in corrected_sequences.iteritems():
-                output_file.write(fasta_id)
-                output_file.write(fasta_seq)
+                for fasta_id, fasta_seq in corrected_sequences.iteritems():
+                    if any(c.isalpha() for c in fasta_seq):
+                        output_file.write(fasta_id)
+                        output_file.write(fasta_seq)
       
     def orfm_command_line(self, min_orf_length, restrict_read_length):
         '''Return a string to run OrfM with, assuming sequences are incoming on

@@ -240,23 +240,6 @@ class Hmmer:
         run_stats['euk_contamination'] = len(reads_with_better_euk_hit)
         return run_stats, euk_free_output_path
 
-    def filter_hmmsearch(self, output_hash, contents, args, input_file_format, cmd_log):
-        for seq_file in sequence_file_list:
-            hmmout_table_title = suffix[0]
-            table_title_list.append(hmmout_table_title)
-            hmmsearch_cmd = " hmmsearch --cpu %s %s -o /dev/null --domtblout %s %s " % (threads, eval, hmmout_table_title, self.hmm)
-            # TODO: capture stderr and report if the check_call fails
-            if input_file_format == FORMAT_FASTA or input_file_format == FORMAT_FASTQ_GZ:
-                if contents.pipe == 'P':
-                    cmd = 'orfm %s | %s /dev/stdin' % (seq_file, hmmsearch_cmd)
-                    self.hk.add_cmd(cmd_log, cmd)
-                    subprocess.check_call(["/bin/bash", "-c", cmd])
-            else:
-                Messenger().message('ERROR: Suffix on %s not recegnised\n' % (seq_file))
-                exit(1)
-            del suffix[0]
-        return table_title_list
-
     def csv_to_titles(self, output_path, input_path, run_stats):
         ## process hmmsearch/nhmmer results into a list of titles to <base_filename>_readnames.txt
         run_stats['reads'] = self.hmmtable_reader(input_path)

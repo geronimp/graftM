@@ -119,9 +119,9 @@ class HouseKeeping:
             try:
                 os.mkdir(directory_path)
             except:
-                Messenger().header('Directory %s already exists. Exiting to prevent over-writing\n' % directory_path)
-                exit(1)
-
+                logging.error('Directory %s already exists. Exiting to prevent over-writing' % directory_path)
+                raise Exception('Directory %s already exists. Exiting to prevent over-writing'% directory_path)
+    
     def parameter_checks(self, args):
         ## Check that the necessary files are in place
         if args.subparser_name == 'graft':

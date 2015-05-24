@@ -167,7 +167,6 @@ class Run:
         summary_dict['stop_all'] = timeit.default_timer()
         summary_dict['all_t'] = str(int(round((summary_dict['stop_all'] - summary_dict['start_all']), 0)) )
         self.s.build_basic_statistics(summary_dict, self.gmf.basic_stats_path(), self.args.type)
-
         # Delete unnecessary files
         logging.info('Cleaning up')
         for base in summary_dict['base_list']:
@@ -236,13 +235,18 @@ class Run:
                          'seqs_list'         : [],
                          'start_all'         : timeit.default_timer(),
                          'reverse_pipe'      : False}
+        
         # Set the output directory if not specified and create that directory
         self.hk.make_working_directory(self.args.output_directory,
                                        self.args.force)
+        
+        
+        
+        
         # For each pair (or single file passed to GraftM)
         for pair in self.sequence_pair_list:
             # Set the basename, and make an entry to the summary table.
-            base = os.path.splitext(pair[0])[0]
+            base = os.path.basename(pair[0]).split('.')[0]
             # Set reverse pipe if more than one pair
             if hasattr(self.args, 'reverse'):
                 summary_table['reverse_pipe'] = True

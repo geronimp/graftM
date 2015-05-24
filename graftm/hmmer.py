@@ -77,6 +77,9 @@ class Hmmer:
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(cmd, shell=True)
 
+    def makeSequenceBinary(self, sequences, fm):
+        cmd='makehmmerdb %s %s' % (sequences, fm)
+        subprocess.check_call(cmd, shell=True)
 
     def hmmsearch(self, output_path, input_path, input_file_format, seq_type, threads, eval, min_orf_length, restrict_read_length, cmd_log):
         '''Run a hmmsearch on the input_path raw reads, and return the name
@@ -309,8 +312,8 @@ class Hmmer:
                 for key,item in out_reads.iteritems():
                     out.write(">%s\n" % (str(key)))
                     out.write("%s\n" % (str(item)))
-                    
             return new_stats, out_path
+        
         # Run fxtract to obtain reads form original sequence file
         fxtract_cmd = "fxtract -H -X -f %s " % input_path
         if input_file_format == FORMAT_FASTA:

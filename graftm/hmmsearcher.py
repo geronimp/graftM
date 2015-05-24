@@ -1,4 +1,5 @@
 import subprocess
+import cmd
 
 class HmmSearcher:
     r"""Runs hmmsearch given one or many HMMs in a scalable and fast way""" 

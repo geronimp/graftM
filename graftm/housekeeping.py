@@ -228,6 +228,10 @@ class HouseKeeping:
                     setattr(args, 'aln_hmm_file', args.search_hmm_files[0])
                 else:
                     raise Exception("Multiple search HMMs specified, but aln_hmm_file not specified")
+        elif hasattr(args, 'search_hmm_list_file'):
+            setattr(args, 'search_hmm_files', open(args.search_hmm_list_file).readlines())
+            if not hasattr(args, 'aln_hmm_file'):
+                raise Exception("Multiple search HMMs specified, but aln_hmm_file not specified")
         else:
             raise Exception('No refpkg or HMM specified: Do not know what to search with.')
         return

@@ -93,6 +93,7 @@ if __name__ == '__main__':
     graft_parser.add_argument('--output_directory', metavar='reference_package', help='Output directory name. If unspecified, this file will be named GraftM_output', default="GraftM_output")
     nucleotide_options = graft_parser.add_argument_group('nucleotide search-specific options')
     nucleotide_options.add_argument('--search_hmm_files', nargs='+', help='Specify .hmm files to use in search step', default=argparse.SUPPRESS)
+    nucleotide_options.add_argument('--search_hmm_list_file', metavar='newline-separated file with paths to each search HMM', default=argparse.SUPPRESS)
     nucleotide_options.add_argument('--aln_hmm_file', help='Specify a single .hmm file to use in align step (default: the search_hmm_file if there is only 1)', default=argparse.SUPPRESS)
     nucleotide_options.add_argument('--euk_hmm_file', help='Specify the .hmm file to use in the check for euk contamination', default=argparse.SUPPRESS)
     nucleotide_options.add_argument('--check_total_euks', action="store_true", help='Search whole sample for 18S and attempt to estimate relative percentage of Eukaryotes (default=False)', default=False)

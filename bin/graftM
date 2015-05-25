@@ -84,8 +84,8 @@ if __name__ == '__main__':
     graft_parser = subparsers.add_parser('graft',
                                         description='Search and classify marker genes to construct community profiles',
                                         epilog='Joel Boyd, Ben Woodcroft')
-    graft_parser.add_argument('--forward', metavar='forward read (or single read file)', help='comma separated list of forward reads .fa, or .fq.gz format.', required=True)
-    graft_parser.add_argument('--reverse', metavar='reverse read', help='[do NOT use unless you understand the difficulties with this] Optional reverse raw sequence file in .fa, or .fq.gz format', default=argparse.SUPPRESS)
+    graft_parser.add_argument('--forward', nargs='+', metavar='forward read (or single read file)', help='One or more files of forward reads .fa, or .fq.gz format.', required=True)
+    graft_parser.add_argument('--reverse', nargs='+',metavar='reverse read', help='[do NOT use unless you understand the difficulties with this] Optional reverse raw sequence file(s) in .fa, or .fq.gz format', default=argparse.SUPPRESS)
     graft_parser.add_argument('--eval', metavar='evalue', help='evalue cutoff for the hmmsearch (default = 1e-5)', default= '1e-5')
     graft_parser.add_argument('--threads', type=int, metavar='threads', help='number of threads to use', default=5)
     graft_parser.add_argument('--placements_cutoff', metavar='confidence', help='Cutoff of placement confidence level (0.5 - 1), default = 0.75', default=0.75)

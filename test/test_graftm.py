@@ -134,7 +134,7 @@ TGCTTTTACCTTGTTG'''
                 count += 1
             self.assertEqual(count, 3)
             
-    def test_multiple_hits_on_same_fastq_sequence(self):
+    def test_multiple_hsps_in_same_orf_of_fastq_sequence(self):
         fq = '''@NS500333:6:H1124BGXX:2:11107:13774:3316 1:N:0:GATCAG
 CGCTTCCAGGTCGTCACCGGCCAACTCGCGAACCCGTCGCGGATCAAACTCGTGCGGCGCAACATCGCCCGTGTCCGCACGCAGATCAGTAAGTTGCAGATCGACCGTGTCCGCGCTGACCTGAAGAACGAGTACCAGACGCTGATCCAGG
 +
@@ -154,9 +154,9 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                                                                                                    tmp)
                 
                 subprocess.check_call(cmd, shell=True)
-                subprocess.check_call('cat %s' % os.path.join(tmp, 'out','a', ''))
-                self.assertEqual(open(os.path.join(tmp,'a','a_hits.aln.fa')).read(),
-                                 'FIXME'
+                self.assertEqual(open(os.path.join(tmp,'out','a','a_hits.aln.fa')).read(),
+                                 "\n".join(['>NS500333:6:H1124BGXX:2:11107:13774:3316_1_1_2',
+                                  '---------------------------RFQVVTGQLANPSRIKLVRRNIARVRTQISK----',''])
                                  )
 
 

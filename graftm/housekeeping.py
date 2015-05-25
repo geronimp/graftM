@@ -165,7 +165,7 @@ class HouseKeeping:
                 uninstalled_programs.append(program)
         if uninstalled_programs:
             msg = "The following programs must be installed to run GraftM create\n"
-            Messenger().header(msg)
+            logging.info(msg)
             for program in uninstalled_programs:
                 l = '\t%s\t%s' % (program, prerequisites[program])
                 print l
@@ -189,7 +189,7 @@ class HouseKeeping:
                 uninstalled_programs.append(program)
         if uninstalled_programs:
             msg = "The following programs must be installed to run GraftM\n"
-            Messenger().header(msg)
+            logging.info(msg)
             for program in uninstalled_programs:
                 l = '\t%s\t%s' % (program, prerequisites[program])
                 print l

@@ -121,7 +121,7 @@ class Create:
             base=os.path.basename(sequences).split('.')[0]
         else:
             base=os.path.basename(alignment).split('.')[0]
-        Messenger().header("Building gpkg for %s" % base)
+        logging.info("Building gpkg for %s" % base)
         # Initially, build the HMM if one is not provided.
         if not tree and not log:
             if hmm and alignment:
@@ -178,5 +178,5 @@ class Create:
         logging.info("Cleaning up")
         self.cleanup(self.the_trash)
         
-        Messenger().header("Finished\n")
+        logging.info("Finished\n")
         return

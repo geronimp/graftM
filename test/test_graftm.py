@@ -116,6 +116,7 @@ TGCTTTTACCTTGTTG'''
     def test_single_forward_read_run_16S(self):
         data = os.path.join(path_to_data,'16S.gpkg', '16S_1.1.fa')
         package = os.path.join(path_to_data,'16S.gpkg')
+        
         with tempdir.TempDir() as tmp:
             cmd = '%s graft --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                data,
@@ -132,6 +133,31 @@ TGCTTTTACCTTGTTG'''
                 self.assertEqual(lines[count], line.strip())
                 count += 1
             self.assertEqual(count, 3)
+            
+    def test_multiple_hits_on_same_fastq_sequence(self):
+        fq = '''@NS500333:6:H1124BGXX:2:11107:13774:3316 1:N:0:GATCAG
+CGCTTCCAGGTCGTCACCGGCCAACTCGCGAACCCGTCGCGGATCAAACTCGTGCGGCGCAACATCGCCCGTGTCCGCACGCAGATCAGTAAGTTGCAGATCGACCGTGTCCGCGCTGACCTGAAGAACGAGTACCAGACGCTGATCCAGG
++
+AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFFFFFFFFFFFFFFF<FFFFFFAFFAFFFFFFFFFFFFFF.AFFFAFFF<FFAFFFFF<FFFFAF<A.FFF7F'''
+        hmm = os.path.join(path_to_data,'hmms','DNGNGWU00027.hmm')
+        with tempdir.TempDir() as tmp_in:
+            fastq = open(os.path.join(tmp_in, 'a.fq'),'w')
+            fastq.write(fq)
+            fastq.flush()
+            fastq_gz = '%s.gz' % fastq.name
+            subprocess.check_call('gzip %s' % fastq.name, shell=True)
+            
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --forward %s --search_hmm_files %s --search_and_align_only --output_directory %s/out' % (path_to_script,
+                                                                                                   fastq_gz,
+                                                                                                   hmm,
+                                                                                                   tmp)
+                
+                subprocess.check_call(cmd, shell=True)
+                subprocess.check_call('cat %s' % os.path.join(tmp, 'out','a', ''))
+                self.assertEqual(open(os.path.join(tmp,'a','a_hits.aln.fa')).read(),
+                                 'FIXME'
+                                 )
 
 
 

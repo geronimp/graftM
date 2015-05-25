@@ -2,11 +2,11 @@ import subprocess
 import os
 import json
 import timeit
+import logging
 
 from Bio import SeqIO
 
 from graftm.classify import Classify
-from graftm.messenger import Messenger
 from graftm.assembler import TaxoGroup
 from graftm.housekeeping import HouseKeeping
 
@@ -87,7 +87,7 @@ class Pplacer:
         
         # Run pplacer on merged file
         jplace = self.pplacer(files.jplace_output_path(), args.output_directory, files.comb_aln_fa(), args.threads, files.command_log_path())
-        Messenger().message("Placements finished")
+        logging.info("Placements finished")
 
         stop = timeit.default_timer() # stop placement timer and log
         summary_dict['place_t'] = str( int(round((stop - start), 0)) )
@@ -96,11 +96,11 @@ class Pplacer:
         summary_dict = self.jplace_split(jplace, alias_hash, summary_dict)
         
         #Read the json of refpkg
-        Messenger().message("Reading classifications")
+        logging.info("Reading classifications")
         tax_descr=json.load(open(self.refpkg+'/CONTENTS.json'))['files']['taxonomy']
         classifications=Classify(os.path.join(self.refpkg,tax_descr)).assignPlacement(jplace, args.placements_cutoff, 'reads', summary_dict['resolve_placements'])
         self.hk.delete([jplace])# Remove combined split, not really useful
-        Messenger().message("Reads classified.")
+        logging.info("Reads classified.")
         
         # If the reverse pipe has been specified, run the comparisons between the two pipelines. If not then just return.
 
@@ -152,10 +152,10 @@ class Compare:
         hash['crossover'] = crossover_hits
         # Check if there are reads to continue with.
         if len(crossover_hits) > 0:
-            Messenger().message("%s reads found that crossover in %s" % (str(len(crossover_hits)),
+            logging.info("%s reads found that crossover in %s" % (str(len(crossover_hits)),
                                                                        file_name))
         elif len(crossover_hits) == 0:
-            Messenger().message("%s reads found that crossover in %s, No reads to use!" % (str(len(crossover_hits)),
+            logging.info("%s reads found that crossover in %s, No reads to use!" % (str(len(crossover_hits)),
                                                                                            file_name))            
         else:
             raise Exception
@@ -178,7 +178,7 @@ class Compare:
                 r_read = read
             # Check read was placed
             if forward_gup.get(f_read) is None or reverse_gup.get(r_read) is None:
-                Messenger().message('Warning: %s was not inserted into tree' % str(f_read))
+                logging.info('Warning: %s was not inserted into tree' % str(f_read))
                 continue # Skip read for now
             comparison_hash[read] = {} # make an entry for each read
             comparison_hash['trusted_placements'][read] = [] # Set up a taxonomy entry in trusted placements

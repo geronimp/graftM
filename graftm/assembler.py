@@ -2,10 +2,9 @@ import subprocess
 import tempfile
 import os
 import shutil
+import logging
 
 from Bio import SeqIO
-
-from graftm.messenger import Messenger
 
 class TaxoGroup:
 
@@ -45,7 +44,7 @@ class TaxoGroup:
         ## format, and also the placement confidence at each rank
 
         # Send the message that the guppy file is being split
-        Messenger().message("Parsing the guppy file(s)")
+        logging.info("Parsing the guppy file(s)")
         read_tax_dict = {} # Define an empty output hash
         
         # Split each line in the guppy, check that it meets the cutoff, and
@@ -80,10 +79,10 @@ class TaxoGroup:
         for f in f_sequences_list:
             records = SeqIO.to_dict(SeqIO.parse(open(f, 'r'), "fasta"))
             f_sequences.update(records)
-            Messenger().message( "%s reads found in %s" % (len( records.keys() ), os.path.basename(f) ) )
+            logging.info( "%s reads found in %s" % (len( records.keys() ), os.path.basename(f) ) )
 
-        Messenger().message("Using %s forward reads in total." % (len(f_sequences.keys())))
-        Messenger().message("Sorting 16S forward sequences into taxonomic groups")
+        logging.info("Using %s forward reads in total." % (len(f_sequences.keys())))
+        logging.info("Sorting 16S forward sequences into taxonomic groups")
 
         for read_name, classification in split_guppy.iteritems():
             taxonomic_group = classification[len(classification) - 1]
@@ -106,16 +105,16 @@ class TaxoGroup:
             subprocess.check_call(cmd, shell = True)
 
         except:
-            Messenger().message("A folder with the name '%s' already exists... This is awkward... \n" % output_directory)
+            logging.info("A folder with the name '%s' already exists... This is awkward... \n" % output_directory)
             exit(1)
 
 
         for idx, taxonomic_rank in enumerate(tax_rank_list):
             r = p_rank.pop(0)
             if r == 'Genus':
-                Messenger().message("Using %s to assemble reads classified at the %s level." % (assembly_type, r))
+                logging.info("Using %s to assemble reads classified at the %s level." % (assembly_type, r))
             else:
-                Messenger().message("Using %s to assemble reads classified at the %s level. -WARNING- These assemblies are likely to be rubbish." % (assembly_type, r))
+                logging.info("Using %s to assemble reads classified at the %s level. -WARNING- These assemblies are likely to be rubbish." % (assembly_type, r))
 
             for tax_name, sequences in taxonomic_rank.iteritems():
                 number_of_sequences = len(list(sequences))
@@ -196,5 +195,5 @@ class TaxoGroup:
                             # Move the resulting assembly to the output directory
                             shutil.move(os.path.join(velvet_assembly_path, 'contigs.fa'),  output_assembly_file_path)
 
-        Messenger().message("Finished assembling\n")
+        logging.info("Finished assembling\n")
 

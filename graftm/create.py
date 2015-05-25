@@ -5,13 +5,13 @@ import os
 import json
 import shutil
 import tempfile
+import logging
 
 import graftm.getaxnseq 
 
 from Bio import SeqIO
 
 from graftm.hmmer import Hmmer
-from graftm.messenger import Messenger
 from graftm.housekeeping import HouseKeeping
 
 
@@ -40,6 +40,7 @@ class Create:
         return hmm
     
     def pipeType(self, hmm):
+
         type=[x.split() for x in open(hmm).readlines() if x.startswith('ALPH') or x.startswith('LENG')]
         for item in type:
             if item[0]=='ALPH':       
@@ -126,25 +127,24 @@ class Create:
             if hmm and alignment:
                 ptype,leng=self.pipeType(hmm)
                 if str(self.checkAlnLength(alignment)) != str(leng):
-                    Messenger().message("Alignment length does not match the HMM length, building a new HMM")
+                    logging.info("Alignment length does not match the HMM length, building a new HMM")
                     hmm=self.buildHmm(alignment, base)
-                    Messenger().message("Aligning to HMM built from alignment")
+                    logging.info("Aligning to HMM built from alignment")
                     output_alignment = self.alignSequences(hmm, sequences, base)
                 else:
-                    Messenger().message("Alignment length matches the HMM length, no need to align")
+                    logging.info("Alignment length matches the HMM length, no need to align")
                     output_alignment=alignment
             elif hmm and not alignment:
-                Messenger().message("Using provided HMM to align sequences")
+                logging.info("Using provided HMM to align sequences")
                 output_alignment = self.alignSequences(hmm, sequences, base)
             elif alignment and not hmm:
-                Messenger().message("Building HMM from alignment")
+                logging.info("Building HMM from alignment")
                 hmm=self.buildHmm(alignment, base)
-                Messenger().message("Aligning to HMM built from alignment")
+                logging.info("Aligning to HMM built from alignment")
                 output_alignment = self.alignSequences(hmm, sequences, base)
-            
             ptype,leng=self.pipeType(hmm)
             # Build the tree
-            Messenger().message("Building tree")
+            logging.info("Building tree")
             log_file, tre_file = self.buildTree(output_alignment, base, ptype)
         else:
             if not tree:
@@ -159,23 +159,23 @@ class Create:
                 raise Exception("No alignment file provided")
 
         # Create tax and seqinfo .csv files
-        Messenger().message("Building seqinfo and taxonomy file")
+        logging.info("Building seqinfo and taxonomy file")
         seq, tax = graftm.getaxnseq.main(base, taxonomy)
         self.the_trash += [seq, tax]
         
         # Create the reference package
-        Messenger().message("Creating reference package")
+        logging.info("Creating reference package")
         refpkg = self.callTaxitCreate(base, output_alignment, tre_file, log_file, tax, seq, prefix)
 
         # Compile the gpkg
-        Messenger().message("Compiling gpkg")
+        logging.info("Compiling gpkg")
         contents = {"aln_hmm": hmm,
                     "search_hmm": [hmm],
                     "rfpkg": refpkg,
                     "TC":False}
         self.compile(base, refpkg, hmm, contents, prefix)
 
-        Messenger().message("Cleaning up")
+        logging.info("Cleaning up")
         self.cleanup(self.the_trash)
         
         Messenger().header("Finished\n")

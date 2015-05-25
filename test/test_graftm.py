@@ -713,6 +713,7 @@ DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
                                                                                                                      data,
                                                                                                                      package,
                                                                                                                      tmp)
+                    print cmd
                     subprocess.check_output(cmd, shell=True)
                     sample_name = os.path.basename(fastq_gz.name[:-6])
                     alnFile = os.path.join(tmp, sample_name, '%s_hits.aln.fa' % sample_name)

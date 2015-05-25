@@ -3,12 +3,11 @@ import os
 import re
 import timeit
 import itertools
-
+import logging
 
 from Bio import SeqIO
 from collections import OrderedDict
 
-from graftm.messenger import Messenger
 from graftm.housekeeping import HouseKeeping
 from graftm.hmmsearcher import HmmSearcher, NhmmerSearcher
 
@@ -22,7 +21,7 @@ class Hmmer:
         self.aln_hmm = aln_hmm
         self.hk = HouseKeeping()
 
-    def hmmalign(self, input_path, run_stats, cmd_log, for_file, rev_file, for_sto_file, rev_sto_file, for_conv_file, rev_conv_file):
+    def hmmalign(self, input_path, run_stats, cmd_log, for_file, rev_file, for_conv_file, rev_conv_file):
         # Align input reads to a specified hmm.
         if run_stats['rev_true']:
             read_info = run_stats['reads']
@@ -40,7 +39,7 @@ class Hmmer:
                     reverse.append(record)
 
                 else:
-                    raise Exception(Messenger().error_message('Programming error: hmmalign'))
+                    raise Exception(logging.error('Programming error: hmmalign'))
                     exit(1)
 
             # Write reverse complement and forward reads to files
@@ -58,17 +57,13 @@ class Hmmer:
 
 
             # HMMalign and convert to fasta format
-            cmd = 'hmmalign --trim -o %s %s %s 2>/dev/null; seqmagick convert %s %s' % (for_sto_file,
-                                                                                        self.aln_hmm,
+            cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (self.aln_hmm,
                                                                                         for_file,
-                                                                                        for_sto_file,
                                                                                         for_conv_file)
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(cmd, shell=True)
-            cmd = 'hmmalign --trim -o %s %s %s 2>/dev/null; seqmagick convert %s %s' % (rev_sto_file,
-                                                                                        self.aln_hmm,
+            cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (self.aln_hmm,
                                                                                         rev_file,
-                                                                                        rev_sto_file,
                                                                                         rev_conv_file)
 
             self.hk.add_cmd(cmd_log, cmd)
@@ -76,14 +71,15 @@ class Hmmer:
 
         # If there are only forward reads, just hmmalign and be done with it.
         else:
-            cmd = 'hmmalign --trim -o %s %s %s ; seqmagick convert %s %s' % (for_sto_file,
-                                                                             self.aln_hmm,
+            cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (self.aln_hmm,
                                                                              input_path,
-                                                                             for_sto_file,
                                                                              for_conv_file)
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(cmd, shell=True)
 
+    def makeSequenceBinary(self, sequences, fm):
+        cmd='makehmmerdb %s %s' % (sequences, fm)
+        subprocess.check_call(cmd, shell=True)
 
     def hmmsearch(self, output_path, input_path, input_file_format, seq_type, threads, eval, min_orf_length, restrict_read_length, cmd_log):
         '''Run a hmmsearch on the input_path raw reads, and return the name
@@ -207,7 +203,7 @@ class Hmmer:
             subprocess.check_call(["/bin/bash", "-c", cmd])
 
         else:
-            raise Exception(Messenger().error_message('Suffix on %s not familiar. Please submit an .fq.gz or .fa file\n' % (raw_reads)))
+            raise Exception(logging.error('Suffix on %s not familiar. Please submit an .fq.gz or .fa file\n' % (raw_reads)))
 
 
         # check for evalues that are lower, after eliminating hits with an
@@ -227,10 +223,10 @@ class Hmmer:
 
         # Return Euk contamination
         if len(reads_with_better_euk_hit) == 0:
-            Messenger().message("No contaminating eukaryotic reads detected in %s" % (os.path.basename(raw_reads)))
+            logging.info("No contaminating eukaryotic reads detected in %s" % (os.path.basename(raw_reads)))
 
         else:
-            Messenger().message("Found %s read(s) that may be eukaryotic" % len(reads_with_better_euk_hit + reads_unique_to_eukaryotes))
+            logging.info("Found %s read(s) that may be eukaryotic" % len(reads_with_better_euk_hit + reads_unique_to_eukaryotes))
         # Write a file with the Euk free reads.
         with open(euk_free_output_path, 'w') as euk_free_output:
             for record in list(SeqIO.parse(open(input_path, 'r'), 'fasta')):
@@ -256,9 +252,9 @@ class Hmmer:
             run_stats['rev_true'] = False
 
         if count > 0: # Return if there weren't any reads found
-            Messenger().message('%s read(s) found' % (count))
+            logging.info('%s read(s) found' % (count))
         else: # Otherwise, report the number of reads
-            Messenger().message('%s reads found, cannot continue with no information' % (len(run_stats['reads'].keys())))
+            logging.info('%s reads found, cannot continue with no information' % (len(run_stats['reads'].keys())))
             return run_stats, False
         # And write the read names to output
         orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
@@ -316,8 +312,8 @@ class Hmmer:
                 for key,item in out_reads.iteritems():
                     out.write(">%s\n" % (str(key)))
                     out.write("%s\n" % (str(item)))
-                    
             return new_stats, out_path
+        
         # Run fxtract to obtain reads form original sequence file
         fxtract_cmd = "fxtract -H -X -f %s " % input_path
         if input_file_format == FORMAT_FASTA:
@@ -369,9 +365,10 @@ class Hmmer:
                     del new_seq[position] # Delete that inserted position in every sequence
                 corrected_sequences['>'+sequence.id+'\n'] = ''.join(new_seq)+'\n'
         with open(output_file_name, 'w') as output_file: # Create an open file to write the new sequences to
-            for fasta_id, fasta_seq in corrected_sequences.iteritems():
-                output_file.write(fasta_id)
-                output_file.write(fasta_seq)
+                for fasta_id, fasta_seq in corrected_sequences.iteritems():
+                    if any(c.isalpha() for c in fasta_seq):
+                        output_file.write(fasta_id)
+                        output_file.write(fasta_seq)
       
     def orfm_command_line(self, min_orf_length, restrict_read_length):
         '''Return a string to run OrfM with, assuming sequences are incoming on
@@ -516,7 +513,7 @@ class Hmmer:
 
         # Check for Eukarytoic contamination
         if euk_check:
-            Messenger().message("Checking for Eukaryotic contamination")
+            logging.info("Checking for Eukaryotic contamination")
             run_stats, hit_reads = self.check_euk_contamination(files.euk_contam_path(base),
                                                                 files.euk_free_path(base),
                                                                 hit_reads,
@@ -549,8 +546,6 @@ class Hmmer:
                       files.command_log_path(),
                       files.output_for_path(base),
                       files.output_rev_path(base),
-                      files.sto_for_output_path(base),
-                      files.sto_rev_output_path(base),
                       files.conv_output_for_path(base),
                       files.conv_output_rev_path(base))
 

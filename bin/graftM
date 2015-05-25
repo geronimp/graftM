@@ -47,16 +47,11 @@ COMMUNITY PROFILING
 
 =====================================================================================================
 UTILITIES
-
-
-    extract     -       Tools to manage the output of GraftM such as:
-                        e.g. usage:
-                            $ graftM extract --profile <GRAFTM_PROFILE> --lineage <LINEAGE>
                             
     create      -       Create a graftM package of from aligned sequences or a hmm, and a 
                         taxonomy file.
                         
-                        e.g. usage
+                        e.g. usage  
                             > With aligned sequences:
                             $ graftm create --sequences <SEQUENCES> --alignment <ALIGNED_SEQUENCES> 
                               --taxonomy <GREENGENES_FORMAT_TAXONOMY>
@@ -84,8 +79,8 @@ if __name__ == '__main__':
     graft_parser = subparsers.add_parser('graft',
                                         description='Search and classify marker genes to construct community profiles',
                                         epilog='Joel Boyd, Ben Woodcroft')
-    graft_parser.add_argument('--forward', metavar='forward read (or single read file)', help='comma separated list of forward reads .fa, or .fq.gz format.', required=True)
-    graft_parser.add_argument('--reverse', metavar='reverse read', help='[do NOT use unless you understand the difficulties with this] Optional reverse raw sequence file in .fa, or .fq.gz format', default=argparse.SUPPRESS)
+    graft_parser.add_argument('--forward', nargs='+', metavar='forward read (or single read file)', help='One or more files of forward reads .fa, or .fq.gz format.', required=True)
+    graft_parser.add_argument('--reverse', nargs='+',metavar='reverse read', help='[do NOT use unless you understand the difficulties with this] Optional reverse raw sequence file(s) in .fa, or .fq.gz format', default=argparse.SUPPRESS)
     graft_parser.add_argument('--eval', metavar='evalue', help='evalue cutoff for the hmmsearch (default = 1e-5)', default= '1e-5')
     graft_parser.add_argument('--threads', type=int, metavar='threads', help='number of threads to use', default=5)
     graft_parser.add_argument('--placements_cutoff', metavar='confidence', help='Cutoff of placement confidence level (0.5 - 1), default = 0.75', default=0.75)
@@ -141,13 +136,16 @@ if __name__ == '__main__':
     create_parser = subparsers.add_parser('create',
                                             description='Create GraftM packages from sequences, and a hmm',
                                             epilog='Joel Boyd, Ben Woodcroft')
-    create_parser.add_argument('--sequences', metavar='sequences', help='Sequences with which to create a graftM package', default=None)
-    create_parser.add_argument('--hmm', metavar='HMM', help='HMM used to create the GraftM package (default: Build HMM from sequences.)', default=None)
-    create_parser.add_argument('--taxonomy', metavar='tax', help='File containing two tab separated columns, the first with the ID of the sequences, the second with the taxonomy string (GreenGenes taxonomy file format).', required=True)
-    create_parser.add_argument('--alignment', metavar='aln', help='An alignment with which to build a custom HMM.', default=None)
-    create_parser.add_argument('--tree', help='A tree with which to build the refpkg. WARNING: A HMM and alignment must be provided in conjunction with this flag', default=None)
-    create_parser.add_argument('--log', help='A log file for the tree. WARNING: A HMM and alignment must be provided in conjunction with this flag', default=None)
-    create_parser.add_argument('--output', metavar='o', help='Name of graftM package.', default=None)
+    
+    create = create_parser.add_argument_group('create options')
+
+    create.add_argument('--sequences', metavar='sequences', help='Sequences with which to create a graftM package', default=None)
+    create.add_argument('--hmm', metavar='HMM', help='HMM used to create the GraftM package (default: Build HMM from sequences.)', default=None)
+    create.add_argument('--taxonomy', metavar='TAX', help='File containing two tab separated columns, the first with the ID of the sequences, the second with the taxonomy string (GreenGenes taxonomy file format).', required=True)
+    create.add_argument('--alignment', metavar='ALN', help='An alignment with which to build a custom HMM. Can be used instead of', default=None)
+    create.add_argument('--tree', help='A tree with which to build the refpkg. WARNING: A HMM and alignment must be provided with this flag', default=None)
+    create_parser.add_argument('--log', help='A log file for the tree. WARNING: A HMM and alignment must be provided with this flag', default=None)
+    create_parser.add_argument('--output', metavar='o', help='Name of output GraftM package.', default=None)
     
     # Pathfinder - Find a whole pathway of genes in a metagenome/transcriptome.
     pathfinder_parser = subparsers.add_parser('pathfinder',

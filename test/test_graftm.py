@@ -191,7 +191,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         data_for2 = os.path.join(path_to_data,'16S.gpkg', '16S_2.1.fa')
         package = os.path.join(path_to_data,'16S.gpkg')
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --forward %s,%s --graftm_package %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                data_for1,
                                                                                                data_for2,
                                                                                                package,
@@ -226,7 +226,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         data_rev2 = os.path.join(path_to_data,'16S.gpkg', '16S_2.2.fa')
         package = os.path.join(path_to_data,'16S.gpkg')
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --forward %s,%s --reverse %s,%s --graftm_package %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --forward %s %s --reverse %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                data_for1,
                                                                                                data_for2,
                                                                                                data_rev1,
@@ -314,7 +314,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --forward %s,%s --graftm_package %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                            data_for1,
                                                                                                            data_for2,
                                                                                                            package,
@@ -350,7 +350,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --forward %s,%s --reverse %s,%s --graftm_package %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --forward %s %s --reverse %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                            data_for1,
                                                                                                            data_for2,
                                                                                                            data_rev1,
@@ -391,7 +391,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --forward %s,%s --graftm_package %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                            data_for1,
                                                                                                            data_for2,
                                                                                                            package,
@@ -426,7 +426,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --forward %s,%s --reverse %s,%s --graftm_package %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --forward %s %s --reverse %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                            data_for1,
                                                                                                            data_for2,
                                                                                                            data_rev1,

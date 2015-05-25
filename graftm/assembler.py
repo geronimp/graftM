@@ -28,13 +28,13 @@ class TaxoGroup:
             f_sequence_list.append(run + '/' + run + '_hits.fa')
 
         ## Creates a list of sequences and their taxonomic classification from all the guppy files
-        Messenger().header("Preparing reads")
+        logging.info("Preparing reads")
         split_guppys = TaxoGroup().guppy_splitter(guppy_list)
 
         ## Grabs the sequences from the forward reads, and grabs the corresponding reverse reads as well.
         grouped_sequences = TaxoGroup().rank_grouper(split_guppys, f_sequence_list)
 
-        Messenger().header("Assembling")
+        logging.info("Assembling")
         TaxoGroup().assembler(grouped_sequences, 'graftM_assemble', args.assembly_type, args)
 
         exit(1)

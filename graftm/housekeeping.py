@@ -5,6 +5,7 @@ import subprocess
 import json
 import tempfile
 import logging
+from timeit import itertools
 
 # Constants - don't change them evar.
 FORMAT_FASTA = 'FORMAT_FASTA'
@@ -28,18 +29,14 @@ class HouseKeeping:
             return None
         
     def guess_sequence_input_file_format(self, sequence_file_path):
-        ## Given a sequence file, guess the format and return. Raise an 
-        ## exception if it cannot be guessed
-        missing_files=[x for x in sequence_file_path.split(',') if not os.path.isfile(x)]
-        if not any(missing_files):
-            if sequence_file_path.endswith(('.fa', '.faa', '.fna', '.fasta')):  # Check the file type
-                return FORMAT_FASTA
-            elif sequence_file_path.endswith(('.fq.gz', '.fastq.gz', 'fasta.gz', 'fa.gz', 'faa.gz', 'fna.gz')):
-                return FORMAT_FASTQ_GZ
-            else:
-                raise Exception("Unable to guess file format of sequence file: %s" % sequence_file_path)
+        '''Given a sequence file, guess the format and return. Raise an 
+        exception if it cannot be guessed'''
+        if sequence_file_path.endswith(('.fa', '.faa', '.fna', '.fasta')):  # Check the file type
+            return FORMAT_FASTA
+        elif sequence_file_path.endswith(('.fq.gz', '.fastq.gz', 'fasta.gz', 'fa.gz', 'faa.gz', 'fna.gz')):
+            return FORMAT_FASTQ_GZ
         else:
-            raise Exception('%s do(es) not exist. Are you sure you provided the correct sequence files?' % ', and '.join(missing_files))
+            raise Exception("Unable to guess file format of sequence file: %s" % sequence_file_path)
         
     def guess_sequence_type(self, input_file, file_format):
         '''Guess the type of input sequence provided to graftM (i.e. nucleotide
@@ -133,25 +130,34 @@ class HouseKeeping:
             # Set string for hmmsearch evalue
             args.eval = '-E %s' % args.eval
             
+            self._check_file_existence(args.forward)
+            if hasattr(args, 'reverse'):
+                self._check_file_existence(args.reverse)
+                    
             # Determine the File format based on the suffix
-            input_file_format = self.guess_sequence_input_file_format(args.forward)
+            input_file_format = self.guess_sequence_input_file_format(args.forward[0])
+            logging.debug("Detected file format %s" % input_file_format)
             sequence_file_list = []
             if hasattr(args, 'reverse'):
-                fors = args.forward.split(',')
-                revs = args.reverse.split(',')
-
-                for i in range(0, len(fors)):
-                    sequence_file_list.append([fors[i], revs[i]])
-
-            elif not hasattr(args, 'reverse'):
-                for f in args.forward.split(','):
-                    f = [f]
-                    sequence_file_list.append(f)
+                if len(args.forward) != len(args.reverse):
+                    logging.error('Confusing input. There appears to be different numbers of forward and reverse files specified')
+                for i, forward_file in enumerate(args.forward):
+                    sequence_file_list.append([forward_file, args.reverse[i]])
             else:
-                logging.error('Confusing input. Did you specify the same amount of reverse and forward read files?')
+                sequence_file_list = [[f] for f in args.forward]
+                
             return sequence_file_list, input_file_format
         else:
             return
+        
+    def _check_file_existence(self, files):
+        '''Iterate through files and exit(1) if any do not pass
+        os.path.isfile'''
+        for f in files:
+            if not os.path.isfile(f):
+                logging.error("The file '%s' does not appear to exist, stopping" % f)
+                exit(1)
+            
     
     def checkCreatePrerequisites(self):
         uninstalled_programs = []
@@ -165,7 +171,7 @@ class HouseKeeping:
                 uninstalled_programs.append(program)
         if uninstalled_programs:
             msg = "The following programs must be installed to run GraftM create\n"
-            Messenger().header(msg)
+            logging.info(msg)
             for program in uninstalled_programs:
                 l = '\t%s\t%s' % (program, prerequisites[program])
                 print l
@@ -189,7 +195,7 @@ class HouseKeeping:
                 uninstalled_programs.append(program)
         if uninstalled_programs:
             msg = "The following programs must be installed to run GraftM\n"
-            Messenger().header(msg)
+            logging.info(msg)
             for program in uninstalled_programs:
                 l = '\t%s\t%s' % (program, prerequisites[program])
                 print l

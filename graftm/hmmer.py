@@ -187,7 +187,6 @@ class Hmmer:
         
     def check_euk_contamination(self, output_path, euk_free_output_path, input_path, run_stats, input_file_format, threads, evalue, raw_reads, base, cmd_log, euk_hmm):
         reads_with_better_euk_hit = []
-        reads_unique_to_eukaryotes = []
         cutoff = float(0.9*run_stats['read_length'])
         # do a nhmmer using a Euk specific hmm
         nhmmer_cmd = "nhmmer --cpu %s %s --tblout %s %s" % (threads, evalue, output_path, euk_hmm)
@@ -326,6 +325,7 @@ class Hmmer:
             subprocess.check_call(cmd, shell=True)
         else:
             raise Exception("Programming error")
+        
         # Check if there are reads that need splitting
         if any([x for x in read_stats if len(read_stats[x])>1]):
             read_stats, output_path=extractMultipleHits(output_path, read_stats) 
@@ -442,6 +442,15 @@ class Hmmer:
 
         if not hit_readnames:
             return False, run_stats
+        
+        if args.input_sequence_type == 'nucleotide':
+            # Only accept 1 HSP per protein sequence
+            old_stats = run_stats['reads']
+            read_stats = {}
+            for orf_name, hsps in old_stats.iteritems():
+                read_stats[orf_name] = [hsps[0]]
+            run_stats['reads'] = read_stats
+        
         # Extract the hits form the original raw read file
         run_stats['reads'], hit_reads = self.extract_from_raw_reads(files.fa_output_path(base),
                                                                     hit_readnames,

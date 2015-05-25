@@ -1,8 +1,0 @@
-nhmmer --cpu 5 -E 1e-5 --tblout test_single_forward_read_run_16S/sample_16S/sample_16S.hmmout.csv ../data/16S.gpkg/82.hmm sample_16S.1.fa 2>&1 > /dev/null
-fxtract -H -X -f test_single_forward_read_run_16S/sample_16S/sample_16S_readnames.txt  sample_16S.1.fa > test_single_forward_read_run_16S/sample_16S/sample_16S_hits.fa
-nhmmer --cpu 5 -E 1e-5 --tblout test_single_forward_read_run_16S/sample_16S/sample_16S_euk_contam.txt /srv/sw/graftm/0.4.2/constants/18S.hmm test_single_forward_read_run_16S/sample_16S/sample_16S_hits.fa 2>&1 > /dev/null 
-hmmalign --trim -o test_single_forward_read_run_16S/sample_16S/sample_16S.for.sto ../data/16S.gpkg/82.hmm test_single_forward_read_run_16S/sample_16S/sample_16S_for.faa 2>/dev/null; seqmagick convert test_single_forward_read_run_16S/sample_16S/sample_16S.for.sto test_single_forward_read_run_16S/sample_16S/sample_16S_conv_for.faa
-hmmalign --trim -o test_single_forward_read_run_16S/sample_16S/sample_16S.rev.sto ../data/16S.gpkg/82.hmm test_single_forward_read_run_16S/sample_16S/sample_16S_rev.faa 2>/dev/null; seqmagick convert test_single_forward_read_run_16S/sample_16S/sample_16S.rev.sto test_single_forward_read_run_16S/sample_16S/sample_16S_conv_rev.faa
-pplacer -j 5 --verbosity 0 --out-dir test_single_forward_read_run_16S -c ../data/16S.gpkg/82.refpkg test_single_forward_read_run_16S/combined_alignment.aln.fa
-guppy classify -c ../data/16S.gpkg/82.refpkg test_single_forward_read_run_16S/sample_16S/placements.jplace > test_single_forward_read_run_16S/placements.guppy
-ktImportText -o test_single_forward_read_run_16S/krona.html /tmp/CommunityMkronagfe0Na,sample_16S 1>/dev/null 

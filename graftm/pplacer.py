@@ -24,6 +24,7 @@ class Pplacer:
     def pplacer(self, output_file, output_path, input_path, threads, cmd_log):
         ## Runs pplacer on concatenated alignment file
         cmd = "pplacer -j %s --verbosity 0 --out-dir %s -c %s %s" % (str(threads), output_path, self.refpkg, input_path) # Set command
+        logging.debug("Running command: %s" % cmd)
         self.hk.add_cmd(cmd_log, cmd) # Log it
         subprocess.check_call(cmd, shell=True) # Run it
         output_path = '.'.join(input_path.split('.')[:-1]) + '.jplace'
@@ -32,7 +33,6 @@ class Pplacer:
     def alignment_merger(self, alignment_files, output_alignment_path):
         ## Concatenate aligned read_files into one file. Each read with it's
         ## own unique identifier assigning it to a particular origin file
-        
         alias_hash = {} # Set up a hash with file names and their unique identifier
         file_number = 0 # file counter (unique identifier)
         with open(output_alignment_path, 'w') as output:

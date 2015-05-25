@@ -41,15 +41,18 @@ class Hmmer:
                 else:
                     raise Exception(logging.error('Programming error: hmmalign'))
                     exit(1)
-
+            logging.debug("Found %i forward compliment reads" % len(forward))
+            logging.debug("Found %i reverse compliment reads" % len(reverse))
             # Write reverse complement and forward reads to files
             with open(for_file, 'w') as for_aln:
+                logging.debug("Writing forward compliment reads to %s" % for_file)
                 for record in forward:
                     if record.id and record.seq: # Check that both the sequence and ID fields are there, HMMalign will segfault if not.
                         for_aln.write('>'+record.id+'\n')
                         for_aln.write(str(record.seq)+'\n')
 
             with open(rev_file, 'w') as rev_aln:
+                logging.debug("Writing reverse compliment reads to %s" % rev_file)
                 for record in reverse:
                     if record.id and record.seq:
                         rev_aln.write('>'+record.id+'\n')
@@ -60,12 +63,14 @@ class Hmmer:
             cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (self.aln_hmm,
                                                                                         for_file,
                                                                                         for_conv_file)
+            logging.debug("Running command: %s" % cmd)
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(cmd, shell=True)
             cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (self.aln_hmm,
                                                                                         rev_file,
                                                                                         rev_conv_file)
 
+            logging.debug("Running command: %s" % cmd)
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(cmd, shell=True)
 
@@ -74,6 +79,7 @@ class Hmmer:
             cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (self.aln_hmm,
                                                                              input_path,
                                                                              for_conv_file)
+            logging.debug("Running command: %s" % cmd)
             self.hk.add_cmd(cmd_log, cmd)
             subprocess.check_call(cmd, shell=True)
 
@@ -85,6 +91,7 @@ class Hmmer:
         '''Run a hmmsearch on the input_path raw reads, and return the name
         of the output table. Keep a log of the commands.'''
         # Define the base hmmsearch command.
+        logging.debug("Using %i HMMs to search" % (len(self.search_hmm)))
         output_table_list = []
         if len(self.search_hmm) > 1:
             for hmm in self.search_hmm:
@@ -119,6 +126,7 @@ class Hmmer:
     def nhmmer(self, output_path, input_path, input_file_format, threads, eval, cmd_log):
         ## Run a nhmmer search on input_path file and return the name of
         ## resultant output table. Keep log of command.
+        logging.debug("Using %i HMMs to search" % (len(self.search_hmm)))
         output_table_list = []
         if len(self.search_hmm) > 1:
             for hmm in self.search_hmm:
@@ -171,7 +179,6 @@ class Hmmer:
                              'alifrom':hit[6],
                              'alito':hit[7]}
             return read_hash
-        
         for idx, table in enumerate(hmmtable):
             program = [line.rstrip().split()[2] for line in open(table).readlines() if line.startswith('# Program:')][0]
             for hit in [line.rstrip().split() for line in open(table).readlines() if not line.startswith('#')]:                
@@ -183,6 +190,15 @@ class Hmmer:
                 else:
                     hash[read_name]=[buildHash(hit, program)]
                 seen[read_name]=idx
+
+        logging.debug("Sequences found: %i" % (len(hash)))
+        logging.debug("Sequenced found with >1 hit: %i" % (len([x for x in hash.values() if len(x)>1])))
+        logging.debug("Sequence length Average: %i Max: %i Min: %i" % (sum([x[0]['len'] for x in  hash.values()])/len(hash.values()),
+                                                                       max([x[0]['len'] for x in  hash.values()]),
+                                                                       min([x[0]['len'] for x in  hash.values()])))
+        logging.debug("Bit score Average: %i Max: %i Min: %i" % (sum([x[0]['bit'] for x in  hash.values()])/len(hash.values()),
+                                                                 max([x[0]['bit'] for x in  hash.values()]),
+                                                                 min([x[0]['bit'] for x in  hash.values()])))
         return hash
         
     def check_euk_contamination(self, output_path, euk_free_output_path, input_path, run_stats, input_file_format, threads, evalue, raw_reads, base, cmd_log, euk_hmm):
@@ -194,11 +210,13 @@ class Hmmer:
         if input_file_format == FORMAT_FASTA:
             cmd = "%s %s 2>&1 > /dev/null" % (nhmmer_cmd, raw_reads)
             self.hk.add_cmd(cmd_log, cmd)
+            logging.debug("Running command: %s" % cmd)
             subprocess.check_call(cmd, shell = True)
 
         elif input_file_format == FORMAT_FASTQ_GZ:
             cmd = "%s <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s )) 2>&1 > /dev/null" %  (nhmmer_cmd, raw_reads)
             self.hk.add_cmd(cmd_log, cmd)
+            logging.debug("Running command: %s" % cmd)
             subprocess.check_call(["/bin/bash", "-c", cmd])
 
         else:
@@ -318,10 +336,12 @@ class Hmmer:
         if input_file_format == FORMAT_FASTA:
             cmd = "%s %s > %s" % (fxtract_cmd, raw_sequences_path, output_path)
             self.hk.add_cmd(cmd_log, cmd)
+            logging.debug("Running command: %s" % cmd)
             subprocess.check_call(cmd, shell=True)
         elif input_file_format == FORMAT_FASTQ_GZ:
             cmd = "%s -z %s | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > %s" % (fxtract_cmd, raw_sequences_path, output_path)
             self.hk.add_cmd(cmd_log, cmd)
+            logging.debug("Running command: %s" % cmd)
             subprocess.check_call(cmd, shell=True)
         else:
             raise Exception("Programming error")
@@ -397,6 +417,7 @@ class Hmmer:
         orfm_cmd = self.orfm_command_line(min_orf_length, restrict_read_length)
         cmd = '%s %s > %s' % (orfm_cmd, input_path, raw_orf_path)
         self.hk.add_cmd(cmd_log, cmd)
+        logging.debug("Running command: %s" % cmd)
         subprocess.check_call(cmd, shell=True)
 
         cmd = 'cat %s' % raw_orf_path
@@ -416,6 +437,7 @@ class Hmmer:
         # Extract the reads using the titles.
         cmd = 'fxtract -H -X -f %s %s > %s' % (orf_titles_path, raw_orf_path, orf_out_path)
         self.hk.add_cmd(cmd_log, cmd)
+        logging.debug("Running command: %s" % cmd)
         subprocess.check_call(cmd, shell=True)
         
         # Return name of output file

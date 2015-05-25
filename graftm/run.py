@@ -237,6 +237,7 @@ class Run:
                          'reverse_pipe'      : False}
         
         # Set the output directory if not specified and create that directory
+        logging.debug('Creating working directory: %s' % self.args.output_directory)
         self.hk.make_working_directory(self.args.output_directory,
                                        self.args.force)
         
@@ -244,6 +245,7 @@ class Run:
         
         
         # For each pair (or single file passed to GraftM)
+        logging.debug('Working with %i file(s)' % len(self.sequence_pair_list))
         for pair in self.sequence_pair_list:
             # Set the basename, and make an entry to the summary table.
             base = os.path.basename(pair[0]).split('.')[0]
@@ -255,9 +257,10 @@ class Run:
                 pair_direction                = ['forward', 'reverse']
             else:
                 summary_table[base] = {}
-
+            
             # Set pipeline and evalue by checking HMM format
             hmm_type, hmm_tc = self.hk.setpipe(self.args.aln_hmm_file)
+            logging.debug("HMM type: %s Trusted Cutoff: %s" % (hmm_type, hmm_tc))
             setattr(self.args, 'type', hmm_type)
             if hmm_tc:
                 setattr(self.args, 'eval', '--cut_tc')
@@ -269,6 +272,7 @@ class Run:
                 setattr(self.args, 'input_sequence_type',
                         self.hk.guess_sequence_type(pair[0],
                                                     self.input_file_format))
+            logging.debug("Set sequence type of %s to %s" %(pair[0], self.args.input_sequence_type))
             # Make the working base directory
             self.hk.make_working_directory(os.path.join(self.args.output_directory,
                                                         base),
@@ -300,14 +304,16 @@ class Run:
                                            direction)
                 else:
                     raise Exception('Programming Error')
-
+                
                 if self.args.type == 'P':
+                    logging.debug("Running protein pipeline")
                     summary_table, hit_aligned_reads = self.protein_pipeline(base,
                                                                             summary_table,
                                                                             read_file,
                                                                             direction)
                 # Or the DNA pipeline
                 elif self.args.type == 'D':
+                    logging.debug("Running nucleotide pipeline")
                     self.hk.set_euk_hmm(self.args)
                     summary_table, hit_aligned_reads = self.dna_pipeline(base,
                                                                         summary_table,
@@ -317,7 +323,7 @@ class Run:
                     continue
                 else:
                     readstoplace=True
-
+                    
                 # Add the run stats and the completed run to the summary table
                 summary_table['seqs_list'].append(hit_aligned_reads)
                 if base not in summary_table['base_list']:

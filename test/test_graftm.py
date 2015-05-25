@@ -29,6 +29,8 @@ import tempfile
 
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
+path_to_samples = os.path.join(os.path.dirname(os.path.realpath(__file__)),'sample_runs')
+
 
 class Tests(unittest.TestCase):
 
@@ -601,7 +603,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
             hmms.write("\n")
             hmms.flush()
             with tempdir.TempDir() as tmp:
-                cmd = '%s graft --search_and_align_only --forward %s --search_hmm_list_file --aln_hmm_file %s --output_directory %s --force' % (path_to_script,
+                cmd = '%s graft --search_and_align_only --forward %s --search_hmm_list_file %s --aln_hmm_file %s --output_directory %s --force' % (path_to_script,
                                                                                                    data,
                                                                                                    hmms.name,
                                                                                                    hmm,
@@ -721,6 +723,38 @@ CCGACTGCCCTTGAAGACCACTTCG
                     count += 1
                 self.assertEqual(count, len(open(alnFile).readlines()))
 
+
+    def test_concatenated_OTU_table(self):
+        reads_1=os.path.join(path_to_samples, "sample_16S_1.1.fa")
+        reads_2=os.path.join(path_to_samples, "sample_16S_2.1.fa")
+        gpkg=os.path.join(path_to_data, "61_otus.gpkg")
+        
+        with tempdir.TempDir() as tmp:
+            cmd = '%s graft --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+                                                                                                  reads_1,
+                                                                                                  reads_2,
+                                                                                                  gpkg,
+                                                                                                  tmp)
+            subprocess.check_output(cmd, shell=True)
+            comb_otu_table=os.path.join(tmp, "combined_count_table.txt")
+            expected=('\t'.join(('#ID', 'sample_16S_1', 'sample_16S_2', 'ConsensusLineage')),
+                      '\t'.join(('0','1','2','Root; k__Bacteria; p__Cyanobacteria; c__Chloroplast')),
+                      '\t'.join(('1','35','42','Root; k__Bacteria; p__Proteobacteria')),
+                      '\t'.join(('2','0','2','Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria; o__Rickettsiales; f__mitochondria')),
+                      '\t'.join(('3','42','120','Root; k__Bacteria')),
+                      '\t'.join(('4','8','6','Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria; o__Rickettsiales')),
+                      '\t'.join(('5','4','18','Root')),
+                      '\t'.join(('6','6','10','Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria'))
+            )
+            count=0
+            for line in open(comb_otu_table):
+                self.assertEqual(expected[count], line.strip())
+                count+=1
+            self.assertEqual(count, len(open(comb_otu_table).readlines()))
+            
+                                                                                                                          
+
+        
     def test_fastq_gz_input(self):
         reads='''@NS500333:16:H16F3BGXX:1:11101:11211:1402 1:N:0:CGAGGCTG+CTCCTTAC
 GAGCGCAACCCTCGCCTTCAGTTGCCATCAGGTTTGGCTGGGCACTCTGAAGGAACTGCCGGTGACAAGCCGGAGGAAGGTGGGGATGACGTCAAGTCCTCATGGCCCTTATGTCCTGGGCTACACACGTGCTACAATGGCGGTGACAGTG
@@ -744,7 +778,6 @@ DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
                                                                                                                      data,
                                                                                                                      package,
                                                                                                                      tmp)
-                    print cmd
                     subprocess.check_output(cmd, shell=True)
                     sample_name = os.path.basename(fastq_gz.name[:-6])
                     alnFile = os.path.join(tmp, sample_name, '%s_hits.aln.fa' % sample_name)

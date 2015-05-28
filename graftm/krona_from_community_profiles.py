@@ -13,12 +13,12 @@ class KronaBuilder:
     def __init__(self):
         self.hk = HouseKeeping()
 
-    def otuTablePathListToKrona(self, otuTablePaths, outputName, cmd_log):
+    def otuTablePathListToKrona(self, otuTablePaths, outputName):
         otuTables = []
         for path in otuTablePaths:
             for table in self.parseOtuTable(path):
                 otuTables.append(table)
-        self.runKrona(otuTables, outputName, cmd_log)
+        self.runKrona(otuTables, outputName)
 
     def parseOtuTable(self, otuTablePath):
         data = csv.reader(open(otuTablePath), delimiter="\t")
@@ -40,7 +40,7 @@ class KronaBuilder:
 
         return tables
 
-    def runKrona(self, otuTables, outputName, cmd_log):
+    def runKrona(self, otuTables, outputName):
         # write out the tables to files
         tempfiles = []
         tempfile_paths = []
@@ -60,7 +60,6 @@ class KronaBuilder:
             cmd.append(','.join([tmp,otuTables[i].sample_name]))
 
         # run the actual krona
-        self.hk.add_cmd(cmd_log, ' '.join(cmd) + ' 1>/dev/null ')
         subprocess.check_call(' '.join(cmd) + ' 1>/dev/null ', shell=True)
 
         # close tempfiles

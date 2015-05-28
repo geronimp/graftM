@@ -95,18 +95,8 @@ class HouseKeeping:
         for item in delete_list:
             try:
                 os.remove(item)
-
             except:
                 pass
-
-    def add_cmd(self, cmd_log, command):
-
-        if not os.path.isfile(cmd_log):
-            open(cmd_log, 'a').close()
-
-        with open(cmd_log, 'a') as log:
-            log.write(command + '\n')
-
 
     def make_working_directory(self, directory_path, force):
         if force:
@@ -229,6 +219,8 @@ class HouseKeeping:
                 else:
                     raise Exception("Multiple search HMMs specified, but aln_hmm_file not specified")
         elif hasattr(args, 'search_hmm_list_file'):
+            import IPython
+            IPython.embed()
             setattr(args, 'search_hmm_files', open(args.search_hmm_list_file).readlines())
             if not hasattr(args, 'aln_hmm_file'):
                 raise Exception("Multiple search HMMs specified, but aln_hmm_file not specified")

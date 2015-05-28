@@ -54,8 +54,6 @@ class Extract:
                         elif not args.non_cumil:
                             with open(os.path.join(out_path, run+'_'+lin+'_seqs.fa'), 'w') as output:
                                 for entry in guppy:
-                                    import IPython
-                                    IPython.embed()
                                     if lin in guppy[entry]['placement']:
                                         output.write('>' + entry + '\n')
                                         output.write(str(reads[entry].seq) + '\n')

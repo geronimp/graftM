@@ -1,4 +1,5 @@
 import json
+import logging
 
 class Classify:
     def __init__(self,taxonomy):
@@ -80,13 +81,18 @@ class Classify:
             ranks=['kingdom', 'class', 'phylum', 'order', 'family', 'species']
             rank_idx=ranks.index(rank)
             
-        def consolidatePlacements(placement_list, cutoff, lwr_idx, c_idx, resolve_placements):
+        def consolidatePlacements(placement_list, cutoff, lwr_idx, c_idx, resolve_placements, place_group):
             seen={}
             for placement in placement_list:
                 rank=placement[0]
                 confidence=placement[lwr_idx]
                 if placement[0] not in seen:
-                    taxonomy_string=self.taxonomy[rank]
+                    try:
+                        taxonomy_string=self.taxonomy[rank]
+                    except KeyError:
+                        # TODO: Deal with null placements better.
+                        logging.warning("null placement encountered in group: %s" % ', '.join([x[0] for x in place_group]))
+                        continue
                     seen[rank]={'c':confidence,
                                 'p':taxonomy_string}
                 else:
@@ -107,7 +113,7 @@ class Classify:
             raise Exception('Fatal error in refpkg, classification or like_weight_ratio fields missing')
 
         for placement_group in placement_hash['placements']: # for each placement
-            best_place=consolidatePlacements(placement_group['p'], cutoff, lwr_idx, c_idx, resolve_placements) # Find the best placement       
+            best_place=consolidatePlacements(placement_group['p'], cutoff, lwr_idx, c_idx, resolve_placements, placement_group['nm']) # Find the best placement       
             if best_place: # if it exists
                 reads=[x[0] for x in placement_group['nm']] # make a list of the reads assigned to that placement
                 for read in reads: # and for each read

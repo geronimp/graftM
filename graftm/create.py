@@ -8,18 +8,14 @@ import tempfile
 import logging
 
 import graftm.getaxnseq 
-
 from Bio import SeqIO
-
 from graftm.hmmer import Hmmer
-from graftm.housekeeping import HouseKeeping
 
 
 class Create:
     
     def __init__(self): 
         self.h=Hmmer(None, None)
-        self.hk = HouseKeeping()
         self.the_trash=[]
     
     def buildHmm(self, alignment, base): 
@@ -32,46 +28,47 @@ class Create:
             hmm = base + ".hmm"
         else:   
             hmm = base + ".hmm" # Set a name for a hmm
-        
-        
-        cmd = "hmmbuild --dna %s %s >/dev/null" % (hmm, alignment) # Build the command to build the hmm
-        
+        cmd = "hmmbuild %s %s >/dev/null" % (hmm, alignment) # Build the command to build the hmm
+        logging.debug("Calling command: %s" % (cmd))
         subprocess.check_call(cmd, shell=True) # Call the command
         return hmm
     
     def pipeType(self, hmm):
-
+        logging.debug("Setting pipeline type")
         type=[x.split() for x in open(hmm).readlines() if x.startswith('ALPH') or x.startswith('LENG')]
         for item in type:
-            if item[0]=='ALPH':       
-                if type[1]=='amino':
+            if item[0]=='ALPH':
+                if item[1]=='amino':
                     ptype='aa'
-                elif type[1]=='DNA' or 'RNA':
+                elif item[1]=='DNA' or 'RNA':
                     ptype='na'
                 else:
-                    raise Exception("Unfamiliar HMM type: %s" % (type[1]))
+                    raise Exception("Unfamiliar HMM type: %s" % (item[1]))
             elif item[0]=='LENG':
                 leng=item[1]
             else:
                 raise Exception("Programming Error: Misread HMM file")
+        logging.debug("Set pipeline type as: %s " % ptype)
+        logging.debug("Found alignment type as: %s" % leng)
         return ptype, leng
     
     def checkAlnLength(self, alignment):
-        #seq_format=self.hk.guess_sequence_input_file_format(alignment)
         return len(list(SeqIO.parse(open(alignment, 'r'), 'fasta'))[0].seq)
         
     def alignSequences(self, hmm, sequences, base): 
         stockholm_alignment = base +".aln.sto" # Set an output path for the alignment
         fasta_alignment = base+".insertions.aln.fa" # Set an output path for the alignment
         corrected_fasta_alignment = base+".aln.fa" # Set an output path for the alignment
-
         cmd = "hmmalign --trim -o %s %s %s" % (stockholm_alignment, hmm, sequences) # Build the command to align the sequences
+        logging.debug("Calling command %s" % (cmd))
         subprocess.check_call(cmd, shell=True) # Call the command
         cmd = "seqmagick convert %s %s" % (stockholm_alignment, fasta_alignment)
+        logging.debug("Calling command %s" % (cmd))
         subprocess.check_call(cmd, shell=True) # Call the command
+        logging.debug("Correcting alignment")
         self.h.alignment_correcter([fasta_alignment], corrected_fasta_alignment)
-        
         self.the_trash += [stockholm_alignment, corrected_fasta_alignment, fasta_alignment]
+        logging.debug("Wrote corrected alignments to: %s" % (corrected_fasta_alignment))
         return corrected_fasta_alignment
     
     def buildTree(self, alignment, base, ptype): 
@@ -79,9 +76,11 @@ class Create:
         tre_file = base + ".tre"
         if ptype == 'na': # If it's a nucleotide sequence
             cmd = "FastTreeMP -quiet -gtr -nt -log %s %s > %s 2>/dev/null" % (log_file, alignment, tre_file)
+            logging.debug("Calling command: %s" % (cmd))
             subprocess.check_call(cmd, shell=True) # Call the command
         else: # Or if its an amino acid sequence
             cmd = "FastTreeMP -quiet -log %s %s > %s 2>/dev/null" % (log_file, alignment, tre_file)
+            logging.debug("Calling command: %s" % (cmd))
             subprocess.check_call(cmd, shell=True) # Call the command
             
         self.the_trash += [log_file, tre_file]
@@ -93,6 +92,7 @@ class Create:
         else:
             refpkg = base + ".refpkg"
         cmd = "taxit create --quiet -f %s -P %s -t %s -s %s -c -l  %s -T %s -i %s 1>/dev/null" % (aln_file, refpkg, tre, tre_log, base, tax, seq)
+        logging.debug("Calling command: %s" % cmd)
         subprocess.check_call(cmd, shell=True)
         return refpkg
     
@@ -124,7 +124,9 @@ class Create:
         logging.info("Building gpkg for %s" % base)
         # Initially, build the HMM if one is not provided.
         if not tree and not log:
+            logging.debug("No tree or log provided")
             if hmm and alignment:
+                logging.debug("Found HMM and alignment")
                 ptype,leng=self.pipeType(hmm)
                 if str(self.checkAlnLength(alignment)) != str(leng):
                     logging.info("Alignment length does not match the HMM length, building a new HMM")
@@ -135,9 +137,11 @@ class Create:
                     logging.info("Alignment length matches the HMM length, no need to align")
                     output_alignment=alignment
             elif hmm and not alignment:
+                logging.debug("Found HMM but not alignment")
                 logging.info("Using provided HMM to align sequences")
                 output_alignment = self.alignSequences(hmm, sequences, base)
             elif alignment and not hmm:
+                logging.debug("Found alignment but not HMM")
                 logging.info("Building HMM from alignment")
                 hmm=self.buildHmm(alignment, base)
                 logging.info("Aligning to HMM built from alignment")
@@ -151,6 +155,7 @@ class Create:
                 raise Exception("No Tree provided for log file")
             if not log:
                 raise Exception("No log provided for tree")
+            logging.debug("Found tree and log file for tree")
             try:
                 output_alignment=alignment
                 tre_file=tree

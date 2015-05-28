@@ -27,7 +27,6 @@ try:
 except ImportError:
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),'..'))
 import graftm
-from graftm.run import Run
 
 def phelp():
     print """
@@ -123,31 +122,25 @@ if __name__ == '__main__':
     assemble_parser.add_argument('--assembly_type', metavar='type of assembly', help='phrap or velvet assembly',choices = ['phrap', 'velvet', 'finishm'], default='velvet')
     assemble_parser.add_argument('--finish', action = 'store_true', help='finish the velvet assembly with an overlap assembly (default=False)', default=False)
 
-    # Manage - various tools that make the management of graftM output easier
-    extract_parser = subparsers.add_parser('extract',
-                                            description='Sort and access the reads from your GraftM run.',
-                                            epilog='Joel Boyd, Ben Woodcroft')
-    extract_parser.add_argument('--seq', metavar='The reads from this lineage will be returned', help='guppy file produced by graftM, comma separated (default=False)', default=False)
-    extract_parser.add_argument('--profile', metavar='graftM_profile', help='GraftM profile produced by graftM graft run (required=True)', required=True)
-    extract_parser.add_argument('--cutoff', metavar='confidence_cutoff', help='Cutoff of placement confidence level (0.5 - 1), default = 0.75', default=0.75)
-    extract_parser.add_argument('--non_cumil', action = 'store_true', help='Return all sequences exclusively at this taxonomic rank (i.e. do not return sequences that were classified to a higher resolution, default=False)', default=False)
-    extract_parser.add_argument('--file', action = 'store_true', help='Lineages are in a file, one entry per line (default=False)', default=False)
-
     # Create - Create a gpkg from a sequence database and a hmm
     create_parser = subparsers.add_parser('create',
                                             description='Create GraftM packages from sequences, and a hmm',
                                             epilog='Joel Boyd, Ben Woodcroft')
     
     create = create_parser.add_argument_group('create options')
-
     create.add_argument('--sequences', metavar='sequences', help='Sequences with which to create a graftM package', default=None)
     create.add_argument('--hmm', metavar='HMM', help='HMM used to create the GraftM package (default: Build HMM from sequences.)', default=None)
     create.add_argument('--taxonomy', metavar='TAX', help='File containing two tab separated columns, the first with the ID of the sequences, the second with the taxonomy string (GreenGenes taxonomy file format).', required=True)
     create.add_argument('--alignment', metavar='ALN', help='An alignment with which to build a custom HMM. Can be used instead of', default=None)
     create.add_argument('--tree', help='A tree with which to build the refpkg. WARNING: A HMM and alignment must be provided with this flag', default=None)
-    create_parser.add_argument('--log', help='A log file for the tree. WARNING: A HMM and alignment must be provided with this flag', default=None)
-    create_parser.add_argument('--output', metavar='o', help='Name of output GraftM package.', default=None)
-    
+    create.add_argument('--tree_log', help='A log file for the tree. WARNING: A HMM and alignment must be provided with this flag', default=None)
+    create_logging_options=create_parser.add_argument_group('Logging options')
+    create_logging_options.add_argument('--verbosity', metavar='verbosity', help='1 - 5, 1 being silent, 5 being noisy indeed. Default = 4', type=int, default=4)
+    create_output_options=create_parser.add_argument_group('Output options')
+    create_logging_options.add_argument('--output', metavar='o', help='Name of output GraftM package.', default=None)
+    create_logging_options.add_argument('--log', metavar='logfile', help='output logging information to file', type=str, default=False)
+
+
     # Pathfinder - Find a whole pathway of genes in a metagenome/transcriptome.
     pathfinder_parser = subparsers.add_parser('pathfinder',
                                               description='Find a whole pathway of genes in a metagenome/transcriptome.',

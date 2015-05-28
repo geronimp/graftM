@@ -21,7 +21,7 @@ class Hmmer:
         self.aln_hmm = aln_hmm
         self.hk = HouseKeeping()
 
-    def hmmalign(self, input_path, run_stats, cmd_log, for_file, rev_file, for_conv_file, rev_conv_file):
+    def hmmalign(self, input_path, run_stats,  for_file, rev_file, for_conv_file, rev_conv_file):
         # Align input reads to a specified hmm.
         if run_stats['rev_true']:
             read_info = run_stats['reads']
@@ -64,14 +64,14 @@ class Hmmer:
                                                                                         for_file,
                                                                                         for_conv_file)
             logging.debug("Running command: %s" % cmd)
-            self.hk.add_cmd(cmd_log, cmd)
+            
             subprocess.check_call(cmd, shell=True)
             cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (self.aln_hmm,
                                                                                         rev_file,
                                                                                         rev_conv_file)
 
             logging.debug("Running command: %s" % cmd)
-            self.hk.add_cmd(cmd_log, cmd)
+            
             subprocess.check_call(cmd, shell=True)
 
         # If there are only forward reads, just hmmalign and be done with it.
@@ -80,14 +80,14 @@ class Hmmer:
                                                                              input_path,
                                                                              for_conv_file)
             logging.debug("Running command: %s" % cmd)
-            self.hk.add_cmd(cmd_log, cmd)
+            
             subprocess.check_call(cmd, shell=True)
 
     def makeSequenceBinary(self, sequences, fm):
         cmd='makehmmerdb %s %s' % (sequences, fm)
         subprocess.check_call(cmd, shell=True)
 
-    def hmmsearch(self, output_path, input_path, input_file_format, seq_type, threads, eval, min_orf_length, restrict_read_length, cmd_log):
+    def hmmsearch(self, output_path, input_path, input_file_format, seq_type, threads, eval, min_orf_length, restrict_read_length):
         '''Run a hmmsearch on the input_path raw reads, and return the name
         of the output table. Keep a log of the commands.'''
         # Define the base hmmsearch command.
@@ -123,7 +123,7 @@ class Hmmer:
         
         return output_table_list
 
-    def nhmmer(self, output_path, input_path, input_file_format, threads, eval, cmd_log):
+    def nhmmer(self, output_path, input_path, input_file_format, threads, eval):
         ## Run a nhmmer search on input_path file and return the name of
         ## resultant output table. Keep log of command.
         logging.debug("Using %i HMMs to search" % (len(self.search_hmm)))
@@ -201,7 +201,7 @@ class Hmmer:
                                                                  min([x[0]['bit'] for x in  hash.values()])))
         return hash
         
-    def check_euk_contamination(self, output_path, euk_free_output_path, input_path, run_stats, input_file_format, threads, evalue, raw_reads, base, cmd_log, euk_hmm):
+    def check_euk_contamination(self, output_path, euk_free_output_path, input_path, run_stats, input_file_format, threads, evalue, raw_reads, base,  euk_hmm):
         reads_with_better_euk_hit = []
         cutoff = float(0.9*run_stats['read_length'])
         # do a nhmmer using a Euk specific hmm
@@ -209,13 +209,13 @@ class Hmmer:
 
         if input_file_format == FORMAT_FASTA:
             cmd = "%s %s 2>&1 > /dev/null" % (nhmmer_cmd, raw_reads)
-            self.hk.add_cmd(cmd_log, cmd)
+            
             logging.debug("Running command: %s" % cmd)
             subprocess.check_call(cmd, shell = True)
 
         elif input_file_format == FORMAT_FASTQ_GZ:
             cmd = "%s <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s )) 2>&1 > /dev/null" %  (nhmmer_cmd, raw_reads)
-            self.hk.add_cmd(cmd_log, cmd)
+            
             logging.debug("Running command: %s" % cmd)
             subprocess.check_call(["/bin/bash", "-c", cmd])
 
@@ -284,7 +284,7 @@ class Hmmer:
                     output_file.write(record+'\n')
         return run_stats, output_path
 
-    def extract_from_raw_reads(self, output_path, input_path, raw_sequences_path, input_file_format, cmd_log, read_stats):
+    def extract_from_raw_reads(self, output_path, input_path, raw_sequences_path, input_file_format,  read_stats):
         # Use the readnames specified to extract from the original sequence
         # file to a fasta formatted file.        
         def removeOverlaps(item):
@@ -335,12 +335,12 @@ class Hmmer:
         fxtract_cmd = "fxtract -H -X -f %s " % input_path
         if input_file_format == FORMAT_FASTA:
             cmd = "%s %s > %s" % (fxtract_cmd, raw_sequences_path, output_path)
-            self.hk.add_cmd(cmd_log, cmd)
+            
             logging.debug("Running command: %s" % cmd)
             subprocess.check_call(cmd, shell=True)
         elif input_file_format == FORMAT_FASTQ_GZ:
             cmd = "%s -z %s | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > %s" % (fxtract_cmd, raw_sequences_path, output_path)
-            self.hk.add_cmd(cmd_log, cmd)
+            
             logging.debug("Running command: %s" % cmd)
             subprocess.check_call(cmd, shell=True)
         else:
@@ -400,7 +400,7 @@ class Hmmer:
         
         return 'orfm -m %d %s ' % (min_orf_length, orfm_arg_l)
 
-    def extract_orfs(self, input_path, raw_orf_path, hmmsearch_out_path, orf_titles_path, min_orf_length, restrict_read_length, orf_out_path, cmd_log):
+    def extract_orfs(self, input_path, raw_orf_path, hmmsearch_out_path, orf_titles_path, min_orf_length, restrict_read_length, orf_out_path):
         'Extract only the orfs that hit the hmm, return sequence file with within.'        
         # Build the command
         output_table_list = []
@@ -416,7 +416,7 @@ class Hmmer:
         # Call orfs on the sequences
         orfm_cmd = self.orfm_command_line(min_orf_length, restrict_read_length)
         cmd = '%s %s > %s' % (orfm_cmd, input_path, raw_orf_path)
-        self.hk.add_cmd(cmd_log, cmd)
+        
         logging.debug("Running command: %s" % cmd)
         subprocess.check_call(cmd, shell=True)
 
@@ -436,7 +436,7 @@ class Hmmer:
         
         # Extract the reads using the titles.
         cmd = 'fxtract -H -X -f %s %s > %s' % (orf_titles_path, raw_orf_path, orf_out_path)
-        self.hk.add_cmd(cmd_log, cmd)
+        
         logging.debug("Running command: %s" % cmd)
         subprocess.check_call(cmd, shell=True)
         
@@ -455,8 +455,7 @@ class Hmmer:
                                    args.threads,
                                    args.eval,
                                    args.min_orf_length,
-                                   args.restrict_read_length,
-                                   files.command_log_path())
+                                   args.restrict_read_length)
         # Processing the output table to give you the readnames of the hits
         run_stats, hit_readnames = self.csv_to_titles(files.readnames_output_path(base),
                                                       hit_table,
@@ -478,7 +477,6 @@ class Hmmer:
                                                                     hit_readnames,
                                                                     raw_reads,
                                                                     input_file_format,
-                                                                    files.command_log_path(),
                                                                     run_stats['reads'])
         
         if args.input_sequence_type == 'nucleotide':
@@ -489,8 +487,7 @@ class Hmmer:
                                          files.orf_titles_output_path(base),
                                          args.min_orf_length,
                                          args.restrict_read_length,
-                                         files.orf_fasta_output_path(base),
-                                         files.command_log_path())
+                                         files.orf_fasta_output_path(base))
         elif args.input_sequence_type == 'protein':
             hit_orfs = hit_reads
         else:
@@ -517,8 +514,7 @@ class Hmmer:
                                 raw_reads,
                                 input_file_format,
                                 args.threads,
-                                args.eval,
-                                files.command_log_path())
+                                args.eval)
 
         # Next, get a list of readnames
         run_stats, hit_readnames = self.csv_to_titles(files.readnames_output_path(base),
@@ -532,7 +528,6 @@ class Hmmer:
                                                                     hit_readnames,
                                                                     raw_reads,
                                                                     input_file_format,
-                                                                    files.command_log_path(),
                                                                     run_stats['reads'])
         # Define the read length
         run_stats['read_length'] = self.check_read_length(hit_reads, "D")
@@ -554,7 +549,6 @@ class Hmmer:
                                                                 args.eval,
                                                                 raw_reads,
                                                                 base,
-                                                                files.command_log_path(),
                                                                 args.euk_hmm_file)
 
         # Stop timing eukaryote check
@@ -574,7 +568,6 @@ class Hmmer:
         # HMMalign the forward reads, and reverse complement reads.
         self.hmmalign(reads,
                       run_stats,
-                      files.command_log_path(),
                       files.output_for_path(base),
                       files.output_rev_path(base),
                       files.conv_output_for_path(base),

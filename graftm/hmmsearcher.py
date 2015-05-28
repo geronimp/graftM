@@ -97,7 +97,6 @@ class HmmSearcher:
         -------
         A string command to be run with bash
         """
-            
         element = pairs_to_run.pop()
         hmmsearch_cmd = self._individual_hmm_command(element[0][0],
                                                       element[0][1],

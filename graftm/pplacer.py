@@ -21,11 +21,11 @@ class Pplacer:
         self.hk = HouseKeeping()
 
     # Run pplacer
-    def pplacer(self, output_file, output_path, input_path, threads, cmd_log):
+    def pplacer(self, output_file, output_path, input_path, threads):
         ## Runs pplacer on concatenated alignment file
         cmd = "pplacer -j %s --verbosity 0 --out-dir %s -c %s %s" % (str(threads), output_path, self.refpkg, input_path) # Set command
         logging.debug("Running command: %s" % cmd)
-        self.hk.add_cmd(cmd_log, cmd) # Log it
+         # Log it
         subprocess.check_call(cmd, shell=True) # Run it
         output_path = '.'.join(input_path.split('.')[:-1]) + '.jplace'
         return output_path
@@ -86,7 +86,7 @@ class Pplacer:
         alias_hash = self.alignment_merger(summary_dict['seqs_list'], files.comb_aln_fa())
         
         # Run pplacer on merged file
-        jplace = self.pplacer(files.jplace_output_path(), args.output_directory, files.comb_aln_fa(), args.threads, files.command_log_path())
+        jplace = self.pplacer(files.jplace_output_path(), args.output_directory, files.comb_aln_fa(), args.threads)
         logging.info("Placements finished")
 
         stop = timeit.default_timer() # stop placement timer and log

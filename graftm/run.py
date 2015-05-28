@@ -29,6 +29,8 @@ class Run:
         self.e = Extract()
         if args.subparser_name == 'graft':
             self.hk.set_attributes(self.args)
+            import IPython
+            IPython.embed()
             self.h = Hmmer(self.args.search_hmm_files, self.args.aln_hmm_file)
             self.sequence_pair_list, self.input_file_format = self.hk.parameter_checks(args)
             if hasattr(args, 'reference_package'):
@@ -158,8 +160,7 @@ class Run:
         
         logging.info('Building summary krona plot')
         self.kb.otuTablePathListToKrona(otu_tables,
-                                        self.gmf.krona_output_path(),
-                                        self.gmf.command_log_path())
+                                        self.gmf.krona_output_path())
         stop = timeit.default_timer()
         summary_dict['summary_t'] = str(int(round((stop - start), 0)) )
 

@@ -595,7 +595,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         data = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.1.fna')
         hmm = os.path.join(path_to_data,'mcrA.gpkg','mcrA.hmm')
         hmm2 = os.path.join(path_to_data,'mcrA_second_half.gpkg','mcrA.300-557.aln.fasta.hmm')
-        
+    
         with tempfile.NamedTemporaryFile(suffix='.txt') as hmms:
             hmms.write(hmm)
             hmms.write("\n")

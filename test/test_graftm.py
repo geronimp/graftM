@@ -592,6 +592,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
             self.assertEqual(count, len(expected))
             
     def test_search_and_align_only_specifying_hmm_files_and_aln_file(self):
+        
         data = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.1.fna')
         hmm = os.path.join(path_to_data,'mcrA.gpkg','mcrA.hmm')
         hmm2 = os.path.join(path_to_data,'mcrA_second_half.gpkg','mcrA.300-557.aln.fasta.hmm')
@@ -602,6 +603,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
             hmms.write(hmm2)
             hmms.write("\n")
             hmms.flush()
+            print hmm, hmm2
             with tempdir.TempDir() as tmp:
                 cmd = '%s graft --search_and_align_only --forward %s --search_hmm_list_file %s --aln_hmm_file %s --output_directory %s --force' % (path_to_script,
                                                                                                    data,

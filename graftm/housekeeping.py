@@ -219,9 +219,8 @@ class HouseKeeping:
                 else:
                     raise Exception("Multiple search HMMs specified, but aln_hmm_file not specified")
         elif hasattr(args, 'search_hmm_list_file'):
-            import IPython
-            IPython.embed()
-            setattr(args, 'search_hmm_files', open(args.search_hmm_list_file).readlines())
+            setattr(args, 'search_hmm_files', [x.rstrip() for x in open(args.search_hmm_list_file).readlines()])
+
             if not hasattr(args, 'aln_hmm_file'):
                 raise Exception("Multiple search HMMs specified, but aln_hmm_file not specified")
         else:

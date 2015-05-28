@@ -29,8 +29,6 @@ class Run:
         self.e = Extract()
         if args.subparser_name == 'graft':
             self.hk.set_attributes(self.args)
-            import IPython
-            IPython.embed()
             self.h = Hmmer(self.args.search_hmm_files, self.args.aln_hmm_file)
             self.sequence_pair_list, self.input_file_format = self.hk.parameter_checks(args)
             if hasattr(args, 'reference_package'):

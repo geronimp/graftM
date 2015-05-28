@@ -66,8 +66,7 @@ class HmmSearcher:
         if len(queue) == 1 or self._num_cpus == 1:
             pairs_to_run = [[queue.pop(0), self._num_cpus]]
         else:
-            # else use 1 CPU per HMM.
-            # TODO: if len(queue) < num_cpus, use more CPUs from some HMMs
+            # else share out CPUs among hmmers
             pairs_to_run = []
             while len(queue) > 0 and len(pairs_to_run) < self._num_cpus:
                 pairs_to_run.append([queue.pop(0), 1])

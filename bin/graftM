@@ -30,7 +30,7 @@ import graftm
 
 def phelp():
     print """
-                                       GraftM  %s 
+                                       GraftM  %s
 
              A suite of tools for the rapid analysis of large sequence datasets.
 
@@ -46,17 +46,17 @@ COMMUNITY PROFILING
 
 =====================================================================================================
 UTILITIES
-                            
-    create      -       Create a graftM package of from aligned sequences or a hmm, and a 
+
+    create      -       Create a graftM package of from aligned sequences or a hmm, and a
                         taxonomy file.
-                        
-                        e.g. usage  
+
+                        e.g. usage
                             > With aligned sequences:
-                            $ graftm create --sequences <SEQUENCES> --alignment <ALIGNED_SEQUENCES> 
+                            $ graftm create --sequences <SEQUENCES> --alignment <ALIGNED_SEQUENCES>
                               --taxonomy <GREENGENES_FORMAT_TAXONOMY>
-                            
+
                             > With a HMM:
-                            $ graftm create --sequences <SEQUENCES> --hmm <HMM> 
+                            $ graftm create --sequences <SEQUENCES> --hmm <HMM>
                               --taxonomy <GREENGENES_FORMAT_TAXONOMY>
 
 =====================================================================================================
@@ -77,7 +77,7 @@ if __name__ == '__main__':
     # Standard GraftM pipeline.
     graft_parser = subparsers.add_parser('graft',
                                         description='Search and classify marker genes to construct community profiles',
-                                        epilog='Joel Boyd, Ben Woodcroft')
+                                        epilog=__author__)
     graft_parser.add_argument('--forward', nargs='+', metavar='forward read (or single read file)', help='One or more files of forward reads .fa, or .fq.gz format.', required=True)
     graft_parser.add_argument('--reverse', nargs='+',metavar='reverse read', help='[do NOT use unless you understand the difficulties with this] Optional reverse raw sequence file(s) in .fa, or .fq.gz format', default=argparse.SUPPRESS)
     graft_parser.add_argument('--eval', metavar='evalue', help='evalue cutoff for the hmmsearch (default = 1e-5)', default= '1e-5')
@@ -107,7 +107,7 @@ if __name__ == '__main__':
     # Filter pipeline - Remove rRNA genes from transcriptome dataset.
     filter_parser = subparsers.add_parser('filter',
                                          description='Remove rRNA genes from transcriptome dataset.',
-                                         epilog='Joel Boyd, Ben Woodcroft')
+                                         epilog=__author__)
     filter_parser.add_argument('--reads', metavar='<READS>', help='File to be filtered', required=True)
     filter_parser.add_argument('--filter_hmms', metavar='<FILTER_HMMS>', help='Directory with HMMs to use when filtering.', required=True)
     filter_parser.add_argument('--output', metavar='<OUTPUT>', help='Directory within which to place filtered reads, and sorted hits')
@@ -116,22 +116,24 @@ if __name__ == '__main__':
     # Assemble - Attempt to assemble as many full length genes as possible.
     assemble_parser = subparsers.add_parser('assemble',
                                             description='Attempt to assemble as many genes as possible.',
-                                            epilog='Joel Boyd, Ben Woodcroft')
+                                            epilog=__author__)
     assemble_parser.add_argument('--graft_run', metavar='File produced ', help='guppy file produced by graftM, comma separated (default=True)', default=True)
     assemble_parser.add_argument('--kmer', metavar='k-mer',  help='k-mer to use for assembly with velvet (default = 51)', default = '51')
     assemble_parser.add_argument('--assembly_type', metavar='type of assembly', help='phrap or velvet assembly',choices = ['phrap', 'velvet', 'finishm'], default='velvet')
     assemble_parser.add_argument('--finish', action = 'store_true', help='finish the velvet assembly with an overlap assembly (default=False)', default=False)
 
+
     # Create - Create a gpkg from a sequence database and a hmm
     create_parser = subparsers.add_parser('create',
-                                            description='Create GraftM packages from sequences, and a hmm',
-                                            epilog='Joel Boyd, Ben Woodcroft')
-    
+                                            description='Create GraftM packages from sequences, and a HMM',
+                                            epilog=__author__)
+
     create = create_parser.add_argument_group('create options')
+
+    create.add_argument('--taxonomy', metavar='TAX', help='File containing two tab separated columns, the first with the ID of the sequences, the second with the taxonomy string (GreenGenes taxonomy file format).', required=True)
+    create.add_argument('--alignment', metavar='ALN', help='An alignment with which to build a custom HMM', default=None)
     create.add_argument('--sequences', metavar='sequences', help='Sequences with which to create a graftM package', default=None)
     create.add_argument('--hmm', metavar='HMM', help='HMM used to create the GraftM package (default: Build HMM from sequences.)', default=None)
-    create.add_argument('--taxonomy', metavar='TAX', help='File containing two tab separated columns, the first with the ID of the sequences, the second with the taxonomy string (GreenGenes taxonomy file format).', required=True)
-    create.add_argument('--alignment', metavar='ALN', help='An alignment with which to build a custom HMM. Can be used instead of', default=None)
     create.add_argument('--tree', help='A tree with which to build the refpkg. WARNING: A HMM and alignment must be provided with this flag', default=None)
     create.add_argument('--tree_log', help='A log file for the tree. WARNING: A HMM and alignment must be provided with this flag', default=None)
     create_logging_options=create_parser.add_argument_group('Logging options')
@@ -144,7 +146,7 @@ if __name__ == '__main__':
     # Pathfinder - Find a whole pathway of genes in a metagenome/transcriptome.
     pathfinder_parser = subparsers.add_parser('pathfinder',
                                               description='Find a whole pathway of genes in a metagenome/transcriptome.',
-                                              epilog='Joel Boyd, Ben Woodcroft')
+                                              epilog=__author__)
 
     if(len(sys.argv) == 1 or sys.argv[1] == '-h' or sys.argv[1] == '--help'):
         phelp()
@@ -155,6 +157,6 @@ if __name__ == '__main__':
             logging.basicConfig(filename=args.log, level=debug[args.verbosity], format='%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
         else:
             logging.basicConfig(level=debug[args.verbosity], format='%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
-        
+
         Run(args).main()
 

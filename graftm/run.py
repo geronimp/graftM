@@ -212,7 +212,8 @@ class Run:
         # The Graft pipeline:
         # Searches for reads using hmmer, and places them in phylogenetic
         # trees to derive a community structure.
-        print '''
+        if self.args.verbosity > 1:
+            print '''
                                 GRAFT
         
                        Joel Boyd, Ben Woodcroft
@@ -349,7 +350,7 @@ class Run:
             self.graft()
 
         elif self.args.subparser_name == 'assemble':
-            print '''
+            if self.args.verbosity > 1: print '''
                            ASSEMBLE
 
                    Joel Boyd, Ben Woodcroft
@@ -364,7 +365,7 @@ class Run:
             self.tg.main(self.args)
 
         elif self.args.subparser_name == 'extract':
-            print '''
+            if self.args.verbosity > 1: print '''
                            EXTRACT
 
                    Joel Boyd, Ben Woodcroft
@@ -383,7 +384,7 @@ class Run:
                 self.e.extract(self.args)
 
         elif self.args.subparser_name == 'create':
-            print '''
+            if self.args.verbosity > 1: print '''
                             CREATE
 
                    Joel Boyd, Ben Woodcroft

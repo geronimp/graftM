@@ -140,12 +140,6 @@ class Create:
                 logging.debug("Found HMM but not alignment")
                 logging.info("Using provided HMM to align sequences")
                 output_alignment = self.alignSequences(hmm, sequences, base)
-            elif alignment and not hmm:
-                logging.debug("Found alignment but not HMM")
-                logging.info("Building HMM from alignment")
-                hmm=self.buildHmm(alignment, base)
-                logging.info("Aligning to HMM built from alignment")
-                output_alignment = self.alignSequences(hmm, sequences, base)
             ptype,leng=self.pipeType(hmm)
             # Build the tree
             logging.info("Building tree")
@@ -162,6 +156,13 @@ class Create:
                 log_file=log
             except:
                 raise Exception("No alignment file provided")
+            
+        if alignment and not hmm:
+            logging.debug("Found alignment but not HMM")
+            logging.info("Building HMM from alignment")
+            hmm=self.buildHmm(alignment, base)
+            logging.info("Aligning to HMM built from alignment")
+            output_alignment = self.alignSequences(hmm, sequences, base)
 
         # Create tax and seqinfo .csv files
         logging.info("Building seqinfo and taxonomy file")

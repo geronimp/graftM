@@ -45,8 +45,7 @@ class Getaxnseq:
             split = entry.rstrip().split('; ')
 
             # split out the taxon ID from the first split of above
-            taxon_id = split[0].split()[0]
-            first_taxon = split[0].split()[1]
+            taxon_id, first_taxon = split[0].split()[:2]
             tax_split = [first_taxon] + split[1:]
 
             # Replace spaces with underscores e.g. 'Candidatus my_genus'

@@ -86,12 +86,14 @@ class Create:
         self.the_trash += [log_file, tre_file]
         return log_file, tre_file
 
-    def callTaxitCreate(self, base, aln_file, tre, tre_log, tax, seq, prefix):
+    def callTaxitCreate(self, base, aln_file, tre, tre_log, tax, seq, prefix, no_reroot):
         if prefix:
             refpkg = prefix + ".refpkg"
         else:
             refpkg = base + ".refpkg"
         cmd = "taxit create --quiet -f %s -P %s -t %s -s %s -c -l  %s -T %s -i %s 1>/dev/null" % (aln_file, refpkg, tre, tre_log, base, tax, seq)
+        if no_reroot:
+            cmd += ' --no-reroot'
         logging.debug("Calling command: %s" % cmd)
         subprocess.check_call(cmd, shell=True)
         return refpkg
@@ -107,7 +109,6 @@ class Create:
         os.rename(refpkg, os.path.join(gpkg, refpkg))
         shutil.copyfile(hmm, os.path.join(gpkg, os.path.basename(hmm)))
         json.dump(contents, open(os.path.join(gpkg, 'CONTENTS.json'), 'w'))
-        return
 
     def cleanup(self, the_trashcan):
         for every_piece_of_junk in the_trashcan:
@@ -115,55 +116,78 @@ class Create:
                 shutil.rmtree(every_piece_of_junk)
             else:
                 os.remove(every_piece_of_junk)
+                
+    def get_hmm_and_alignment(self, sequences, alignment, hmm, base):
+        '''Return a HMM file and alignment of sequences to that HMM
         
-    def main(self, hmm, alignment, sequences, taxonomy, tree, log, prefix): 
+        Returns
+        -------
+        * HMM file
+        * Alignment of sequences to that HMM
+        '''
+        if hmm and alignment:
+            logging.debug("Found HMM and alignment")
+            _,leng=self.pipeType(hmm)
+            if str(self.checkAlnLength(alignment)) != str(leng):
+                logging.info("Alignment length does not match the HMM length, building a new HMM")
+                hmm=self.buildHmm(alignment, base)
+                logging.info("Aligning to HMM built from alignment")
+                output_alignment = self.alignSequences(hmm, sequences, base)
+            else:
+                logging.info("Alignment length matches the HMM length, no need to align")
+                output_alignment=alignment
+        elif hmm and not alignment:
+            logging.debug("Found HMM but not alignment")
+            logging.info("Using provided HMM to align sequences")
+            output_alignment = self.alignSequences(hmm, sequences, base)
+        elif alignment:
+            logging.debug("Building HMM from alignment")
+            hmm=self.buildHmm(alignment, base)
+            output_alignment = self.alignSequences(hmm, sequences, base)
+        else:
+            raise Exception("An alignment or HMM is required")
+        return hmm, output_alignment
+    
+    def generate_tree_log_file(self, tree, alignment, output_log_file_path):
+        '''Generate the FastTree log file given a tree and the alignment that
+        made that tree
+        
+        Returns
+        -------
+        Nothing. The log file as parameter is written as the log file.
+        '''
+        subprocess.check_call(['bash','-c',"FastTree -nome -mllen -intree '%s' -log %s < %s" %\
+                                   (tree, output_log_file_path, alignment)])
+        
+    def main(self, hmm, alignment, sequences, taxonomy, tree, log, prefix, no_reroot): 
         if sequences:
             base=os.path.basename(sequences).split('.')[0]
         else:
             base=os.path.basename(alignment).split('.')[0]
-        logging.info("Building gpkg for %s" % base)
-        # Initially, build the HMM if one is not provided.
-        if not tree and not log:
-            logging.debug("No tree or log provided")
-            if hmm and alignment:
-                logging.debug("Found HMM and alignment")
-                ptype,leng=self.pipeType(hmm)
-                if str(self.checkAlnLength(alignment)) != str(leng):
-                    logging.info("Alignment length does not match the HMM length, building a new HMM")
-                    hmm=self.buildHmm(alignment, base)
-                    logging.info("Aligning to HMM built from alignment")
-                    output_alignment = self.alignSequences(hmm, sequences, base)
-                else:
-                    logging.info("Alignment length matches the HMM length, no need to align")
-                    output_alignment=alignment
-            elif hmm and not alignment:
-                logging.debug("Found HMM but not alignment")
-                logging.info("Using provided HMM to align sequences")
-                output_alignment = self.alignSequences(hmm, sequences, base)
-            ptype,leng=self.pipeType(hmm)
-            # Build the tree
-            logging.info("Building tree")
-            log_file, tre_file = self.buildTree(output_alignment, base, ptype)
-        else:
-            if not tree:
-                raise Exception("No Tree provided for log file")
-            if not log:
-                raise Exception("No log provided for tree")
-            logging.debug("Found tree and log file for tree")
-            try:
-                output_alignment=alignment
-                tre_file=tree
-                log_file=log
-            except:
-                raise Exception("No alignment file provided")
             
-        if alignment and not hmm:
-            logging.debug("Found alignment but not HMM")
-            logging.info("Building HMM from alignment")
-            hmm=self.buildHmm(alignment, base)
-            logging.info("Aligning to HMM built from alignment")
-            output_alignment = self.alignSequences(hmm, sequences, base)
-
+        logging.info("Building gpkg for %s" % base)
+        
+        # Initially, build the HMM if one is not provided.
+        hmm, output_alignment = self.get_hmm_and_alignment(sequences, alignment, hmm, base)
+        
+        if tree:
+            tre_file=tree
+            logging.debug("Found tree file")
+            if log:
+                # User specified a log file, go with that
+                log.debug("Using user-specified log file %s" % log)
+                log_file = log
+            else:
+                log.debug("Generating log file")
+                log_file = tempfile.NamedTemporaryFile(suffix='.log', prefix='graftm') 
+                self.generate_tree_log_file(tree, alignment,
+                                            log_file)
+        else:
+            logging.debug("No tree provided")
+            logging.info("Building tree")
+            ptype,_ = self.pipeType(hmm)
+            log_file, tre_file = self.buildTree(output_alignment, base, ptype)
+            
         # Create tax and seqinfo .csv files
         logging.info("Building seqinfo and taxonomy file")
         seq, tax = graftm.getaxnseq.main(base, taxonomy)
@@ -171,7 +195,7 @@ class Create:
         
         # Create the reference package
         logging.info("Creating reference package")
-        refpkg = self.callTaxitCreate(base, output_alignment, tre_file, log_file, tax, seq, prefix)
+        refpkg = self.callTaxitCreate(base, output_alignment, tre_file, log_file, tax, seq, prefix, no_reroot)
 
         # Compile the gpkg
         logging.info("Compiling gpkg")

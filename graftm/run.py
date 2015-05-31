@@ -400,5 +400,6 @@ class Run:
 
             self.hk.checkCreatePrerequisites()
             Create().main(self.args.hmm, self.args.alignment, self.args.sequences, 
-                          self.args.taxonomy, self.args.tree, self.args.tree_log, self.args.output)
+                          self.args.taxonomy, self.args.tree, self.args.tree_log, 
+                          self.args.output, self.args.no_reroot)
     

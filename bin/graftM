@@ -29,6 +29,34 @@ except ImportError:
     import graftm
 import graftm.run
 
+class CustomHelpFormatter(argparse.HelpFormatter):
+    def _split_lines(self, text, width):
+        return text.splitlines()
+
+    def _get_help_string(self, action):
+        h = action.help
+        if '%(default)' not in action.help:
+            if action.default != '' and \
+               action.default != [] and \
+               action.default != None \
+               and action.default != False:
+                if action.default is not argparse.SUPPRESS:
+                    defaulting_nargs = [argparse.OPTIONAL,
+                                        argparse.ZERO_OR_MORE]
+
+                    if action.option_strings or action.nargs in defaulting_nargs:
+
+                        if '\n' in h:
+                            lines = h.splitlines()
+                            lines[0] += ' (default: %(default)s)'
+                            h = '\n'.join(lines)
+                        else:
+                            h += ' (default: %(default)s)'
+        return h
+
+    def _fill_text(self, text, width, indent):
+        return ''.join([indent + line for line in text.splitlines(True)])
+
 def phelp():
     print """
                                        GraftM  %s
@@ -139,20 +167,51 @@ if __name__ == '__main__':
     # Create - Create a gpkg from a sequence database and a hmm
     create_parser = subparsers.add_parser('create',
                                             description='Create GraftM packages from sequences, and a HMM',
-                                            epilog=__author__)
+                                            formatter_class=CustomHelpFormatter,
+                                            epilog='''Example usage:
 
-    create = create_parser.add_argument_group('create options')
+ With a tree and the alignment of sequences that produced the tree
+  $ graftM create --alignment my_alignment.fasta --tree my_tree.tree --taxonomy my_taxonomy.tsv
+  
+ If the tree being generated largely follows the species tree (ie a gene with a
+ strong phylogenetic signal, few/no paralogues or horizontal transfer,
+ then the tree can be created by graftM (with FastTree, rerooted with taxtastic).
+  $ graftM create --alignment my_alignment.fasta --taxonomy my_taxonomy.tsv
+  
+  In that case a HMM an a list of sequences can also be provided instead of
+  and alignment:
+  $ graftM create --hmm my_hmm.hmm --sequences my_unaligned_sequences.fasta
+  
+  If the tree is more complex, then the tree should be created and suitably
+  rerooted before running graftM. In that case, the --no_reroot option should
+  be specified.
+  
+ The taxonomy file is a 2 column tab separated file, where the first column
+ is the sequence identifier and the second a taxonomy string describing that
+ sequence e.g.
+ 
+sequence1    k__kingdom1; p__phylum2
 
-    create.add_argument('--taxonomy', metavar='TAX', help='File containing two tab separated columns, the first with the ID of the sequences, the second with the taxonomy string (GreenGenes taxonomy file format).', required=True)
-    create.add_argument('--alignment', metavar='ALN', help='An alignment with which to build a custom HMM', default=None)
-    create.add_argument('--sequences', metavar='sequences', help='Sequences with which to create a graftM package', default=None)
-    create.add_argument('--hmm', metavar='HMM', help='HMM used to create the GraftM package (default: Build HMM from sequences.)', default=None)
-    create.add_argument('--tree', help='A tree with which to build the refpkg. WARNING: A HMM and alignment must be provided with this flag', default=None)
-    create.add_argument('--tree_log', help='A log file for the tree. WARNING: A HMM and alignment must be provided with this flag', default=None)
+ Internally, the taxonomic levels separated by '; ' are assumed to be kingdom,
+ phylum, class, order, family, genus, species. However, this may not matter
+ for the purposes of using graftM. The prefixes e.g. 'k__' are not required.
+
+''')
+
+    create = create_parser.add_argument_group('Common options')
+
+    create.add_argument('--taxonomy', metavar='TAX', help='File containing two tab separated columns, the first with the ID of the sequences, the second with the taxonomy string (required)', required=True)
+    create.add_argument('--alignment', metavar='ALN', help='An alignment with which to build a custom HMM and tree (required unless --hmm and --sequences are specified)')
+    create.add_argument('--tree', help='A tree with which to build the refpkg. (default: generate tree with FastTree and reroot with taxtastic)')
+    create.add_argument('--no_reroot', help='Assume the tree is appropriately rerooted (default: Assume the tree largely follows the species tree; reroot with taxtastic)', action="store_true", default=False)
+    create_lesser_options=create_parser.add_argument_group('Lesser used options')
+    create_lesser_options.add_argument('--output', metavar='PATH', help='Name of output GraftM package.')
+    create_lesser_options.add_argument('--sequences', metavar='sequences', help='Sequences with which to generate alignment and tree (default: use sequences from --alignment)')
+    create_lesser_options.add_argument('--hmm', metavar='HMM', help='HMM used to create the GraftM package (default: Build HMM from alignment)')
+    create_lesser_options.add_argument('--tree_log', help='A log file for the tree. (default: generate from tree and alignment)')
     create_logging_options=create_parser.add_argument_group('Logging options')
     create_logging_options.add_argument('--verbosity', metavar='verbosity', help='1 - 5, 1 being silent, 5 being noisy indeed. Default = 4', type=int, default=4)
     create_output_options=create_parser.add_argument_group('Output options')
-    create_logging_options.add_argument('--output', metavar='o', help='Name of output GraftM package.', default=None)
     create_logging_options.add_argument('--log', metavar='logfile', help='output logging information to file', type=str, default=False)
 
 
@@ -172,4 +231,6 @@ if __name__ == '__main__':
             logging.basicConfig(level=debug[args.verbosity], format='%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
         graftm.run.Run(args).main()
+
+
 

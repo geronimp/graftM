@@ -153,7 +153,8 @@ class HouseKeeping:
         uninstalled_programs = []
         prerequisites = {'taxit': 'https://github.com/fhcrc/taxtastic',
                          'FastTree': 'http://www.microbesonline.org/fasttree/',
-                         'seqmagick': 'https://github.com/fhcrc/seqmagick'}
+                         'seqmagick': 'https://github.com/fhcrc/seqmagick',
+                         'hmmalign': 'http://hmmer.janelia.org/'}
         for program in prerequisites.keys():
             if self.which(program):
                 pass

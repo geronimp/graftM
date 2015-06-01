@@ -42,15 +42,15 @@ class Getaxnseq:
 
         for entry in open(taxonomy_file):
             # split the entire line including the  on '; '
-            split = entry.rstrip().split('; ')
+            split = entry.rstrip().split(';')
 
             # split out the taxon ID from the first split of above
-            taxon_id, first_taxon = split[0].split()[:2]
+            taxon_id, first_taxon = [s.strip() for s in split[0].split()[:2]]
             tax_split = [first_taxon] + split[1:]
 
             # Replace spaces with underscores e.g. 'Candidatus my_genus'
             for idx, item in enumerate(tax_split):
-                tax_split[idx] = re.sub('\s+', '_', item)
+                tax_split[idx] = re.sub('\s+', '_', item.strip())
 
             # Remove 'empty' taxononomies e.g. 's__'
             tax_split = [item for item in tax_split if item not in meaningless_taxonomic_names]

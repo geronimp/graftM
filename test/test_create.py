@@ -32,7 +32,7 @@ path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
 
 class Tests(unittest.TestCase):
 
-    def test_finds_reverse_complement(self):
+    def test_hello_world(self):
         with tempdir.TempDir() as tmp:
             with tempdir.TempDir() as tmp2:
                 cmd1 = "%s create --verbosity 1 --alignment %s --taxonomy %s --rerooted_tree %s --output %s" \

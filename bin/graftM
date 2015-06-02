@@ -22,11 +22,7 @@ import sys
 import os
 import logging
 
-try:
-    import graftm
-except ImportError:
-    sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),'..'))
-    import graftm
+sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 import graftm.run
 
 class CustomHelpFormatter(argparse.HelpFormatter):

@@ -182,8 +182,8 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
             log_file, tre_file = self.buildTree(output_alignment, base, ptype)
             no_reroot = False
         else:
+            logging.debug("Found pre-rerooted tree file %s" % rerooted_tree)
             tre_file=rerooted_tree
-            logging.debug("Found pre-rerooted tree file")
             no_reroot = True
             if tree_log:
                 # User specified a log file, go with that
@@ -195,7 +195,7 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
                 log_file = log_file_tempfile.name
                 input_tree_file = tre_file
                 tre_file1_tempfile = tempfile.NamedTemporaryFile(suffix='.tree', prefix='graftm')
-                tre_file1 = tre_file1_tempfile.name
+                tre_file1 = 'clean.tre'#tre_file1_tempfile.name
                 # Make the newick file simple (ie. un-arb it) for fasttree
                 TreeCleaner().clean_newick_file(input_tree_file, tre_file1)
                 tre_file_tempfile = tempfile.NamedTemporaryFile(suffix='.tree', prefix='graftm')

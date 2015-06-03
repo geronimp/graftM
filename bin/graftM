@@ -72,8 +72,8 @@ COMMUNITY PROFILING
 =====================================================================================================
 UTILITIES
 
-    create      -       Create a graftM package of from aligned sequences or a hmm, and a
-                        taxonomy file. See graftM create -h
+    create      -       Create a graftM packages from sequence alignments and classifications. 
+                        See graftM create -h
 
 =====================================================================================================
 """ % (graftm.__version__)
@@ -153,7 +153,7 @@ if __name__ == '__main__':
 
     # Create - Create a gpkg from a sequence database and a hmm
     create_parser = subparsers.add_parser('create',
-                                            description='Create GraftM packages from sequences, and a HMM',
+                                            description='Create a graftM packages from sequence alignments and classifications',
                                             formatter_class=CustomHelpFormatter,
                                             epilog='''Example usage:
 

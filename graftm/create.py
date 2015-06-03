@@ -45,7 +45,7 @@ class Create:
             hmm = base + ".hmm"
         else:   
             hmm = base + ".hmm" # Set a name for a hmm
-        cmd = "hmmbuild %s %s >/dev/null" % (hmm, alignment) # Build the command to build the hmm
+        cmd = "hmmbuild '%s' '%s' >/dev/null" % (hmm, alignment) # Build the command to build the hmm
         logging.debug("Calling command: %s" % (cmd))
         subprocess.check_call(cmd, shell=True) # Call the command
         return hmm
@@ -76,10 +76,10 @@ class Create:
         stockholm_alignment = base +".aln.sto" # Set an output path for the alignment
         fasta_alignment = base+".insertions.aln.fa" # Set an output path for the alignment
         corrected_fasta_alignment = base+".aln.fa" # Set an output path for the alignment
-        cmd = "hmmalign --trim -o %s %s %s" % (stockholm_alignment, hmm, sequences) # Build the command to align the sequences
+        cmd = "hmmalign --trim -o '%s' '%s' '%s'" % (stockholm_alignment, hmm, sequences) # Build the command to align the sequences
         logging.debug("Calling command %s" % (cmd))
         subprocess.check_call(cmd, shell=True) # Call the command
-        cmd = "seqmagick convert --squeeze %s %s" % (stockholm_alignment, fasta_alignment)
+        cmd = "seqmagick convert --squeeze '%s' '%s'" % (stockholm_alignment, fasta_alignment)
         logging.debug("Calling command %s" % (cmd))
         subprocess.check_call(cmd, shell=True) # Call the command
         logging.debug("Correcting alignment")
@@ -185,6 +185,8 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
             logging.debug("Found pre-rerooted tree file %s" % rerooted_tree)
             tre_file=rerooted_tree
             no_reroot = True
+            TreeCleaner().match_alignment_and_tree_sequence_ids(output_alignment,
+                                                                tre_file)
             if tree_log:
                 # User specified a log file, go with that
                 logging.debug("Using user-specified log file %s" % tree_log)
@@ -195,7 +197,7 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
                 log_file = log_file_tempfile.name
                 input_tree_file = tre_file
                 tre_file1_tempfile = tempfile.NamedTemporaryFile(suffix='.tree', prefix='graftm')
-                tre_file1 = 'clean.tre'#tre_file1_tempfile.name
+                tre_file1 = tre_file1_tempfile.name
                 # Make the newick file simple (ie. un-arb it) for fasttree
                 TreeCleaner().clean_newick_file(input_tree_file, tre_file1)
                 tre_file_tempfile = tempfile.NamedTemporaryFile(suffix='.tree', prefix='graftm')

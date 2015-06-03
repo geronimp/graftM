@@ -12,12 +12,29 @@ import graftm.getaxnseq
 from Bio import SeqIO
 from graftm.hmmer import Hmmer
 from graftm.tree_cleaner import TreeCleaner
+from graftm.readHmmTable import HMMreader
 
 class Create:
     
     def __init__(self): 
         self.h=Hmmer(None, None)
         self.the_trash=[]
+    
+    def check_reads_hit(self, hmm, sequences, ptype, length):
+        output_table=tempfile.NamedTemporaryFile(suffix='.txt').name # create a tmp file which will be the table
+        logging.debug("Outputting table to: %s" % output_table)
+        cmd = "hmmsearch --domtblout %s %s %s > /dev/null" % (output_table, hmm, sequences) # protein hmm search
+        logging.debug("Calling command: %s" % cmd)
+        subprocess.check_call(cmd, shell=True) 
+        table=HMMreader(output_table) # Create table object
+        logging.debug("Checking for alignment lengths < 50% the size of the HMM")
+        poor_aln=[x for x in table.names() if table.aln_len(x)/float(length)<0.5]
+        if any(poor_aln):
+            logging.error("Encountered reads with poor alignment: %s" % ' '.join(poor_aln) )
+            return True
+        else:
+            logging.debug("None found")
+            return False
         
     def get_hmm_and_alignment(self, alignment, hmm, base):
         '''Return a HMM file and alignment of sequences to that HMM
@@ -29,14 +46,14 @@ class Create:
         '''
         if not hmm:
             logging.debug("Building HMM from alignment")
-            hmm=self.buildHmm(alignment, base)
+            hmm, stockholm_alignment=self.buildHmm(alignment, base)
             self.the_trash += [hmm]
-            
-        output_alignment = self.alignSequences(hmm, alignment, base)
+        output_alignment = self.alignSequences(hmm, stockholm_alignment, base)
         return hmm, output_alignment
     
     def buildHmm(self, alignment, base): 
         counter=0
+        stockholm_alignment = base +".aln.sto" # Set an output path for the alignment
         if os.path.isfile(base + ".hmm"):
             counter=0
             while os.path.isfile(base + ".hmm"):
@@ -45,10 +62,10 @@ class Create:
             hmm = base + ".hmm"
         else:   
             hmm = base + ".hmm" # Set a name for a hmm
-        cmd = "hmmbuild '%s' '%s' >/dev/null" % (hmm, alignment) # Build the command to build the hmm
+        cmd = "hmmbuild -O %s '%s' '%s' >/dev/null" % (stockholm_alignment, hmm, alignment) # Build the command to build the hmm
         logging.debug("Calling command: %s" % (cmd))
         subprocess.check_call(cmd, shell=True) # Call the command
-        return hmm
+        return hmm, stockholm_alignment
     
     def pipeType(self, hmm):
         logging.debug("Setting pipeline type")
@@ -72,13 +89,9 @@ class Create:
     def checkAlnLength(self, alignment):
         return len(list(SeqIO.parse(open(alignment, 'r'), 'fasta'))[0].seq)
         
-    def alignSequences(self, hmm, sequences, base): 
-        stockholm_alignment = base +".aln.sto" # Set an output path for the alignment
+    def alignSequences(self, hmm, stockholm_alignment, base):         
         fasta_alignment = base+".insertions.aln.fa" # Set an output path for the alignment
         corrected_fasta_alignment = base+".aln.fa" # Set an output path for the alignment
-        cmd = "hmmalign --trim -o '%s' '%s' '%s'" % (stockholm_alignment, hmm, sequences) # Build the command to align the sequences
-        logging.debug("Calling command %s" % (cmd))
-        subprocess.check_call(cmd, shell=True) # Call the command
         cmd = "seqmagick convert --squeeze '%s' '%s'" % (stockholm_alignment, fasta_alignment)
         logging.debug("Calling command %s" % (cmd))
         subprocess.check_call(cmd, shell=True) # Call the command
@@ -173,12 +186,16 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
         
         # align sequences to HMM (and potentially build hmm from alignment)
         hmm, output_alignment = self.get_hmm_and_alignment(alignment, hmm, base)
+        ptype,length = self.pipeType(hmm)
         
+        logging.info("Checking for incorrect or fragmented reads")
+        if self.check_reads_hit(hmm, output_alignment, ptype, length): # Check all reads align to HMM properly
+            raise Exception("One or more alignments do not span > 50% of HMM")
+            
         # Create tree unless one was provided
         if not rerooted_tree:
             logging.debug("No tree provided")
             logging.info("Building tree")
-            ptype,_ = self.pipeType(hmm)
             log_file, tre_file = self.buildTree(output_alignment, base, ptype)
             no_reroot = False
         else:

@@ -35,37 +35,37 @@ class Tests(unittest.TestCase):
     def test_hello_world(self):
         with tempdir.TempDir() as tmp:
             with tempdir.TempDir() as tmp2:
-                cmd1 = "%s create --verbosity 1 --alignment %s --taxonomy %s --rerooted_tree %s --output %s" \
+                cmd1 = "%s create --verbosity 5 --alignment %s --taxonomy %s --rerooted_tree %s --output %s" \
                     %(path_to_script,
                       os.path.join(path_to_data,'create','homologs.trimmed.aligned.faa'),
                       os.path.join(path_to_data,'create','homologs.tax2tree.rerooted.decorated.tree-consensus-strings'),
                       os.path.join(path_to_data,'create','homologstre.tree'),
                       tmp)
                 subprocess.check_call(cmd1, shell=True)
-                cmd2 = "%s graft --verbosity 1 --graftm_package %s --forward %s --output_directory %s" \
+                cmd2 = "%s graft --verbosity 5 --graftm_package %s --forward %s --output_directory %s" \
                     % (path_to_script,
                        "%s.gpkg" % tmp,
                        os.path.join(path_to_data,'create','test.faa'),
                        tmp2+"_")
                 subprocess.check_call(cmd2, shell=True)
-            
+
     def test_rerooted_tree_with_node_names(self):
         with tempdir.TempDir() as tmp:
             with tempdir.TempDir() as tmp2:
-                cmd1 = "%s create --verbosity 1 --alignment %s --taxonomy %s --rerooted_tree %s --output %s" \
+                cmd1 = "%s create --verbosity 5 --alignment %s --taxonomy %s --rerooted_tree %s --output %s" \
                     %(path_to_script,
                       os.path.join(path_to_data,'create','homologs.trimmed.aligned.faa'),
                       os.path.join(path_to_data,'create','homologs.tax2tree.rerooted.decorated.tree-consensus-strings'),
                       os.path.join(path_to_data,'create','decorated.tree'),
                       tmp)
                 subprocess.check_call(cmd1, shell=True)
-                cmd2 = "%s graft --verbosity 1 --graftm_package %s --forward %s --output_directory %s" \
+                cmd2 = "%s graft --verbosity 5 --graftm_package %s --forward %s --output_directory %s" \
                     % (path_to_script,
                        "%s.gpkg" % tmp,
                        os.path.join(path_to_data,'create','test.faa'),
                        tmp2+"_")
                 subprocess.check_call(cmd2, shell=True)
-        
+
 
 if __name__ == "__main__":
     unittest.main()

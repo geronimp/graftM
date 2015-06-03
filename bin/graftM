@@ -180,10 +180,11 @@ sequence1    k__kingdom1; p__phylum2
 
     create = create_parser.add_argument_group('Common options')
 
-    create.add_argument('--taxonomy', metavar='TAX', help='File containing two tab separated columns, the first with the ID of the sequences, the second with the taxonomy string (required)', required=True)
+    create.add_argument('--taxonomy', metavar='TAX', help='File containing two tab separated columns, the first with the ID of the sequences, the second with the taxonomy string (required unless --rerooted_annotated_tree is specified)')
     create.add_argument('--alignment', metavar='ALN', help='An alignment with which to build a custom HMM and tree (required)', required=True)
     create.add_argument('--rerooted_tree', help='A tree with which to build the refpkg, appropriately rooted. (default: generate tree with FastTree and attempt reroot with taxtastic)')
     create_lesser_options=create_parser.add_argument_group('Lesser used options')
+    create.add_argument('--rerooted_annotated_tree', metavar='newick_tree', help='Define taxonomy through this annotated newick file. (default: use taxonomy from --taxonomy)')
     create_lesser_options.add_argument('--output', metavar='PATH', help='Name of output GraftM package (default: use name derived from alignment.')
     create_lesser_options.add_argument('--tree_log', help='A log file for the tree. (default: generate from tree and alignment)')
     create_logging_options=create_parser.add_argument_group('Logging options')

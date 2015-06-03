@@ -398,8 +398,16 @@ class Run:
               ----------     
 '''
 
+            if self.args.taxonomy:
+                if self.args.rerooted_annotated_tree:
+                    logging.error("--taxonomy is incompatible with --rerooted_annotated_tree")
+                    exit(1)
+            elif not self.args.rerooted_annotated_tree:
+                logging.error("--taxonomy or rerooted_annotated_tree is required")
+                exit(1)
             self.hk.checkCreatePrerequisites()
             Create().main(self.args.alignment, 
                           self.args.taxonomy, self.args.rerooted_tree,
-                          self.args.tree_log, self.args.output)
+                          self.args.tree_log, self.args.output, 
+                          self.args.rerooted_annotated_tree)
     

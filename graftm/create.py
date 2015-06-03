@@ -12,6 +12,9 @@ import graftm.getaxnseq
 from Bio import SeqIO
 from graftm.hmmer import Hmmer
 from graftm.tree_cleaner import TreeCleaner
+from graftm.taxonomy_extractor import TaxonomyExtractor
+from graftm.getaxnseq import Getaxnseq
+from skbio.tree import TreeNode
 
 class Create:
     
@@ -175,7 +178,7 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
         logging.debug("Running log creation command %s" % cmd)
         subprocess.check_call(['bash','-c',cmd])
         
-    def main(self, alignment, taxonomy, rerooted_tree, tree_log, prefix): 
+    def main(self, alignment, taxonomy, rerooted_tree, tree_log, prefix, rerooted_annotated_tree): 
         base=os.path.basename(alignment).split('.')[0]
             
         logging.info("Building gpkg for %s" % base)
@@ -184,15 +187,21 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
         hmm, output_alignment = self.get_hmm_and_alignment(alignment, base)
         
         # Create tree unless one was provided
-        if not rerooted_tree:
+        if not rerooted_tree and not rerooted_annotated_tree:
             logging.debug("No tree provided")
             logging.info("Building tree")
             ptype,_ = self.pipeType(hmm)
             log_file, tre_file = self.buildTree(output_alignment, base, ptype)
             no_reroot = False
         else:
-            logging.debug("Found pre-rerooted tree file %s" % rerooted_tree)
-            tre_file=rerooted_tree
+            if rerooted_tree:
+                logging.debug("Found unannotated pre-rerooted tree file %s" % rerooted_tree)
+                tre_file=rerooted_tree
+            elif rerooted_annotated_tree:
+                logging.debug("Found annotated pre-rerooted tree file %s" % rerooted_tree)
+                tre_file=rerooted_annotated_tree
+            else:
+                raise
             no_reroot = True
             TreeCleaner().match_alignment_and_tree_sequence_ids(output_alignment,
                                                                 tre_file)
@@ -216,9 +225,22 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
                                             tre_file, log_file, ptype)
             
         # Create tax and seqinfo .csv files
-        logging.info("Building seqinfo and taxonomy file")
-        seq, tax = graftm.getaxnseq.main(base, taxonomy)
+        gtns = Getaxnseq()
+        seq = base+"_seqinfo.csv"
+        tax = base+"_taxonomy.csv"
         self.the_trash += [seq, tax]
+        if rerooted_annotated_tree:
+            logging.info("Building seqinfo and taxonomy file from input annotated tree")
+            taxonomy_definition = TaxonomyExtractor().taxonomy_from_annotated_tree(\
+                    TreeNode.read(open(rerooted_annotated_tree)))
+        elif taxonomy:
+            logging.info("Building seqinfo and taxonomy file from input taxonomy")
+            taxonomy_definition = gtns.read_taxonomy_file(taxonomy)
+        else:
+            raise Exception("Taxonomy is required somehow e.g. by --taxonomy or --rerooted_annotated_tree")
+        gtns.write_taxonomy_and_seqinfo_files(taxonomy_definition,
+                                              tax,
+                                              seq)
         
         # Create the reference package
         logging.info("Creating reference package")

@@ -3,19 +3,7 @@
 import re
 import sets
 
-import pprint as pp
-
-def main(base, taxonomy_file):
-    seqinfo = base+"_seqinfo.csv"
-    output_tax = base+"_taxonomy.csv"
-    
-    Getaxnseq().gg_taxonomy_builder(taxonomy_file, output_tax, seqinfo)
-    
-    return seqinfo, output_tax
-
 class Getaxnseq:
-
-    def __init__(self): pass
     
     def taxonomy_line(self, level_index, taxon_array):
         if level_index == 0:
@@ -34,12 +22,9 @@ class Getaxnseq:
             return '%s,%s,species,%s,%s,%s,%s,%s,%s,%s,%s,%s' % (taxon_array[level_index], taxon_array[level_index-1], taxon_array[level_index], 'Root', taxon_array[0], taxon_array[1], taxon_array[2], taxon_array[3], taxon_array[4], taxon_array[5], taxon_array[6])
         else:
             raise Exception("Programming error, found too many levels!")
-
-
-    def gg_taxonomy_builder(self, taxonomy_file, output_taxonomy, output_seqinfo):
-        first_pass_id_and_taxonomies = []
-        meaningless_taxonomic_names = sets.Set(['k__', 'd__', 'p__', 'c__', 'o__', 'f__', 'g__', 's__'])
-
+        
+    def read_taxonomy_file(self, taxonomy_file):
+        taxonomies = {}
         for entry in open(taxonomy_file):
             # split the entire line including the  on '; '
             split = entry.rstrip().split(';')
@@ -47,7 +32,27 @@ class Getaxnseq:
             # split out the taxon ID from the first split of above
             taxon_id, first_taxon = [s.strip() for s in split[0].split()[:2]]
             tax_split = [first_taxon] + split[1:]
+            
+            taxonomies[taxon_id] = tax_split
+        return taxonomies
+    
+    def write_taxonomy_and_seqinfo_files(self, taxonomies, output_taxonomy_file, output_seqinfo_file):
+        '''Write out taxonomy and seqinfo files as required by taxtastic
+        from known taxonomies
+        
+        Parameters
+        ----------
+        taxonomies:
+            hash of taxon_id to array of taxonomic information
+        output_taxonomy_file:
+            write taxtastic-compatible 'taxonomy' file here
+        output_seqinfo_file:
+            write taxtastic-compatible 'seqinfo' file here'''
+        
+        first_pass_id_and_taxonomies = []
+        meaningless_taxonomic_names = sets.Set(['k__', 'd__', 'p__', 'c__', 'o__', 'f__', 'g__', 's__'])
 
+        for taxon_id, tax_split in taxonomies.iteritems():
             # Replace spaces with underscores e.g. 'Candidatus my_genus'
             for idx, item in enumerate(tax_split):
                 tax_split[idx] = re.sub('\s+', '_', item.strip())
@@ -95,11 +100,8 @@ class Getaxnseq:
 
                     parents[tax] = ancestry
 
-        #pp.pprint(parents)
-        #pp.pprint(first_pass_id_and_taxonomies)
-
         # Write the sequence file
-        with open(output_seqinfo, 'w') as seqout:
+        with open(output_seqinfo_file, 'w') as seqout:
             # write header
             seqout.write('seqname,tax_id\n')
             # write each taxonomic association
@@ -108,7 +110,7 @@ class Getaxnseq:
 
         # Write the taxonomy file
         noted_taxonomies = sets.Set([])
-        with open(output_taxonomy, 'w') as seqout:
+        with open(output_taxonomy_file, 'w') as seqout:
             # write header and root line
             seqout.write('tax_id,parent_id,rank,tax_name,root,kingdom,phylum,class,order,family,genus,species\n')
             seqout.write('Root,Root,root,Root,Root,,,,,,,\n')

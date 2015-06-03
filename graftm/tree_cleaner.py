@@ -1,12 +1,15 @@
 from skbio.tree import TreeNode
 from Bio import SeqIO
-import re
 
 class TreeCleaner:
-    def clean_newick_file(self, input_tree_filename, output_tree_filename):
+    def clean_newick_file_for_fasttree_input(self, input_tree_filename, output_tree_filename):
         tree = TreeNode.read(open(input_tree_filename))
         for n in tree.non_tips(include_self=True): n.name=None
+        #convert underscores to spaces so skbio converts them back
+        # without using single quotes for the names. See
+        # https://github.com/biocore/scikit-bio/issues/934
         for n in tree.tips(): n.name = n.name.replace('_', ' ')
+        
         with open(output_tree_filename,'w') as f:
             tree.write(f)
             
@@ -16,9 +19,11 @@ class TreeCleaner:
         the problem for the user to fix'''
         
         tip_names_count = {}
-        r = re.compile(' ')
-        for t in TreeNode.read(open(newick_file),format='newick').tips():
-            name = r.sub('_', t.name)
+        tree = TreeNode.read(open(newick_file),format='newick')
+        for t in tree.tips():
+            # replace spaces with underscores as skbio interprets unquoted underscores
+            # as spaces, where fasttree doesn't (I think)
+            name = t.name.replace(' ','_')
             if name in tip_names_count:
                 raise Exception("Duplicate tip name found in tree: '%s'" % name)
             else:

@@ -399,7 +399,7 @@ class Run:
 '''
 
             self.hk.checkCreatePrerequisites()
-            Create().main(self.args.hmm, self.args.alignment, 
+            Create().main(self.args.alignment, 
                           self.args.taxonomy, self.args.rerooted_tree,
                           self.args.tree_log, self.args.output)
     

@@ -184,7 +184,6 @@ sequence1    k__kingdom1; p__phylum2
     create.add_argument('--alignment', metavar='ALN', help='An alignment with which to build a custom HMM and tree (required)', required=True)
     create.add_argument('--rerooted_tree', help='A tree with which to build the refpkg, appropriately rooted. (default: generate tree with FastTree and attempt reroot with taxtastic)')
     create_lesser_options=create_parser.add_argument_group('Lesser used options')
-    create_lesser_options.add_argument('--hmm', metavar='HMM', help='HMM used to create the GraftM package (default: Build HMM from alignment)')
     create_lesser_options.add_argument('--output', metavar='PATH', help='Name of output GraftM package (default: use name derived from alignment.')
     create_lesser_options.add_argument('--tree_log', help='A log file for the tree. (default: generate from tree and alignment)')
     create_logging_options=create_parser.add_argument_group('Logging options')

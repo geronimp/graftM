@@ -19,7 +19,7 @@ class Create:
         self.h=Hmmer(None, None)
         self.the_trash=[]
         
-    def get_hmm_and_alignment(self, alignment, hmm, base):
+    def get_hmm_and_alignment(self, alignment, base):
         '''Return a HMM file and alignment of sequences to that HMM
         
         Returns
@@ -27,15 +27,20 @@ class Create:
         * HMM file
         * Alignment of sequences to that HMM
         '''
-        if not hmm:
-            logging.debug("Building HMM from alignment")
-            hmm=self.buildHmm(alignment, base)
-            self.the_trash += [hmm]
-            
-        output_alignment = self.alignSequences(hmm, alignment, base)
+        logging.debug("Building HMM from alignment")
+        hmm, output_alignment = self.buildHmm(alignment, base)
+        self.the_trash += [hmm]
+        
         return hmm, output_alignment
     
-    def buildHmm(self, alignment, base): 
+    def buildHmm(self, alignment, base):
+        '''Make a HMM called base.hmm with the given alignment file
+        
+        Returns
+        -------
+        A list of two:
+        1. Path to the created HMM
+        2. Alignment of sequences to this HMM'''
         counter=0
         if os.path.isfile(base + ".hmm"):
             counter=0
@@ -45,13 +50,28 @@ class Create:
             hmm = base + ".hmm"
         else:   
             hmm = base + ".hmm" # Set a name for a hmm
-        cmd = "hmmbuild '%s' '%s' >/dev/null" % (hmm, alignment) # Build the command to build the hmm
-        logging.debug("Calling command: %s" % (cmd))
-        subprocess.check_call(cmd, shell=True) # Call the command
-        return hmm
+        sto = tempfile.NamedTemporaryFile(suffix='.sto',prefix='graftm')
+        tempaln = tempfile.NamedTemporaryFile(suffix='.fasta',prefix='graftm')
+        cmd = "hmmbuild -O %s '%s' '%s'" % (sto.name,
+                                              hmm,
+                                              alignment)
+        logging.debug("Calling command: %s" % cmd)
+        out = subprocess.check_output(cmd, shell=True) # Call the command
+        logging.debug("Got STDOUT from hmmbuild: %s" % out)
+
+        cmd = "seqmagick convert --input-format stockholm %s %s" % (sto.name,
+                                                              tempaln.name)
+        logging.debug("Calling command: %s" % cmd)
+        out = subprocess.check_output(['bash','-c',cmd]) # Call the command
+        logging.debug("Got STDOUT from seqmagick: %s" % out)
+        
+        alignment_path = "%s.aln.fa" % base
+        self.h.alignment_correcter([tempaln.name], alignment_path)
+
+        return hmm, alignment_path
     
     def pipeType(self, hmm):
-        logging.debug("Setting pipeline type")
+        logging.debug("Setting pipeline type..")
         type=[x.split() for x in open(hmm).readlines() if x.startswith('ALPH') or x.startswith('LENG')]
         for item in type:
             if item[0]=='ALPH':
@@ -71,22 +91,6 @@ class Create:
     
     def checkAlnLength(self, alignment):
         return len(list(SeqIO.parse(open(alignment, 'r'), 'fasta'))[0].seq)
-        
-    def alignSequences(self, hmm, sequences, base): 
-        stockholm_alignment = base +".aln.sto" # Set an output path for the alignment
-        fasta_alignment = base+".insertions.aln.fa" # Set an output path for the alignment
-        corrected_fasta_alignment = base+".aln.fa" # Set an output path for the alignment
-        cmd = "hmmalign --trim -o '%s' '%s' '%s'" % (stockholm_alignment, hmm, sequences) # Build the command to align the sequences
-        logging.debug("Calling command %s" % (cmd))
-        subprocess.check_call(cmd, shell=True) # Call the command
-        cmd = "seqmagick convert --squeeze '%s' '%s'" % (stockholm_alignment, fasta_alignment)
-        logging.debug("Calling command %s" % (cmd))
-        subprocess.check_call(cmd, shell=True) # Call the command
-        logging.debug("Correcting alignment")
-        self.h.alignment_correcter([fasta_alignment], corrected_fasta_alignment)
-        self.the_trash += [stockholm_alignment, corrected_fasta_alignment, fasta_alignment]
-        logging.debug("Wrote corrected alignments to: %s" % (corrected_fasta_alignment))
-        return corrected_fasta_alignment
     
     def buildTree(self, alignment, base, ptype): 
         log_file = base + ".tre.log"
@@ -152,7 +156,7 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
                 os.remove(every_piece_of_junk)
     
     def generate_tree_log_file(self, tree, alignment, output_tree_file_path,
-                               output_log_file_path):
+                               output_log_file_path, residue_type):
         '''Generate the FastTree log file given a tree and the alignment that
         made that tree
         
@@ -160,19 +164,24 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
         -------
         Nothing. The log file as parameter is written as the log file.
         '''
-        cmd = "FastTree -quiet -nome -mllen -intree '%s' -log %s -out %s %s" %\
-                                   (tree, output_log_file_path, 
-                                    output_tree_file_path, alignment)
+        if residue_type=='na':
+            cmd = "FastTree -quiet -gtr -nt -nome -mllen -intree '%s' -log %s -out %s %s" %\
+                                       (tree, output_log_file_path, 
+                                        output_tree_file_path, alignment)
+        elif residue_type=='aa':
+            cmd = "FastTree -quiet -nome -mllen -intree '%s' -log %s -out %s %s" %\
+                                       (tree, output_log_file_path, 
+                                        output_tree_file_path, alignment)
         logging.debug("Running log creation command %s" % cmd)
         subprocess.check_call(['bash','-c',cmd])
         
-    def main(self, hmm, alignment, taxonomy, rerooted_tree, tree_log, prefix): 
+    def main(self, alignment, taxonomy, rerooted_tree, tree_log, prefix): 
         base=os.path.basename(alignment).split('.')[0]
             
         logging.info("Building gpkg for %s" % base)
         
         # align sequences to HMM (and potentially build hmm from alignment)
-        hmm, output_alignment = self.get_hmm_and_alignment(alignment, hmm, base)
+        hmm, output_alignment = self.get_hmm_and_alignment(alignment, base)
         
         # Create tree unless one was provided
         if not rerooted_tree:
@@ -199,11 +208,12 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
                 tre_file1_tempfile = tempfile.NamedTemporaryFile(suffix='.tree', prefix='graftm')
                 tre_file1 = tre_file1_tempfile.name
                 # Make the newick file simple (ie. un-arb it) for fasttree
-                TreeCleaner().clean_newick_file(input_tree_file, tre_file1)
+                TreeCleaner().clean_newick_file_for_fasttree_input(input_tree_file, tre_file1)
                 tre_file_tempfile = tempfile.NamedTemporaryFile(suffix='.tree', prefix='graftm')
                 tre_file = tre_file_tempfile.name
+                ptype,_ = self.pipeType(hmm)
                 self.generate_tree_log_file(tre_file1, alignment,
-                                            tre_file, log_file)
+                                            tre_file, log_file, ptype)
             
         # Create tax and seqinfo .csv files
         logging.info("Building seqinfo and taxonomy file")

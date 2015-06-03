@@ -20,17 +20,27 @@ class Create:
         self.h=Hmmer(None, None)
         self.the_trash=[]
     
-    def check_reads_hit(self, hmm, sequences, ptype, length):
+    def check_reads_hit(self, hmm, sequences, ptype, length, base):
+        read_names=[x.id for x in SeqIO.parse(sequences, "fasta")]
+        
         output_table=tempfile.NamedTemporaryFile(suffix='.txt').name # create a tmp file which will be the table
         logging.debug("Outputting table to: %s" % output_table)
         cmd = "hmmsearch --domtblout %s %s %s > /dev/null" % (output_table, hmm, sequences) # protein hmm search
         logging.debug("Calling command: %s" % cmd)
         subprocess.check_call(cmd, shell=True) 
         table=HMMreader(output_table) # Create table object
+        
         logging.debug("Checking for alignment lengths < 50% the size of the HMM")
-        poor_aln=[x for x in table.names() if table.aln_len(x)/float(length)<0.5]
-        if any(poor_aln):
-            logging.error("Encountered reads with poor alignment: %s" % ' '.join(poor_aln) )
+        missed_reads=[x for x in read_names if x not in table.names()] # Check for reads that missed the HMM entirely
+        poor_aln=[x for x in table.names() if table.aln_len(x)/float(length)<0.5] # Check for reads that had a poor alignment length.
+        poor_aln += missed_reads # Add them together
+        if any(poor_aln): # If there are any
+            poorly_aln_out=base + "_poor_aln.txt"
+            logging.error("Encountered reads with poor alignment: %i" % len(poor_aln) ) # Complain
+            logging.error("Writing poorly aligned read IDS to file: %s" % poorly_aln_out )
+            with open(poorly_aln_out, 'w') as out:
+                for entry in poor_aln:
+                    out.write('%s\n' % (entry))
             return True
         else:
             logging.debug("None found")
@@ -189,7 +199,7 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
         ptype,length = self.pipeType(hmm)
         
         logging.info("Checking for incorrect or fragmented reads")
-        if self.check_reads_hit(hmm, output_alignment, ptype, length): # Check all reads align to HMM properly
+        if self.check_reads_hit(hmm, output_alignment, ptype, length, base): # Check all reads align to HMM properly
             raise Exception("One or more alignments do not span > 50% of HMM")
             
         # Create tree unless one was provided

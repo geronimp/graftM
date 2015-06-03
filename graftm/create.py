@@ -8,7 +8,6 @@ import tempfile
 import logging
 import subprocess32
 
-import graftm.getaxnseq
 from Bio import SeqIO
 from graftm.hmmer import Hmmer
 from graftm.tree_cleaner import TreeCleaner
@@ -221,7 +220,7 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
                 tre_file_tempfile = tempfile.NamedTemporaryFile(suffix='.tree', prefix='graftm')
                 tre_file = tre_file_tempfile.name
                 ptype,_ = self.pipeType(hmm)
-                self.generate_tree_log_file(tre_file1, alignment,
+                self.generate_tree_log_file(tre_file1, output_alignment,
                                             tre_file, log_file, ptype)
             
         # Create tax and seqinfo .csv files

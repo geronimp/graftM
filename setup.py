@@ -18,7 +18,8 @@ setup(name='graftm',
       packages=find_packages(exclude='docs'),
       install_requires=('biopython ==1.64',
                         'seqmagick ==0.5.0',
-                        'scikit-bio ==0.2.2'),
+                        'scikit-bio ==0.2.2',
+                        'subprocess32 ==3.2.6'),
       url='http://geronimp.github.com/graftM',
       scripts=['bin/graftM']
 )

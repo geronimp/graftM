@@ -383,7 +383,7 @@ class Hmmer:
                 new_seq = list(sequence.seq) # Define a list of sequences to be iterable list for writing
                 for position in insert_list: # For each position in the removal list
                     del new_seq[position] # Delete that inserted position in every sequence
-                corrected_sequences['>'+sequence.id+'\n'] = ''.join(new_seq)+'\n'
+                corrected_sequences['>'+sequence.id+'\n'] = (''.join(new_seq)+'\n').replace('~','-')
         with open(output_file_name, 'w') as output_file: # Create an open file to write the new sequences to
                 for fasta_id, fasta_seq in corrected_sequences.iteritems():
                     if any(c.isalpha() for c in fasta_seq):

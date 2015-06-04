@@ -22,10 +22,13 @@
 #=======================================================================
 
 import unittest
-import graftm.hmmsearcher
 import tempfile
 import os
 import re
+import sys
+
+sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
+import graftm.hmmsearcher
 
 class HmmsearcherTests(unittest.TestCase):
     path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')

@@ -14,12 +14,39 @@ from graftm.tree_cleaner import TreeCleaner
 from graftm.taxonomy_extractor import TaxonomyExtractor
 from graftm.getaxnseq import Getaxnseq
 from skbio.tree import TreeNode
+from graftm.readHmmTable import HMMreader
 
 class Create:
     
     def __init__(self): 
         self.h=Hmmer(None, None)
         self.the_trash=[]
+    
+    def check_reads_hit(self, hmm, sequences, ptype, length, base):
+        read_names=[x.id for x in SeqIO.parse(sequences, "fasta")]
+        
+        output_table=tempfile.NamedTemporaryFile(suffix='.txt').name # create a tmp file which will be the table
+        logging.debug("Outputting table to: %s" % output_table)
+        cmd = "hmmsearch --domtblout %s %s %s > /dev/null" % (output_table, hmm, sequences) # protein hmm search
+        logging.debug("Calling command: %s" % cmd)
+        subprocess.check_call(cmd, shell=True) 
+        table=HMMreader(output_table) # Create table object
+        
+        logging.debug("Checking for alignment lengths < 50% the size of the HMM")
+        missed_reads=[x for x in read_names if x not in table.names()] # Check for reads that missed the HMM entirely
+        poor_aln=[x for x in table.names() if table.aln_len(x)/float(length)<0.5] # Check for reads that had a poor alignment length.
+        poor_aln += missed_reads # Add them together
+        if any(poor_aln): # If there are any
+            poorly_aln_out=base + "_poor_aln.txt"
+            logging.error("Encountered reads with poor alignment: %i" % len(poor_aln) ) # Complain
+            logging.error("Writing poorly aligned read IDS to file: %s" % poorly_aln_out )
+            with open(poorly_aln_out, 'w') as out:
+                for entry in poor_aln:
+                    out.write('%s\n' % (entry))
+            return True
+        else:
+            logging.debug("None found")
+            return False
         
     def get_hmm_and_alignment(self, alignment, base):
         '''Return a HMM file and alignment of sequences to that HMM
@@ -32,7 +59,6 @@ class Create:
         logging.debug("Building HMM from alignment")
         hmm, output_alignment = self.buildHmm(alignment, base)
         self.the_trash += [hmm]
-        
         return hmm, output_alignment
     
     def buildHmm(self, alignment, base):
@@ -52,6 +78,7 @@ class Create:
             hmm = base + ".hmm"
         else:   
             hmm = base + ".hmm" # Set a name for a hmm
+
         sto = tempfile.NamedTemporaryFile(suffix='.sto',prefix='graftm')
         tempaln = tempfile.NamedTemporaryFile(suffix='.fasta',prefix='graftm')
         cmd = "hmmbuild -O %s '%s' '%s'" % (sto.name,
@@ -184,12 +211,16 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
         
         # align sequences to HMM (and potentially build hmm from alignment)
         hmm, output_alignment = self.get_hmm_and_alignment(alignment, base)
+        ptype,length = self.pipeType(hmm)
         
+        logging.info("Checking for incorrect or fragmented reads")
+        if self.check_reads_hit(hmm, output_alignment, ptype, length, base): # Check all reads align to HMM properly
+            raise Exception("One or more alignments do not span > 50% of HMM")
+            
         # Create tree unless one was provided
         if not rerooted_tree and not rerooted_annotated_tree:
             logging.debug("No tree provided")
             logging.info("Building tree")
-            ptype,_ = self.pipeType(hmm)
             log_file, tre_file = self.buildTree(output_alignment, base, ptype)
             no_reroot = False
         else:
@@ -219,7 +250,6 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
                 TreeCleaner().clean_newick_file_for_fasttree_input(input_tree_file, tre_file1)
                 tre_file_tempfile = tempfile.NamedTemporaryFile(suffix='.tree', prefix='graftm')
                 tre_file = tre_file_tempfile.name
-                ptype,_ = self.pipeType(hmm)
                 self.generate_tree_log_file(tre_file1, output_alignment,
                                             tre_file, log_file, ptype)
             

@@ -48,7 +48,7 @@ class Tests(unittest.TestCase):
                        os.path.join(path_to_data,'create','test.faa'),
                        tmp2+"_")
                 subprocess.check_call(cmd2, shell=True)
-            
+
     def test_rerooted_tree_with_node_names(self):
         with tempdir.TempDir() as tmp:
             with tempdir.TempDir() as tmp2:
@@ -65,7 +65,7 @@ class Tests(unittest.TestCase):
                        os.path.join(path_to_data,'create','test.faa'),
                        tmp2+"_")
                 subprocess.check_call(cmd2, shell=True)
-        
+
 
 if __name__ == "__main__":
     unittest.main()

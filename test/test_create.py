@@ -25,9 +25,14 @@ import unittest
 import subprocess
 import os.path
 import tempdir
+import sys
+
+sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
+from graftm.create import Create
 
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
+
 
 
 class Tests(unittest.TestCase):
@@ -65,6 +70,22 @@ class Tests(unittest.TestCase):
                        os.path.join(path_to_data,'create','test.faa'),
                        tmp2+"_")
                 subprocess.check_call(cmd2, shell=True)
+                
+    def test_min_aligned_percent(self):
+        # test it doesn't raise with a lower check limit
+        with tempdir.TempDir() as tmp:
+            Create().main(alignment=os.path.join(path_to_data,'create','homologs.trimmed.aligned.faa'),
+                          taxonomy=os.path.join(path_to_data,'create','homologs.tax2tree.rerooted.decorated.tree-consensus-strings'),
+                          rerooted_tree=os.path.join(path_to_data,'create','decorated.tree'),
+                          min_aligned_percent=0.5,
+                          prefix=tmp)
+        with tempdir.TempDir() as tmp:
+            self.assertRaises(Exception, Create().main,
+                              os.path.join(path_to_data,'create','homologs.trimmed.aligned.faa'),
+                              taxonomy=os.path.join(path_to_data,'create','homologs.tax2tree.rerooted.decorated.tree-consensus-strings'),
+                              rerooted_tree=os.path.join(path_to_data,'create','decorated.tree'), 
+                              min_aligned_percent=0.9,
+                              prefix=tmp)
 
 
 if __name__ == "__main__":

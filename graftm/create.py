@@ -14,7 +14,6 @@ from graftm.tree_cleaner import TreeCleaner
 from graftm.taxonomy_extractor import TaxonomyExtractor
 from graftm.getaxnseq import Getaxnseq
 from skbio.tree import TreeNode
-from graftm.readHmmTable import HMMreader
 
 class Create:
     
@@ -22,31 +21,25 @@ class Create:
         self.h=Hmmer(None, None)
         self.the_trash=[]
     
-    def check_reads_hit(self, hmm, sequences, ptype, length, base):
-        read_names=[x.id for x in SeqIO.parse(sequences, "fasta")]
-        
-        output_table=tempfile.NamedTemporaryFile(suffix='.txt').name # create a tmp file which will be the table
-        logging.debug("Outputting table to: %s" % output_table)
-        cmd = "hmmsearch --domtblout %s %s %s > /dev/null" % (output_table, hmm, sequences) # protein hmm search
-        logging.debug("Calling command: %s" % cmd)
-        subprocess.check_call(cmd, shell=True) 
-        table=HMMreader(output_table) # Create table object
-        
-        logging.debug("Checking for alignment lengths < 50% the size of the HMM")
-        missed_reads=[x for x in read_names if x not in table.names()] # Check for reads that missed the HMM entirely
-        poor_aln=[x for x in table.names() if table.aln_len(x)/float(length)<0.5] # Check for reads that had a poor alignment length.
-        poor_aln += missed_reads # Add them together
-        if any(poor_aln): # If there are any
-            poorly_aln_out=base + "_poor_aln.txt"
-            logging.error("Encountered reads with poor alignment: %i" % len(poor_aln) ) # Complain
-            logging.error("Writing poorly aligned read IDS to file: %s" % poorly_aln_out )
-            with open(poorly_aln_out, 'w') as out:
-                for entry in poor_aln:
-                    out.write('%s\n' % (entry))
-            return True
-        else:
-            logging.debug("None found")
-            return False
+    def _check_reads_hit(self, alignment_io, min_aligned_fraction):
+        '''Given an alignment return a list of sequence names that are less
+        than the min_aligned_fraction'''
+        to_return = []
+        alignment_length = None
+        for s in SeqIO.parse(alignment_io, "fasta"):
+            if not alignment_length:
+                alignment_length = len(s.seq)
+                min_length = int(min_aligned_fraction * alignment_length)
+                logging.debug("Determined min number of aligned bases to be %s" % min_length)
+            elif len(s.seq) != alignment_length:
+                raise Exception("Alignment file appears to not be of uniform length")
+
+            num_unaligned = s.seq.count('-')
+            num_aligned = alignment_length-num_unaligned
+            logging.debug("Sequence %s has %d aligned positions" % (s.name, alignment_length-num_unaligned))
+            if num_aligned <= min_length:
+                to_return.append(s.name)
+        return to_return
         
     def get_hmm_and_alignment(self, alignment, base):
         '''Return a HMM file and alignment of sequences to that HMM
@@ -204,18 +197,35 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
         logging.debug("Running log creation command %s" % cmd)
         subprocess.check_call(['bash','-c',cmd])
         
-    def main(self, alignment, taxonomy, rerooted_tree, tree_log, prefix, rerooted_annotated_tree): 
+    def main(self, alignment, **kwargs):
+        taxonomy = kwargs.pop('taxonomy',None)
+        rerooted_tree = kwargs.pop('rerooted_tree',None)
+        tree_log = kwargs.pop('tree_log', None)
+        prefix = kwargs.pop('prefix', None)
+        rerooted_annotated_tree = kwargs.pop('rerooted_annotated_tree', None)
+        min_aligned_percent = kwargs.pop('min_aligned_percent',0.0)
+        if len(kwargs) > 0:
+            raise Exception("Unexpected arguments detected: %s" % kwargs)
+        
         base=os.path.basename(alignment).split('.')[0]
             
         logging.info("Building gpkg for %s" % base)
         
         # align sequences to HMM (and potentially build hmm from alignment)
         hmm, output_alignment = self.get_hmm_and_alignment(alignment, base)
-        ptype,length = self.pipeType(hmm)
+        ptype,_ = self.pipeType(hmm)
         
         logging.info("Checking for incorrect or fragmented reads")
-        if self.check_reads_hit(hmm, output_alignment, ptype, length, base): # Check all reads align to HMM properly
-            raise Exception("One or more alignments do not span > 50% of HMM")
+        insufficiently_aligned_sequences = self._check_reads_hit(open(output_alignment),
+                                                                 min_aligned_percent)
+        if len(insufficiently_aligned_sequences) > 0:
+            logging.error("One or more alignments do not span > %.2f %% of HMM" % (min_aligned_percent*100))
+            for s in insufficiently_aligned_sequences:
+                logging.error("Insufficient alignment of %s" % s)
+            raise Exception("One or more sequences did not span a sufficient"+
+                " amount of the alignment suggesting that potentially they should "
+                "not be included in the alignment e.g. '%s'" % insufficiently_aligned_sequences[0])
+        logging.debug("Found no sequences of insufficient length")
             
         # Create tree unless one was provided
         if not rerooted_tree and not rerooted_annotated_tree:

@@ -43,7 +43,7 @@ GAGTCCGGACCGTGTCTCAGTTCCGGTGTGGCTGGTCGTCCTCTCAGACCAGCTACGGATTGTCGCCTTGGTGAGCCATT
             fasta.write(reads)
             fasta.flush()
             data = fasta.name
-            package = os.path.join(path_to_data,'16S.gpkg')
+            package = os.path.join(path_to_data,'61_otus.gpkg')
             with tempdir.TempDir() as tmp:
                 cmd = '%s graft --forward %s --graftm_package %s --output_directory %s --force --search_and_align_only' % (path_to_script,
                                                                                                                  data,
@@ -53,9 +53,9 @@ GAGTCCGGACCGTGTCTCAGTTCCGGTGTGGCTGGTCGTCCTCTCAGACCAGCTACGGATTGTCGCCTTGGTGAGCCATT
                 sample_name = os.path.basename(fasta.name[:-3])
                 alnFile = os.path.join(tmp, sample_name, '%s_hits.aln.fa' % sample_name)
                 expected_aln = '''>NS500333:16:H16F3BGXX:1:11101:11211:1402
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GAGCGCAACCCTCGCCTTCAGTTGCCATCATGGGCACTCTGAAGGAACTGCCGGTGACAAGCCGGAGGAAGGTGGGGATGACGTCAAGTCCTCATGGCCCTTATGTCCTGGGCTACACACGTGCTACAATGGCGGT---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
->NS500333:16:H16F3BGXX:1:11101:25587:3521
------------------------------------------------------------------------------------------------------------------------------------------------------------GCGCTATTGGATGAGCCAAAGTCGGATTAGCTAGTTGGTGAGGTAATGGCTCACCAAGGCGACAATCCGTAGCTGGTCTGAGAGGACGACCAGCCACACCGGAACTGAGACACGGTCCGGACTC--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GAGCGCAACCCTCGCCTTCAGTTGCCATCTGAAGGAACTGCCGGTGACAAGCCGGAGGAAGGTGGGGATGACGTCAAGTCCTCATGGCCCTTATGTCCTGGGCTACACACGTGCTACAATGGCGGT----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    >NS500333:16:H16F3BGXX:1:11101:25587:3521
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------CGCTATTGGATGAGCCAAAGTCGGATTAGCTAGTTGGTGAGGTAATGGCTCACCAAGGCGACAATCCGTAGCTGGTCTGAGAGGACGACCAGCCACACCGGAACTGAGACACGGTCCGGACT--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 '''.split()
                 count = 0
                 for line in open(alnFile):
@@ -93,9 +93,9 @@ TGCTTTTACCTTGTTG'''
                 subprocess.check_output(cmd, shell=True)
                 sample_name = os.path.basename(fasta.name[:-3])
 
-                otuTableFile = os.path.join(tmp, sample_name, '%s_count_table.txt' % sample_name)
+                otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
                 lines = ("\t".join(('#ID',sample_name,'ConsensusLineage')),
-                         "\t".join(('0','2','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                         "\t".join(('1','2','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                          )
                 count = 0
                 for line in open(otuTableFile):
@@ -116,8 +116,8 @@ TGCTTTTACCTTGTTG'''
                 self.assertEqual(count, len(open(alnFile).readlines()))
     # Tests on searching for rRNA sequence in nucleic acid sequence
     def test_single_forward_read_run_16S(self):
-        data = os.path.join(path_to_data,'16S.gpkg', '16S_1.1.fa')
-        package = os.path.join(path_to_data,'16S.gpkg')
+        data = os.path.join(path_to_data,'16S_inputs','16S_1.1.fa')
+        package = os.path.join(path_to_data,'61_otus.gpkg')
         
         with tempdir.TempDir() as tmp:
             cmd = '%s graft --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
@@ -125,16 +125,15 @@ TGCTTTTACCTTGTTG'''
                                                                                                package,
                                                                                                tmp)
             subprocess.check_output(cmd, shell=True)
-            otuTableFile = os.path.join(tmp, '16S_1' , '16S_1_count_table.txt')
+            otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
             lines = ("\t".join(('#ID','16S_1','ConsensusLineage')),
-                     "\t".join(('0','1','Root; k__Bacteria; p__Bacteroidetes; c__Flavobacteriia; o__Flavobacteriales; f__Flavobacteriaceae')),
-                     "\t".join(('1','1','Root; k__Bacteria; p__Gemmatimonadetes; c__Gemm-1')),
+                     "\t".join(('1','2','Root; k__Bacteria')),
                     )
             count = 0
             for line in open(otuTableFile):
                 self.assertEqual(lines[count], line.strip())
                 count += 1
-            self.assertEqual(count, 3)
+            self.assertEqual(count, len(lines))
             
     def test_multiple_hsps_in_same_orf_of_fastq_sequence(self):
         fq = '''@NS500333:6:H1124BGXX:2:11107:13774:3316 1:N:0:GATCAG
@@ -164,9 +163,9 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
 
 
     def test_single_paired_read_run_16S(self):
-        data_for = os.path.join(path_to_data,'16S.gpkg', '16S_1.1.fa')
-        data_rev = os.path.join(path_to_data,'16S.gpkg', '16S_1.2.fa')
-        package = os.path.join(path_to_data,'16S.gpkg')
+        data_for = os.path.join(path_to_data,'16S_inputs','16S_1.1.fa')
+        data_rev = os.path.join(path_to_data,'16S_inputs','16S_1.2.fa')
+        package = os.path.join(path_to_data,'61_otus.gpkg')
         with tempdir.TempDir() as tmp:
             cmd = '%s graft --forward %s --reverse %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                data_for,
@@ -174,24 +173,23 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                                                                                                package,
                                                                                                tmp)
             subprocess.check_output(cmd, shell=True)
-            otuTableFile = os.path.join(tmp, '16S_1' , '16S_1_count_table.txt')
+            otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
             lines = ("\t".join(('#ID','16S_1','ConsensusLineage')),
-                     "\t".join(('0','1','Root; k__Bacteria; p__Bacteroidetes; c__Flavobacteriia; o__Flavobacteriales; f__Flavobacteriaceae')),
-                     "\t".join(('1','1','Root; k__Bacteria; p__Gemmatimonadetes; c__Gemm-1')),
+                     "\t".join(('1','2','Root; k__Bacteria')),
                     )
             count = 0
             for line in open(otuTableFile):
                 self.assertEqual(lines[count], line.strip())
                 count += 1
-            self.assertEqual(count, 3)
+            self.assertEqual(count, len(lines))
 
             self.assertTrue(os.path.isdir(os.path.join(tmp, '16S_1', 'forward'))) # Check forward and reverse reads exist.
             self.assertTrue(os.path.isdir(os.path.join(tmp, '16S_1', 'reverse')))
 
     def test_multiple_forward_read_run_16S(self):
-        data_for1 = os.path.join(path_to_data,'16S.gpkg', '16S_1.1.fa')
-        data_for2 = os.path.join(path_to_data,'16S.gpkg', '16S_2.1.fa')
-        package = os.path.join(path_to_data,'16S.gpkg')
+        data_for1 = os.path.join(path_to_data,'16S_inputs', '16S_1.1.fa')
+        data_for2 = os.path.join(path_to_data,'16S_inputs', '16S_2.1.fa')
+        package = os.path.join(path_to_data,'61_otus.gpkg')
         with tempdir.TempDir() as tmp:
             cmd = '%s graft --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                data_for1,
@@ -199,34 +197,22 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                                                                                                package,
                                                                                                tmp)
             subprocess.check_output(cmd, shell=True)
-            otuTableFile = os.path.join(tmp, '16S_1' , '16S_1_count_table.txt')
-            lines = ("\t".join(('#ID','16S_1','ConsensusLineage')),
-                     "\t".join(('0','1','Root; k__Bacteria; p__Bacteroidetes; c__Flavobacteriia; o__Flavobacteriales; f__Flavobacteriaceae')),
-                     "\t".join(('1','1','Root; k__Bacteria; p__Gemmatimonadetes; c__Gemm-1')),
+            otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
+            lines = ("\t".join(('#ID','16S_1','16S_2','ConsensusLineage')),
+                     "\t".join(('1','2','2','Root; k__Bacteria')),
                     )
             count = 0
             for line in open(otuTableFile):
                 self.assertEqual(lines[count], line.strip())
                 count += 1
-            self.assertEqual(count, 3)
-
-            otuTableFile = os.path.join(tmp, '16S_2' , '16S_2_count_table.txt')
-            lines = ("\t".join(('#ID','16S_2','ConsensusLineage')),
-                     "\t".join(('0','1','Root; k__Bacteria; p__Bacteroidetes; c__Flavobacteriia; o__Flavobacteriales; f__Flavobacteriaceae')),
-                     "\t".join(('1','1','Root; k__Bacteria; p__Gemmatimonadetes; c__Gemm-1')),
-                    )
-            count = 0
-            for line in open(otuTableFile):
-                self.assertEqual(lines[count], line.strip())
-                count += 1
-            self.assertEqual(count, 3)
+            self.assertEqual(count, len(lines))
 
     def test_multiple_paired_read_run_16S(self):
-        data_for1 = os.path.join(path_to_data,'16S.gpkg', '16S_1.1.fa')
-        data_for2 = os.path.join(path_to_data,'16S.gpkg', '16S_2.1.fa')
-        data_rev1 = os.path.join(path_to_data,'16S.gpkg', '16S_1.2.fa')
-        data_rev2 = os.path.join(path_to_data,'16S.gpkg', '16S_2.2.fa')
-        package = os.path.join(path_to_data,'16S.gpkg')
+        data_for1 = os.path.join(path_to_data,'16S_inputs','16S_1.1.fa')
+        data_for2 = os.path.join(path_to_data,'16S_inputs','16S_2.1.fa')
+        data_rev1 = os.path.join(path_to_data,'16S_inputs','16S_1.2.fa')
+        data_rev2 = os.path.join(path_to_data,'16S_inputs','16S_2.2.fa')
+        package = os.path.join(path_to_data,'61_otus.gpkg')
         with tempdir.TempDir() as tmp:
             cmd = '%s graft --forward %s %s --reverse %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                data_for1,
@@ -236,28 +222,15 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                                                                                                package,
                                                                                                tmp)
             subprocess.check_output(cmd, shell=True)
-            otuTableFile = os.path.join(tmp, '16S_1' , '16S_1_count_table.txt')
-            lines = ("\t".join(('#ID','16S_1','ConsensusLineage')),
-                     "\t".join(('0','1','Root; k__Bacteria; p__Bacteroidetes; c__Flavobacteriia; o__Flavobacteriales; f__Flavobacteriaceae')),
-                     "\t".join(('1','1','Root; k__Bacteria; p__Gemmatimonadetes; c__Gemm-1')),
+            otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
+            lines = ("\t".join(('#ID','16S_1','16S_2','ConsensusLineage')),
+                     "\t".join(('1','2','2','Root; k__Bacteria')),
                     )
             count = 0
             for line in open(otuTableFile):
                 self.assertEqual(lines[count], line.strip())
                 count += 1
-            self.assertEqual(count, 3)
-
-            otuTableFile = os.path.join(tmp, '16S_2' , '16S_2_count_table.txt')
-            lines = ("\t".join(('#ID','16S_2','ConsensusLineage')),
-                     "\t".join(('0','1','Root; k__Bacteria; p__Bacteroidetes; c__Flavobacteriia; o__Flavobacteriales; f__Flavobacteriaceae')),
-                     "\t".join(('1','1','Root; k__Bacteria; p__Gemmatimonadetes; c__Gemm-1')),
-                    )
-            count = 0
-            for line in open(otuTableFile):
-                self.assertEqual(lines[count], line.strip())
-                count += 1
-            self.assertEqual(count, 3)
-
+            self.assertEqual(count, len(lines))
 
             self.assertTrue(os.path.isdir(os.path.join(tmp, '16S_1', 'forward'))) # Check forward and reverse reads exist.
             self.assertTrue(os.path.isdir(os.path.join(tmp, '16S_1', 'reverse')))
@@ -275,9 +248,9 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                                                                                                package,
                                                                                                tmp)
             subprocess.check_output(cmd, shell=True)
-            otuTableFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_count_table.txt')
+            otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
             lines = ("\t".join(('#ID','mcrA_1','ConsensusLineage')),
-                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                     "\t".join(('1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
             for line in open(otuTableFile):
@@ -297,9 +270,9 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                                                                                                            package,
                                                                                                            tmp)
             subprocess.check_output(cmd, shell=True)
-            otuTableFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_count_table.txt')
+            otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
             lines = ("\t".join(('#ID','mcrA_1','ConsensusLineage')),
-                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                     "\t".join(('1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
             for line in open(otuTableFile):
@@ -322,20 +295,9 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                                                                                                            package,
                                                                                                            tmp)
             subprocess.check_output(cmd, shell=True)
-            otuTableFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_count_table.txt')
-            lines = ("\t".join(('#ID','mcrA_1','ConsensusLineage')),
-                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
-                     )
-            count = 0
-            for line in open(otuTableFile):
-                self.assertEqual(lines[count], line.strip())
-                count += 1
-            self.assertEqual(count, 2)
-
-            subprocess.check_output(cmd, shell=True)
-            otuTableFile = os.path.join(tmp, 'mcrA_2', 'mcrA_2_count_table.txt')
-            lines = ("\t".join(('#ID','mcrA_2','ConsensusLineage')),
-                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+            otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
+            lines = ("\t".join(('#ID','mcrA_1','mcrA_2','ConsensusLineage')),
+                     "\t".join(('1','1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
             for line in open(otuTableFile):
@@ -360,20 +322,9 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                                                                                                            package,
                                                                                                            tmp)
             subprocess.check_output(cmd, shell=True)
-            otuTableFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_count_table.txt')
-            lines = ("\t".join(('#ID','mcrA_1','ConsensusLineage')),
-                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
-                     )
-            count = 0
-            for line in open(otuTableFile):
-                self.assertEqual(lines[count], line.strip())
-                count += 1
-            self.assertEqual(count, 2)
-
-            subprocess.check_output(cmd, shell=True)
-            otuTableFile = os.path.join(tmp, 'mcrA_2', 'mcrA_2_count_table.txt')
-            lines = ("\t".join(('#ID','mcrA_2','ConsensusLineage')),
-                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+            otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
+            lines = ("\t".join(('#ID','mcrA_1','mcrA_2','ConsensusLineage')),
+                     "\t".join(('1','1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
             for line in open(otuTableFile):
@@ -399,20 +350,9 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                                                                                                            package,
                                                                                                            tmp)
             subprocess.check_output(cmd, shell=True)
-            otuTableFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_count_table.txt')
-            lines = ("\t".join(('#ID','mcrA_1','ConsensusLineage')),
-                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
-                     )
-            count = 0
-            for line in open(otuTableFile):
-                self.assertEqual(lines[count], line.strip())
-                count += 1
-            self.assertEqual(count, 2)
-
-            subprocess.check_output(cmd, shell=True)
-            otuTableFile = os.path.join(tmp, 'mcrA_2', 'mcrA_2_count_table.txt')
-            lines = ("\t".join(('#ID','mcrA_2','ConsensusLineage')),
-                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+            otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
+            lines = ("\t".join(('#ID','mcrA_1','mcrA_2','ConsensusLineage')),
+                     "\t".join(('1','1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
             for line in open(otuTableFile):
@@ -436,9 +376,9 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                                                                                                            package,
                                                                                                            tmp)
             subprocess.check_output(cmd, shell=True)
-            otuTableFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_count_table.txt')
-            lines = ("\t".join(('#ID','mcrA_1','ConsensusLineage')),
-                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+            otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
+            lines = ("\t".join(('#ID','mcrA_1','mcrA_2','ConsensusLineage')),
+                     "\t".join(('1','1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
             for line in open(otuTableFile):
@@ -447,15 +387,6 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
             self.assertEqual(count, 2)
 
             subprocess.check_output(cmd, shell=True)
-            otuTableFile = os.path.join(tmp, 'mcrA_2', 'mcrA_2_count_table.txt')
-            lines = ("\t".join(('#ID','mcrA_2','ConsensusLineage')),
-                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
-                     )
-            count = 0
-            for line in open(otuTableFile):
-                self.assertEqual(lines[count], line.strip())
-                count += 1
-            self.assertEqual(count, 2)
 
             self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_1', 'forward'))) # Check forward and reverse reads exist.
             self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_1', 'reverse')))
@@ -472,9 +403,9 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                                                                                                package,
                                                                                                tmp)
             subprocess.check_output(cmd, shell=True)
-            otuTableFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_count_table.txt')
+            otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
             lines = ("\t".join(('#ID','mcrA_1','ConsensusLineage')),
-                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                     "\t".join(('1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
             for line in open(otuTableFile):
@@ -494,9 +425,9 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                                                                                                            package,
                                                                                                            tmp)
             subprocess.check_output(cmd, shell=True)
-            otuTableFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_count_table.txt')
+            otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
             lines = ("\t".join(('#ID','mcrA_1','ConsensusLineage')),
-                     "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                     "\t".join(('1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
             for line in open(otuTableFile):
@@ -517,7 +448,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                                                                                                package,
                                                                                                tmp)
             subprocess.check_output(cmd, shell=True)
-            otuTableFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_count_table.txt')
+            otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
             # otu table should not exist
             self.assertFalse(os.path.isfile(otuTableFile))
 
@@ -540,7 +471,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                                                                                                hmm,
                                                                                                tmp)
             subprocess.check_output(cmd, shell=True)
-            otuTableFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_count_table.txt')
+            otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
             # otu table should not exist
             self.assertFalse(os.path.isfile(otuTableFile))
 
@@ -578,7 +509,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                                                                                                hmm,
                                                                                                tmp)
             subprocess.check_output(cmd, shell=True)
-            otuTableFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_count_table.txt')
+            otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
             # otu table should not exist
             self.assertFalse(os.path.isfile(otuTableFile))
 
@@ -603,7 +534,6 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
             hmms.write(hmm2)
             hmms.write("\n")
             hmms.flush()
-            print hmm, hmm2
             with tempdir.TempDir() as tmp:
                 cmd = '%s graft --search_and_align_only --forward %s --search_hmm_list_file %s --aln_hmm_file %s --output_directory %s --force' % (path_to_script,
                                                                                                    data,
@@ -611,7 +541,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                                                                                                    hmm,
                                                                                                    tmp)
                 subprocess.check_output(cmd, shell=True)
-                otuTableFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_count_table.txt')
+                otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
                 # otu table should not exist
                 self.assertFalse(os.path.isfile(otuTableFile))
     
@@ -654,9 +584,9 @@ CCGACTGCCCTTGAAGACCACTTCG
                 subprocess.check_output(cmd, shell=True)
                 sample_name = os.path.basename(fasta.name[:-3])
 
-                otuTableFile = os.path.join(tmp, sample_name, '%s_count_table.txt' % sample_name)
+                otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
                 lines = ("\t".join(('#ID',sample_name,'ConsensusLineage')),
-                         "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                         "\t".join(('1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                          )
                 count = 0
                 for line in open(otuTableFile):
@@ -705,9 +635,9 @@ CCGACTGCCCTTGAAGACCACTTCG
                 subprocess.check_output(cmd, shell=True)
                 sample_name = os.path.basename(fasta.name[:-3])
 
-                otuTableFile = os.path.join(tmp, sample_name, '%s_count_table.txt' % sample_name)
+                otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
                 lines = ("\t".join(('#ID',sample_name,'ConsensusLineage')),
-                         "\t".join(('0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                         "\t".join(('1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                          )
                 count = 0
                 for line in open(otuTableFile):
@@ -729,7 +659,7 @@ CCGACTGCCCTTGAAGACCACTTCG
     def test_concatenated_OTU_table(self):
         reads_1=os.path.join(path_to_samples, "sample_16S_1.1.fa")
         reads_2=os.path.join(path_to_samples, "sample_16S_2.1.fa")
-        gpkg=os.path.join(path_to_data, "61_otus.gpkg")
+        gpkg=os.path.join(path_to_data, "16S.gpkg")
         
         with tempdir.TempDir() as tmp:
             cmd = '%s graft --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
@@ -740,13 +670,13 @@ CCGACTGCCCTTGAAGACCACTTCG
             subprocess.check_output(cmd, shell=True)
             comb_otu_table=os.path.join(tmp, "combined_count_table.txt")
             expected=('\t'.join(('#ID', 'sample_16S_1', 'sample_16S_2', 'ConsensusLineage')),
-                      '\t'.join(('0','1','2','Root; k__Bacteria; p__Cyanobacteria; c__Chloroplast')),
-                      '\t'.join(('1','35','42','Root; k__Bacteria; p__Proteobacteria')),
-                      '\t'.join(('2','0','2','Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria; o__Rickettsiales; f__mitochondria')),
-                      '\t'.join(('3','42','120','Root; k__Bacteria')),
-                      '\t'.join(('4','8','6','Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria; o__Rickettsiales')),
-                      '\t'.join(('5','4','18','Root')),
-                      '\t'.join(('6','6','10','Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria'))
+                      '\t'.join(('1','1','2','Root; k__Bacteria; p__Cyanobacteria; c__Chloroplast')),
+                      '\t'.join(('2','35','42','Root; k__Bacteria; p__Proteobacteria')),
+                      '\t'.join(('3','0','2','Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria; o__Rickettsiales; f__mitochondria')),
+                      '\t'.join(('4','42','120','Root; k__Bacteria')),
+                      '\t'.join(('5','8','6','Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria; o__Rickettsiales')),
+                      '\t'.join(('6','4','18','Root')),
+                      '\t'.join(('7','6','10','Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria'))
             )
             count=0
             for line in open(comb_otu_table):
@@ -774,7 +704,7 @@ DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
                 cmd = 'gzip -c %s > %s' % (fastq.name, fastq_gz.name)
                 subprocess.check_output(cmd, shell=True)
                 data = fastq_gz.name
-                package = os.path.join(path_to_data,'16S.gpkg')
+                package = os.path.join(path_to_data,'61_otus.gpkg')
                 with tempdir.TempDir() as tmp:
                     cmd = '%s graft --forward %s --graftm_package %s --output_directory %s --force --search_and_align_only' % (path_to_script,
                                                                                                                      data,
@@ -784,9 +714,9 @@ DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
                     sample_name = os.path.basename(fastq_gz.name[:-6])
                     alnFile = os.path.join(tmp, sample_name, '%s_hits.aln.fa' % sample_name)
                     expected_aln = '''>NS500333:16:H16F3BGXX:1:11101:11211:1402
-    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GAGCGCAACCCTCGCCTTCAGTTGCCATCATGGGCACTCTGAAGGAACTGCCGGTGACAAGCCGGAGGAAGGTGGGGATGACGTCAAGTCCTCATGGCCCTTATGTCCTGGGCTACACACGTGCTACAATGGCGGT---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GAGCGCAACCCTCGCCTTCAGTTGCCATCTGAAGGAACTGCCGGTGACAAGCCGGAGGAAGGTGGGGATGACGTCAAGTCCTCATGGCCCTTATGTCCTGGGCTACACACGTGCTACAATGGCGGT----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     >NS500333:16:H16F3BGXX:1:11101:25587:3521
-    -----------------------------------------------------------------------------------------------------------------------------------------------------------GCGCTATTGGATGAGCCAAAGTCGGATTAGCTAGTTGGTGAGGTAATGGCTCACCAAGGCGACAATCCGTAGCTGGTCTGAGAGGACGACCAGCCACACCGGAACTGAGACACGGTCCGGACTC--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------CGCTATTGGATGAGCCAAAGTCGGATTAGCTAGTTGGTGAGGTAATGGCTCACCAAGGCGACAATCCGTAGCTGGTCTGAGAGGACGACCAGCCACACCGGAACTGAGACACGGTCCGGACT--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     '''.split()
                     count = 0
                     for line in open(alnFile):

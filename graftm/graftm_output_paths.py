@@ -98,6 +98,9 @@ class GraftMFiles:
     
     def coverage_table_path(self, out_path):
         return os.path.join(self.outdir, out_path, "%s_coverage_table.txt" % self.basename)
+    
+    def combined_biom_output_path(self):
+        return os.path.join(self.outdir, "graftm.biom")
       
     def base(self, out_path):
         return os.path.join(self.outdir, out_path, "%s" % self.basename)

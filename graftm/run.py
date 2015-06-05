@@ -10,9 +10,9 @@ from graftm.hmmer import Hmmer
 from graftm.housekeeping import HouseKeeping
 from graftm.summarise import Stats_And_Summary
 from graftm.pplacer import Pplacer
-from graftm.krona_from_community_profiles import KronaBuilder
 from graftm.assembler import TaxoGroup
 from graftm.create import Create
+from biom.util import biom_open
 
 class Run:
     ### Functions that make up pipelines in GraftM
@@ -22,7 +22,6 @@ class Run:
         self.setattributes(self.args)
 
     def setattributes(self, args):
-        self.kb = KronaBuilder()
         self.hk = HouseKeeping()
         self.s = Stats_And_Summary()
         self.tg = TaxoGroup()
@@ -127,7 +126,6 @@ class Run:
                                     self.args)
         # Summary steps.
         start           = timeit.default_timer()
-        otu_tables      = [GraftMFiles(base, self.args.output_directory, False).summary_table_output_path(base) for base in summary_dict['base_list']]
         placements_list = []
         for base in summary_dict['base_list']:
             # First assign the hash that contains all of the trusted placements
@@ -150,15 +148,18 @@ class Run:
         #                         self.gmf.summary_table_output_path(base),
         #                         self.gmf.coverage_table_path(base),
         #                         summary_dict[base]['read_length'])
-        logging.info('Building summary table')
-        self.s.otu_builder(placements_list,
-                           otu_tables,
-                           summary_dict['base_list'],
-                           self.gmf.combined_summary_table_output_path())
+        sample_names = summary_dict['base_list']
+        logging.info('Writing summary table')
+        with open(self.gmf.combined_summary_table_output_path(), 'w') as f:
+            self.s.write_tabular_otu_table(sample_names, placements_list, f)
+            
+        logging.info('Writing biom file')
+        with biom_open(self.gmf.combined_biom_output_path(), 'w') as f:
+            self.s.write_biom(sample_names, placements_list, f)
         
         logging.info('Building summary krona plot')
-        self.kb.otuTablePathListToKrona(otu_tables,
-                                        self.gmf.krona_output_path())
+        self.s.write_krona_plot(sample_names, placements_list, self.gmf.krona_output_path())
+        
         stop = timeit.default_timer()
         summary_dict['summary_t'] = str(int(round((stop - start), 0)) )
 

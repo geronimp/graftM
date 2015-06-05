@@ -6,6 +6,7 @@ import sets
 class Getaxnseq:
     
     def taxonomy_line(self, level_index, taxon_array):
+        
         if level_index == 0:
             return '%s,Root,kingdom,%s,%s,%s,,,,,,' % (taxon_array[level_index], taxon_array[level_index], 'Root', taxon_array[level_index])
         elif level_index == 1:
@@ -21,6 +22,7 @@ class Getaxnseq:
         elif level_index == 6:
             return '%s,%s,species,%s,%s,%s,%s,%s,%s,%s,%s,%s' % (taxon_array[level_index], taxon_array[level_index-1], taxon_array[level_index], 'Root', taxon_array[0], taxon_array[1], taxon_array[2], taxon_array[3], taxon_array[4], taxon_array[5], taxon_array[6])
         else:
+            import IPython ; IPython.embed()
             raise Exception("Programming error, found too many levels!")
         
     def read_taxonomy_file(self, taxonomy_file):

@@ -193,12 +193,13 @@ class Hmmer:
 
         logging.debug("Sequences found: %i" % (len(hash)))
         logging.debug("Sequenced found with >1 hit: %i" % (len([x for x in hash.values() if len(x)>1])))
-        logging.debug("Sequence length Average: %i Max: %i Min: %i" % (sum([x[0]['len'] for x in  hash.values()])/len(hash.values()),
-                                                                       max([x[0]['len'] for x in  hash.values()]),
-                                                                       min([x[0]['len'] for x in  hash.values()])))
-        logging.debug("Bit score Average: %i Max: %i Min: %i" % (sum([x[0]['bit'] for x in  hash.values()])/len(hash.values()),
-                                                                 max([x[0]['bit'] for x in  hash.values()]),
-                                                                 min([x[0]['bit'] for x in  hash.values()])))
+        if any(hash.values()):
+            logging.debug("Sequence length Average: %i Max: %i Min: %i" % (sum([x[0]['len'] for x in  hash.values()])/len(hash.values()),
+                                                                           max([x[0]['len'] for x in  hash.values()]),
+                                                                           min([x[0]['len'] for x in  hash.values()])))
+            logging.debug("Bit score Average: %i Max: %i Min: %i" % (sum([x[0]['bit'] for x in  hash.values()])/len(hash.values()),
+                                                                     max([x[0]['bit'] for x in  hash.values()]),
+                                                                     min([x[0]['bit'] for x in  hash.values()])))            
         return hash
         
     def check_euk_contamination(self, output_path, euk_free_output_path, input_path, run_stats, input_file_format, threads, evalue, raw_reads, base,  euk_hmm):

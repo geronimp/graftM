@@ -24,8 +24,6 @@
 import unittest
 import os.path
 import sys
-from io import StringIO
-from skbio.tree import TreeNode
 import tempfile
 
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')

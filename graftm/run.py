@@ -155,7 +155,9 @@ class Run:
             
         logging.info('Writing biom file')
         with biom_open(self.gmf.combined_biom_output_path(), 'w') as f:
-            self.s.write_biom(sample_names, placements_list, f)
+            biom_successful = self.s.write_biom(sample_names, placements_list, f)
+        if not biom_successful:
+            os.remove(self.gmf.combined_biom_output_path())
         
         logging.info('Building summary krona plot')
         self.s.write_krona_plot(sample_names, placements_list, self.gmf.krona_output_path())

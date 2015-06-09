@@ -2,6 +2,7 @@ import numpy as np
 from biom.table import Table
 import tempfile
 import subprocess
+import logging
 
 class Stats_And_Summary:
 
@@ -179,7 +180,7 @@ Runtime (seconds):
         biom_file_io: io
             open writeable stream to write biom contents to
             
-        Returns None'''
+        Returns True if successful, else False'''
         counts = []
         observ_metadata = []
         otu_ids = []
@@ -193,7 +194,12 @@ Runtime (seconds):
         table = Table(np.array(counts),
                       otu_ids, sample_names, observ_metadata,
                       [{}]*len(sample_names), table_id='GraftM Taxonomy Count Table')
-        table.to_hdf5(biom_file_io, 'GraftM graft')
+        try:
+            table.to_hdf5(biom_file_io, 'GraftM graft')
+            return True
+        except RuntimeError as e:
+            logging.warn("Error writing BIOM output, file not written. The specific error was: %s" % e)
+            return False
 
     def write_tabular_otu_table(self, sample_names, read_taxonomies, combined_output_otu_table_io):
         '''A function that takes a hash of trusted placements, and compiles them

@@ -659,7 +659,7 @@ CCGACTGCCCTTGAAGACCACTTCG
     def test_concatenated_OTU_table(self):
         reads_1=os.path.join(path_to_samples, "sample_16S_1.1.fa")
         reads_2=os.path.join(path_to_samples, "sample_16S_2.1.fa")
-        gpkg=os.path.join(path_to_data, "16S.gpkg")
+        gpkg=os.path.join(path_to_data, "61_otus.gpkg")
         
         with tempdir.TempDir() as tmp:
             cmd = '%s graft --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,

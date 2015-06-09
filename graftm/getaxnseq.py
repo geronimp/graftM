@@ -108,7 +108,12 @@ class Getaxnseq:
             seqout.write('seqname,tax_id\n')
             # write each taxonomic association
             for array in first_pass_id_and_taxonomies:
-                seqout.write("%s,%s\n" % (array[0], array[-1]))
+                if len(array)==1:
+                    most_specific_taxonomic_affiliation = 'Root'
+                else:  
+                    most_specific_taxonomic_affiliation = array[-1]
+                seqout.write("%s,%s\n" % (array[0], 
+                                          most_specific_taxonomic_affiliation))
 
         # Write the taxonomy file
         noted_taxonomies = sets.Set([])

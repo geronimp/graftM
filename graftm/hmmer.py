@@ -136,25 +136,30 @@ class Hmmer:
                 for forward_record in forward_reads:
                     id=forward_record.id
                     forward_sequence=str(forward_record.seq)
-                    reverse_sequence=str(reverse_reads[id].seq)
+                    try:
+                        reverse_sequence=str(reverse_reads[id].seq)
+                        new_seq=''
+                        if len(forward_sequence)==len(reverse_sequence):
+                            for f,r in zip(forward_sequence, reverse_sequence):
+                                if f==r:
+                                    new_seq+=f
+                                elif f=='-' and r!='-':
+                                    new_seq+=r
+                                elif r=='-' and f!='-':
+                                    new_seq+=f                               
+                                elif f!='-' and r!='-':
+                                    if f != r:
+                                        new_seq+=f
+                                else:
+                                    new_seq+='-'
+                        else:
+                            logging.error('Alignments do not match')
+                            raise Exception('Merging alignments failed: Alignments do not match')
+                        out.write('>%s\n' % forward_record.id)
+                        out.write('%s\n' % (new_seq))
+                    except:
+                        continue
                     
-                    new_seq=''
-                    if len(forward_sequence)==len(reverse_sequence):
-                        for f,r in zip(forward_sequence, reverse_sequence):
-                            if f==r:
-                                new_seq+=f
-                            elif f=='-' and r!='-':
-                                new_seq+=r
-                            elif r=='-' and f!='-':
-                                new_seq+=f                               
-                            else:
-                                new_seq+='-'
-                    else:
-                        logging.error('Alignments do not match')
-                        raise Exception('Merging alignments failed: Alignments do not match')
-                    out.write('>%s\n' % forward_record.id)
-                    out.write('%s\n' % (new_seq))
-            
     def nhmmer(self, output_path, input_path, input_file_format, threads, eval):
         ## Run a nhmmer search on input_path file and return the name of
         ## resultant output table. Keep log of command.

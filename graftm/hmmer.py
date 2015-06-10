@@ -141,12 +141,12 @@ class Hmmer:
                     new_seq=''
                     if len(forward_sequence)==len(reverse_sequence):
                         for f,r in zip(forward_sequence, reverse_sequence):
-                            if f=='-' and r=='-':
-                                new_seq+='-'
+                            if f==r:
+                                new_seq+=f
                             elif f=='-' and r!='-':
                                 new_seq+=r
                             elif r=='-' and f!='-':
-                                new_seq+=f
+                                new_seq+=f                               
                             else:
                                 new_seq+='-'
                     else:

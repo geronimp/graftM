@@ -1,3 +1,9 @@
+import numpy as np
+from biom.table import Table
+import tempfile
+import subprocess
+import logging
+
 class Stats_And_Summary:
 
     def __init__(self): pass
@@ -116,51 +122,134 @@ Runtime (seconds):
         with open(output, 'w') as stats_file:
             stats_file.write(stats)
 
-
-    def otu_builder(self, hash_list, output_list, base_list, combined_output):
-        ## A function that takes a hash of trusted placements, and compiles them
-        ## into an OTU-esque table.
-        # Start an output list and hash that will contain consolidated numbers
-        # for each taxonomic rank...    
-        all_hashes={}
-        ps=[]
-        for idx, base in enumerate(base_list):
-            output_table = [['#ID', base, 'ConsensusLineage']]
-            c_hash       = {}
-            rank_id      = 0
-            # Consolidate the placement list into a simplified hash with taxonomic
-            # rank, and number. Simple.
-            p=['; '.join(x) for x in hash_list[idx].values()]
-            ps.append(p)
-            for placement_list in p:
-                try:
-                    c_hash[placement_list] += 1
-                except:
-                    c_hash[placement_list] = 1
-                    all_hashes[placement_list]=[]
-            # Make an entry into the output list
-            for rank, count in c_hash.iteritems():
-                output_table.append([str(rank_id), str(count), rank])
-                rank_id += 1
-            # And write to a file
-            with open(output_list[idx], 'w') as out:
-                for line in output_table:
-                    out.write('\t'.join(line)+'\n')
-        output_table = [['#ID', '\t'.join(base_list), 'ConsensusLineage']]
-        rank_id=0
-        for p in ps:
-            for place in all_hashes.keys():
-                try:
-                    all_hashes[place].append(p.count(place))
-                except:
-                    all_hashes[place].append(0)
-        for key, item in all_hashes.iteritems():
-            output_table.append([str(rank_id), '\t'.join([str(x) for x in item]), key])
-            rank_id+=1
-        with open(combined_output, 'w') as out:
-            for line in output_table:
-                out.write('\t'.join(line)+'\n')
-
+    def _iterate_otu_table_rows(self, read_taxonomies):
+        '''yield that which is required for an OTU table: taxonomy, and
+        count of that taxonomy in each sample as an array
+        
+        Parameters
+        ---------
+        read_taxonomies:
+            a list of hashes, where the position in the list corresponds to the 
+            sample list, the key is the read name, and the value is an array
+            of taxonomic info
             
+        Yield
+        -----
+        OTU_ID: int, made up by this function
+        taxonomy: array where each element is a taxonomic level
+        count: number of observations of that taxonomy in each sample respectively
+            
+        Return
+        ------
+        Nothing, use this as an iterator'''
+        
+        taxonomy_string_to_taxonomy_array = {}
+        taxonomy_string_to_counts = {}
+        sample_index = 0
+        num_samples = len(read_taxonomies)
+        for read_to_taxonomy in read_taxonomies: # For each sample
+            for taxonomy_array in read_to_taxonomy.values(): # For each read
+                taxonomy_string = '; '.join(taxonomy_array)
+                if taxonomy_string_to_taxonomy_array.has_key(taxonomy_string):
+                    if taxonomy_string_to_taxonomy_array[taxonomy_string] != taxonomy_array:
+                        raise Exception("Programming error: two different taxonomies had same taxonomy string")
+                    try:
+                        taxonomy_string_to_counts[taxonomy_string][sample_index] += 1
+                    except KeyError:
+                        taxonomy_string_to_counts[taxonomy_string][sample_index] = 1
+                else:
+                    taxonomy_string_to_taxonomy_array[taxonomy_string] = taxonomy_array
+                    taxonomy_string_to_counts[taxonomy_string] = [0]*num_samples
+                    taxonomy_string_to_counts[taxonomy_string][sample_index] = 1
+            sample_index += 1
+            
+        otu_id = 1
+        for tax_string, counts_array in taxonomy_string_to_counts.iteritems():
+            array = []
+            for i in range(num_samples):
+                try:
+                    array.append(counts_array[i])
+                except IndexError:
+                    array.append(0)
+            yield otu_id,\
+                taxonomy_string_to_taxonomy_array[tax_string],\
+                array
+            otu_id += 1
+            
+    def write_biom(self, sample_names, read_taxonomies, biom_file_io):
+        '''Write the OTU info to a biom IO output stream
+        
+        Parameters
+        ----------
+        sample_names: String
+            names of each sample (sample_ids for biom)
+        read_taxonomies: Array of hashes as per _iterate_otu_table_rows()
+        biom_file_io: io
+            open writeable stream to write biom contents to
+            
+        Returns True if successful, else False'''
+        counts = []
+        observ_metadata = []
+        otu_ids = []
+        for otu_id, tax, count in self._iterate_otu_table_rows(read_taxonomies):
+            if len(count) != len(sample_names):
+                raise Exception("Programming error: mismatched sample names and counts")
+            counts.append(count)
+            observ_metadata.append({'taxonomy': tax})
+            otu_ids.append(str(otu_id))
+        
+        table = Table(np.array(counts),
+                      otu_ids, sample_names, observ_metadata,
+                      [{}]*len(sample_names), table_id='GraftM Taxonomy Count Table')
+        try:
+            table.to_hdf5(biom_file_io, 'GraftM graft')
+            return True
+        except RuntimeError as e:
+            logging.warn("Error writing BIOM output, file not written. The specific error was: %s" % e)
+            return False
+
+    def write_tabular_otu_table(self, sample_names, read_taxonomies, combined_output_otu_table_io):
+        '''A function that takes a hash of trusted placements, and compiles them
+        into an OTU-esque table.'''
+        delim = u'\t'
+        combined_output_otu_table_io.write(delim.join(['#ID', 
+                                                       delim.join(sample_names),
+                                                       'ConsensusLineage']))
+        combined_output_otu_table_io.write(u"\n")
+        for otu_id, tax, counts in self._iterate_otu_table_rows(read_taxonomies):
+            combined_output_otu_table_io.write(delim.join(\
+                (str(otu_id),
+                 delim.join([str(c) for c in counts]),
+                 '; '.join(tax)))+"\n")
+            
+    def write_krona_plot(self, sample_names, read_taxonomies, output_krona_filename):
+        '''Creates krona plot at the given location. Assumes the krona executable
+        ktImportText is available on the shell PATH'''
+        tempfiles = []
+        for n in sample_names:
+            tempfiles.append(tempfile.NamedTemporaryFile(prefix='GraftMkronaInput', suffix=n))
+        
+        delim=u'\t'
+        for _, tax, counts in self._iterate_otu_table_rows(read_taxonomies):
+            for i, c in enumerate(counts):
+                if c != 0:
+                    tempfiles[i].write(delim.join((str(c),
+                                                  delim.join(tax)
+                                                  ))+"\n")
+                    
+        for t in tempfiles:
+            t.flush()
+        
+        cmd = ["ktImportText",'-o',output_krona_filename]
+        for i, tmp in enumerate(tempfiles):
+            cmd.append(','.join([tmp.name,sample_names[i]]))
+
+        # run the actual krona
+        subprocess.check_output(' '.join(cmd), shell=True)
+
+        # close tempfiles
+        for t in tempfiles:
+            t.close()
+
         
         

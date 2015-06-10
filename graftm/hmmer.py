@@ -123,6 +123,38 @@ class Hmmer:
         
         return output_table_list
 
+    def merge_forev_aln(self, aln_list, outputs): 
+        while len(aln_list)>0:
+            forward_path=aln_list.pop(0)
+            reverse_path=aln_list.pop(0)
+            output_path=outputs.pop(0)
+            logging.info('Merging pair %s, %s' % (os.path.basename(forward_path), os.path.basename(reverse_path)))
+            forward_reads=SeqIO.parse(forward_path,'fasta')
+            reverse_reads=SeqIO.to_dict(SeqIO.parse(reverse_path,'fasta'))
+            
+            with open(output_path, 'w') as out:
+                for forward_record in forward_reads:
+                    id=forward_record.id
+                    forward_sequence=str(forward_record.seq)
+                    reverse_sequence=str(reverse_reads[id].seq)
+                    
+                    new_seq=''
+                    if len(forward_sequence)==len(reverse_sequence):
+                        for f,r in zip(forward_sequence, reverse_sequence):
+                            if f=='-' and r=='-':
+                                new_seq+='-'
+                            elif f=='-' and r!='-':
+                                new_seq+=r
+                            elif r=='-' and f!='-':
+                                new_seq+=f
+                            else:
+                                new_seq+='-'
+                    else:
+                        logging.error('Alignments do not match')
+                        raise Exception('Merging alignments failed: Alignments do not match')
+                    out.write('>%s\n' % forward_record.id)
+                    out.write('%s\n' % (new_seq))
+            
     def nhmmer(self, output_path, input_path, input_file_format, threads, eval):
         ## Run a nhmmer search on input_path file and return the name of
         ## resultant output table. Keep log of command.

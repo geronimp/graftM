@@ -122,6 +122,14 @@ class Run:
         ## next stage.
         # Concatenate alignment files, place in tree, split output guppy
         # and .jplace file for the output
+        
+        if summary_dict['merge_reads']:
+            merged_output=[GraftMFiles(base, self.args.output_directory, False).aligned_fasta_output_path(base) \
+                           for base in summary_dict['base_list']]
+            self.h.merge_forev_aln(summary_dict['seqs_list'], merged_output)
+            summary_dict['seqs_list']=[GraftMFiles(base, self.args.output_directory, False).aligned_fasta_output_path(base) \
+                                       for base in summary_dict['base_list']]
+            summary_dict['reverse_pipe']=False
         summary_dict = self.p.place(summary_dict,
                                     self.gmf,
                                     self.args)
@@ -234,7 +242,8 @@ class Run:
                          'base_list'         : [],
                          'seqs_list'         : [],
                          'start_all'         : timeit.default_timer(),
-                         'reverse_pipe'      : False}
+                         'reverse_pipe'      : False,
+                         'merge_reads'       : self.args.merge_reads}
         
         # Set the output directory if not specified and create that directory
         logging.debug('Creating working directory: %s' % self.args.output_directory)

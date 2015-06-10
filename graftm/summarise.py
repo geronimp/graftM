@@ -41,7 +41,6 @@ class Stats_And_Summary:
             cont_18S = []
             search_step = []
             placed_reads = 0
-
             aln_step = []
             euk_check_step = []
             for base in hash['base_list']:
@@ -62,7 +61,10 @@ class Stats_And_Summary:
                     euk_check_step += [hash[base]['forward']['euk_check_t'], hash[base]['reverse']['euk_check_t']]
                 elif not hash['reverse_pipe']:
                     files += [base]
-                    tot_16S += [str(len(hash[base]['reads'].keys()))]
+                    if hash['merge_reads']:
+                        tot_16S += [str(len(hash[base]['forward']['reads'].keys()))]
+                    else:
+                        tot_16S += [str(len(hash[base]['reads'].keys()))]
                     try:
                         placed_reads+=int(tot_16S[0])-int(hash[base]['euk_contamination'])
                     except:
@@ -77,9 +79,14 @@ class Stats_And_Summary:
                         cont_18S += [str(summary_hash[base]['euk_contamination'])]
                     except:
                         cont_18S += ['N/A']
-                    search_step += [hash[base]['search_t']]
-                    aln_step += [hash[base]['aln_t']]
-                    euk_check_step += [hash[base]['euk_check_t']]
+                    if hash['merge_reads']:
+                        search_step += [hash[base]['forward']['search_t']]
+                        aln_step += [hash[base]['forward']['aln_t']]
+                        euk_check_step += [hash[base]['forward']['euk_check_t']]
+                    else:
+                        search_step += [hash[base]['search_t']]
+                        aln_step += [hash[base]['aln_t']]
+                        euk_check_step += [hash[base]['euk_check_t']]
                 else:
                     raise Exception('Programming Error')
             return '\t'.join(files), '\t'.join(tot_16S), '\t'.join(tot_18S), '\t'.join(cont_18S), str(placed_reads), '\t'.join(files), '\t'.join(search_step), '\t'.join(aln_step), '\t'.join(euk_check_step), hash['place_t'], hash['summary_t'], hash['all_t']

@@ -214,7 +214,6 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
         # align sequences to HMM (and potentially build hmm from alignment)
         hmm, output_alignment = self.get_hmm_and_alignment(alignment, base)
         ptype,hmm_length = self.pipeType(hmm)
-        import IPython ; IPython.embed()
         logging.info("Checking for incorrect or fragmented reads")
         insufficiently_aligned_sequences = self._check_reads_hit(open(output_alignment),
                                                                  min_aligned_percent)

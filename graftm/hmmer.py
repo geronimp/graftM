@@ -44,34 +44,33 @@ class Hmmer:
             logging.debug("Found %i forward compliment reads" % len(forward))
             logging.debug("Found %i reverse compliment reads" % len(reverse))
             # Write reverse complement and forward reads to files
+            
+            
             with open(for_file, 'w') as for_aln:
                 logging.debug("Writing forward compliment reads to %s" % for_file)
                 for record in forward:
                     if record.id and record.seq: # Check that both the sequence and ID fields are there, HMMalign will segfault if not.
                         for_aln.write('>'+record.id+'\n')
                         for_aln.write(str(record.seq)+'\n')
-
+                        # HMMalign and convert to fasta format
+            if any(forward):
+                cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (self.aln_hmm,
+                                                                                            for_file,
+                                                                                            for_conv_file)
+            else:
+                cmd = 'touch %s' % (for_conv_file)
+            logging.debug("Running command: %s" % cmd)
+            subprocess.check_call(cmd, shell=True)
             with open(rev_file, 'w') as rev_aln:
                 logging.debug("Writing reverse compliment reads to %s" % rev_file)
                 for record in reverse:
                     if record.id and record.seq:
                         rev_aln.write('>'+record.id+'\n')
-                        rev_aln.write(str(record.seq.reverse_complement())+'\n')
-
-
-            # HMMalign and convert to fasta format
-            cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (self.aln_hmm,
-                                                                                        for_file,
-                                                                                        for_conv_file)
-            logging.debug("Running command: %s" % cmd)
-            
-            subprocess.check_call(cmd, shell=True)
+                        rev_aln.write(str(record.seq.reverse_complement())+'\n')           
             cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (self.aln_hmm,
                                                                                         rev_file,
                                                                                         rev_conv_file)
-
             logging.debug("Running command: %s" % cmd)
-            
             subprocess.check_call(cmd, shell=True)
 
         # If there are only forward reads, just hmmalign and be done with it.
@@ -373,7 +372,6 @@ class Hmmer:
         fxtract_cmd = "fxtract -H -X -f %s " % input_path
         if input_file_format == FORMAT_FASTA:
             cmd = "%s %s > %s" % (fxtract_cmd, raw_sequences_path, output_path)
-            
             logging.debug("Running command: %s" % cmd)
             subprocess.check_call(cmd, shell=True)
         elif input_file_format == FORMAT_FASTQ_GZ:
@@ -385,6 +383,7 @@ class Hmmer:
             raise Exception("Programming error")
         
         # Check if there are reads that need splitting
+       
         if any([x for x in read_stats if len(read_stats[x])>1]):
             read_stats, output_path=extractMultipleHits(output_path, read_stats) 
         else:
@@ -597,6 +596,7 @@ class Hmmer:
         return hit_reads, run_stats
 
     def align(self, files, args, run_stats, base, reads):
+
         # This pipeline takes unaligned reads, and aligns them agains a hmm,
         # regardless of their direction. Aligned reads with base insertions
         # removed are returned in the end. Times and commands are logged.

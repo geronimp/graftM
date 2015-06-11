@@ -56,6 +56,7 @@ class Run:
             return summary_dict, False
         # Align the reads.
         logging.info('Aligning reads to reference package database')
+
         hit_aligned_reads, run_stats = self.h.align(self.gmf,
                                                     self.args,
                                                     run_stats,
@@ -122,13 +123,6 @@ class Run:
         # Concatenate alignment files, place in tree, split output guppy
         # and .jplace file for the output
         
-        if summary_dict['merge_reads']:
-            merged_output=[GraftMFiles(base, self.args.output_directory, False).aligned_fasta_output_path(base) \
-                           for base in summary_dict['base_list']]
-            self.h.merge_forev_aln(summary_dict['seqs_list'], merged_output)
-            summary_dict['seqs_list']=[GraftMFiles(base, self.args.output_directory, False).aligned_fasta_output_path(base) \
-                                       for base in summary_dict['base_list']]
-            summary_dict['reverse_pipe']=False
         summary_dict = self.p.place(summary_dict,
                                     self.gmf,
                                     self.args)
@@ -151,11 +145,11 @@ class Run:
             placements_list.append(placements)
 
         # Generate coverage table
-        #logging.info('Building coverage table for %s' % base)
-        #self.s.coverage_of_hmm(self.args.aln_hmm_file,
-        #                         self.gmf.summary_table_output_path(base),
-        #                         self.gmf.coverage_table_path(base),
-        #                         summary_dict[base]['read_length'])
+        logging.info('Building coverage table for %s' % base)
+        self.s.coverage_of_hmm(self.args.aln_hmm_file,
+                                 self.gmf.summary_table_output_path(base),
+                                 self.gmf.coverage_table_path(base),
+                                 summary_dict[base]['read_length'])
         sample_names = summary_dict['base_list']
         logging.info('Writing summary table')
         with open(self.gmf.combined_summary_table_output_path(), 'w') as f:
@@ -268,7 +262,7 @@ class Run:
                                                  'forward':{}}
                 pair_direction                = ['forward', 'reverse']
             else:
-                summary_table[base] = {}
+                summary_table[base]           = {}
             
             # Set pipeline and evalue by checking HMM format
             hmm_type, hmm_tc = self.hk.setpipe(self.args.aln_hmm_file)
@@ -340,7 +334,14 @@ class Run:
                 summary_table['seqs_list'].append(hit_aligned_reads)
                 if base not in summary_table['base_list']:
                     summary_table['base_list'].append(base)
-
+        if summary_table['merge_reads']:
+            merged_output=[GraftMFiles(base, self.args.output_directory, False).aligned_fasta_output_path(base) \
+                           for base in summary_table['base_list']]
+            self.h.merge_forev_aln(summary_table['seqs_list'], merged_output)
+            summary_table['seqs_list']=[GraftMFiles(base, self.args.output_directory, False).aligned_fasta_output_path(base) \
+                                       for base in summary_table['base_list']]
+            summary_table['reverse_pipe']=False
+        exit()
         # Leave the pipeline if search only was specified
         if self.args.search_and_align_only:
             logging.info('Stopping before placement\n')

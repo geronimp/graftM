@@ -21,7 +21,33 @@ class Hmmer:
         self.aln_hmm = aln_hmm
         self.hk = HouseKeeping()
 
-    def hmmalign(self, input_path, run_stats,  for_file, rev_file, for_conv_file, rev_conv_file):
+    def hmmalign(self, input_path, run_stats, for_file, rev_file, for_conv_file, rev_conv_file):
+        '''
+        hmmalign Align reads to the aln_hmm. Receives unaligned sequences and 
+        aligns them.
+        
+        Parameters
+        ----------
+        input_path : str
+            Filename of unaligned hits to be aligned
+        run_stats : dict
+            Dictionary containing run stats. Will have run time from alignment 
+            added to it. Also tells us if there are reads in the reverse 
+            compliment if in nucleotide pipeline
+        for_file : str
+            Output forward compliment path.
+        rev_file : str
+            Output reverse compliment path.
+        for_conv_file : str
+            Output alignment of forward reads with insertions removed
+        rev_conv_file : str
+            Output alignment of reverse reads with insertions removed
+        
+        Returns
+        -------
+        Nothing - output files are known.
+        
+        '''
         # Align input reads to a specified hmm.
         if run_stats['rev_true']:
             read_info = run_stats['reads']
@@ -79,7 +105,6 @@ class Hmmer:
                                                                              input_path,
                                                                              for_conv_file)
             logging.debug("Running command: %s" % cmd)
-            
             subprocess.check_call(cmd, shell=True)
 
     def makeSequenceBinary(self, sequences, fm):
@@ -87,8 +112,38 @@ class Hmmer:
         subprocess.check_call(cmd, shell=True)
 
     def hmmsearch(self, output_path, input_path, input_file_format, seq_type, threads, eval, min_orf_length, restrict_read_length):
-        '''Run a hmmsearch on the input_path raw reads, and return the name
-        of the output table. Keep a log of the commands.'''
+        '''
+        hmmsearch - Search raw reads for hits using search_hmm list
+        
+        Parameters
+        ----------
+        output_path : str
+            path to output domtblout table
+        input_path : str
+            path to input sequences to search
+        input_file_format : var
+            variable containing a string, either 'FORMAT_FASTA' or 
+            'FORMAT_FASTQ_GZ'. Tells the pipeline how to open the file
+        seq_type : var
+            variable containing a string, either 'nucleotide' or 'protein'.
+            Tells the pipeline whether or not to call ORFs on the sequence.
+            If sequence is 'nucleotide', ORFs are called. If not, no ORFs.
+        threads : str
+            Number of threads to use. Passed to HMMsearch command. 
+        eval : str
+            evalue cutoff for HMMsearch to use. Passed to HMMsearch command. 
+        min_orf_length : int
+            Number specifying a minimum length cutoff for orfM to use when 
+            calling ORFs, any ORF under the given cutoff will not be used.
+        restrict_read_length : int
+            TODO
+        
+        Returns
+        -------
+        output_table_list : array
+            Includes the name of the output domtblout table given by hmmer          
+        '''
+
         # Define the base hmmsearch command.
         logging.debug("Using %i HMMs to search" % (len(self.search_hmm)))
         output_table_list = []
@@ -123,6 +178,23 @@ class Hmmer:
         return output_table_list
 
     def merge_forev_aln(self, aln_list, outputs): 
+        '''
+        merge_forev_aln - Merges forward and reverse alignments for a given run
+        
+        Parameters
+        ----------
+        aln_list : array
+            List of the forward and reverse alignments for each of the runs 
+            given to graftM. **MUST** be the following pattern: 
+            [forward_run1, reverse_run1, forward_run2, reverse_run2 ...]
+        outputs : array
+            List of paths to output file to which the merged aligments from the
+            aln_list will go into. Must be exactly half the size of the aln_list
+            (i.e. one output file for every forward and reverse file provided)
+        Returns
+        -------
+        Nothing - output files are known.
+        '''
         while len(aln_list)>0:
             forward_path=aln_list.pop(0)
             reverse_path=aln_list.pop(0)
@@ -481,35 +553,42 @@ class Hmmer:
         return orf_out_path
 
     def p_search(self, files, args, run_stats, base, input_file_format, raw_reads):
-        '''
-                            ***Protein search pipeline***
-        ------------------------------------------------------------------------
-        Description:
-        The searching step for the protein pipeline, where hits are identified
-        in the input reads through HMMsearches
-        ------------------------------------------------------------------------
-        Inputs:
-            * files             = (obj) graftm_output_paths object.
-            * args              = (obj) input arguments, including threads, evalue
-                                  cutoffs, min_orf_length, input_sequence_type, 
-                                  and restrict_read_length.
-            * run_stats         = (dic) Statistics for the run so-far.
-            * base              = (str) The name of the input file, stripped of
-                                  all suffixes, and paths. Used for creating
-                                  file names with 'files'.
-            * input_file_format = (var) The input format of the file, either 
-                                  fasta or fastq gzipped.
-            * raw_reads         = (str) The reads to be searched.
-        ------------------------------------------------------------------------
-        Outputs:
-            * hit_orfs          = (str) The output fasta file of orfs that hit 
-                                  the search step.
-            * run_stats         = (dic) Updated run stats for the file being 
-                                  worked on (inluding run times for each search 
-                                  and numbers of hits etc)
-        ------------------------------------------------------------------------
-        '''
+        '''Protein search pipeline - The searching step for the protein 
+        pipeline, where hits are identified in the input reads through 
+        HMMsearches
+        
+        Parameters
+        ----------
+        files : obj
+            graftm_output_paths object.
+        args : dict
+            input arguments, including threads, evalue cutoffs, 
+            min_orf_length, input_sequence_type, and restrict_read_length.
+        base : str
+            The name of the input file, stripped of all suffixes, and paths. 
+            Used for creating file names with 'files' object.
+        input_file_format : var
+            The input format of the file, either FORMAT_FASTA or 
+            FORMAT_FASTQ_GZ.
+        raw_reads : str
+            The reads to be searched.
 
+        Returns
+        -------
+        hit_orfs : str
+            The output fasta file of reads that hit 
+        run_stats : dict
+            Updated run stats for the file being worked on (inluding run times 
+            for each search and numbers of hits etc)
+            
+        Raises
+        ------
+        N/A
+        
+        Examples
+        --------
+        N/A
+        '''
         start = timeit.default_timer() # Start search timer
         # Searching raw reads with HMM
         hit_table = self.hmmsearch(files.hmmsearch_output_path(base),
@@ -569,35 +648,43 @@ class Hmmer:
         return hit_orfs, run_stats
 
     def d_search(self, files, args, run_stats, base, input_file_format, raw_reads, euk_check):
-        '''
-                            ***nucleotide search pipeline***
-        ------------------------------------------------------------------------
-        Description:
-        The searching step for the nucleotide pipeline, where hits are identified
-        in the input reads through nhmmer searches
-        ------------------------------------------------------------------------
-        Inputs:
-            * files             = (obj) graftm_output_paths object.
-            * args              = (obj) input arguments, including threads, evalue
-                                  cutoffs, min_orf_length, input_sequence_type, 
-                                  and restrict_read_length.
-            * run_stats         = (dic) Statistics for the run so-far.
-            * base              = (str) The name of the input file, stripped of
-                                  all suffixes, and paths. Used for creating
-                                  file names with 'files'.
-            * input_file_format = (var) The input format of the file, either 
-                                  fasta or fastq gzipped.
-            * raw_reads         = (str) The reads to be searched.
-            * euk_check         = (bool) True False, whether to check the 
-                                  entire sample for euk reads
-        ------------------------------------------------------------------------
-        Outputs:
-            * hit_reads         = (str) The output fasta file of reads that hit 
-                                  the search step, aligned to forward direction.
-            * run_stats         = (dic) Updated run stats for the file being 
-                                  worked on (inluding run times for each search 
-                                  and numbers of hits etc)
-        ------------------------------------------------------------------------
+        '''Nucleotide search pipeline - The searching step for the nucleotide
+        pipeline, where hits are identified in the input reads through nhmmer 
+        searches
+        
+        Parameters
+        ----------
+        files : obj
+            graftm_output_paths object.
+        args : dict
+            input arguments, including threads, evalue cutoffs, 
+            min_orf_length, input_sequence_type, and restrict_read_length.
+        base : str
+            The name of the input file, stripped of all suffixes, and paths. 
+            Used for creating file names with 'files' object.
+        input_file_format : var
+            The input format of the file, either FORMAT_FASTA or 
+            FORMAT_FASTQ_GZ.
+        raw_reads : str
+            The reads to be searched.
+        euk_check : bool
+            True False, whether to check the entire sample for euk reads.
+        
+        Returns
+        -------
+        hit_reads : str
+            The output fasta file of reads that hit 
+        run_stats : dict
+            Updated run stats for the file being worked on (inluding run times 
+            for each search and numbers of hits etc)
+            
+        Raises
+        ------
+        N/A
+        
+        Examples
+        --------
+        N/A
         '''
         start = timeit.default_timer() # Start search timer
 

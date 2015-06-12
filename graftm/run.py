@@ -146,10 +146,10 @@ class Run:
 
         # Generate coverage table
         logging.info('Building coverage table for %s' % base)
-        self.s.coverage_of_hmm(self.args.aln_hmm_file,
-                                 self.gmf.summary_table_output_path(base),
-                                 self.gmf.coverage_table_path(base),
-                                 summary_dict[base]['read_length'])
+        #self.s.coverage_of_hmm(self.args.aln_hmm_file,
+        #                         self.gmf.summary_table_output_path(base),
+        #                         self.gmf.coverage_table_path(base),
+        #                         summary_dict[base]['read_length'])
         sample_names = summary_dict['base_list']
         logging.info('Writing summary table')
         with open(self.gmf.combined_summary_table_output_path(), 'w') as f:
@@ -341,7 +341,6 @@ class Run:
             summary_table['seqs_list']=[GraftMFiles(base, self.args.output_directory, False).aligned_fasta_output_path(base) \
                                        for base in summary_table['base_list']]
             summary_table['reverse_pipe']=False
-        exit()
         # Leave the pipeline if search only was specified
         if self.args.search_and_align_only:
             logging.info('Stopping before placement\n')

@@ -481,8 +481,35 @@ class Hmmer:
         return orf_out_path
 
     def p_search(self, files, args, run_stats, base, input_file_format, raw_reads):
-        # Main pipe of search step in protein pipeline:
-        # recieves reads, and returns hits
+        '''
+                            ***Protein search pipeline***
+        ------------------------------------------------------------------------
+        Description:
+        The searching step for the protein pipeline, where hits are identified
+        in the input reads through HMMsearches
+        ------------------------------------------------------------------------
+        Inputs:
+            * files             = (obj) graftm_output_paths object.
+            * args              = (obj) input arguments, including threads, evalue
+                                  cutoffs, min_orf_length, input_sequence_type, 
+                                  and restrict_read_length.
+            * run_stats         = (dic) Statistics for the run so-far.
+            * base              = (str) The name of the input file, stripped of
+                                  all suffixes, and paths. Used for creating
+                                  file names with 'files'.
+            * input_file_format = (var) The input format of the file, either 
+                                  fasta or fastq gzipped.
+            * raw_reads         = (str) The reads to be searched.
+        ------------------------------------------------------------------------
+        Outputs:
+            * hit_orfs          = (str) The output fasta file of orfs that hit 
+                                  the search step.
+            * run_stats         = (dic) Updated run stats for the file being 
+                                  worked on (inluding run times for each search 
+                                  and numbers of hits etc)
+        ------------------------------------------------------------------------
+        '''
+
         start = timeit.default_timer() # Start search timer
         # Searching raw reads with HMM
         hit_table = self.hmmsearch(files.hmmsearch_output_path(base),
@@ -542,8 +569,36 @@ class Hmmer:
         return hit_orfs, run_stats
 
     def d_search(self, files, args, run_stats, base, input_file_format, raw_reads, euk_check):
-        # Main pipe of search step in nucleotide pipeline:
-        # recieves reads, and returns hits
+        '''
+                            ***nucleotide search pipeline***
+        ------------------------------------------------------------------------
+        Description:
+        The searching step for the nucleotide pipeline, where hits are identified
+        in the input reads through nhmmer searches
+        ------------------------------------------------------------------------
+        Inputs:
+            * files             = (obj) graftm_output_paths object.
+            * args              = (obj) input arguments, including threads, evalue
+                                  cutoffs, min_orf_length, input_sequence_type, 
+                                  and restrict_read_length.
+            * run_stats         = (dic) Statistics for the run so-far.
+            * base              = (str) The name of the input file, stripped of
+                                  all suffixes, and paths. Used for creating
+                                  file names with 'files'.
+            * input_file_format = (var) The input format of the file, either 
+                                  fasta or fastq gzipped.
+            * raw_reads         = (str) The reads to be searched.
+            * euk_check         = (bool) True False, whether to check the 
+                                  entire sample for euk reads
+        ------------------------------------------------------------------------
+        Outputs:
+            * hit_reads         = (str) The output fasta file of reads that hit 
+                                  the search step, aligned to forward direction.
+            * run_stats         = (dic) Updated run stats for the file being 
+                                  worked on (inluding run times for each search 
+                                  and numbers of hits etc)
+        ------------------------------------------------------------------------
+        '''
         start = timeit.default_timer() # Start search timer
 
         # First search the reads using the HMM

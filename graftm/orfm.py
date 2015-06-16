@@ -1,10 +1,11 @@
+import logging
+
 class OrfM:
     def __init__(self, **kwargs):
-        self.min_orf_length = kwargs.pop('min_orf_length',None)
+        self.min_orf_length = kwargs.pop('min_orf_length',96)
         self.restrict_read_length = kwargs.pop('restrict_read_length',None)
         if len(kwargs) > 0:
             raise Exception("Unexpected arguments detected: %s" % kwargs)
-        self.min_orf_length = 96
         
     def command_line(self):
         '''Return a string to run OrfM with, assuming sequences are incoming on
@@ -18,4 +19,6 @@ class OrfM:
         if self.restrict_read_length:
             orfm_arg_l = " -l %d" % self.restrict_read_length
             
-        return 'orfm %s ' % orfm_arg_l
+        cmd = 'orfm %s ' % orfm_arg_l
+        logging.debug("OrfM command chunk: %s" % cmd)
+        return cmd 

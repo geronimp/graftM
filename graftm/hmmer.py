@@ -10,6 +10,7 @@ from collections import OrderedDict
 
 from graftm.housekeeping import HouseKeeping
 from graftm.hmmsearcher import HmmSearcher, NhmmerSearcher
+from graftm.orfm import OrfM
 
 FORMAT_FASTA = 'FORMAT_FASTA'
 FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'
@@ -86,7 +87,7 @@ class Hmmer:
         cmd='makehmmerdb %s %s' % (sequences, fm)
         subprocess.check_call(cmd, shell=True)
 
-    def hmmsearch(self, output_path, input_path, input_file_format, seq_type, threads, eval, min_orf_length, restrict_read_length):
+    def hmmsearch(self, output_path, input_path, input_file_format, seq_type, threads, eval, orfm):
         '''Run a hmmsearch on the input_path raw reads, and return the name
         of the output table. Keep a log of the commands.'''
         # Define the base hmmsearch command.
@@ -103,7 +104,7 @@ class Hmmer:
         
         # Choose an input to this base command based off the file format found.
         if seq_type == 'nucleotide': # If the input is nucleotide sequence
-            orfm_cmdline = self.orfm_command_line(min_orf_length, restrict_read_length)
+            orfm_cmdline = orfm.command_line()
             input_cmd = '%s %s' % (orfm_cmdline, input_path)
         
         elif seq_type == 'protein': # If the input is amino acid sequence
@@ -220,7 +221,7 @@ class Hmmer:
             for hit in [line.rstrip().split() for line in open(table).readlines() if not line.startswith('#')]:                
                 read_name = hit[0]
                 
-                if read_name in seen.keys(): # If the read name has been seen before.. 
+                if read_name in seen: # If the read name has been seen before.. 
                     if seen[read_name]==idx:
                         hash[read_name].append(buildHash(hit, program))
                 else:
@@ -426,18 +427,11 @@ class Hmmer:
                     if any(c.isalpha() for c in fasta_seq):
                         output_file.write(fasta_id)
                         output_file.write(fasta_seq)
-      
-    def orfm_command_line(self, min_orf_length, restrict_read_length):
-        '''Return a string to run OrfM with, assuming sequences are incoming on
-        stdin'''
-        if restrict_read_length:
-            orfm_arg_l = " -l %d" % restrict_read_length
-        else:
-            orfm_arg_l = ''
-        
-        return 'orfm -m %d %s ' % (min_orf_length, orfm_arg_l)
 
-    def extract_orfs(self, input_path, raw_orf_path, hmmsearch_out_path, orf_titles_path, min_orf_length, restrict_read_length, orf_out_path):
+    def extract_orfs(self, input_path, raw_orf_path, hmmsearch_out_path, orf_titles_path, orfm, orf_out_path):
+        '''
+        orfm: graftm.OrfM object with parameters already set
+        '''
         'Extract only the orfs that hit the hmm, return sequence file with within.'        
         # Build the command
         output_table_list = []
@@ -451,7 +445,7 @@ class Hmmer:
             raise Exception("Programming error: expected 1 or more HMMs")
         
         # Call orfs on the sequences
-        orfm_cmd = self.orfm_command_line(min_orf_length, restrict_read_length)
+        orfm_cmd = orfm.command_line()
         cmd = '%s %s > %s' % (orfm_cmd, input_path, raw_orf_path)
         
         logging.debug("Running command: %s" % cmd)
@@ -484,19 +478,29 @@ class Hmmer:
         # Main pipe of search step in protein pipeline:
         # recieves reads, and returns hits
         start = timeit.default_timer() # Start search timer
+        
+        orfm = OrfM({'min_orf_length': args.min_orf_length,
+                     'restrict_read_length': args.restrict_read_length})
+        
         # Searching raw reads with HMM
-        hit_table = self.hmmsearch(files.hmmsearch_output_path(base),
-                                   raw_reads,
-                                   input_file_format,
-                                   args.input_sequence_type,
-                                   args.threads,
-                                   args.eval,
-                                   args.min_orf_length,
-                                   args.restrict_read_length)
-        # Processing the output table to give you the readnames of the hits
-        run_stats, hit_readnames = self.csv_to_titles(files.readnames_output_path(base),
-                                                      hit_table,
-                                                      run_stats)
+        if args.accept_all_reads:
+            run_stats, hit_readnames = self.accept_all_reads(raw_reads,
+                                                             input_file_format,
+                                                             args.input_sequence_type,
+                                                             orfm)
+        else:
+            hit_table = self.hmmsearch(files.hmmsearch_output_path(base),
+                                       raw_reads,
+                                       input_file_format,
+                                       args.input_sequence_type,
+                                       args.threads,
+                                       args.eval,
+                                       args.min_orf_length,
+                                       args.restrict_read_length)
+            # Processing the output table to give you the readnames of the hits
+            run_stats, hit_readnames = self.csv_to_titles(files.readnames_output_path(base),
+                                                          hit_table,
+                                                          run_stats)
 
         if not hit_readnames:
             return False, run_stats

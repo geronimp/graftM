@@ -33,7 +33,7 @@ class HouseKeeping:
         exception if it cannot be guessed'''
         if sequence_file_path.endswith(('.fa', '.faa', '.fna', '.fasta')):  # Check the file type
             return FORMAT_FASTA
-        elif sequence_file_path.endswith(('.fq.gz', '.fastq.gz', 'fasta.gz', 'fa.gz', 'faa.gz', 'fna.gz')):
+        elif sequence_file_path.endswith(('.fq.gz', '.fastq.gz')):
             return FORMAT_FASTQ_GZ
         else:
             raise Exception("Unable to guess file format of sequence file: %s" % sequence_file_path)

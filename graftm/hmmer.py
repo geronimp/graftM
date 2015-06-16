@@ -479,28 +479,20 @@ class Hmmer:
         # recieves reads, and returns hits
         start = timeit.default_timer() # Start search timer
         
-        orfm = OrfM({'min_orf_length': args.min_orf_length,
-                     'restrict_read_length': args.restrict_read_length})
+        orfm = OrfM(min_orf_length=args.min_orf_length,
+                    restrict_read_length=args.restrict_read_length)
         
-        # Searching raw reads with HMM
-        if args.accept_all_reads:
-            run_stats, hit_readnames = self.accept_all_reads(raw_reads,
-                                                             input_file_format,
-                                                             args.input_sequence_type,
-                                                             orfm)
-        else:
-            hit_table = self.hmmsearch(files.hmmsearch_output_path(base),
-                                       raw_reads,
-                                       input_file_format,
-                                       args.input_sequence_type,
-                                       args.threads,
-                                       args.eval,
-                                       args.min_orf_length,
-                                       args.restrict_read_length)
-            # Processing the output table to give you the readnames of the hits
-            run_stats, hit_readnames = self.csv_to_titles(files.readnames_output_path(base),
-                                                          hit_table,
-                                                          run_stats)
+        hit_table = self.hmmsearch(files.hmmsearch_output_path(base),
+                                   raw_reads,
+                                   input_file_format,
+                                   args.input_sequence_type,
+                                   args.threads,
+                                   args.eval,
+                                   orfm)
+        # Processing the output table to give you the readnames of the hits
+        run_stats, hit_readnames = self.csv_to_titles(files.readnames_output_path(base),
+                                                      hit_table,
+                                                      run_stats)
 
         if not hit_readnames:
             return False, run_stats
@@ -526,8 +518,7 @@ class Hmmer:
                                          files.orf_output_path(base),
                                          files.orf_hmmsearch_output_path(base),
                                          files.orf_titles_output_path(base),
-                                         args.min_orf_length,
-                                         args.restrict_read_length,
+                                         orfm,
                                          files.orf_fasta_output_path(base))
         elif args.input_sequence_type == 'protein':
             hit_orfs = hit_reads

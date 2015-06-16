@@ -87,7 +87,7 @@ TGCTTTTACCTTGTTG'''
             package = os.path.join(path_to_data,'mcrA.gpkg')
 
             with tempdir.TempDir() as tmp:
-                cmd = '%s graft --verbosity 1  --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+                cmd = '%s graft --verbosity 1 --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                    data,
                                                                                                    package,
                                                                                                    tmp)
@@ -578,7 +578,7 @@ CCGACTGCCCTTGAAGACCACTTCG
             package = os.path.join(path_to_data,'mcrA.gpkg')
 
             with tempdir.TempDir() as tmp:
-                cmd = '%s graft --verbosity 1  --min_orf_length 300 --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+                cmd = '%s graft --verbosity 1 --min_orf_length 300 --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                    data,
                                                                                                    package,
                                                                                                    tmp)

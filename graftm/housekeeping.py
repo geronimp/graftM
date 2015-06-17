@@ -6,10 +6,12 @@ import json
 import tempfile
 import logging
 from timeit import itertools
+from signal import signal, SIGPIPE, SIG_DFL
 
 # Constants - don't change them evar.
 FORMAT_FASTA = 'FORMAT_FASTA'
 FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'
+FORMAT_FASTA_GZ = 'FORMAT_FASTA_GZ'
 
 class UninstalledProgramError(Exception):
     pass
@@ -28,17 +30,7 @@ class HouseKeeping:
         else:
             return None
         
-    def guess_sequence_input_file_format(self, sequence_file_path):
-        '''Given a sequence file, guess the format and return. Raise an 
-        exception if it cannot be guessed'''
-        if sequence_file_path.endswith(('.fa', '.faa', '.fna', '.fasta')):  # Check the file type
-            return FORMAT_FASTA
-        elif sequence_file_path.endswith(('.fq.gz', '.fastq.gz')):
-            return FORMAT_FASTQ_GZ
-        else:
-            raise Exception("Unable to guess file format of sequence file: %s" % sequence_file_path)
-        
-    def guess_sequence_type(self, input_file, file_format):
+    def guess_sequence_type(self, unpack):
         '''Guess the type of input sequence provided to graftM (i.e. nucleotide
         or amino acid) and return'''
         
@@ -48,19 +40,23 @@ class HouseKeeping:
         
         # If its Gzipped and fastq make a small sample of the sequence to be 
         # read
-        if file_format == FORMAT_FASTQ_GZ:
+
+        with tempfile.NamedTemporaryFile(suffix='.fa') as tmp:
+            cmd='%s | head -n 2 > %s' % (unpack.command_line(), tmp.name)
+            subprocess.check_call(cmd, 
+                                  shell=True,  
+                                  preexec_fn=lambda:signal(SIGPIPE, SIG_DFL)
+                                  )
+            tmp.flush()
+            head = [next(tmp).rstrip() for x in xrange(2)]
+            for nucl in set(head[1]):
+                if nucl not in nas and nucl in aas:
+                    return 'protein'
+                elif nucl not in nas and nucl not in aas:
+                    raise Exception(logging.error('Encountered unexpected character when attempting to guess sequence type: %s' % (nucl)))
+                else:
+                    continue
             return 'nucleotide'
-        else:
-            with open(input_file) as in_file:
-                head = [next(in_file).rstrip() for x in xrange(2)]
-                for nucl in set(head[1]):
-                    if nucl not in nas and nucl in aas:
-                        return 'protein'
-                    elif nucl not in nas and nucl not in aas:
-                        raise Exception(logging.error('Encountered unexpected character when attempting to guess sequence type: %s' % (nucl)))
-                    else:
-                        continue
-                return 'nucleotide'
 
     def set_euk_hmm(self, args):
         'Set the hmm used by graftM to cross check for euks.'
@@ -125,8 +121,7 @@ class HouseKeeping:
                 self._check_file_existence(args.reverse)
                     
             # Determine the File format based on the suffix
-            input_file_format = self.guess_sequence_input_file_format(args.forward[0])
-            logging.debug("Detected file format %s" % input_file_format)
+            
             sequence_file_list = []
             if hasattr(args, 'reverse'):
                 if len(args.forward) != len(args.reverse):
@@ -136,7 +131,7 @@ class HouseKeeping:
             else:
                 sequence_file_list = [[f] for f in args.forward]
                 
-            return sequence_file_list, input_file_format
+            return sequence_file_list
         else:
             return
         

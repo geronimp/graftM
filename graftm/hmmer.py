@@ -11,9 +11,12 @@ from collections import OrderedDict
 from graftm.housekeeping import HouseKeeping
 from graftm.hmmsearcher import HmmSearcher, NhmmerSearcher
 from graftm.orfm import OrfM
+from graftm.unpack_sequences import UnpackRawReads
 
-FORMAT_FASTA = 'FORMAT_FASTA'
-FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'
+FORMAT_FASTA    = "FORMAT_FASTA"
+FORMAT_FASTQ    = "FORMAT_FASTQ"
+FORMAT_FASTQ_GZ = "FORMAT_FASTQ_GZ"
+FORMAT_FASTA_GZ = "FORMAT_FASTA_GZ"
 
 class Hmmer:
 
@@ -112,7 +115,7 @@ class Hmmer:
         cmd='makehmmerdb %s %s' % (sequences, fm)
         subprocess.check_call(cmd, shell=True)
 
-    def hmmsearch(self, output_path, input_path, input_file_format, seq_type, threads, eval, orfm):
+    def hmmsearch(self, output_path, input_path, unpack, seq_type, threads, eval, orfm):
         '''
         hmmsearch - Search raw reads for hits using search_hmm list
         
@@ -161,14 +164,8 @@ class Hmmer:
         if seq_type == 'nucleotide': # If the input is nucleotide sequence
             orfm_cmdline = orfm.command_line()
             input_cmd = '%s %s' % (orfm_cmdline, input_path)
-        
         elif seq_type == 'protein': # If the input is amino acid sequence
-            if input_file_format == FORMAT_FASTQ_GZ: # If its gzipped
-                input_cmd = "awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s)" % (input_path) # Unzip it and feed it into the base command
-            elif input_file_format == FORMAT_FASTA: # If it is in fasta format
-                input_cmd = "cat %s" % input_path # It can be searched directly, no manpulation required
-            else:
-                raise Exception('Programming Error: error guessing input file format')
+            input_cmd=unpack.command_line()
         else:
             raise Exception('Programming Error: error guessing input sequence type')
         
@@ -232,7 +229,7 @@ class Hmmer:
                     except:
                         continue
                     
-    def nhmmer(self, output_path, input_path, input_file_format, threads, eval):
+    def nhmmer(self, output_path, unpack, threads, eval):
         ## Run a nhmmer search on input_path file and return the name of
         ## resultant output table. Keep log of command.
         logging.debug("Using %i HMMs to search" % (len(self.search_hmm)))
@@ -245,14 +242,7 @@ class Hmmer:
             output_table_list.append(output_path)
         else:
             raise Exception("Programming error: Expected 1 or more HMMs")
-            
-        
-        if input_file_format == FORMAT_FASTA:
-            input_pipe = "cat %s" % input_path
-        elif input_file_format == FORMAT_FASTQ_GZ:
-            input_pipe = "awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s)" % input_path
-        else:
-            raise Exception("Programming error: Unexpected input file format %s" % input_file_format)
+        input_pipe=unpack.command_line()
         
         searcher = NhmmerSearcher(threads, extra_args=eval)
         searcher.hmmsearch(input_pipe, self.search_hmm, output_table_list)
@@ -394,7 +384,7 @@ class Hmmer:
                     output_file.write(record+'\n')
         return run_stats, output_path
 
-    def extract_from_raw_reads(self, output_path, input_path, raw_sequences_path, input_file_format,  read_stats):
+    def extract_from_raw_reads(self, output_path, input_path, raw_sequences_path, input_file_format, read_stats):
         # Use the readnames specified to extract from the original sequence
         # file to a fasta formatted file.        
         def removeOverlaps(item):
@@ -449,7 +439,14 @@ class Hmmer:
             subprocess.check_call(cmd, shell=True)
         elif input_file_format == FORMAT_FASTQ_GZ:
             cmd = "%s -z %s | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > %s" % (fxtract_cmd, raw_sequences_path, output_path)
-            
+            logging.debug("Running command: %s" % cmd)
+            subprocess.check_call(cmd, shell=True)
+        elif input_file_format == FORMAT_FASTA_GZ:
+            cmd = "%s -z %s > %s" % (fxtract_cmd, raw_sequences_path, output_path)
+            logging.debug("Running command: %s" % cmd)
+            subprocess.check_call(cmd, shell=True)
+        elif input_file_format == FORMAT_FASTQ:
+            cmd = "%s %s | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > %s" % (fxtract_cmd, raw_sequences_path, output_path)
             logging.debug("Running command: %s" % cmd)
             subprocess.check_call(cmd, shell=True)
         else:
@@ -546,7 +543,7 @@ class Hmmer:
         # Return name of output file
         return orf_out_path
 
-    def p_search(self, files, args, run_stats, base, input_file_format, raw_reads):
+    def p_search(self, files, args, run_stats, base, unpack, raw_reads):
         '''Protein search pipeline - The searching step for the protein 
         pipeline, where hits are identified in the input reads through 
         HMMsearches
@@ -561,9 +558,6 @@ class Hmmer:
         base : str
             The name of the input file, stripped of all suffixes, and paths. 
             Used for creating file names with 'files' object.
-        input_file_format : var
-            The input format of the file, either FORMAT_FASTA or 
-            FORMAT_FASTQ_GZ.
         raw_reads : str
             The reads to be searched.
 
@@ -583,14 +577,15 @@ class Hmmer:
         --------
         N/A
         '''
-        start = timeit.default_timer() # Start search timer
+        start  = timeit.default_timer() # Start search timer
         
-        orfm = OrfM(min_orf_length=args.min_orf_length,
-                    restrict_read_length=args.restrict_read_length)
-        
+        orfm   = OrfM(min_orf_length=args.min_orf_length,
+                      restrict_read_length=args.restrict_read_length)
+        unpack = UnpackRawReads(raw_reads)
+
         hit_table = self.hmmsearch(files.hmmsearch_output_path(base),
                                    raw_reads,
-                                   input_file_format,
+                                   unpack,
                                    args.input_sequence_type,
                                    args.threads,
                                    args.eval,
@@ -615,7 +610,7 @@ class Hmmer:
         run_stats['reads'], hit_reads = self.extract_from_raw_reads(files.fa_output_path(base),
                                                                     hit_readnames,
                                                                     raw_reads,
-                                                                    input_file_format,
+                                                                    unpack.format(),
                                                                     run_stats['reads'])
         
         if args.input_sequence_type == 'nucleotide':
@@ -642,7 +637,7 @@ class Hmmer:
         # Return hit reads, and summary hash
         return hit_orfs, run_stats
 
-    def d_search(self, files, args, run_stats, base, input_file_format, raw_reads, euk_check):
+    def d_search(self, files, args, run_stats, base, unpack, raw_reads, euk_check):
         '''Nucleotide search pipeline - The searching step for the nucleotide
         pipeline, where hits are identified in the input reads through nhmmer 
         searches
@@ -685,8 +680,7 @@ class Hmmer:
 
         # First search the reads using the HMM
         hit_table = self.nhmmer(files.hmmsearch_output_path(base),
-                                raw_reads,
-                                input_file_format,
+                                unpack,
                                 args.threads,
                                 args.eval)
 
@@ -701,7 +695,7 @@ class Hmmer:
         run_stats['reads'], hit_reads = self.extract_from_raw_reads(files.fa_output_path(base),
                                                                     hit_readnames,
                                                                     raw_reads,
-                                                                    input_file_format,
+                                                                    unpack.format(),
                                                                     run_stats['reads'])
         # Define the read length
         run_stats['read_length'] = self.check_read_length(hit_reads, "D")

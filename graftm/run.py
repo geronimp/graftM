@@ -12,7 +12,10 @@ from graftm.summarise import Stats_And_Summary
 from graftm.pplacer import Pplacer
 from graftm.assembler import TaxoGroup
 from graftm.create import Create
+from graftm.unpack_sequences import UnpackRawReads
+
 from biom.util import biom_open
+from _struct import unpack
 
 class Run:
     ### Functions that make up pipelines in GraftM
@@ -29,11 +32,11 @@ class Run:
         if args.subparser_name == 'graft':
             self.hk.set_attributes(self.args)
             self.h = Hmmer(self.args.search_hmm_files, self.args.aln_hmm_file)
-            self.sequence_pair_list, self.input_file_format = self.hk.parameter_checks(args)
+            self.sequence_pair_list = self.hk.parameter_checks(args)
             if hasattr(args, 'reference_package'):
                 self.p = Pplacer(self.args.reference_package)
 
-    def protein_pipeline(self, base, summary_dict, sequence_file, direction):
+    def protein_pipeline(self, base, summary_dict, sequence_file, direction, unpack):
         'The main pipeline for GraftM finding protein hits in the input sequence'
         # Set a variable to store the run statistics, to be added later to
         # the summary_dict
@@ -50,7 +53,7 @@ class Run:
                                                self.args,
                                                run_stats,
                                                base,
-                                               self.input_file_format,
+                                               unpack,
                                                sequence_file)
         if not hit_reads:
             return summary_dict, False
@@ -75,7 +78,7 @@ class Run:
 
         return summary_dict, hit_aligned_reads
 
-    def dna_pipeline(self, base, summary_dict, sequence_file, direction):
+    def dna_pipeline(self, base, summary_dict, sequence_file, direction, unpack):
         'The main pipeline for GraftM searching for DNA sequence'
         # Set a variable to store the run statistics, to be added later to
         # the summary_dict
@@ -92,9 +95,9 @@ class Run:
                                                self.args,
                                                run_stats,
                                                base,
-                                               self.input_file_format,
+                                               unpack,
                                                sequence_file,
-                                               summary_dict['euks_checked'] )
+                                               summary_dict['euks_checked'])
         
         if not hit_reads:
             return summary_dict, False
@@ -246,10 +249,7 @@ class Run:
         logging.debug('Creating working directory: %s' % self.args.output_directory)
         self.hk.make_working_directory(self.args.output_directory,
                                        self.args.force)
-        
-        
-        
-        
+
         # For each pair (or single file passed to GraftM)
         logging.debug('Working with %i file(s)' % len(self.sequence_pair_list))
         for pair in self.sequence_pair_list:
@@ -272,18 +272,17 @@ class Run:
                 setattr(self.args, 'eval', '--cut_tc')
                 
             # Guess the sequence file type, if not already specified to GraftM
+            unpack = UnpackRawReads(pair[0])
             if hasattr(self.args, 'input_sequence_type'): 
                 pass
             else:
                 setattr(self.args, 'input_sequence_type',
-                        self.hk.guess_sequence_type(pair[0],
-                                                    self.input_file_format))
+                        self.hk.guess_sequence_type(unpack))
             logging.debug("Set sequence type of %s to %s" %(pair[0], self.args.input_sequence_type))
             # Make the working base directory
             self.hk.make_working_directory(os.path.join(self.args.output_directory,
                                                         base),
                                            self.args.force)
-
             # tell the user which file/s is being processed
             logging.info("Working on %s" % base)
 
@@ -314,17 +313,19 @@ class Run:
                 if self.args.type == 'P':
                     logging.debug("Running protein pipeline")
                     summary_table, hit_aligned_reads = self.protein_pipeline(base,
-                                                                            summary_table,
-                                                                            read_file,
-                                                                            direction)
+                                                                             summary_table,
+                                                                             read_file,
+                                                                             direction,
+                                                                             unpack)
                 # Or the DNA pipeline
                 elif self.args.type == 'D':
                     logging.debug("Running nucleotide pipeline")
                     self.hk.set_euk_hmm(self.args)
                     summary_table, hit_aligned_reads = self.dna_pipeline(base,
-                                                                        summary_table,
-                                                                        read_file,
-                                                                        direction)
+                                                                         summary_table,
+                                                                         read_file,
+                                                                         direction,
+                                                                         unpack)
                 if not hit_aligned_reads:
                     continue
                 else:

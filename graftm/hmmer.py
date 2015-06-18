@@ -12,6 +12,8 @@ from graftm.housekeeping import HouseKeeping
 from graftm.hmmsearcher import HmmSearcher, NhmmerSearcher
 from graftm.orfm import OrfM
 from graftm.unpack_sequences import UnpackRawReads
+from graftm.diamond import Diamond
+from graftm.sequence_search_results import SequenceSearchResult
 
 FORMAT_FASTA    = "FORMAT_FASTA"
 FORMAT_FASTQ    = "FORMAT_FASTQ"
@@ -499,9 +501,12 @@ class Hmmer:
 
     def extract_orfs(self, input_path, raw_orf_path, hmmsearch_out_path, orf_titles_path, orfm, orf_out_path):
         '''
+        Extract only the orfs that hit the hmm, return sequence file with within.
+        
+        Parameters
+        ----------
         orfm: graftm.OrfM object with parameters already set
         '''
-        'Extract only the orfs that hit the hmm, return sequence file with within.'        
         # Build the command
         output_table_list = []
         if len(self.search_hmm) > 1:
@@ -543,10 +548,10 @@ class Hmmer:
         # Return name of output file
         return orf_out_path
 
-    def p_search(self, files, args, run_stats, base, unpack, raw_reads):
+    def p_search(self, files, args, run_stats, base, unpack, raw_reads, search_method):
         '''Protein search pipeline - The searching step for the protein 
         pipeline, where hits are identified in the input reads through 
-        HMMsearches
+        searches with hmmer or diamond.
         
         Parameters
         ----------
@@ -560,6 +565,8 @@ class Hmmer:
             Used for creating file names with 'files' object.
         raw_reads : str
             The reads to be searched.
+        search_method : str
+            The method for searching e.g. 'hmmsearch' or 'diamond'
 
         Returns
         -------
@@ -583,17 +590,32 @@ class Hmmer:
                       restrict_read_length=args.restrict_read_length)
         unpack = UnpackRawReads(raw_reads)
 
-        hit_table = self.hmmsearch(files.hmmsearch_output_path(base),
-                                   raw_reads,
-                                   unpack,
-                                   args.input_sequence_type,
-                                   args.threads,
-                                   args.eval,
-                                   orfm)
-        # Processing the output table to give you the readnames of the hits
-        run_stats, hit_readnames = self.csv_to_titles(files.readnames_output_path(base),
-                                                      hit_table,
-                                                      run_stats)
+        if search_method == 'hmmsearch':
+            hit_table = self.hmmsearch(files.hmmsearch_output_path(base),
+                                       raw_reads,
+                                       unpack,
+                                       args.input_sequence_type,
+                                       args.threads,
+                                       args.eval,
+                                       orfm)
+            # Processing the output table to give you the readnames of the hits
+            run_stats, hit_readnames = self.csv_to_titles(files.readnames_output_path(base),
+                                                          hit_table,
+                                                          run_stats)
+        elif search_method == 'diamond':
+            #run diamond
+            search_result =  Diamond(database=gpkg[GraftMPackage.DIAMOND_DATABASE],
+                                     threads=args.threads,
+                                     evalue=args.evalue,
+                                     ).run(unpack,
+                                           args.input_sequence_type)
+            #write output file of sequence names
+            with open(files.readnames_output_path(base)) as f:
+                for l in search_result([SequenceSearchResult.QUERY_ID_FIELD]):
+                    f.write(l[0])
+                    f.write("\n")
+        else:
+            raise Exception("Programming error: unexpected search_method %s" % search_method)
 
         if not hit_readnames:
             return False, run_stats

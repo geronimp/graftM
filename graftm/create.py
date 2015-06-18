@@ -158,7 +158,7 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
                 exit(2)
         return refpkg
     
-    def compile(self, base, refpkg, hmm, contents, prefix): 
+    def _compile(self, base, refpkg, hmm, diamond_database_file, prefix):
         if prefix:
             gpkg = prefix + ".gpkg"
         else:
@@ -167,7 +167,19 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
             raise Exception("Detected gpkg with name %s" % (gpkg))
         os.mkdir(gpkg)
         os.rename(refpkg, os.path.join(gpkg, refpkg))
-        shutil.copyfile(hmm, os.path.join(gpkg, os.path.basename(hmm)))
+        
+        hmm_file_in_gpkg = os.path.basename(hmm)
+        shutil.copyfile(hmm, os.path.join(gpkg, hmm_file_in_gpkg))
+        
+        diamond_database_file_in_gpkg = os.path.basename(diamond_database_file)
+        shutil.copyfile(diamond_database_file, os.path.join(gpkg, diamond_database_file_in_gpkg))
+        
+        contents = {"version": 2,
+            "aln_hmm": hmm_file_in_gpkg,
+            "search_hmm": [hmm_file_in_gpkg],
+            "rfpkg": refpkg,
+            "TC":False,
+            "diamond_database": diamond_database_file_in_gpkg}
         json.dump(contents, open(os.path.join(gpkg, 'CONTENTS.json'), 'w'))
 
     def cleanup(self, the_trashcan):
@@ -198,12 +210,15 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
         subprocess.check_call(['bash','-c',cmd])
         
     def main(self, alignment, **kwargs):
+        sequences = kwargs.pop('sequences',None)
         taxonomy = kwargs.pop('taxonomy',None)
         rerooted_tree = kwargs.pop('rerooted_tree',None)
         tree_log = kwargs.pop('tree_log', None)
         prefix = kwargs.pop('prefix', None)
         rerooted_annotated_tree = kwargs.pop('rerooted_annotated_tree', None)
         min_aligned_percent = kwargs.pop('min_aligned_percent',0.0)
+        taxtastic_taxonomy = kwargs.pop('taxtastic_taxonomy', None)
+        taxtastic_seqinfo = kwargs.pop('taxtastic_seqinfo', None)
         if len(kwargs) > 0:
             raise Exception("Unexpected arguments detected: %s" % kwargs)
         
@@ -263,35 +278,45 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
                                             tre_file, log_file, ptype)
             
         # Create tax and seqinfo .csv files
-        gtns = Getaxnseq()
-        seq = base+"_seqinfo.csv"
-        tax = base+"_taxonomy.csv"
-        self.the_trash += [seq, tax]
-        if rerooted_annotated_tree:
-            logging.info("Building seqinfo and taxonomy file from input annotated tree")
-            taxonomy_definition = TaxonomyExtractor().taxonomy_from_annotated_tree(\
-                    TreeNode.read(open(rerooted_annotated_tree)))
-        elif taxonomy:
-            logging.info("Building seqinfo and taxonomy file from input taxonomy")
-            taxonomy_definition = gtns.read_taxonomy_file(taxonomy)
+        if taxtastic_taxonomy and taxtastic_seqinfo:
+            logging.info("Creating reference package")
+            refpkg = self.callTaxitCreate(base, output_alignment, tre_file, 
+                                          log_file, taxtastic_taxonomy,
+                                          taxtastic_seqinfo, prefix, no_reroot)
         else:
-            raise Exception("Taxonomy is required somehow e.g. by --taxonomy or --rerooted_annotated_tree")
-        gtns.write_taxonomy_and_seqinfo_files(taxonomy_definition,
-                                              tax,
-                                              seq)
+            gtns = Getaxnseq()
+            seq = base+"_seqinfo.csv"
+            tax = base+"_taxonomy.csv"
+            self.the_trash += [seq, tax]
+            if rerooted_annotated_tree:
+                logging.info("Building seqinfo and taxonomy file from input annotated tree")
+                taxonomy_definition = TaxonomyExtractor().taxonomy_from_annotated_tree(\
+                        TreeNode.read(open(rerooted_annotated_tree)))
+            elif taxonomy:
+                logging.info("Building seqinfo and taxonomy file from input taxonomy")
+                taxonomy_definition = gtns.read_taxonomy_file(taxonomy)
+                
+            else:
+                raise Exception("Programming error: Taxonomy is required somehow e.g. by --taxonomy or --rerooted_annotated_tree")
+            gtns.write_taxonomy_and_seqinfo_files(taxonomy_definition,
+                                                  tax,
+                                                  seq)
+            
+            # Create the reference package
+            logging.info("Creating reference package")
+            refpkg = self.callTaxitCreate(base, output_alignment, tre_file, 
+                                          log_file, tax, seq, prefix, no_reroot)
         
-        # Create the reference package
-        logging.info("Creating reference package")
-        refpkg = self.callTaxitCreate(base, output_alignment, tre_file, 
-                                      log_file, tax, seq, prefix, no_reroot)
+        # Run diamond makedb
+        logging.info("Creating diamond database")
+        cmd = "diamond makedb --in '%s' -d '%s'" % (sequences, base)
+        logging.debug("Running command: %s" % cmd)
+        subprocess.check_call(cmd, shell=True)
+        diamondb = '%s.dmnd' % base
 
         # Compile the gpkg
         logging.info("Compiling gpkg")
-        contents = {"aln_hmm": hmm,
-                    "search_hmm": [hmm],
-                    "rfpkg": refpkg,
-                    "TC":False}
-        self.compile(base, refpkg, hmm, contents, prefix)
+        self._compile(base, refpkg, hmm, diamondb, prefix)
 
         logging.info("Cleaning up")
         self.cleanup(self.the_trash)

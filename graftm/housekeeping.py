@@ -1,17 +1,10 @@
-import random
 import os
 import shutil
 import subprocess
 import json
 import tempfile
 import logging
-from timeit import itertools
 from signal import signal, SIGPIPE, SIG_DFL
-
-# Constants - don't change them evar.
-FORMAT_FASTA = 'FORMAT_FASTA'
-FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'
-FORMAT_FASTA_GZ = 'FORMAT_FASTA_GZ'
 
 class UninstalledProgramError(Exception):
     pass
@@ -48,7 +41,7 @@ class HouseKeeping:
                                   preexec_fn=lambda:signal(SIGPIPE, SIG_DFL)
                                   )
             tmp.flush()
-            head = [next(tmp).rstrip() for x in xrange(2)]
+            head = [next(tmp).rstrip() for _ in xrange(2)]
             for nucl in set(head[1]):
                 if nucl not in nas and nucl in aas:
                     return 'protein'
@@ -132,8 +125,6 @@ class HouseKeeping:
                 sequence_file_list = [[f] for f in args.forward]
                 
             return sequence_file_list
-        else:
-            return
         
     def _check_file_existence(self, files):
         '''Iterate through files and exit(1) if any do not pass
@@ -227,7 +218,7 @@ class HouseKeeping:
         '''Credits to BamM and http://stackoverflow.com/questions/377017/test-if-executable-exists-in-python'''
         def is_exe(fpath):
             return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-        fpath, fname = os.path.split(program)
+        fpath, _ = os.path.split(program)
         if fpath:
             if is_exe(program):
                 return program

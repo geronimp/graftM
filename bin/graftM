@@ -107,6 +107,7 @@ if __name__ == '__main__':
     searching_options.add_argument('--eval', metavar='evalue', help='evalue cutoff for the hmmsearch (default = 1e-5)', default= '1e-5')
     searching_options.add_argument('--search_and_align_only', action="store_true", help='Stop after reads have been identified (default=False)', default=False)
     searching_options.add_argument('--euk_check', action="store_true", help='Search whole sample for 18S and attempt to estimate relative percentage of Eukaryotes (default=False)', default=False)
+    searching_options.add_argument('--search_method', choices=('hmmsearch','diamond'), help='Search method (default=hmmsearch)', default='hmmsearch')
     
     placement_options = graft_parser.add_argument_group('placement options')
     placement_options.add_argument('--placements_cutoff', metavar='confidence', help='Cutoff of placement confidence level (0.5 - 1), default = 0.75', default=0.75)
@@ -161,7 +162,7 @@ if __name__ == '__main__':
 
  With an alignment of sequences, and a taxonomy file specifying the taxonomy of
  each:
-  $ graftM create --alignment my_alignment.fasta --taxonomy my_taxonomy.tsv
+  $ graftM create --alignment my_alignment.fasta --taxonomy my_taxonomy.tsv --sequences my_sequences.fasta
   
  The taxonomy file is a 2 column tab separated file, where the first column
  is the sequence identifier and the second a taxonomy string describing that
@@ -183,12 +184,15 @@ sequence1    k__kingdom1; p__phylum2
     create = create_parser.add_argument_group('Common options')
     create.add_argument('--taxonomy', metavar='TAX', help='File containing two tab separated columns, the first with the ID of the sequences, the second with the taxonomy string (required unless --rerooted_annotated_tree is specified)')
     create.add_argument('--alignment', metavar='ALN', help='An alignment with which to build a custom HMM and tree (required)', required=True)
+    create.add_argument('--sequences', metavar='FASTA', help='Unaligned sequences (required)', required=True)
     create.add_argument('--rerooted_tree', help='A tree with which to build the refpkg, appropriately rooted. (default: generate tree with FastTree and attempt reroot with taxtastic)')
     create_lesser_options=create_parser.add_argument_group('Lesser used options')
     create_lesser_options.add_argument('--rerooted_annotated_tree', metavar='newick_tree', help='Define taxonomy through this annotated newick file. (default: use taxonomy from --taxonomy)')
     create_lesser_options.add_argument('--min_aligned_percent', type=int, metavar='percent', help='Check the alignments of all sequences cover at least this much of the HMM', default=50)
     create_lesser_options.add_argument('--output', metavar='PATH', help='Name of output GraftM package (default: use name derived from alignment)')
     create_lesser_options.add_argument('--tree_log', help='A log file for the tree. (default: generate from tree and alignment)')
+    create_lesser_options.add_argument('--taxtastic_taxonomy', help='A taxtastic format taxonomy file. (default: use taxonomy from --taxonomy)')
+    create_lesser_options.add_argument('--taxtastic_seqinfo', help='A taxtastic format seqinfo file. (default: use taxonomy from --taxonomy)')
     create_logging_options=create_parser.add_argument_group('Logging options')
     create_logging_options.add_argument('--verbosity', metavar='verbosity', help='1 - 5, 1 being silent, 5 being noisy indeed', type=int, default=4)
     create_output_options=create_parser.add_argument_group('Output options')

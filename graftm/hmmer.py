@@ -125,9 +125,10 @@ class Hmmer:
             path to output domtblout table
         input_path : str
             path to input sequences to search
-        input_file_format : var
-            variable containing a string, either 'FORMAT_FASTA' or 
-            'FORMAT_FASTQ_GZ'. Tells the pipeline how to open the file
+        unpack : obj
+            Object that builds the commad chunk for unpacking the raw sequences.
+            First guesses file format, and unpacks appropriately. Calls 
+            command_line to construct final command line string.
         seq_type : var
             variable containing a string, either 'nucleotide' or 'protein'.
             Tells the pipeline whether or not to call ORFs on the sequence.
@@ -136,12 +137,11 @@ class Hmmer:
             Number of threads to use. Passed to HMMsearch command. 
         eval : str
             evalue cutoff for HMMsearch to use. Passed to HMMsearch command. 
-        min_orf_length : int
-            Number specifying a minimum length cutoff for orfM to use when 
-            calling ORFs, any ORF under the given cutoff will not be used.
-        restrict_read_length : int
-            TODO
-        
+        orfm : obj
+            Object that builds the command chunch for calling ORFs on sequences
+            coming through as stdin. Outputs to stdout. Calls command_line
+            to construct final command line string.
+
         Returns
         -------
         output_table_list : array
@@ -189,6 +189,7 @@ class Hmmer:
             List of paths to output file to which the merged aligments from the
             aln_list will go into. Must be exactly half the size of the aln_list
             (i.e. one output file for every forward and reverse file provided)
+        
         Returns
         -------
         Nothing - output files are known.
@@ -301,28 +302,14 @@ class Hmmer:
                                                                      min([x[0]['bit'] for x in  hash.values()])))            
         return hash
         
-    def check_euk_contamination(self, output_path, euk_free_output_path, input_path, run_stats, input_file_format, threads, evalue, raw_reads, base,  euk_hmm):
+    def check_euk_contamination(self, output_path, euk_free_output_path, input_path, run_stats, threads, evalue, unpack, base, euk_hmm):
         reads_with_better_euk_hit = []
         cutoff = float(0.9*run_stats['read_length'])
         # do a nhmmer using a Euk specific hmm
-        nhmmer_cmd = "nhmmer --cpu %s %s --tblout %s %s" % (threads, evalue, output_path, euk_hmm)
-
-        if input_file_format == FORMAT_FASTA:
-            cmd = "%s %s 2>&1 > /dev/null" % (nhmmer_cmd, raw_reads)
-            
-            logging.debug("Running command: %s" % cmd)
-            subprocess.check_call(cmd, shell = True)
-
-        elif input_file_format == FORMAT_FASTQ_GZ:
-            cmd = "%s <(awk '{print \">\" substr($0,2);getline;print;getline;getline}' <(zcat %s )) 2>&1 > /dev/null" %  (nhmmer_cmd, raw_reads)
-            
-            logging.debug("Running command: %s" % cmd)
-            subprocess.check_call(["/bin/bash", "-c", cmd])
-
-        else:
-            raise Exception(logging.error('Suffix on %s not familiar. Please submit an .fq.gz or .fa file\n' % (raw_reads)))
-
-
+        cmd = "%s | nhmmer -o /dev/null --cpu %s %s --tblout %s %s -" % (unpack.command_line(), threads, evalue, output_path, euk_hmm)
+        logging.debug("Running command: %s" % cmd)
+        subprocess.check_call(["/bin/bash", "-c", cmd])
+        
         # check for evalues that are lower, after eliminating hits with an
         # alignment length of < 90% the length of the whole read.
         euk_reads = self.hmmtable_reader([output_path])
@@ -340,10 +327,10 @@ class Hmmer:
 
         # Return Euk contamination
         if len(reads_with_better_euk_hit) == 0:
-            logging.info("No contaminating eukaryotic reads detected in %s" % (os.path.basename(raw_reads)))
-
+            logging.info("No contaminating eukaryotic reads detected")
         else:
             logging.info("Found %s read(s) that may be eukaryotic" % len(reads_with_better_euk_hit + reads_unique_to_eukaryotes))
+        
         # Write a file with the Euk free reads.
         with open(euk_free_output_path, 'w') as euk_free_output:
             for record in list(SeqIO.parse(open(input_path, 'r'), 'fasta')):
@@ -453,7 +440,6 @@ class Hmmer:
             raise Exception("Programming error")
         
         # Check if there are reads that need splitting
-       
         if any([x for x in read_stats if len(read_stats[x])>1]):
             read_stats, output_path=extractMultipleHits(output_path, read_stats) 
         else:
@@ -712,10 +698,9 @@ class Hmmer:
                                                                 files.euk_free_path(base),
                                                                 hit_reads,
                                                                 run_stats,
-                                                                input_file_format,
                                                                 args.threads,
                                                                 args.eval,
-                                                                raw_reads,
+                                                                unpack,
                                                                 base,
                                                                 args.euk_hmm_file)
 

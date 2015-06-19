@@ -12,7 +12,7 @@ from graftm.housekeeping import HouseKeeping
 from graftm.hmmsearcher import HmmSearcher, NhmmerSearcher
 from graftm.orfm import OrfM
 from graftm.unpack_sequences import UnpackRawReads
-
+from graftm.readHmmTable import HMMreader
 FORMAT_FASTA    = "FORMAT_FASTA"
 FORMAT_FASTQ    = "FORMAT_FASTQ"
 FORMAT_FASTQ_GZ = "FORMAT_FASTQ_GZ"
@@ -302,64 +302,88 @@ class Hmmer:
                                                                      min([x[0]['bit'] for x in  hash.values()])))            
         return hash
         
-    def check_euk_contamination(self, output_path, euk_free_output_path, input_path, run_stats, threads, evalue, unpack, base, euk_hmm):
-        reads_with_better_euk_hit = []
-        cutoff = float(0.9*run_stats['read_length'])
-        # do a nhmmer using a Euk specific hmm
-        cmd = "%s | nhmmer -o /dev/null --cpu %s %s --tblout %s %s -" % (unpack.command_line(), threads, evalue, output_path, euk_hmm)
-        logging.debug("Running command: %s" % cmd)
-        subprocess.check_call(["/bin/bash", "-c", cmd])
+    def __check_euk_contamination(self, hmm_hit_tables, run_stats):
+        '''
+        check_euk_contamination - Check output HMM tables hits reads that hit 
+                                  the 18S HMM with a higher bit score. 
         
-        # check for evalues that are lower, after eliminating hits with an
-        # alignment length of < 90% the length of the whole read.
-        euk_reads = self.hmmtable_reader([output_path])
-        euk_crossover = [x for x in euk_reads.keys() if x in run_stats['reads'].keys()]
-        reads_unique_to_eukaryotes = [x for x in euk_reads.keys() if x not in run_stats['reads'].keys()]
+        Parameters
+        ----------
+        hmm_hit_tables : array
+            Array of paths to the output files produced by hmmsearch or
+            nhmmer.
+        run_stats : dict
+            A dictionary to updatewith the number of unique 18S reads and reads
+            detected by both 18S and non-18S HMMs
         
-        for entry in euk_crossover: # for every cross match
-            if euk_reads[entry][0]['bit'] >= float(run_stats['reads'][entry]['bit']):
-                if euk_reads[entry][0]['len'] > cutoff:
-                    reads_with_better_euk_hit.append(entry)
-                elif euk_reads[entry][0]['len'] < cutoff:
+        Returns
+        -------
+        run_stats : dict
+            Updated form of the above.
+        '''
+        euk_hit_table=HMMreader(hmm_hit_tables.pop(-1))
+        other_hit_tables           = [HMMreader(x) for x in hmm_hit_tables]
+        crossover                  = []
+        reads_unique_to_eukaryotes = []   
+        reads_with_better_euk_hit  = []     
+        
+        for hit in euk_hit_table.names():
+            bits=[]
+            for hit_table in other_hit_tables:
+                if hit in hit_table.names():
+                    bits.append(hit_table.bit(hit))
+                else:
+                    reads_unique_to_eukaryotes.append(hit)
+            if bits:
+                if any([x for x in bits if x > euk_hit_table.bit(hit)]):
                     continue
+                else:
+                    reads_with_better_euk_hit.append(hit)
             else:
                 continue
-
-        # Return Euk contamination
+        
         if len(reads_with_better_euk_hit) == 0:
             logging.info("No contaminating eukaryotic reads detected")
         else:
             logging.info("Found %s read(s) that may be eukaryotic" % len(reads_with_better_euk_hit + reads_unique_to_eukaryotes))
         
-        # Write a file with the Euk free reads.
-        with open(euk_free_output_path, 'w') as euk_free_output:
-            for record in list(SeqIO.parse(open(input_path, 'r'), 'fasta')):
-                if record.id not in reads_with_better_euk_hit:
-                    SeqIO.write(record, euk_free_output, "fasta")
         run_stats['euk_uniq'] = len(reads_unique_to_eukaryotes)
         run_stats['euk_contamination'] = len(reads_with_better_euk_hit)
-        return run_stats, euk_free_output_path
+        euk_reads=reads_with_better_euk_hit + reads_unique_to_eukaryotes
+        
+        return euk_reads, run_stats
 
-    def csv_to_titles(self, output_path, input_path, run_stats):
-        ## process hmmsearch/nhmmer results into a list of titles to <base_filename>_readnames.txt
-        run_stats['reads'] = self.hmmtable_reader(input_path)
+    def csv_to_titles(self, output_path, input_path, run_stats, euk_check=False, euk_reads=[]):
+        if euk_check:
+            logging.info("Checking for Eukaryotic contamination")
+            euk_reads, run_stats = self.__check_euk_contamination(
+                                                    input_path,
+                                                    run_stats
+                                                    )
+        
+        # process hmmsearch/nhmmer results into a list of titles to 
+        # <base_filename>_readnames.txt
+        run_stats['reads'] = {key:item for key, item in \
+                              self.hmmtable_reader(input_path).iteritems() \
+                              if key not in euk_reads}
         count=sum([len(x) for x in run_stats['reads'].values()])
-
-        # See if there are any reads in there reverse direction. Store True if so for later reference
-
+        
+        # See if there are any reads in there reverse direction. 
+        # Store True if so for later reference
         try:
-            if any([x for x in sum(run_stats['reads'].values(), []) if x['direction'] =='-']):
+            if any([x for x in sum(run_stats['reads'].values(), []) \
+                    if x['direction'] =='-']):
                 run_stats['rev_true'] = True
             else:
                 run_stats['rev_true'] = False
         except KeyError:
             run_stats['rev_true'] = False
-
         if count > 0: # Return if there weren't any reads found
             logging.info('%s read(s) found' % (count))
         else: # Otherwise, report the number of reads
             logging.info('%s reads found, cannot continue with no information' % (len(run_stats['reads'].keys())))
             return run_stats, False
+        
         # And write the read names to output
         orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
         with open(output_path, 'w') as output_file:
@@ -663,17 +687,18 @@ class Hmmer:
         N/A
         '''
         start = timeit.default_timer() # Start search timer
-
+        
         # First search the reads using the HMM
         hit_table = self.nhmmer(files.hmmsearch_output_path(base),
                                 unpack,
                                 args.threads,
                                 args.eval)
-
+        
         # Next, get a list of readnames
         run_stats, hit_readnames = self.csv_to_titles(files.readnames_output_path(base),
                                                       hit_table,
-                                                      run_stats)
+                                                      run_stats,
+                                                      euk_check)
         if not hit_readnames:
             return False, run_stats
 
@@ -691,18 +716,7 @@ class Hmmer:
         run_stats['search_t'] = str(int(round((stop - start), 0)) )
         start = timeit.default_timer()
 
-        # Check for Eukarytoic contamination
-        if euk_check:
-            logging.info("Checking for Eukaryotic contamination")
-            run_stats, hit_reads = self.check_euk_contamination(files.euk_contam_path(base),
-                                                                files.euk_free_path(base),
-                                                                hit_reads,
-                                                                run_stats,
-                                                                args.threads,
-                                                                args.eval,
-                                                                unpack,
-                                                                base,
-                                                                args.euk_hmm_file)
+
 
         # Stop timing eukaryote check
         stop = timeit.default_timer()

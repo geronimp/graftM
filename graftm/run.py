@@ -31,6 +31,8 @@ class Run:
         self.e = Extract()
         if args.subparser_name == 'graft':
             self.hk.set_attributes(self.args)
+            self.hk.set_euk_hmm(self.args)
+            if args.euk_check:self.args.search_hmm_files.append(self.args.euk_hmm_file)
             self.h = Hmmer(self.args.search_hmm_files, self.args.aln_hmm_file)
             self.sequence_pair_list = self.hk.parameter_checks(args)
             if hasattr(args, 'reference_package'):
@@ -88,7 +90,6 @@ class Run:
             run_stats = summary_dict[base]
         else:
             raise Exception('Programming Error: Assigning run_stats hash')
-
         # Search for reads using nhmmer
         logging.info('Searching %s' % os.path.basename(sequence_file))
         hit_reads, run_stats = self.h.d_search(self.gmf,
@@ -320,7 +321,6 @@ class Run:
                 # Or the DNA pipeline
                 elif self.args.type == 'D':
                     logging.debug("Running nucleotide pipeline")
-                    self.hk.set_euk_hmm(self.args)
                     summary_table, hit_aligned_reads = self.dna_pipeline(base,
                                                                          summary_table,
                                                                          read_file,

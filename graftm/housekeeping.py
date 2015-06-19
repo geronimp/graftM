@@ -105,9 +105,6 @@ class HouseKeeping:
             if float(args.placements_cutoff) < float(0.5) or float(args.placements_cutoff) > float(1.0):
                 logging.info('Please specify a confidence level (-d) between 0.5 and 1.0! Found: %s' % args.placements_cutoff)
                 exit(1)
-
-            # Set string for hmmsearch evalue
-            args.eval = '-E %s' % args.eval
             
             self._check_file_existence(args.forward)
             if hasattr(args, 'reverse'):

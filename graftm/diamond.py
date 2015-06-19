@@ -39,7 +39,7 @@ class Diamond:
                       "-d",
                         self._database,
                         "-q",
-                        "'%s'" % input_sequence_file,
+                        "%s" % input_sequence_file,
                         "-a",
                         t.name]:
                 cmd_list.append(c)
@@ -49,7 +49,6 @@ class Diamond:
             if self._evalue:
                 cmd_list.append("--evalue")
                 cmd_list.append(str(self._evalue))
-                
             cmd = ' '.join(cmd_list)
             logging.debug("Running cmd: %s" % cmd)
             subprocess.check_call(cmd, shell=True)

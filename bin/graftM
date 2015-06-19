@@ -78,6 +78,10 @@ UTILITIES
 =====================================================================================================
 """ % (graftm.__version__)
 
+def header():
+    print """                         
+                             GraftM %s""" %(graftm.__version__)
+
 debug={1:logging.CRITICAL,
        2:logging.ERROR,
        3:logging.WARNING,
@@ -207,6 +211,7 @@ sequence1    k__kingdom1; p__phylum2
     if(len(sys.argv) == 1 or sys.argv[1] == '-h' or sys.argv[1] == '--help'):
         phelp()
     else:
+        header()
         args = parser.parse_args()
         if args.log:
             if os.path.isfile(args.log): raise Exception("File %s exists" % args.log)

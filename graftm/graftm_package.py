@@ -14,8 +14,9 @@ class GraftMPackage:
     SEARCH_HMM_KEY = "search_hmm"
     REFERENCE_PACKAGE_KEY = "rfpkg"
     HMM_TRUSTED_CUTOFF_KEY = "TC"
-    
+    TAX_INFO_KEY = "tax_info"
     _CONTENTS_FILE_NAME = 'CONTENTS.json'
+    
     _CURRENT_VERSION = 2
     
     _REQUIRED_KEYS = {'2': [
@@ -24,7 +25,8 @@ class GraftMPackage:
                      ALIGNMENT_HMM_KEY,
                      SEARCH_HMM_KEY,
                      REFERENCE_PACKAGE_KEY,
-                     HMM_TRUSTED_CUTOFF_KEY
+                     HMM_TRUSTED_CUTOFF_KEY,
+                     TAX_INFO_KEY
                      ]}
     
     @staticmethod
@@ -38,23 +40,25 @@ class GraftMPackage:
         '''
         pkg = GraftMPackage()
         
+        
         pkg._base_directory = graftm_package_path
         pkg._contents_hash = json.load(open(os.path.join(graftm_package_path,
                                                         GraftMPackage._CONTENTS_FILE_NAME), 
                                              ))
         
         # check we are at current version otherwise choke
+        
         pkg.check_required_keys(pkg._CURRENT_VERSION)
         return pkg
         
         
-    def check_required_keys(self, version=GraftMPackage.CURRENT_VERSION):
+    def check_required_keys(self, version):
         '''raise InsufficientGraftMPaackageException if this package does not
         conform to the standard of the given package'''
         #check version key
         h = self._contents_hash
-        v = h[self._VERSION_KEY]
-        if not h[self._VERSION_KEY]:
+        v=(h[self.VERSION_KEY] if self.VERSION_KEY in h else None)
+        if not v:
             raise InsufficientGraftMPaackageException("No version information in graftm package")
         if v != version:
             raise InsufficientGraftMPaackageException("Bad version: %s" % v)

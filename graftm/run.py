@@ -49,12 +49,14 @@ class Run:
         # Tell user what is being searched with what
         logging.info('Searching %s' % (os.path.basename(sequence_file)))
         # Search for reads using hmmsearch
+        
         hit_reads, run_stats = self.h.p_search(self.gmf,
                                                self.args,
                                                run_stats,
                                                base,
                                                unpack,
-                                               sequence_file)
+                                               sequence_file,
+                                               self.args.search_method)
         if not hit_reads:
             return summary_dict, False
         # Align the reads.
@@ -223,7 +225,7 @@ class Run:
         if self.args.verbosity > 1:
             print '''
                                 GRAFT
-        
+                                
                        Joel Boyd, Ben Woodcroft
                        
                                                          __/__
@@ -234,7 +236,8 @@ class Run:
           - _-  -         -             |      ______
              - _                        |_____|
            -                                  |______
-            '''
+            ''' 
+
         readstoplace=False # An extra check to make sure there are reads to place with
         # Set up a dictionary that will record stats as the pipeline is running
         summary_table = {'euks_checked'      : self.args.euk_check,

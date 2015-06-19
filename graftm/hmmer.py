@@ -14,6 +14,7 @@ from graftm.orfm import OrfM
 from graftm.unpack_sequences import UnpackRawReads
 from graftm.diamond import Diamond
 from graftm.sequence_search_results import SequenceSearchResult
+from graftm.graftm_package import GraftMPackage
 
 FORMAT_FASTA    = "FORMAT_FASTA"
 FORMAT_FASTQ    = "FORMAT_FASTQ"
@@ -172,7 +173,7 @@ class Hmmer:
             raise Exception('Programming Error: error guessing input sequence type')
         
         # Run the HMMsearches
-        searcher = HmmSearcher(threads, eval)
+        searcher = HmmSearcher(threads, '-E %s' % eval)
         searcher.hmmsearch(input_cmd, self.search_hmm, output_table_list)
         
         return output_table_list
@@ -604,16 +605,18 @@ class Hmmer:
                                                           run_stats)
         elif search_method == 'diamond':
             #run diamond
-            search_result =  Diamond(database=gpkg[GraftMPackage.DIAMOND_DATABASE],
+            search_result =  Diamond(database=GraftMPackage.acquire(),
                                      threads=args.threads,
-                                     evalue=args.evalue,
-                                     ).run(unpack,
+                                     evalue=args.eval,
+                                     ).run(raw_reads,
                                            args.input_sequence_type)
             #write output file of sequence names
-            with open(files.readnames_output_path(base)) as f:
-                for l in search_result([SequenceSearchResult.QUERY_ID_FIELD]):
+            with open(files.readnames_output_path(base), 'w') as f:
+                for l in search_result.each([SequenceSearchResult.QUERY_ID_FIELD]):
                     f.write(l[0])
                     f.write("\n")
+            print files.readnames_output_path(base)
+            exit()
         else:
             raise Exception("Programming error: unexpected search_method %s" % search_method)
 

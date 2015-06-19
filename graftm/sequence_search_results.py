@@ -94,3 +94,14 @@ class DiamondSearchResult(SequenceSearchResult):
                                  query_start > query_end,
                                  ])
         return res
+
+class HMMSearchResult(SequenceSearchResult):
+    @staticmethod
+    def import_from_nhmmer_table(hmmout_path):
+        '''Generate new results object from the output of nhmmer search'''
+        res=HMMSearchResult()
+        # nhmmer format is
+    def import_from_hmmsearch_table(hmmout_path):
+        '''Generate new results object from the output of hmmsearch search'''
+        res=HMMSearchResult()
+        # hmmsearch format is

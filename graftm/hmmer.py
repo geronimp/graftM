@@ -627,10 +627,9 @@ class Hmmer:
                     f.write(l[0])
                     f.write("\n")
             print files.readnames_output_path(base)
-            exit()
         else:
             raise Exception("Programming error: unexpected search_method %s" % search_method)
-
+        exit()
         if not hit_readnames:
             return False, run_stats
         

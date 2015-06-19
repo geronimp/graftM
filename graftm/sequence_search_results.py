@@ -99,9 +99,77 @@ class HMMSearchResult(SequenceSearchResult):
     @staticmethod
     def import_from_nhmmer_table(hmmout_path):
         '''Generate new results object from the output of nhmmer search'''
-        res=HMMSearchResult()
         # nhmmer format is
+        # qseqid queryname hmmfrom hmmto alifrom alito envfrom envto sqlen strand evalue bitscore bias description
+        #   0        2        4      5      6      7      8      9    10     11     12      13     14     15     
+        res=HMMSearchResult()
+        res.fields = [
+                       SequenceSearchResult.QUERY_ID_FIELD,
+                       SequenceSearchResult.HMM_NAME_FIELD,
+                       SequenceSearchResult.ALIGNMENT_LENGTH_FIELD,
+                       SequenceSearchResult.QUERY_FROM_FIELD,
+                       SequenceSearchResult.QUERY_TO_FIELD,
+                       SequenceSearchResult.HIT_FROM_FIELD,
+                       SequenceSearchResult.HIT_TO_FIELD,
+                       SequenceSearchResult.ALIGNMENT_BIT_SCORE,
+                       SequenceSearchResult.ALIGNMENT_DIRECTION,
+                       ]
+        
+        for row in [x.rstrip().split() for x in open(hmmout_path) if not x.startswith('#')]:
+            hmmfrom    = int(row[15])
+            hmmto      = int(row[16])
+            aln_length = (hmmto-hmmfrom if hmmto-hmmfrom>0 else hmmfrom-hmmto)
+            res.results.append([row[0],
+                                row[2],
+                                aln_length,
+                                row[4],
+                                row[5],
+                                row[6],
+                                row[7],
+                                row[13],
+                                hmmto > hmmfrom
+                                ])
+        return res
+    
     def import_from_hmmsearch_table(hmmout_path):
         '''Generate new results object from the output of hmmsearch search'''
-        res=HMMSearchResult()
         # hmmsearch format is
+        # qseqid tlen queryname qlen evalue bitscore bias hmmfrom hmmto alifrom alito envfrom envto acc
+        #    0    2       3      5     6        7     8      15    16     17     18      19    20   21
+        res=HMMSearchResult()
+        res.fields = [
+                       SequenceSearchResult.QUERY_ID_FIELD,
+                       SequenceSearchResult.HMM_NAME_FIELD,
+                       SequenceSearchResult.ALIGNMENT_LENGTH_FIELD,
+                       SequenceSearchResult.QUERY_FROM_FIELD,
+                       SequenceSearchResult.QUERY_TO_FIELD,
+                       SequenceSearchResult.HIT_FROM_FIELD,
+                       SequenceSearchResult.HIT_TO_FIELD,
+                       SequenceSearchResult.ALIGNMENT_BIT_SCORE,
+                       SequenceSearchResult.ALIGNMENT_DIRECTION,
+                       ]
+        
+        for row in [x.rstrip().split() for x in open(hmmout_path) if not x.startswith('#')]:
+            alifrom    = int(row[17])
+            alito      = int(row[18])
+            aln_length = (hmmto-hmmfrom if hmmto-hmmfrom>0 else hmmfrom-hmmto)
+            res.results.append([row[0],
+                                row[3],
+                                aln_length,
+                                row[15],
+                                row[16],
+                                alifrom,
+                                alito,
+                                row[7],
+                                hmmto > hmmfrom
+                                ])
+        return res
+        
+        
+        
+        
+        
+        
+        
+        
+         

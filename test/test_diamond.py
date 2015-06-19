@@ -31,9 +31,6 @@ from graftm.diamond import Diamond
 
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
 
-class UnpackStub:
-    pass
-
 class Tests(unittest.TestCase):
     _protein_query = '''>seq1 637699780 METHANOSARCINA BARKERI MCRA
 SKFKKDMEVKFGGDITDKTAKFLRLGPEQDPRKVEMIKAGKE

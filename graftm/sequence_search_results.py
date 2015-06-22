@@ -12,6 +12,8 @@ class SequenceSearchResult:
     ALIGNMENT_DIRECTION = 'alignment_direction'
     HIT_ID_FIELD = 'hit_id'
     QUERY_ID_FIELD = 'query_id'
+    HMM_NAME_FIELD = 'hmm_name'
+    
     
     def __init__(self):
         self.fields = []
@@ -116,9 +118,9 @@ class HMMSearchResult(SequenceSearchResult):
                        ]
         
         for row in [x.rstrip().split() for x in open(hmmout_path) if not x.startswith('#')]:
-            hmmfrom    = int(row[15])
-            hmmto      = int(row[16])
-            aln_length = (hmmto-hmmfrom if hmmto-hmmfrom>0 else hmmfrom-hmmto)
+            alifrom    = int(row[6])
+            alito      = int(row[7])
+            aln_length = (alito-alifrom if alito-alifrom>0 else alifrom-alito)
             res.results.append([row[0],
                                 row[2],
                                 aln_length,
@@ -127,10 +129,10 @@ class HMMSearchResult(SequenceSearchResult):
                                 row[6],
                                 row[7],
                                 row[13],
-                                hmmto > hmmfrom
+                                alito > alifrom
                                 ])
         return res
-    
+    @staticmethod
     def import_from_hmmsearch_table(hmmout_path):
         '''Generate new results object from the output of hmmsearch search'''
         # hmmsearch format is
@@ -152,7 +154,7 @@ class HMMSearchResult(SequenceSearchResult):
         for row in [x.rstrip().split() for x in open(hmmout_path) if not x.startswith('#')]:
             alifrom    = int(row[17])
             alito      = int(row[18])
-            aln_length = (hmmto-hmmfrom if hmmto-hmmfrom>0 else hmmfrom-hmmto)
+            aln_length = (alito-alifrom if alito-alifrom>0 else alifrom-alito)
             res.results.append([row[0],
                                 row[3],
                                 aln_length,
@@ -161,7 +163,7 @@ class HMMSearchResult(SequenceSearchResult):
                                 alifrom,
                                 alito,
                                 row[7],
-                                hmmto > hmmfrom
+                                alito > alifrom
                                 ])
         return res
         

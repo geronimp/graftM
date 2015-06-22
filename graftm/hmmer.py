@@ -4,6 +4,7 @@ import re
 import timeit
 import itertools
 import logging
+import tempfile
 
 from Bio import SeqIO
 from collections import OrderedDict
@@ -13,7 +14,7 @@ from graftm.hmmsearcher import HmmSearcher, NhmmerSearcher
 from graftm.orfm import OrfM
 from graftm.unpack_sequences import UnpackRawReads
 from graftm.diamond import Diamond
-from graftm.sequence_search_results import SequenceSearchResult
+from graftm.sequence_search_results import SequenceSearchResult, HMMSearchResult
 from graftm.graftm_package import GraftMPackage
 from graftm.readHmmTable import HMMreader
 
@@ -176,8 +177,8 @@ class Hmmer:
         # Run the HMMsearches
         searcher = HmmSearcher(threads, '-E %s' % eval)
         searcher.hmmsearch(input_cmd, self.search_hmm, output_table_list)
-        
-        return output_table_list
+        hmmtables=[HMMSearchResult.import_from_hmmsearch_table(x) for x in output_table_list]
+        return hmmtables
 
     def merge_forev_aln(self, aln_list, outputs): 
         '''
@@ -399,9 +400,24 @@ class Hmmer:
                     output_file.write(record+'\n')
         return run_stats, output_path
 
-    def extract_from_raw_reads(self, output_path, input_path, raw_sequences_path, input_file_format, read_stats):
-        # Use the readnames specified to extract from the original sequence
-        # file to a fasta formatted file.        
+    def __extract_from_raw_reads(self, output_path, input_path, raw_sequences_path, input_file_format):
+        '''
+        __extract_from_raw_reads - call fxtract to extract the hit sequences 
+        of the hmm/diamond search from the raw sequences file. Output into 
+        specified file
+        
+        Parameters
+        ----------
+        output_path : str
+        Path of the desired output file
+        input_path : str
+        Path to a file containing read IDs, one per line.
+        raw_sequences_path : str
+        Path to the raw sequences
+        input_file_format : var
+        Variable, either FORMAT_FASTA_GZ, FORMAT_FASTQ_GZ, FORMAT_FASTQ or
+        FORMAT_FASTA, denoting the format of the input sequence
+        '''  
         def removeOverlaps(item):
             for a, b in itertools.combinations(item, 2):
                 fromto_a=[int(a['alifrom']),int(a['alito'])]
@@ -450,32 +466,26 @@ class Hmmer:
         fxtract_cmd = "fxtract -H -X -f %s " % input_path
         if input_file_format == FORMAT_FASTA:
             cmd = "%s %s > %s" % (fxtract_cmd, raw_sequences_path, output_path)
-            logging.debug("Running command: %s" % cmd)
-            subprocess.check_call(cmd, shell=True)
         elif input_file_format == FORMAT_FASTQ_GZ:
             cmd = "%s -z %s | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > %s" % (fxtract_cmd, raw_sequences_path, output_path)
-            logging.debug("Running command: %s" % cmd)
-            subprocess.check_call(cmd, shell=True)
         elif input_file_format == FORMAT_FASTA_GZ:
             cmd = "%s -z %s > %s" % (fxtract_cmd, raw_sequences_path, output_path)
-            logging.debug("Running command: %s" % cmd)
-            subprocess.check_call(cmd, shell=True)
         elif input_file_format == FORMAT_FASTQ:
             cmd = "%s %s | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > %s" % (fxtract_cmd, raw_sequences_path, output_path)
-            logging.debug("Running command: %s" % cmd)
-            subprocess.check_call(cmd, shell=True)
         else:
             raise Exception("Programming error")
+        logging.debug("Running command: %s" % cmd)
+        subprocess.check_call(cmd, shell=True)
+        
         
         # Check if there are reads that need splitting
-        if any([x for x in read_stats if len(read_stats[x])>1]):
-            read_stats, output_path=extractMultipleHits(output_path, read_stats) 
-        else:
-            new_stats={}
-            for key, item in read_stats.iteritems():
-                new_stats[key]=item[0]
-            read_stats=new_stats
-        return read_stats, output_path
+        #if any([x for x in read_stats if len(read_stats[x])>1]):
+        #    read_stats, output_path=extractMultipleHits(output_path, read_stats) 
+        #else:
+        #    new_stats={}
+        #    for key, item in read_stats.iteritems():
+        #        new_stats[key]=item[0]
+        #    read_stats=new_stats
 
     def check_read_length(self, reads, pipe):
         lengths = []
@@ -560,7 +570,7 @@ class Hmmer:
         # Return name of output file
         return orf_out_path
 
-    def p_search(self, files, args, run_stats, base, unpack, raw_reads, search_method):
+    def p_search(self, files, args, run_stats, base, unpack, raw_reads, search_method, gpkg):
         '''Protein search pipeline - The searching step for the protein 
         pipeline, where hits are identified in the input reads through 
         searches with hmmer or diamond.
@@ -596,58 +606,66 @@ class Hmmer:
         --------
         N/A
         '''
-        start  = timeit.default_timer() # Start search timer
-        
         orfm   = OrfM(min_orf_length=args.min_orf_length,
                       restrict_read_length=args.restrict_read_length)
         unpack = UnpackRawReads(raw_reads)
-
+        
         if search_method == 'hmmsearch':
-            hit_table = self.hmmsearch(files.hmmsearch_output_path(base),
-                                       raw_reads,
-                                       unpack,
-                                       args.input_sequence_type,
-                                       args.threads,
-                                       args.eval,
-                                       orfm)
-            # Processing the output table to give you the readnames of the hits
-            run_stats, hit_readnames = self.csv_to_titles(files.readnames_output_path(base),
-                                                          hit_table,
-                                                          run_stats)
+            search_result = self.hmmsearch(
+                                           files.hmmsearch_output_path(base),
+                                           raw_reads,
+                                           unpack,
+                                           args.input_sequence_type,
+                                           args.threads,
+                                           args.eval,
+                                           orfm
+                                           )
+            for result in search_result:
+                hit_readnames=[x[0] for x in result.each([SequenceSearchResult.QUERY_ID_FIELD])]
         elif search_method == 'diamond':
             #run diamond
-            search_result =  Diamond(database=GraftMPackage.acquire(),
+            search_result =  Diamond(
+                                     database=os.path.join(
+                                                           gpkg._base_directory, \
+                                                           gpkg._contents_hash[gpkg.DIAMOND_DATABASE_KEY]
+                                                           ),
                                      threads=args.threads,
                                      evalue=args.eval,
-                                     ).run(raw_reads,
-                                           args.input_sequence_type)
-            #write output file of sequence names
-            with open(files.readnames_output_path(base), 'w') as f:
-                for l in search_result.each([SequenceSearchResult.QUERY_ID_FIELD]):
-                    f.write(l[0])
-                    f.write("\n")
-            print files.readnames_output_path(base)
+                                     ).run(
+                                           raw_reads,
+                                           args.input_sequence_type
+                                           )
+            hit_readnames=[x[0] for x in search_result.each([SequenceSearchResult.QUERY_ID_FIELD])]
         else:
             raise Exception("Programming error: unexpected search_method %s" % search_method)
-        exit()
+        
+        with tempfile.NamedTemporaryFile(prefix='graftm_readnames') as f:
+            for l in hit_readnames:
+                f.write(l+'\n')
+            f.flush()
+            hit_reads = self.__extract_from_raw_reads(
+                                                    files.fa_output_path(base),
+                                                    f.name,
+                                                    raw_reads,
+                                                    unpack.format()
+                                                    )
         if not hit_readnames:
             return False, run_stats
-        
-        if args.input_sequence_type == 'nucleotide':
-            # Only accept 1 HSP per protein sequence
-            old_stats = run_stats['reads']
-            read_stats = {}
-            for orf_name, hsps in old_stats.iteritems():
-                read_stats[orf_name] = [hsps[0]]
-            run_stats['reads'] = read_stats
+        ## TODO: This method does not work when searching a genome, or assembled
+        ## data, because there may be > 1 copy of gene, and very spaced. Simply
+        ## choosing one would not suffice in that context. Will have to rewrite
+        ## So that multiple hits with same read name are delt with properly.
+        #if args.input_sequence_type == 'nucleotide':
+        #    # Only accept 1 HSP per protein sequence
+        #    old_stats = run_stats['reads']
+        #    read_stats = {}
+        #    for orf_name, hsps in old_stats.iteritems():
+        #        read_stats[orf_name] = [hsps[0]]
+        #    run_stats['reads'] = read_stats
         
         # Extract the hits form the original raw read file
-        run_stats['reads'], hit_reads = self.extract_from_raw_reads(files.fa_output_path(base),
-                                                                    hit_readnames,
-                                                                    raw_reads,
-                                                                    unpack.format(),
-                                                                    run_stats['reads'])
-        
+
+
         if args.input_sequence_type == 'nucleotide':
             # Extract the orfs of these reads that hit the original search
             hit_orfs = self.extract_orfs(hit_reads,
@@ -660,17 +678,7 @@ class Hmmer:
             hit_orfs = hit_reads
         else:
             raise Exception('Programming Error')
-        # Define the average read length of the hits
-        run_stats['read_length'] = self.check_read_length(hit_orfs, "P")
-        # Stop and log search timer
-        stop = timeit.default_timer()
-        run_stats['search_t'] = str(int(round((stop - start), 0)) )
-        # Falsify some summary entries
-        run_stats['euk_contamination'] = 'N/A'
-        run_stats['euk_uniq'] = 'N/A'
-        run_stats['euk_check_t'] = 'N/A'
-        # Return hit reads, and summary hash
-        return hit_orfs, run_stats
+
 
     def d_search(self, files, args, run_stats, base, unpack, raw_reads, euk_check):
         '''Nucleotide search pipeline - The searching step for the nucleotide
@@ -728,7 +736,7 @@ class Hmmer:
             return False, run_stats
 
         # And extract them from the original sequence file
-        run_stats['reads'], hit_reads = self.extract_from_raw_reads(files.fa_output_path(base),
+        run_stats['reads'], hit_reads = self.__extract_from_raw_reads(files.fa_output_path(base),
                                                                     hit_readnames,
                                                                     raw_reads,
                                                                     unpack.format(),

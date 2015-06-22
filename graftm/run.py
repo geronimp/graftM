@@ -13,10 +13,8 @@ from graftm.pplacer import Pplacer
 from graftm.assembler import TaxoGroup
 from graftm.create import Create
 from graftm.unpack_sequences import UnpackRawReads
-
+from graftm.graftm_package import GraftMPackage
 from biom.util import biom_open
-from _struct import unpack
-
 class Run:
     ### Functions that make up pipelines in GraftM
 
@@ -38,7 +36,7 @@ class Run:
             if hasattr(args, 'reference_package'):
                 self.p = Pplacer(self.args.reference_package)
 
-    def protein_pipeline(self, base, summary_dict, sequence_file, direction, unpack):
+    def protein_pipeline(self, base, summary_dict, sequence_file, direction, unpack, gpkg):
         'The main pipeline for GraftM finding protein hits in the input sequence'
         # Set a variable to store the run statistics, to be added later to
         # the summary_dict
@@ -52,15 +50,19 @@ class Run:
         logging.info('Searching %s' % (os.path.basename(sequence_file)))
         # Search for reads using hmmsearch
         
-        hit_reads, run_stats = self.h.p_search(self.gmf,
+        hit_reads, run_stats = self.h.p_search(
+                                               self.gmf,
                                                self.args,
                                                run_stats,
                                                base,
                                                unpack,
                                                sequence_file,
-                                               self.args.search_method)
+                                               self.args.search_method,
+                                               gpkg
+                                               )
         if not hit_reads:
             return summary_dict, False
+        exit()
         # Align the reads.
         logging.info('Aligning reads to reference package database')
 
@@ -238,7 +240,7 @@ class Run:
              - _                        |_____|
            -                                  |______
             ''' 
-
+        gpkg=GraftMPackage.acquire(self.args.graftm_package)
         readstoplace=False # An extra check to make sure there are reads to place with
         # Set up a dictionary that will record stats as the pipeline is running
         summary_table = {'euks_checked'      : self.args.euk_check,
@@ -320,7 +322,8 @@ class Run:
                                                                              summary_table,
                                                                              read_file,
                                                                              direction,
-                                                                             unpack)
+                                                                             unpack,
+                                                                             gpkg)
                 # Or the DNA pipeline
                 elif self.args.type == 'D':
                     logging.debug("Running nucleotide pipeline")

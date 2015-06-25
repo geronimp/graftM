@@ -18,7 +18,7 @@ from biom.util import biom_open
 from _struct import unpack
 
 class Run:
-    ### Functions that make up pipelines in GraftM
+    _MIN_VERBOSITY_FOR_ART = 3 # with 2 then, only errors are printed
 
     def __init__(self, args):
         self.args = args
@@ -221,7 +221,7 @@ class Run:
         # The Graft pipeline:
         # Searches for reads using hmmer, and places them in phylogenetic
         # trees to derive a community structure.
-        if self.args.verbosity > 1:
+        if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART:
             print '''
                                 GRAFT
         
@@ -236,6 +236,11 @@ class Run:
              - _                        |_____|
            -                                  |______
             '''
+        
+        if self.args.merge_reads and not hasattr(self.args, 'reverse'):
+            logging.error("--merge requires --reverse to be specified")
+            exit(1)
+        
         readstoplace=False # An extra check to make sure there are reads to place with
         # Set up a dictionary that will record stats as the pipeline is running
         summary_table = {'euks_checked'      : self.args.euk_check,
@@ -363,7 +368,7 @@ class Run:
             self.graft()
 
         elif self.args.subparser_name == 'assemble':
-            if self.args.verbosity > 1: print '''
+            if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART: print '''
                            ASSEMBLE
 
                    Joel Boyd, Ben Woodcroft
@@ -378,7 +383,7 @@ class Run:
             self.tg.main(self.args)
 
         elif self.args.subparser_name == 'extract':
-            if self.args.verbosity > 1: print '''
+            if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART: print '''
                            EXTRACT
 
                    Joel Boyd, Ben Woodcroft
@@ -397,7 +402,7 @@ class Run:
                 self.e.extract(self.args)
 
         elif self.args.subparser_name == 'create':
-            if self.args.verbosity > 1: print '''
+            if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART: print '''
                             CREATE
 
                    Joel Boyd, Ben Woodcroft

@@ -24,7 +24,11 @@ class UnpackRawReads:
             raise Exception("Unable to guess file format of sequence file: %s" % sequence_file_path)
     
     def format(self):
-        return self.guess_sequence_input_file_format(self.read_file)    
+        return self.guess_sequence_input_file_format(self.read_file)
+    
+    def is_zcattable(self):
+        return self.guess_sequence_input_file_format(self.read_file) in \
+            (FORMAT_FASTA_GZ, FORMAT_FASTQ_GZ)
     
     def command_line(self):
         '''Return a string to open read files with'''

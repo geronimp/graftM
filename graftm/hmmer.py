@@ -10,9 +10,10 @@ from collections import OrderedDict
 
 from graftm.housekeeping import HouseKeeping
 from graftm.hmmsearcher import HmmSearcher, NhmmerSearcher
-from graftm.orfm import OrfM
+from graftm.orfm import OrfM, ZcatOrfM
 from graftm.unpack_sequences import UnpackRawReads
 from graftm.readHmmTable import HMMreader
+from _struct import unpack
 FORMAT_FASTA    = "FORMAT_FASTA"
 FORMAT_FASTQ    = "FORMAT_FASTQ"
 FORMAT_FASTQ_GZ = "FORMAT_FASTQ_GZ"
@@ -162,8 +163,7 @@ class Hmmer:
         
         # Choose an input to this base command based off the file format found.
         if seq_type == 'nucleotide': # If the input is nucleotide sequence
-            orfm_cmdline = orfm.command_line()
-            input_cmd = '%s %s' % (orfm_cmdline, input_path)
+            input_cmd = orfm.command_line(input_path)
         elif seq_type == 'protein': # If the input is amino acid sequence
             input_cmd=unpack.command_line()
         else:
@@ -589,9 +589,15 @@ class Hmmer:
         '''
         start  = timeit.default_timer() # Start search timer
         
-        orfm   = OrfM(min_orf_length=args.min_orf_length,
-                      restrict_read_length=args.restrict_read_length)
         unpack = UnpackRawReads(raw_reads)
+        if unpack.is_zcattable():
+            clazz = ZcatOrfM
+        else:
+            clazz = OrfM
+        orfm = clazz(min_orf_length=args.min_orf_length,
+                      restrict_read_length=args.restrict_read_length)
+        extracting_orfm = OrfM(min_orf_length=args.min_orf_length,
+                      restrict_read_length=args.restrict_read_length)
 
         hit_table = self.hmmsearch(files.hmmsearch_output_path(base),
                                    raw_reads,
@@ -629,7 +635,7 @@ class Hmmer:
                                          files.orf_output_path(base),
                                          files.orf_hmmsearch_output_path(base),
                                          files.orf_titles_output_path(base),
-                                         orfm,
+                                         extracting_orfm,
                                          files.orf_fasta_output_path(base))
         elif args.input_sequence_type == 'protein':
             hit_orfs = hit_reads

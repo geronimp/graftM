@@ -40,7 +40,7 @@ class Tests(unittest.TestCase):
     def test_hello_world(self):
         with tempdir.TempDir() as tmp:
             with tempdir.TempDir() as tmp2:
-                cmd1 = "%s create --verbosity 1 --alignment %s --taxonomy %s --rerooted_tree %s --output %s" \
+                cmd1 = "%s create --verbosity 5 --alignment %s --taxonomy %s --rerooted_tree %s --output %s" \
                     %(path_to_script,
                       os.path.join(path_to_data,'create','homologs.trimmed.aligned.faa'),
                       os.path.join(path_to_data,'create','homologs.tax2tree.rerooted.decorated.tree-consensus-strings'),

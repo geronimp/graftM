@@ -420,8 +420,19 @@ class Run:
                 if self.args.rerooted_annotated_tree:
                     logging.error("--taxonomy is incompatible with --rerooted_annotated_tree")
                     exit(1)
-            elif not self.args.rerooted_annotated_tree:
-                logging.error("--taxonomy or --rerooted_annotated_tree is required")
+                if self.args.taxtaxtic_taxonomy or self.args.taxtastic_seqinfo:
+                    logging.error("--taxtastic_taxonomy is incompatible with --taxonomy")
+                    exit(1)
+            elif self.args.rerooted_annotated_tree:
+                if self.args.taxtaxtic_taxonomy or self.args.taxtastic_seqinfo:
+                    logging.error("--taxtastic_taxonomy is incompatible with --rerooted_annotated_tree")
+                    exit(1)
+            else:
+                if not self.args.taxtastic_taxonomy and not self.args.taxtastic_seqinfo:
+                    logging.error("--taxonomy, --rerooted_annotated_tree or --taxtastic_taxonomy/--taxtastic_seqinfo is required")
+                    exit(1)
+            if bool(self.args.taxtastic_taxonomy) ^  bool(self.args.taxtastic_seqinfo):
+                logging.error("Both or neither of --taxtastic_taxonomy and --taxtastic_seqinfo must be defined")
                 exit(1)
             self.hk.checkCreatePrerequisites()
 
@@ -431,7 +442,9 @@ class Run:
                           tree_log=self.args.tree_log,
                           prefix=self.args.output,
                           rerooted_annotated_tree=self.args.rerooted_annotated_tree, 
-                          min_aligned_percent=float(self.args.min_aligned_percent)/100
+                          min_aligned_percent=float(self.args.min_aligned_percent)/100,
+                          taxtastic_taxonomy = self.args.taxtastic_taxonomy,
+                          taxtastic_seqinfo = self.args.taxtastic_seqinfo
                           )
 
     

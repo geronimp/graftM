@@ -1,5 +1,4 @@
-from skbio.tree import TreeNode
-from Bio import SeqIO
+import skbio.tree
 
 class TreeCleaner:
     def clean_newick_file_for_fasttree_input(self, tree):
@@ -41,13 +40,24 @@ class TreeCleaner:
         in place.
         
         Assumes the sequences are found in the tree, and that they are all unique.
+        
+        Also removes any internal labels.
         '''
+        # Remove all internal labels because this messes with the pruning
+        # e.g. if there is a named node with no two children where one is deleted
+#         for n in tree.non_tips():
+#             n.name = None
         for s in sequence_names:
-            n = tree.find(s)
+            try:
+                n = tree.find(s.replace('_',' '))
+            except skbio.tree.MissingNodeError:
+                # Just delete it already
+                n = tree.find(s)
             if not n.parent.remove(n):
                 raise Exception("Unexpectedly failed to remove '%s' from the\
                     tree. As a guess, are all the tip names unique?")
-        tree.prune()
+            tree.prune() #call prune() afer each remove as workaround for
+            # https://github.com/biocore/scikit-bio/issues/970
         
         
         

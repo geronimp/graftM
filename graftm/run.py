@@ -420,15 +420,15 @@ class Run:
                 if self.args.rerooted_annotated_tree:
                     logging.error("--taxonomy is incompatible with --rerooted_annotated_tree")
                     exit(1)
-                if self.args.taxtaxtic_taxonomy or self.args.taxtastic_seqinfo:
-                    logging.error("--taxtastic_taxonomy is incompatible with --taxonomy")
+                if self.args.taxtastic_taxonomy or self.args.taxtastic_seqinfo:
+                    logging.error("--taxtastic_taxonomy and --taxtastic_seqinfo are incompatible with --taxonomy")
                     exit(1)
             elif self.args.rerooted_annotated_tree:
-                if self.args.taxtaxtic_taxonomy or self.args.taxtastic_seqinfo:
-                    logging.error("--taxtastic_taxonomy is incompatible with --rerooted_annotated_tree")
+                if self.args.taxtastic_taxonomy or self.args.taxtastic_seqinfo:
+                    logging.error("--taxtastic_taxonomy and --taxtastic_seqinfo are incompatible with --rerooted_annotated_tree")
                     exit(1)
             else:
-                if not self.args.taxtastic_taxonomy and not self.args.taxtastic_seqinfo:
+                if not self.args.taxtastic_taxonomy or not self.args.taxtastic_seqinfo:
                     logging.error("--taxonomy, --rerooted_annotated_tree or --taxtastic_taxonomy/--taxtastic_seqinfo is required")
                     exit(1)
             if bool(self.args.taxtastic_taxonomy) ^  bool(self.args.taxtastic_seqinfo):

@@ -303,7 +303,7 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
             tree = TreeNode.read(open(tre_file))
             removed_sequence_names = []
             for group in deduplicated_arrays:
-                [removed_sequence_names.append(s.name) for s in group[1:]]            
+                [removed_sequence_names.append(s.name) for s in group[1:]]        
             cleaner.remove_sequences(tree, removed_sequence_names)
             
             # Ensure there is nothing amiss now as a user-interace thing

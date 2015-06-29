@@ -156,6 +156,13 @@ manually yourself using a tree editor such as ARB or FigTree.
 Once you have a rerooted newick format tree, rerun graftm create
 specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'%s\'
 
+When rerunning, please use the following flags for the command line to account
+for the fact that some sequences may have been removed during the deduplication
+process.
+
+graftM create --taxonomy '%s' --alignment '%s' aln_file
+
+(plus other relevant arguments).
 ''' % tre)
                 exit(2)
         return refpkg

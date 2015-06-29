@@ -38,7 +38,16 @@ class TreeCleaner:
             
     def remove_sequences(self, tree, sequence_names):
         '''Remove sequences with in the given sequence_names array from the tree
+        in place.
+        
+        Assumes the sequences are found in the tree, and that they are all unique.
         '''
+        for s in sequence_names:
+            n = tree.find(s)
+            if not n.parent.remove(n):
+                raise Exception("Unexpectedly failed to remove '%s' from the\
+                    tree. As a guess, are all the tip names unique?")
+        tree.prune()
         
         
         

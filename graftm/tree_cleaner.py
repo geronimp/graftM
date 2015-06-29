@@ -19,8 +19,6 @@ class TreeCleaner:
         for t in tree.tips():
             # replace spaces with underscores as skbio interprets unquoted underscores
             # as spaces, where fasttree doesn't (I think)
-            if t.name is None:
-                import IPython; IPython.embed()
             name = t.name.replace(' ','_')
             if name in tip_names_count:
                 raise Exception("Duplicate tip name found in tree: '%s'" % name)

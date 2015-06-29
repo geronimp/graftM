@@ -40,13 +40,7 @@ class TreeCleaner:
         in place.
         
         Assumes the sequences are found in the tree, and that they are all unique.
-        
-        Also removes any internal labels.
         '''
-        # Remove all internal labels because this messes with the pruning
-        # e.g. if there is a named node with no two children where one is deleted
-#         for n in tree.non_tips():
-#             n.name = None
         for s in sequence_names:
             try:
                 n = tree.find(s.replace('_',' '))

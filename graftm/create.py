@@ -213,6 +213,8 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         prefix = kwargs.pop('prefix', None)
         rerooted_annotated_tree = kwargs.pop('rerooted_annotated_tree', None)
         min_aligned_percent = kwargs.pop('min_aligned_percent',0.0)
+        taxtastic_taxonomy = kwargs.pop('taxtastic_taxonomy', None)
+        taxtastic_seqinfo = kwargs.pop('taxtastic_seqinfo', None)
         if len(kwargs) > 0:
             raise Exception("Unexpected arguments detected: %s" % kwargs)
         
@@ -244,12 +246,28 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         elif taxonomy:
             logging.info("Building seqinfo and taxonomy file from input taxonomy")
             taxonomy_definition = gtns.read_taxonomy_file(taxonomy)
+        elif taxtastic_seqinfo and taxtastic_taxonomy:
+            logging.info("Reading taxonomy from taxtastic taxonomy and seqinfo files")
+            taxonomy_definition = gtns.read_taxtastic_taxonomy_and_seqinfo\
+                (open(taxtastic_taxonomy), 
+                 open(taxtastic_seqinfo))
         else:
             raise Exception("Taxonomy is required somehow e.g. by --taxonomy or --rerooted_annotated_tree")
         
-        # Deduplicate sequences - pplacer cannot handle these
+        # Make sure each sequence has been assigned a taxonomy:
         seqio = SequenceIO()
         aligned_sequence_objects = seqio.read_fasta_file(output_alignment)
+        unannotated = []
+        for s in aligned_sequence_objects:
+            if s.name not in taxonomy_definition:
+                unannotated.append(s.name)
+        if len(unannotated) > 0:
+            for s in unannotated:
+                logging.error("Unable to find sequence '%s' in the taxonomy definition" % s)
+            raise Exception("All sequences must be assigned a taxonomy, cannot continue")
+        
+        # Deduplicate sequences - pplacer cannot handle these
+        logging.info("Deduplicating sequences")
         dedup = Deduplicator()
         deduplicated_arrays = dedup.deduplicate(aligned_sequence_objects)
         deduplicated_taxonomy = dedup.lca_taxonomy(deduplicated_arrays, taxonomy_definition)

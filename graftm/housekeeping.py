@@ -34,9 +34,7 @@ class HouseKeeping:
         '''Guess the type of input sequence provided to graftM (i.e. nucleotide
         or amino acid) and return'''
         
-        # Define expected residues for each sequence type
-        aas = set(['P','V','L','I','M','F','Y','W','H','K','R','Q','N','E','D','S'])
-        nas = set(['A', 'T', 'G', 'C', 'N', 'U'])
+
         
         # If its Gzipped and fastq make a small sample of the sequence to be 
         # read
@@ -44,19 +42,38 @@ class HouseKeeping:
         with tempfile.NamedTemporaryFile(suffix='.fa') as tmp:
             cmd='%s | head -n 2 > %s' % (unpack.command_line(), tmp.name)
             subprocess.check_call(cmd, 
-                                  shell=True,  
+                                  shell=True,
                                   preexec_fn=lambda:signal(SIGPIPE, SIG_DFL)
                                   )
             tmp.flush()
-            head = [next(tmp).rstrip() for x in xrange(2)]
-            for nucl in set(head[1]):
-                if nucl not in nas and nucl in aas:
-                    return 'protein'
-                elif nucl not in nas and nucl not in aas:
-                    raise Exception(logging.error('Encountered unexpected character when attempting to guess sequence type: %s' % (nucl)))
-                else:
-                    continue
+            head = [next(tmp).rstrip() for _ in xrange(2)]
+            return self._guess_sequence_type_from_string(head[1])
+        
+    def _guess_sequence_type_from_string(self, seq):
+        '''Return 'protein' if there is >10% amino acid residues in the 
+        (string) seq parameter, else 'nucleotide'. Raise Exception if a
+        non-standard character is encountered'''
+        # Define expected residues for each sequence type
+        aas = set(['P','V','L','I','M','F','Y','W','H','K','R','Q','N','E','D','S'])
+        nas = set(['A', 'T', 'G', 'C', 'N', 'U'])
+        
+        num_nucleotide = 0
+        num_protein = 0
+        count = 0
+        for residue in seq:
+            if residue in nas:
+                num_nucleotide += 1
+            elif residue in aas:
+                num_protein += 1
+            else:
+                raise Exception(logging.error('Encountered unexpected character when attempting to guess sequence type: %s' % (residue)))
+            count += 1
+            if count >300: break
+        if float(num_protein) / (num_protein+num_nucleotide) > 0.1:
+            return 'protein'
+        else:
             return 'nucleotide'
+            
 
     def set_euk_hmm(self, args):
         'Set the hmm used by graftM to cross check for euks.'

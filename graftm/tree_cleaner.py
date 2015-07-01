@@ -40,6 +40,9 @@ class TreeCleaner:
         in place.
         
         Assumes the sequences are found in the tree, and that they are all unique.
+        
+        Potentially this could be better implemented using TreeNode.shear,
+        but there are underscores to deal with (or not)
         '''
         for s in sequence_names:
             try:

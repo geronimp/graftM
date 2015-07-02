@@ -3,6 +3,7 @@ import os
 import json
 import timeit
 import logging
+import time
 
 from Bio import SeqIO
 
@@ -10,6 +11,15 @@ from graftm.classify import Classify
 from graftm.assembler import TaxoGroup
 from graftm.housekeeping import HouseKeeping
 
+def timeit(method):
+
+    def timed(*args, **kw):
+        ts = time.time()
+        result = method(*args, **kw)
+        te = time.time()
+        return round(te-ts, 2), result
+
+    return timed
 
 class Pplacer:
     ### Contains function related to processing alignment files to jplace files
@@ -73,7 +83,8 @@ class Pplacer:
                 json.dump(output, output_path, ensure_ascii=False)
             jplace_path_list.append(alias_hash[alias]['output_path'])
         return jplace_path_list
-
+    
+    @timeit
     def place(self, reverse_pipe, seqs_list, resolve_placements, files, args):
         '''
         placement - This is the placement pipeline in GraftM, in aligned reads 

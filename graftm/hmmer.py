@@ -6,6 +6,7 @@ import itertools
 import logging
 import tempfile
 import regex
+import time 
 
 from Bio import SeqIO
 from collections import OrderedDict
@@ -23,6 +24,16 @@ FORMAT_FASTA    = "FORMAT_FASTA"
 FORMAT_FASTQ    = "FORMAT_FASTQ"
 FORMAT_FASTQ_GZ = "FORMAT_FASTQ_GZ"
 FORMAT_FASTA_GZ = "FORMAT_FASTA_GZ"
+
+def timeit(method):
+
+    def timed(*args, **kw):
+        ts = time.time()
+        result = method(*args, **kw)
+        te = time.time()
+        return round(te-ts, 2), result
+
+    return timed
 
 class Hmmer:
 
@@ -52,7 +63,7 @@ class Hmmer:
         rev_file      = tempfile.NamedTemporaryFile(prefix='rev_file', suffix='.fa').name
         for_conv_file = tempfile.NamedTemporaryFile(prefix='for_conv_file', suffix='.fa').name
         rev_conv_file = tempfile.NamedTemporaryFile(prefix='rev_conv_file', suffix='.fa').name
-        
+        print directions.values()
         # Align input reads to a specified hmm.
         if any(directions.values()): # Any that are in the reverse direction would be True
             reverse = []
@@ -273,7 +284,7 @@ class Hmmer:
         
         hmmtables=[HMMSearchResult.import_from_nhmmer_table(x) for x in output_table_list]
         
-        return hmmtables
+        return hmmtables, output_table_list
         
     def hmmtable_reader(self, hmmtable):
         hash = {}
@@ -327,7 +338,7 @@ class Hmmer:
                                                                      min([x[0]['bit'] for x in  hash.values()])))            
         return hash
         
-    def _check_euk_contamination(self, hmm_hit_tables, run_stats):
+    def _check_euk_contamination(self, hmm_hit_tables):
         '''
         check_euk_contamination - Check output HMM tables hits reads that hit 
                                   the 18S HMM with a higher bit score. 
@@ -343,10 +354,10 @@ class Hmmer:
         
         Returns
         -------
-        run_stats : dict
-            Updated form of the above.
+        euk_reads : array
+            list of the names of all reads deemed to be eukaryotic
         '''
-        euk_hit_table=HMMreader(hmm_hit_tables.pop(-1))
+        euk_hit_table              = HMMreader(hmm_hit_tables.pop(-1))
         other_hit_tables           = [HMMreader(x) for x in hmm_hit_tables]
         crossover                  = []
         reads_unique_to_eukaryotes = []   
@@ -372,11 +383,9 @@ class Hmmer:
         else:
             logging.info("Found %s read(s) that may be eukaryotic" % len(reads_with_better_euk_hit + reads_unique_to_eukaryotes))
         
-        run_stats['euk_uniq'] = len(reads_unique_to_eukaryotes)
-        run_stats['euk_contamination'] = len(reads_with_better_euk_hit)
         euk_reads=reads_with_better_euk_hit + reads_unique_to_eukaryotes
         
-        return euk_reads, run_stats
+        return euk_reads
 
 
 
@@ -389,14 +398,14 @@ class Hmmer:
         Parameters
         ----------
         output_path : str
-        Path of the desired output file
+            Path of the desired output file
         input_path : str
-        Path to a file containing read IDs, one per line.
+            Path to a file containing read IDs, one per line.
         raw_sequences_path : str
-        Path to the raw sequences
+            Path to the raw sequences
         input_file_format : var
-        Variable, either FORMAT_FASTA_GZ, FORMAT_FASTQ_GZ, FORMAT_FASTQ or
-        FORMAT_FASTA, denoting the format of the input sequence
+            Variable, either FORMAT_FASTA_GZ, FORMAT_FASTQ_GZ, FORMAT_FASTQ or
+            FORMAT_FASTA, denoting the format of the input sequence
         '''  
         def removeOverlaps(item): # TODO: Not used for the time being - need a more robust method
             for a, b in itertools.combinations(item, 2):
@@ -537,9 +546,11 @@ class Hmmer:
         cmd = 'fxtract -H -X -f %s %s > %s' % (orf_titles_path, raw_orf_path, orf_out_path)
         logging.debug("Running command: %s" % cmd)
         subprocess.check_call(cmd, shell=True)
-        
+    
+    @timeit
     def p_search(self, files, args, base, unpack, raw_reads, search_method, gpkg):
-        '''Protein search pipeline - The searching step for the protein 
+        '''
+        Protein search pipeline - The searching step for the protein 
         pipeline, where hits are identified in the input reads through 
         searches with hmmer or diamond.
         
@@ -589,6 +600,7 @@ class Hmmer:
                                            )
             for result in search_result:
                 hit_readnames=[x[0] for x in result.each([SequenceSearchResult.QUERY_ID_FIELD])]
+        
         elif search_method == 'diamond':
             #run diamond
             search_result =  Diamond(
@@ -607,7 +619,6 @@ class Hmmer:
                 hit_readnames=[x[0] for x in result.each([SequenceSearchResult.QUERY_ID_FIELD])]
         else:
             raise Exception("Programming error: unexpected search_method %s" % search_method)
-
         with tempfile.NamedTemporaryFile(prefix='graftm_readnames') as readnames:
             orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
             for read in hit_readnames:
@@ -625,7 +636,7 @@ class Hmmer:
                                         unpack.format()
                                         )
         if not hit_readnames:
-            return None, None
+            return None, None, None
         
         if args.input_sequence_type == 'nucleotide':
             # Extract the orfs of these reads that hit the original search
@@ -649,10 +660,13 @@ class Hmmer:
         #    run_stats['reads'] = read_stats
         
         # Extract the hits form the original raw read file
-        return hit_reads_fasta, search_result
+        hit_read_counts=[0,len(hit_readnames)]
+        return hit_reads_fasta, search_result, hit_read_counts
     
+    @timeit
     def d_search(self, files, args, base, unpack, raw_reads, euk_check, search_method, gpkg):
-        '''Nucleotide search pipeline - The searching step for the nucleotide
+        '''
+        Nucleotide search pipeline - The searching step for the nucleotide
         pipeline, where hits are identified in the input reads through nhmmer 
         searches
         
@@ -690,10 +704,12 @@ class Hmmer:
         
         if search_method == "hmmsearch":
             # First search the reads using the HMM
-            search_result = self.nhmmer(hmmsearch_output_table,
-                                        unpack,
-                                        args.threads,
-                                        args.eval)
+            search_result, table_list = self.nhmmer(
+                                                    hmmsearch_output_table,
+                                                    unpack,
+                                                    args.threads,
+                                                    args.eval
+                                                    )
             for result in search_result:
                 hit_readnames=[x[0] for x in result.each([SequenceSearchResult.QUERY_ID_FIELD])]
             
@@ -702,9 +718,17 @@ class Hmmer:
             raise Exception("Diamond searches not supported for nucelotide sequences yet")
         
         with tempfile.NamedTemporaryFile(prefix='graftm_readnames') as readnames:
-            [readnames.write(read+'\n') for read in hit_readnames]
+            if euk_check:
+                euk_reads  = self._check_euk_contamination(table_list)
+                euk_reads  = set(euk_reads)
+                prok_reads = set([hit_readnames for read in hit_readnames\
+                                  if read not in euk_reads])
+                for read in prok_reads: readnames.write(read+'\n')
+                hit_read_count=[len(euk_reads), len(prok_reads)]
+            else:
+                [readnames.write(read+'\n') for read in hit_readnames]
+                hit_read_count=[0,len(hit_readnames)]
             readnames.flush()
-            
             self._extract_from_raw_reads(
                                         hit_reads_fasta,
                                         readnames.name,
@@ -714,11 +738,13 @@ class Hmmer:
         if not hit_readnames:
             return None, None
         else:
-            return hit_reads_fasta, search_result
-
+            return hit_reads_fasta, search_result, hit_read_count
+    
+    @timeit
     def align(self, input_path, output_path, directions):
         '''align - Takes input path to fasta of unlaigned reads, aligns them to
         a HMM, and returns the aligned reads in the output path
+        
         Parameters
         ----------
         input_path : str
@@ -726,6 +752,7 @@ class Hmmer:
         reverse_direction : dict
             A dictionary of read names, with the entries being the compliment 
             strand of the read (True = forward, False = reverse)
+            
         Returns
         -------
         N/A - output alignment path known.

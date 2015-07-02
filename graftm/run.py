@@ -51,53 +51,8 @@ class Run:
                        [])
         direction_dict={key: item for key, item in zip(directions[0::2], directions[1::2])}
         return direction_dict
-        
-    def protein_pipeline(self, base, sequence_file, unpack, gpkg):
-        '''
-        protein_pipeline - The main pipeline for GraftM searching for 
-                           DNA sequence
-        
-        Parameters
-        ----------
-        base : str
-            Base name of the file being searched. Used for creating file names
-        sequence_file : str
-            The path to the input sequences
-        unpack : obj
-            Object that builds the commad chunk for unpacking the raw sequences.
-            First guesses file format, and unpacks appropriately. Calls 
-            command_line to construct final command line string.
-        gpkg : obj
-            object with parameters set. graftM package object called with graftm_package.py
-        
-        Returns
-        -------
-        hit_aligned_reads : str
-            Path to hit reads that are aligned to the alignemnt HMM and ready
-            to be placed into the tree
-        '''
 
-
-        # Tell user what is being searched with what
-        logging.info('Searching %s' % (os.path.basename(sequence_file)))
-        
-        # Search for reads using hmmsearch
-
-        if not hit_reads:
-            return False
-        
-        # Align the reads.
-        logging.info('Aligning reads to reference package database')
-        hit_aligned_reads = self.gmf.aligned_fasta_output_path(base)
-        self.h.align(
-                     hit_reads,
-                     hit_aligned_reads,
-                     self._get_sequence_directions(search_result)
-                     )
-
-        return hit_aligned_reads
-
-    def summarise(self, base_list, trusted_placements, reverse_pipe):
+    def summarise(self, base_list, trusted_placements, reverse_pipe, times, hit_read_count_list):
         '''
         summarise - 
         
@@ -110,7 +65,6 @@ class Run:
         Returns
         -------
         '''
-    
         # Summary steps.
         placements_list = []
         for base in base_list:
@@ -143,7 +97,10 @@ class Run:
         self.s.write_krona_plot(base_list, placements_list, self.gmf.krona_output_path())
         
         # Basic statistics
-        #self.s.build_basic_statistics(summary_dict, self.gmf.basic_stats_path(), self.args.type)
+        placed_reads=[len(trusted_placements[base]) for base in base_list]
+        import IPython ; IPython.embed()
+        self.s.build_basic_statistics(times, hit_read_count_list, placed_reads, \
+                                      base_list, self.gmf.basic_stats_path())
         
         # Delete unnecessary files
         logging.info('Cleaning up')
@@ -214,7 +171,7 @@ class Run:
         base_list      = []
         seqs_list      = []
         search_results = []
-        
+        hit_read_count_list = []
         # Set the output directory if not specified and create that directory
         logging.debug('Creating working directory: %s' % self.args.output_directory)
         self.hk.make_working_directory(self.args.output_directory,
@@ -272,39 +229,45 @@ class Run:
                                            direction)
                 
                 if self.args.type == PIPELINE_PROTEIN:
-                    logging.debug("Running protein pipeline")                    
-                    hit_reads, search_result = self.h.p_search(
-                                                               self.gmf,
-                                                               self.args,
-                                                               base,
-                                                               unpack,
-                                                               read_file,
-                                                               self.args.search_method,
-                                                               gpkg
-                                                               )
+                    logging.debug("Running protein pipeline")
+                    search_time, result = self.h.p_search(
+                                                          self.gmf,
+                                                          self.args,
+                                                          base,
+                                                          unpack,
+                                                          read_file,
+                                                          self.args.search_method,
+                                                          gpkg
+                                                          )
+                    hit_reads     = result[0]
+                    search_result = result[1]
+                    hit_read_count = result[2]
                     
                 # Or the DNA pipeline    
                 elif self.args.type == PIPELINE_NUCLEOTIDE:
                     logging.debug("Running nucleotide pipeline")                   
-                    hit_reads, search_result = self.h.d_search(
-                                                              self.gmf,
-                                                              self.args,
-                                                              base,
-                                                              unpack,
-                                                              read_file,
-                                                              self.args.euk_check,
-                                                              self.args.search_method,
-                                                              gpkg
-                                                              )
+                    search_time, result = self.h.d_search(
+                                                          self.gmf,
+                                                          self.args,
+                                                          base,
+                                                          unpack,
+                                                          read_file,
+                                                          self.args.euk_check,
+                                                          self.args.search_method,
+                                                          gpkg
+                                                          )
+                    hit_reads      = result[0]
+                    search_result  = result[1]
+                    hit_read_count = result[2]
                 
                 
                 logging.info('Aligning reads to reference package database')
                 hit_aligned_reads = self.gmf.aligned_fasta_output_path(base)
-                self.h.align(
-                             hit_reads,
-                             hit_aligned_reads,
-                             self._get_sequence_directions(search_result)
-                             )
+                aln_time = self.h.align(
+                                        hit_reads,
+                                        hit_aligned_reads,
+                                        self._get_sequence_directions(search_result)
+                                        )
                 
                 if not hit_aligned_reads:
                     continue
@@ -312,7 +275,7 @@ class Run:
                     base_list.append(base)
                     seqs_list.append(hit_aligned_reads)
                     search_results.append(search_result)
-                    
+                    hit_read_count_list.append(hit_read_count)
                     
         if self.args.merge_reads:
             merged_output=[GraftMFiles(base, self.args.output_directory, False).aligned_fasta_output_path(base) \
@@ -334,13 +297,16 @@ class Run:
                                self.args.output_directory,
                                False)
         logging.info("Placing reads into phylogenetic tree")
-        placements=self.p.place(REVERSE_PIPE,
-                                 seqs_list,
-                                 self.args.resolve_placements,
-                                 self.gmf,
-                                 self.args)
+        place_time, placements=self.p.place(
+                                            REVERSE_PIPE,
+                                            seqs_list,
+                                            self.args.resolve_placements,
+                                            self.gmf,
+                                            self.args
+                                            )
         
-        self.summarise(base_list, placements, REVERSE_PIPE)
+        self.summarise(base_list, placements, REVERSE_PIPE, \
+                       [search_time,aln_time[0],place_time], hit_read_count_list)
 
 
     def main(self):

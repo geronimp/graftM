@@ -206,9 +206,11 @@ class Run:
              - _                        |_____|
            -                                  |______
             ''' 
+        if hasattr(self.args, "graftm_package"):
+            gpkg = GraftMPackage.acquire(self.args.graftm_package)
+        else:
+            gpkg = None
         REVERSE_PIPE   = (True if self.args.reverse else False)
-        pair_direction = ['forward', 'reverse']
-        gpkg           = GraftMPackage.acquire(self.args.graftm_package)
         base_list      = []
         seqs_list      = []
         search_results = []
@@ -229,6 +231,7 @@ class Run:
         for pair in self.sequence_pair_list:
             # Set the basename, and make an entry to the summary table.
             base = os.path.basename(pair[0]).split('.')[0]
+            pair_direction = ['forward', 'reverse']
             logging.info("Working on %s" % base)
             
             # Guess the sequence file type, if not already specified to GraftM
@@ -317,8 +320,9 @@ class Run:
             self.h.merge_forev_aln(seqs_list, merged_output)
             seqs_list=merged_output
             REVERSE_PIPE = False
-        else:
+        elif REVERSE_PIPE:
             base_list=base_list[0::2]
+
         # Leave the pipeline if search only was specified
         if self.args.search_and_align_only:
             logging.info('Stopping before placement\n')

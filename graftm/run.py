@@ -97,61 +97,59 @@ class Run:
 
         return hit_aligned_reads
 
-    def summarise(self, summary_dict):
-
-        # Concatenate alignment files, place in tree, split output guppy
-        # and .jplace file for the output
-
+    def summarise(self, base_list, trusted_placements, reverse_pipe):
+        '''
+        summarise - 
+        
+        Parameters
+        ----------
+        base_list : list
+        trusted_placements : dict
+        reverse_pipe : bool
+        
+        Returns
+        -------
+        '''
+    
         # Summary steps.
-        start           = timeit.default_timer()
         placements_list = []
-        for base in summary_dict['base_list']:
+        for base in base_list:
             # First assign the hash that contains all of the trusted placements
             # to a variable to it can be passed to otu_builder, to be written
             # to a file. :)
-            if summary_dict['reverse_pipe']:
-                placements = summary_dict[base]['comparison_hash']['trusted_placements']
-                summary_dict[base]['read_length'] = (summary_dict[base]['forward']['read_length'] + summary_dict[base]['reverse']['read_length'])/2
-            elif not summary_dict['reverse_pipe']:
-                placements = summary_dict[base]['trusted_placements']
-            else:
-                raise Exception('Programming Error: Assigning placements hash')
-                
+            placements = trusted_placements[base]
             self.s.readTax(placements, GraftMFiles(base, self.args.output_directory, False).read_tax_output_path(base))
             placements_list.append(placements)
-
+        
+        # TODO: repair if there is demand
         # Generate coverage table
-        logging.info('Building coverage table for %s' % base)
+        #logging.info('Building coverage table for %s' % base)
         #self.s.coverage_of_hmm(self.args.aln_hmm_file,
         #                         self.gmf.summary_table_output_path(base),
         #                         self.gmf.coverage_table_path(base),
         #                         summary_dict[base]['read_length'])
-        sample_names = summary_dict['base_list']
+        
         logging.info('Writing summary table')
         with open(self.gmf.combined_summary_table_output_path(), 'w') as f:
-            self.s.write_tabular_otu_table(sample_names, placements_list, f)
+            self.s.write_tabular_otu_table(base_list, placements_list, f)
             
         logging.info('Writing biom file')
         with biom_open(self.gmf.combined_biom_output_path(), 'w') as f:
-            biom_successful = self.s.write_biom(sample_names, placements_list, f)
+            biom_successful = self.s.write_biom(base_list, placements_list, f)
         if not biom_successful:
             os.remove(self.gmf.combined_biom_output_path())
         
         logging.info('Building summary krona plot')
-        self.s.write_krona_plot(sample_names, placements_list, self.gmf.krona_output_path())
+        self.s.write_krona_plot(base_list, placements_list, self.gmf.krona_output_path())
         
-        stop = timeit.default_timer()
-        summary_dict['summary_t'] = str(int(round((stop - start), 0)) )
-
-        # Compile basic run statistics if they are wanted
-        summary_dict['stop_all'] = timeit.default_timer()
-        summary_dict['all_t'] = str(int(round((summary_dict['stop_all'] - summary_dict['start_all']), 0)) )
-        self.s.build_basic_statistics(summary_dict, self.gmf.basic_stats_path(), self.args.type)
+        # Basic statistics
+        #self.s.build_basic_statistics(summary_dict, self.gmf.basic_stats_path(), self.args.type)
+        
         # Delete unnecessary files
         logging.info('Cleaning up')
-        for base in summary_dict['base_list']:
+        for base in base_list:
             directions = ['forward', 'reverse']
-            if summary_dict['reverse_pipe']:
+            if reverse_pipe:
                 for i in range(0,2):
                     self.gmf = GraftMFiles(base, self.args.output_directory, directions[i])
                     self.hk.delete([self.gmf.for_aln_path(base),
@@ -169,7 +167,7 @@ class Run:
                                     self.gmf.comb_aln_fa(),
                                     self.gmf.output_for_path(base),
                                     self.gmf.output_rev_path(base)])
-            elif not summary_dict['reverse_pipe']:
+            else:
                 self.gmf = GraftMFiles(base, self.args.output_directory, False)
                 self.hk.delete([self.gmf.for_aln_path(base),
                                 self.gmf.rev_aln_path(base),
@@ -319,7 +317,8 @@ class Run:
             self.h.merge_forev_aln(seqs_list, merged_output)
             seqs_list=merged_output
             REVERSE_PIPE = False
-       
+        else:
+            base_list=base_list[0::2]
         # Leave the pipeline if search only was specified
         if self.args.search_and_align_only:
             logging.info('Stopping before placement\n')
@@ -337,9 +336,7 @@ class Run:
                                  self.gmf,
                                  self.args)
         
-        print 'stop here'
-        exit()
-        self.summarise(summary_table)
+        self.summarise(base_list, placements, REVERSE_PIPE)
 
 
     def main(self):

@@ -111,7 +111,6 @@ class Pplacer:
         jplace = self.pplacer(files.jplace_output_path(), args.output_directory, files.comb_aln_fa(), args.threads)
         logging.info("Placements finished")
 
-
         # Split the jplace file
         self.jplace_split(jplace, alias_hash)
         
@@ -133,9 +132,9 @@ class Pplacer:
         # If the reverse pipe has been specified, run the comparisons between the two pipelines. If not then just return.
         
         for idx, file in enumerate(seqs_list):
-            base_file=os.path.basename(file)
+            
             if reverse_pipe:
-             
+                base_file=os.path.basename(file).replace('_forward_hits.aln.fa', '')
                 forward_gup=classifications.pop(sorted(classifications.keys())[0]) 
                 reverse_gup=classifications.pop(sorted(classifications.keys())[0])
                 seqs_list.pop(idx+1)
@@ -154,6 +153,7 @@ class Pplacer:
                 trusted_placements[base_file]=placements_hash['trusted_placements']
                 
             else: # Set the trusted placements as
+                base_file=os.path.basename(file).replace('_hits.aln.fa', '')
                 trusted_placements[base_file]={}
                 for read, entry in classifications[str(idx)].iteritems():
                     trusted_placements[base_file][read] = entry['placement']

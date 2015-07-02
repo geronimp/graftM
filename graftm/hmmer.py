@@ -60,10 +60,16 @@ class Hmmer:
             records = list(SeqIO.parse(open(input_path), 'fasta'))
             
             # Split the reads into reverse and forward lists
+            orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
             for record in records:
-                if directions[record.id] == False:
+                regex_match = orfm_regex.match(record.id)
+                if regex_match:
+                    read_id=regex_match.groups(0)[0]
+                else:
+                    read_id=record.id
+                if directions[read_id] == False:
                     forward.append(record)
-                elif directions[record.id] == True:
+                elif directions[read_id] == True:
                     reverse.append(record)
                 else:
                     raise Exception(logging.error('Programming error: hmmalign'))
@@ -71,9 +77,8 @@ class Hmmer:
             
             logging.debug("Found %i forward compliment reads" % len(forward))
             logging.debug("Found %i reverse compliment reads" % len(reverse))
+            
             # Write reverse complement and forward reads to files
-            
-            
             with open(for_file, 'w') as for_aln:
                 logging.debug("Writing forward compliment reads to %s" % for_file)
                 for record in forward:

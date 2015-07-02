@@ -107,13 +107,13 @@ class HouseKeeping:
                 exit(1)
             
             self._check_file_existence(args.forward)
-            if hasattr(args, 'reverse'):
+            if args.reverse:
                 self._check_file_existence(args.reverse)
                     
             # Determine the File format based on the suffix
             
             sequence_file_list = []
-            if hasattr(args, 'reverse'):
+            if args.reverse:
                 if len(args.forward) != len(args.reverse):
                     logging.error('Confusing input. There appears to be different numbers of forward and reverse files specified')
                 for i, forward_file in enumerate(args.forward):

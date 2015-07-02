@@ -234,8 +234,26 @@ class Hmmer:
                         continue
                     
     def nhmmer(self, output_path, unpack, threads, eval):
-        ## Run a nhmmer search on input_path file and return the name of
-        ## resultant output table. Keep log of command.
+        '''
+        nhmmer - Search input path using nhmmer
+        
+        Parameters
+        ----------
+        output_path : str
+            A string containing the path to the input sequences
+        unpack : obj
+            An object with parameters set. Can be called using unpack.command_line()
+            to acquire the bash string to output the sequences to STDOUT.
+        threads : str
+            Number of threads to run. For compiling command line.
+        eval : str
+            evalue to use. For compiling commmand line.
+        
+        Returns
+        -------
+        output_table_list : array
+            Includes the name of the output domtblout table given by hmmer   
+        '''
         logging.debug("Using %i HMMs to search" % (len(self.search_hmm)))
         output_table_list = []
         if len(self.search_hmm) > 1:
@@ -248,11 +266,13 @@ class Hmmer:
             raise Exception("Programming error: Expected 1 or more HMMs")
         input_pipe=unpack.command_line()
         
-        searcher = NhmmerSearcher(threads, extra_args=eval)
+        searcher = NhmmerSearcher(threads, extra_args='-E %s' % eval)
         searcher.hmmsearch(input_pipe, self.search_hmm, output_table_list)
         
-        return output_table_list
-
+        hmmtables=[HMMSearchResult.import_from_nhmmer_table(x) for x in output_table_list]
+        
+        return hmmtables
+        
     def hmmtable_reader(self, hmmtable):
         hash = {}
         seen = {}
@@ -305,7 +325,7 @@ class Hmmer:
                                                                      min([x[0]['bit'] for x in  hash.values()])))            
         return hash
         
-    def __check_euk_contamination(self, hmm_hit_tables, run_stats):
+    def _check_euk_contamination(self, hmm_hit_tables, run_stats):
         '''
         check_euk_contamination - Check output HMM tables hits reads that hit 
                                   the 18S HMM with a higher bit score. 
@@ -356,47 +376,7 @@ class Hmmer:
         
         return euk_reads, run_stats
 
-    def csv_to_titles(self, output_path, input_path, run_stats, euk_check=False, euk_reads=[]):
-        if euk_check:
-            logging.info("Checking for Eukaryotic contamination")
-            euk_reads, run_stats = self.__check_euk_contamination(
-                                                    input_path,
-                                                    run_stats
-                                                    )
-        
-        # process hmmsearch/nhmmer results into a list of titles to 
-        # <base_filename>_readnames.txt
-        run_stats['reads'] = {key:item for key, item in \
-                              self.hmmtable_reader(input_path).iteritems() \
-                              if key not in euk_reads}
-        count=sum([len(x) for x in run_stats['reads'].values()])
-        
-        # See if there are any reads in there reverse direction. 
-        # Store True if so for later reference
-        try:
-            if any([x for x in sum(run_stats['reads'].values(), []) \
-                    if x['direction'] =='-']):
-                run_stats['rev_true'] = True
-            else:
-                run_stats['rev_true'] = False
-        except KeyError:
-            run_stats['rev_true'] = False
-        if count > 0: # Return if there weren't any reads found
-            logging.info('%s read(s) found' % (count))
-        else: # Otherwise, report the number of reads
-            logging.info('%s reads found, cannot continue with no information' % (len(run_stats['reads'].keys())))
-            return run_stats, False
-        
-        # And write the read names to output
-        orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
-        with open(output_path, 'w') as output_file:
-            for record in run_stats['reads'].keys():
-                regex_match = orfm_regex.match(record)
-                if regex_match is not None:
-                    output_file.write(regex_match.groups(0)[0]+'\n')
-                if regex_match is None:
-                    output_file.write(record+'\n')
-        return run_stats, output_path
+
 
     def _extract_from_raw_reads(self, output_path, input_path, raw_sequences_path, input_file_format):
         '''
@@ -585,13 +565,6 @@ class Hmmer:
         hit_orfs : str
             The output fasta file of reads that hit 
             
-        Raises
-        ------
-        N/A
-        
-        Examples
-        --------
-        N/A
         '''
         
         # Define outputs
@@ -633,24 +606,34 @@ class Hmmer:
         else:
             raise Exception("Programming error: unexpected search_method %s" % search_method)
 
-        with tempfile.NamedTemporaryFile(prefix='graftm_readnames') as f:
+        with tempfile.NamedTemporaryFile(prefix='graftm_readnames') as readnames:
             orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
             for read in hit_readnames:
                 regex_match = orfm_regex.match(read)
                 if regex_match:
-                    f.write(regex_match.groups(0)[0]+'\n')
+                    readnames.write(regex_match.groups(0)[0]+'\n')
                 else:
-                    f.write(read+'\n')
-            f.flush()
+                    readnames.write(read+'\n')
+            readnames.flush()
             
             self._extract_from_raw_reads(
                                         hit_reads_fasta,
-                                        f.name,
+                                        readnames.name,
                                         raw_reads,
                                         unpack.format()
                                         )
         if not hit_readnames:
             return None, None
+        
+        if args.input_sequence_type == 'nucleotide':
+            # Extract the orfs of these reads that hit the original search
+            self.extract_orfs(hit_reads_fasta,
+                              orfm,
+                              hit_reads_orfs_fasta)
+            
+            hit_reads_fasta=hit_reads_orfs_fasta
+        
+        
         ## TODO: This method does not work when searching a genome, or assembled
         ## data, because there may be > 1 copy of gene, and very spaced. Simply
         ## choosing one would not suffice in that context. Will have to rewrite
@@ -664,18 +647,9 @@ class Hmmer:
         #    run_stats['reads'] = read_stats
         
         # Extract the hits form the original raw read file
-        
-        if args.input_sequence_type == 'nucleotide':
-            # Extract the orfs of these reads that hit the original search
-            self.extract_orfs(hit_reads_fasta,
-                              orfm,
-                              hit_reads_orfs_fasta)
-            
-            hit_reads_fasta=hit_reads_orfs_fasta
-
         return hit_reads_fasta, search_result
     
-    def d_search(self, files, args, run_stats, base, unpack, raw_reads, euk_check):
+    def d_search(self, files, args, base, unpack, raw_reads, euk_check, search_method, gpkg):
         '''Nucleotide search pipeline - The searching step for the nucleotide
         pipeline, where hits are identified in the input reads through nhmmer 
         searches
@@ -697,62 +671,48 @@ class Hmmer:
             The reads to be searched.
         euk_check : bool
             True False, whether to check the entire sample for euk reads.
-        
+        search_method : str
+            The method for searching e.g. 'hmmsearch' or 'diamond'
+        gpkg : obj
+            GraftM package object, created by graftm_package.py
+            
         Returns
         -------
         hit_reads : str
             The output fasta file of reads that hit 
-        run_stats : dict
-            Updated run stats for the file being worked on (inluding run times 
-            for each search and numbers of hits etc)
-            
-        Raises
-        ------
-        N/A
-        
-        Examples
-        --------
-        N/A
         '''
-        start = timeit.default_timer() # Start search timer
         
-        # First search the reads using the HMM
-        hit_table = self.nhmmer(files.hmmsearch_output_path(base),
-                                unpack,
-                                args.threads,
-                                args.eval)
+        # Define outputs
+        hmmsearch_output_table = files.hmmsearch_output_path(base)
+        hit_reads_fasta        = files.fa_output_path(base)
         
-        # Next, get a list of readnames
-        # TODO: This needs to go before next commit.
-        run_stats, hit_readnames = self.csv_to_titles(files.readnames_output_path(base),
-                                                      hit_table,
-                                                      run_stats,
-                                                      euk_check)
+        if search_method == "hmmsearch":
+            # First search the reads using the HMM
+            search_result = self.nhmmer(hmmsearch_output_table,
+                                        unpack,
+                                        args.threads,
+                                        args.eval)
+            for result in search_result:
+                hit_readnames=[x[0] for x in result.each([SequenceSearchResult.QUERY_ID_FIELD])]
+            
+        elif search_method == 'diamond':
+            logging.error("Diamond searches not supported for nucelotide sequences yet")
+            raise Exception("Diamond searches not supported for nucelotide sequences yet")
+        
+        with tempfile.NamedTemporaryFile(prefix='graftm_readnames') as readnames:
+            [readnames.write(read+'\n') for read in hit_readnames]
+            readnames.flush()
+            
+            self._extract_from_raw_reads(
+                                        hit_reads_fasta,
+                                        readnames.name,
+                                        raw_reads,
+                                        unpack.format()
+                                        )
         if not hit_readnames:
-            return False, run_stats
-
-        # And extract them from the original sequence file
-        run_stats['reads'], hit_reads = self._extract_from_raw_reads(files.fa_output_path(base),
-                                                                    hit_readnames,
-                                                                    raw_reads,
-                                                                    unpack.format(),
-                                                                    run_stats['reads'])
-        # Define the read length
-        run_stats['read_length'] = self.check_read_length(hit_reads, "D")
-
-        # Stop timing search and start timing euk check step.
-        stop = timeit.default_timer()
-        run_stats['search_t'] = str(int(round((stop - start), 0)) )
-        start = timeit.default_timer()
-
-
-
-        # Stop timing eukaryote check
-        stop = timeit.default_timer()
-        run_stats['euk_check_t'] = str(int(round((stop - start), 0)) )
-
-        # Finally, return the hits
-        return hit_reads, run_stats
+            return None, None
+        else:
+            return hit_reads_fasta, search_result
 
     def align(self, input_path, output_path, directions):
         '''align - Takes input path to fasta of unlaigned reads, aligns them to

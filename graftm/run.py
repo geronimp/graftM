@@ -4,6 +4,7 @@ import timeit
 import os
 import logging
 
+from graftm.sequence_search_results import SequenceSearchResult, HMMSearchResult
 from graftm.graftm_output_paths import GraftMFiles
 from graftm.extract_sequences import Extract
 from graftm.hmmer import Hmmer
@@ -15,6 +16,7 @@ from graftm.create import Create
 from graftm.unpack_sequences import UnpackRawReads
 from graftm.graftm_package import GraftMPackage
 from biom.util import biom_open
+
 class Run:
     ### Functions that make up pipelines in GraftM
 
@@ -35,7 +37,18 @@ class Run:
             self.sequence_pair_list = self.hk.parameter_checks(args)
             if hasattr(args, 'reference_package'):
                 self.p = Pplacer(self.args.reference_package)
-
+    
+    def _get_sequence_directions(self, search_result):        
+        directions=sum([sum(result.each([
+                                         SequenceSearchResult.QUERY_ID_FIELD, 
+                                         SequenceSearchResult.ALIGNMENT_DIRECTION
+                                         ]
+                                        ), []) \
+                        for result in search_result], 
+                       [])
+        direction_dict={key: item for key, item in zip(directions[0::2], directions[1::2])}
+        return direction_dict
+        
     def protein_pipeline(self, base, summary_dict, sequence_file, direction, unpack, gpkg):
         'The main pipeline for GraftM finding protein hits in the input sequence'
         # Set a variable to store the run statistics, to be added later to
@@ -50,31 +63,29 @@ class Run:
         logging.info('Searching %s' % (os.path.basename(sequence_file)))
         # Search for reads using hmmsearch
         
-        hit_reads, run_stats = self.h.p_search(
-                                               self.gmf,
-                                               self.args,
-                                               run_stats,
-                                               base,
-                                               unpack,
-                                               sequence_file,
-                                               self.args.search_method,
-                                               gpkg
-                                               )
+        hit_reads, search_result = self.h.p_search(
+                                                   self.gmf,
+                                                   self.args,
+                                                   base,
+                                                   unpack,
+                                                   sequence_file,
+                                                   self.args.search_method,
+                                                   gpkg
+                                                   )
         if not hit_reads:
-            return summary_dict, False
-        exit()
+            return False
+        
         # Align the reads.
         logging.info('Aligning reads to reference package database')
-
-        hit_aligned_reads, run_stats = self.h.align(self.gmf,
-                                                    self.args,
-                                                    run_stats,
-                                                    base,
-                                                    hit_reads)
+        hit_aligned_reads = self.gmf.aligned_fasta_output_path(base)
+        self.h.align(
+                     hit_reads,
+                     hit_aligned_reads,
+                     self._get_sequence_directions(search_result)
+                     )
+        
         # Set these paramaters as N/A 'cos they don't apply to the protein pipeline
-        run_stats['n_contamin_euks'] = 'N/A'
-        run_stats['n_uniq_euks'] = 'N/A'
-        run_stats['euk_check_t'] = 'N/A'
+
         if direction:
             summary_dict[base][direction] = run_stats
         elif not direction:

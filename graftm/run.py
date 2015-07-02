@@ -82,15 +82,7 @@ class Run:
         logging.info('Searching %s' % (os.path.basename(sequence_file)))
         
         # Search for reads using hmmsearch
-        hit_reads, search_result = self.h.p_search(
-                                                   self.gmf,
-                                                   self.args,
-                                                   base,
-                                                   unpack,
-                                                   sequence_file,
-                                                   self.args.search_method,
-                                                   gpkg
-                                                   )
+
         if not hit_reads:
             return False
         
@@ -105,68 +97,11 @@ class Run:
 
         return hit_aligned_reads
 
-    def dna_pipeline(self, base, sequence_file, unpack, gpkg):
-        '''
-        dna_pipeline - The main pipeline for GraftM searching for DNA sequence
-        
-        Parameters
-        ----------
-        base : str
-            Base name of the file being searched. Used for creating file names
-        sequence_file : str
-            The path to the input sequences
-        unpack : obj
-            Object that builds the commad chunk for unpacking the raw sequences.
-            First guesses file format, and unpacks appropriately. Calls 
-            command_line to construct final command line string.
-        gpkg : obj
-            GraftM package object, created by graftm_package.py
-            
-        Returns
-        -------
-        hit_aligned_reads : str
-            Path to hit reads that are aligned to the alignemnt HMM and ready
-            to be placed into the tree
-        '''
+    def summarise(self, summary_dict):
 
-        # Search for reads using nhmmer
-        logging.info('Searching %s' % os.path.basename(sequence_file))
-        hit_reads, search_result = self.h.d_search(
-                                                  self.gmf,
-                                                  self.args,
-                                                  base,
-                                                  unpack,
-                                                  sequence_file,
-                                                  self.args.euk_check,
-                                                  self.args.search_method,
-                                                  gpkg
-                                                  )
-
-        if not hit_reads:
-            return None
-        
-        # Otherwise, run through the alignment
-        logging.info('Aligning reads to reference package database')
-        hit_aligned_reads = self.gmf.aligned_fasta_output_path(base)
-        self.h.align(
-                     hit_reads,
-                     hit_aligned_reads,
-                     self._get_sequence_directions(search_result)
-                     )
-        return hit_aligned_reads
-
-    def placement(self, summary_dict):
-        ## This is the placement pipeline in GraftM, in aligned reads are
-        ## placed into phylogenetic trees, and the results interpreted.
-        ## If reverse reads are used, this is where the comparisons are made
-        ## between placements, for the summary tables to be build in the
-        ## next stage.
         # Concatenate alignment files, place in tree, split output guppy
         # and .jplace file for the output
-        
-        summary_dict = self.p.place(summary_dict,
-                                    self.gmf,
-                                    self.args)
+
         # Summary steps.
         start           = timeit.default_timer()
         placements_list = []
@@ -273,10 +208,12 @@ class Run:
              - _                        |_____|
            -                                  |______
             ''' 
-        REVERSE_PIPE   = (True if hasattr(self.args, 'reverse') else False)
+        REVERSE_PIPE   = (True if self.args.reverse else False)
         pair_direction = ['forward', 'reverse']
         gpkg           = GraftMPackage.acquire(self.args.graftm_package)
         base_list      = []
+        seqs_list      = []
+        search_results = []
         
         # Set the output directory if not specified and create that directory
         logging.debug('Creating working directory: %s' % self.args.output_directory)
@@ -312,6 +249,7 @@ class Run:
 
             # for each of the paired end read files
             for read_file in pair:
+                unpack = UnpackRawReads(read_file)
                 if not os.path.isfile(read_file): # Check file exists
                     logging.info('%s does not exist! Skipping this file..' % read_file)
                     continue
@@ -333,34 +271,55 @@ class Run:
                                            direction)
                 
                 if self.args.type == PIPELINE_PROTEIN:
-                    logging.debug("Running protein pipeline")
-                    hit_aligned_reads = self.protein_pipeline(base,
-                                                              read_file,
-                                                              unpack,
-                                                              gpkg)
+                    logging.debug("Running protein pipeline")                    
+                    hit_reads, search_result = self.h.p_search(
+                                                               self.gmf,
+                                                               self.args,
+                                                               base,
+                                                               unpack,
+                                                               read_file,
+                                                               self.args.search_method,
+                                                               gpkg
+                                                               )
+                    
                 # Or the DNA pipeline    
                 elif self.args.type == PIPELINE_NUCLEOTIDE:
-                    logging.debug("Running nucleotide pipeline")
-                    hit_aligned_reads = self.dna_pipeline(base,
-                                                          read_file,
-                                                          unpack,
-                                                          gpkg)
+                    logging.debug("Running nucleotide pipeline")                   
+                    hit_reads, search_result = self.h.d_search(
+                                                              self.gmf,
+                                                              self.args,
+                                                              base,
+                                                              unpack,
+                                                              read_file,
+                                                              self.args.euk_check,
+                                                              self.args.search_method,
+                                                              gpkg
+                                                              )
+                
+                
+                logging.info('Aligning reads to reference package database')
+                hit_aligned_reads = self.gmf.aligned_fasta_output_path(base)
+                self.h.align(
+                             hit_reads,
+                             hit_aligned_reads,
+                             self._get_sequence_directions(search_result)
+                             )
+                
                 if not hit_aligned_reads:
                     continue
                 else:
-                    base_list+=base_list
+                    base_list.append(base)
+                    seqs_list.append(hit_aligned_reads)
+                    search_results.append(search_result)
                     
-                exit()
-
-        
-        if summary_table['merge_reads']:
+                    
+        if self.args.merge_reads:
             merged_output=[GraftMFiles(base, self.args.output_directory, False).aligned_fasta_output_path(base) \
-                           for base in summary_table['base_list']]
-            self.h.merge_forev_aln(summary_table['seqs_list'], merged_output)
-            summary_table['seqs_list']=[GraftMFiles(base, self.args.output_directory, False).aligned_fasta_output_path(base) \
-                                       for base in summary_table['base_list']]
+                           for base in base_list]
+            self.h.merge_forev_aln(seqs_list, merged_output)
+            seqs_list=merged_output
             REVERSE_PIPE = False
-            
+       
         # Leave the pipeline if search only was specified
         if self.args.search_and_align_only:
             logging.info('Stopping before placement\n')
@@ -368,12 +327,19 @@ class Run:
         elif not any(base_list):
             logging.error('No hits in any of the provided files. Cannot continue with no reads to place.\n')
             exit(0)
-        # Tell the user we're on to placing the sequences into the tree.
         self.gmf = GraftMFiles('',
                                self.args.output_directory,
                                False)
         logging.info("Placing reads into phylogenetic tree")
-        self.placement(summary_table)
+        placements=self.p.place(REVERSE_PIPE,
+                                 seqs_list,
+                                 self.args.resolve_placements,
+                                 self.gmf,
+                                 self.args)
+        
+        print 'stop here'
+        exit()
+        self.summarise(summary_table)
 
 
     def main(self):

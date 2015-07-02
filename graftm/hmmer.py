@@ -42,7 +42,7 @@ class Hmmer:
             Filename of unaligned hits to be aligned
         directions : dict
             dictionary containing readnames as keys, and compliment direction
-            as the entry (True=Forward, False=Reverse)
+            as the entry (False=Forward, True=Reverse)
         Returns
         -------
         Nothing - output files are known.
@@ -54,24 +54,21 @@ class Hmmer:
         rev_conv_file = tempfile.NamedTemporaryFile(prefix='rev_conv_file', suffix='.fa').name
         
         # Align input reads to a specified hmm.
-        if any([x for x in directions.values() if x==False]):
-            read_info = run_stats['reads']
+        if any(directions.values()): # Any that are in the reverse direction would be True
             reverse = []
             forward = []
             records = list(SeqIO.parse(open(input_path), 'fasta'))
-
+            
             # Split the reads into reverse and forward lists
             for record in records:
-
-                if read_info[record.id]['direction'] == '+':
+                if directions[record.id] == False:
                     forward.append(record)
-
-                elif read_info[record.id]['direction'] == '-':
+                elif directions[record.id] == True:
                     reverse.append(record)
-
                 else:
                     raise Exception(logging.error('Programming error: hmmalign'))
                     exit(1)
+            
             logging.debug("Found %i forward compliment reads" % len(forward))
             logging.debug("Found %i reverse compliment reads" % len(reverse))
             # Write reverse complement and forward reads to files

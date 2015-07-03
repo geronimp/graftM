@@ -98,7 +98,6 @@ class Run:
         
         # Basic statistics
         placed_reads=[len(trusted_placements[base]) for base in base_list]
-        import IPython ; IPython.embed()
         self.s.build_basic_statistics(times, hit_read_count_list, placed_reads, \
                                       base_list, self.gmf.basic_stats_path())
         

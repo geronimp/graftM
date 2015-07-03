@@ -63,7 +63,7 @@ class Hmmer:
         rev_file      = tempfile.NamedTemporaryFile(prefix='rev_file', suffix='.fa').name
         for_conv_file = tempfile.NamedTemporaryFile(prefix='for_conv_file', suffix='.fa').name
         rev_conv_file = tempfile.NamedTemporaryFile(prefix='rev_conv_file', suffix='.fa').name
-        print directions.values()
+        
         # Align input reads to a specified hmm.
         if any(directions.values()): # Any that are in the reverse direction would be True
             reverse = []
@@ -523,7 +523,7 @@ class Hmmer:
             output_table_list=[tempfile.NamedTemporaryFile(prefix='orf_hmmsearch').name for x in self.search_hmm]
         else:
             raise Exception("Programming error: expected 1 or more HMMs")
-        
+
         # Build ORF calling command orfs on the sequences
         orfm_cmd = orfm.command_line()
         cmd = '%s %s > %s' % (orfm_cmd, input_path, raw_orf_path)
@@ -534,7 +534,6 @@ class Hmmer:
         cmd = 'cat %s' % raw_orf_path
         searcher = HmmSearcher(1)
         searcher.hmmsearch(cmd, self.search_hmm, output_table_list)
-        
         with open(orf_titles_path, 'w') as output:
             reads= set(
                        sum([HMMreader(x).names() for x in output_table_list], 
@@ -621,6 +620,7 @@ class Hmmer:
             raise Exception("Programming error: unexpected search_method %s" % search_method)
         with tempfile.NamedTemporaryFile(prefix='graftm_readnames') as readnames:
             orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
+
             for read in hit_readnames:
                 regex_match = orfm_regex.match(read)
                 if regex_match:

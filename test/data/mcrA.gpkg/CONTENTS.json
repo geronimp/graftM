@@ -1,1 +1,2 @@
-{"aln_hmm": "mcrA.hmm", "search_hmm": ["mcrA.hmm"], "rfpkg": "mcrA.refpkg", "TC": false}
+{"rfpkg": "mcrA.refpkg", "version": 2, "diamond_database": "mcra.faa.dmnd", "TC": false, "aln_hmm": "mcrA.hmm", "tax_info": "mcrA.refpkg/mcrA_taxonomy.csv", "search_hmm": ["mcrA.hmm"]}
+

@@ -1,17 +1,10 @@
-import random
 import os
 import shutil
 import subprocess
 import json
 import tempfile
 import logging
-from timeit import itertools
 from signal import signal, SIGPIPE, SIG_DFL
-
-# Constants - don't change them evar.
-FORMAT_FASTA = 'FORMAT_FASTA'
-FORMAT_FASTQ_GZ = 'FORMAT_FASTQ_GZ'
-FORMAT_FASTA_GZ = 'FORMAT_FASTA_GZ'
 
 class UninstalledProgramError(Exception):
     pass
@@ -129,18 +122,15 @@ class HouseKeeping:
             if float(args.placements_cutoff) < float(0.5) or float(args.placements_cutoff) > float(1.0):
                 logging.info('Please specify a confidence level (-d) between 0.5 and 1.0! Found: %s' % args.placements_cutoff)
                 exit(1)
-
-            # Set string for hmmsearch evalue
-            args.eval = '-E %s' % args.eval
             
             self._check_file_existence(args.forward)
-            if hasattr(args, 'reverse'):
+            if args.reverse:
                 self._check_file_existence(args.reverse)
                     
             # Determine the File format based on the suffix
             
             sequence_file_list = []
-            if hasattr(args, 'reverse'):
+            if args.reverse:
                 if len(args.forward) != len(args.reverse):
                     logging.error('Confusing input. There appears to be different numbers of forward and reverse files specified')
                 for i, forward_file in enumerate(args.forward):
@@ -149,8 +139,6 @@ class HouseKeeping:
                 sequence_file_list = [[f] for f in args.forward]
                 
             return sequence_file_list
-        else:
-            return
         
     def _check_file_existence(self, files):
         '''Iterate through files and exit(1) if any do not pass
@@ -244,7 +232,7 @@ class HouseKeeping:
         '''Credits to BamM and http://stackoverflow.com/questions/377017/test-if-executable-exists-in-python'''
         def is_exe(fpath):
             return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-        fpath, fname = os.path.split(program)
+        fpath, _ = os.path.split(program)
         if fpath:
             if is_exe(program):
                 return program

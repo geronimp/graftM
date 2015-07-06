@@ -648,7 +648,7 @@ class Hmmer:
         if args.input_sequence_type == 'nucleotide':
             # Extract the orfs of these reads that hit the original search
             self.extract_orfs(hit_reads_fasta,
-                              orfm,
+                              extracting_orfm,
                               hit_reads_orfs_fasta)
             
             hit_reads_fasta=hit_reads_orfs_fasta

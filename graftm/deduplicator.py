@@ -44,7 +44,7 @@ class Deduplicator:
             lca = taxonomy_hash[dup_group[0].name]
             for s in dup_group[1:]:
                 for i, tax in enumerate(taxonomy_hash[s.name]):
-                    if tax != lca[i]:
+                    if i >= len(lca) or tax != lca[i]:
                         lca = lca[:i]
                         break
                 if len(lca) > len(taxonomy_hash[s.name]):

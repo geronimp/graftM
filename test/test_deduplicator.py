@@ -80,5 +80,13 @@ class Tests(unittest.TestCase):
                                               '2': ['one','two'],
                                               '3': ['one']}))
         
+    def test_group_of_three_deduplication(self):
+        dees = self.d.deduplicate(self.s('1 AAA 2 AAA 3 AAA'))
+        self.assertEqual([['one','two','three']],
+                         self.d.lca_taxonomy(dees, 
+                                             {'1': ['one','two','three','1'],
+                                              '2': ['one','two','three','2'],
+                                              '3': ['one','two','three','3']}))
+        
 if __name__ == "__main__":
     unittest.main()

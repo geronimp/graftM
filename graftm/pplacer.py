@@ -8,7 +8,6 @@ import time
 from Bio import SeqIO
 
 from graftm.classify import Classify
-from graftm.assembler import TaxoGroup
 from graftm.housekeeping import HouseKeeping
 
 def timeit(method):
@@ -35,7 +34,7 @@ class Pplacer:
         ## Runs pplacer on concatenated alignment file
         cmd = "pplacer -j %s --verbosity 0 --out-dir %s -c %s %s" % (str(threads), output_path, self.refpkg, input_path) # Set command
         logging.debug("Running command: %s" % cmd)
-         # Log it
+        # Log it
         subprocess.check_call(cmd, shell=True) # Run it
         output_path = '.'.join(input_path.split('.')[:-1]) + '.jplace'
         return output_path

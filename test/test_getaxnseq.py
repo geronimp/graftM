@@ -25,9 +25,7 @@ import unittest
 import os.path
 import sys
 import tempfile
-
-path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
-path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
+from StringIO import StringIO
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 from graftm.getaxnseq import Getaxnseq
@@ -51,7 +49,18 @@ class Tests(unittest.TestCase):
                                       'p__you,k__me,phylum,p__you,Root,k__me,p__you,,,,,'])+"\n"
                 self.assertEqual(expected, open(tmp_tax.name).read())
 
-        
+                
+    def test_read_taxtastic_taxonomy_and_seqinfo(self):
+        tax = StringIO('\n'.join(['tax_id,parent_id,rank,tax_name,root,kingdom,phylum,class,order,family,genus,species',
+                                      'Root,Root,root,Root,Root,,,,,,,',
+                                      'k__me,Root,kingdom,k__me,Root,k__me,,,,,,',
+                                      'p__you,k__me,phylum,p__you,Root,k__me,p__you,,,,,'])+"\n")
+        seq = StringIO("\n".join([','.join(p) for p in [['seqname','tax_id'],
+                    ['seq2','Root'],
+                    ['seq1','p__you']]])+"\n")
+        self.assertEqual({'seq1': ['k__me','p__you'],
+                          'seq2': []},
+                         Getaxnseq().read_taxtastic_taxonomy_and_seqinfo(tax, seq))
 
 if __name__ == "__main__":
     unittest.main()

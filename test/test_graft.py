@@ -26,7 +26,6 @@ import subprocess
 import os.path
 import tempdir
 import tempfile
-from graftm.hmmer import Hmmer
 
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
@@ -64,6 +63,39 @@ GAGTCCGGACCGTGTCTCAGTTCCGGTGTGGCTGGTCGTCCTCTCAGACCAGCTACGGATTGTCGCCTTGGTGAGCCATT
                     count += 1
                 self.assertEqual(count, len(open(alnFile).readlines()))
 
+    def test_two_files_one_no_sequences_hit_nucleotide(self):
+        reads='''>NS500333:16:H16F3BGXX:1:11101:11211:1402 1:N:0:CGAGGCTG+CTCCTTAC
+GAGCGCAACCCTCGCCTTCAGTTGCCATCAGGTTTGGCTGGGCACTCTGAAGGAACTGCCGGTGACAAGCCGGAGGAAGGTGGGGATGACGTCAAGTCCTCATGGCCCTTATGTCCTGGGCTACACACGTGCTACAATGGCGGTGACAGTG
+>NS500333:16:H16F3BGXX:1:11101:25587:3521 1:N:0:CGAGGCTG+CTCCTTAC
+GAGTCCGGACCGTGTCTCAGTTCCGGTGTGGCTGGTCGTCCTCTCAGACCAGCTACGGATTGTCGCCTTGGTGAGCCATTACCTCACCAACTAGCTAATCCGACTTTGGCTCATCCAATAGCGCGAGGTCTTACGATCCCCCGCTTTCT'''
+        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+            fasta.write(reads)
+            fasta.flush()
+            data = fasta.name
+            package = os.path.join(path_to_data,'61_otus.gpkg')
+            with tempdir.TempDir() as tmp:
+                with tempfile.NamedTemporaryFile(suffix='.fa') as empty_fasta:
+                    empty_fasta.write('>seq\n')
+                    empty_fasta.write('A'*1000+"\n")
+                    empty_fasta.flush()
+                    cmd = '%s graft --verbosity 1  --forward %s %s --graftm_package %s --output_directory %s --force --search_and_align_only' % (path_to_script,
+                                                                                                                     data,
+                                                                                                                     empty_fasta.name,
+                                                                                                                     package,
+                                                                                                                     tmp)
+                    subprocess.check_output(cmd, shell=True)
+                    sample_name = os.path.basename(fasta.name[:-3])
+                    alnFile = os.path.join(tmp, sample_name, '%s_hits.aln.fa' % sample_name)
+                    expected_aln = '''>NS500333:16:H16F3BGXX:1:11101:11211:1402
+        -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GAGCGCAACCCTCGCCTTCAGTTGCCATCTGAAGGAACTGCCGGTGACAAGCCGGAGGAAGGTGGGGATGACGTCAAGTCCTCATGGCCCTTATGTCCTGGGCTACACACGTGCTACAATGGCGGT----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        >NS500333:16:H16F3BGXX:1:11101:25587:3521
+        -----------------------------------------------------------------------------------------------------------------------------------------------------------CGCTATTGGATGAGCCAAAGTCGGATTAGCTAGTTGGTGAGGTAATGGCTCACCAAGGCGACAATCCGTAGCTGGTCTGAGAGGACGACCAGCCACACCGGAACTGAGACACGGTCCGGACT--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    '''.split()
+                    count = 0
+                    for line in open(alnFile):
+                        self.assertEqual(expected_aln[count], line.strip())
+                        count += 1
+                    self.assertEqual(count, len(open(alnFile).readlines()))
 
     def test_multiple_hits_on_same_contig(self):
         contig = '''>AB11.qc.1_(paired)_contig_360665
@@ -258,6 +290,33 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                 self.assertEqual(lines[count], line.strip())
                 count += 1
             self.assertEqual(count, 2)
+            
+    # Tests on searching for proteins in nucelic acid sequence
+    def test_two_files_one_no_sequences_hit_protein(self):
+        data = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.1.fna')
+        package = os.path.join(path_to_data,'mcrA.gpkg')
+
+        with tempdir.TempDir() as tmp:
+            with tempfile.NamedTemporaryFile(suffix='.fa') as empty_fasta:
+                empty_fasta.write('>seq\n')
+                empty_fasta.write('A'*1000+"\n")
+                empty_fasta.flush()
+                
+                cmd = '%s graft --verbosity 1  --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+                                                                                                   empty_fasta.name,
+                                                                                                   data,
+                                                                                                   package,
+                                                                                                   tmp)
+                subprocess.check_output(cmd, shell=True)
+                otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
+                lines = ("\t".join(('#ID','mcrA_1','ConsensusLineage')),
+                         "\t".join(('1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                         )
+                count = 0
+                for line in open(otuTableFile):
+                    self.assertEqual(lines[count], line.strip())
+                    count += 1
+                self.assertEqual(count, 2)
 
     def test_single_paired_read_run_McrA(self):
         data_for = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.1.fna')
@@ -724,57 +783,6 @@ DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
                         self.assertEqual(expected_aln[count], line.strip())
                         count += 1
                     self.assertEqual(count, len(open(alnFile).readlines()))
-
-    def test_merg_aln(self):
-        forward_reads='''>no_overlap
--------CGTATGCAACCTACCTT---------------------------------------
->overlap_all_match
--------CGTATGCAACCTACCTT---------------------------------------
->overlap_mismatch_in_reverse
--------CGTATGCAACCTACCTT---------------------------------------
->overlap_mismatch_in_forward
--------CGTATGCAACCTTCCTT---------------------------------------
->complete_overlap_all_match
--------CGTATGCAACCTACCTT---------------------------------------
->complete_overlap_mismatch
--------CGTATGCATCCTACCTT---------------------------------------'''
-        reverse_reads='''>no_overlap
----------------------------------------CGTATGCAACCTACCTT-------
->overlap_all_match
-----------------CCTACCTTCAACCTACCTT----------------------------
->overlap_mismatch_in_reverse
-----------------CCTTCCTTCAACCTACCTT----------------------------
->overlap_mismatch_in_forward
-----------------CCTACCTTCAACCTACCTT----------------------------
->complete_overlap_all_match
--------CGTATGCAACCTACCTT---------------------------------------
->complete_overlap_mismatch
--------CGTTTGCAAGCTACCTT---------------------------------------'''
-        expected_aln='''>no_overlap
--------CGTATGCAACCTACCTT---------------CGTATGCAACCTACCTT-------
->overlap_all_match
--------CGTATGCAACCTACCTTCAACCTACCTT----------------------------
->overlap_mismatch_in_reverse
--------CGTATGCAACCTACCTTCAACCTACCTT----------------------------
->overlap_mismatch_in_forward
--------CGTATGCAACCTTCCTTCAACCTACCTT----------------------------
->complete_overlap_all_match
--------CGTATGCAACCTACCTT---------------------------------------
->complete_overlap_mismatch
--------CGTATGCATCCTACCTT---------------------------------------'''.split()
-        with tempfile.NamedTemporaryFile(suffix='_forward.fa') as forward_file:
-            with tempfile.NamedTemporaryFile(suffix='_reverse.fa') as reverse_file:
-                with tempfile.NamedTemporaryFile(suffix='.fa') as output_file:
-                    forward_file.write(forward_reads)
-                    reverse_file.write(reverse_reads)
-                    forward_file.flush()
-                    reverse_file.flush()
-                    Hmmer(None).merge_forev_aln([forward_file.name,reverse_file.name],[output_file.name])
-                    count = 0
-                    for line in open(output_file.name):
-                        self.assertEqual(expected_aln[count], line.strip())
-                        count += 1
-                    self.assertEqual(count, len(open(output_file.name).readlines()))
                     
 if __name__ == "__main__":
     unittest.main()

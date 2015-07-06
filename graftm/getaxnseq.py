@@ -37,6 +37,64 @@ class Getaxnseq:
             taxonomies[taxon_id] = tax_split
         return taxonomies
     
+    def read_taxtastic_taxonomy_and_seqinfo(self, taxonomy_io, seqinfo_io):
+        '''Read the taxonomy and seqinfo files into a dictionary of 
+        sequence_name => taxonomy, where the taxonomy is an array of lineages
+        given to that sequence.
+        
+        Possibly this method is unable to handle the full definition of these
+        files? It doesn't return what each of the ranks are, for starters.
+        Doesn't deal with duplicate taxon names either.
+        '''
+        
+        # read in taxonomy file
+        lineages = [] #array of hashes where each taxon points to its parent taxon's name
+        taxon_to_lineage_index = {}
+        expected_number_of_fields = None
+        for line in taxonomy_io:
+            splits = line.strip().split(',')
+            if expected_number_of_fields is None:
+                expected_number_of_fields = len(splits)
+                lineages = [{}]* (expected_number_of_fields-4)
+                continue #this is the header line
+            elif len(splits) != expected_number_of_fields:
+                raise Exception("Encountered error parsing taxonomy file, expected %i fields but found %i on line: %s" %
+                                (expected_number_of_fields, len(splits), line))
+            # e.g. 'tax_id,parent_id,rank,tax_name,root,kingdom,phylum,class,order,family,genus,species
+            tax_id = splits[0]
+            parent_id = splits[1]
+            
+            try:
+                lineage_index = splits.index('')-5
+            except ValueError:
+                lineage_index = len(splits)-5
+            taxon_to_lineage_index[tax_id] = lineage_index
+            lineages[lineage_index][tax_id] = parent_id
+        
+        taxonomy_dictionary = {}
+        for i, line in enumerate(seqinfo_io):
+            if i==0: continue #skip header line
+            
+            splits = line.strip().split(',')
+            if len(splits) != 2:
+                raise Exception("Bad formatting of seqinfo file on this line: %s" % line)
+            
+            seq_name = splits[0]
+            taxon = splits[1]
+            lineage_index = taxon_to_lineage_index[taxon]
+            if lineage_index==0:
+                # Don't include Root in the taxonomy
+                taxonomy_dictionary[seq_name] = []
+            else:
+                full_taxonomy_rev = []
+                while lineage_index > 0:
+                    full_taxonomy_rev.append(taxon)
+                    taxon = lineages[lineage_index][taxon]
+                    lineage_index = lineage_index-1
+                taxonomy_dictionary[seq_name] = list(reversed(full_taxonomy_rev))
+            
+        return taxonomy_dictionary
+    
     def write_taxonomy_and_seqinfo_files(self, taxonomies, output_taxonomy_file, output_seqinfo_file):
         '''Write out taxonomy and seqinfo files as required by taxtastic
         from known taxonomies

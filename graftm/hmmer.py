@@ -13,7 +13,7 @@ from collections import OrderedDict
 
 from graftm.housekeeping import HouseKeeping
 from graftm.hmmsearcher import HmmSearcher, NhmmerSearcher
-from graftm.orfm import OrfM
+from graftm.orfm import OrfM, ZcatOrfM
 from graftm.unpack_sequences import UnpackRawReads
 from graftm.diamond import Diamond
 from graftm.sequence_search_results import SequenceSearchResult, HMMSearchResult
@@ -178,8 +178,7 @@ class Hmmer:
         
         # Choose an input to this base command based off the file format found.
         if seq_type == 'nucleotide': # If the input is nucleotide sequence
-            orfm_cmdline = orfm.command_line()
-            input_cmd = '%s %s' % (orfm_cmdline, input_path)
+            input_cmd = orfm.command_line(input_path)
         elif seq_type == 'protein': # If the input is amino acid sequence
             input_cmd=unpack.command_line()
         else:
@@ -583,8 +582,15 @@ class Hmmer:
         hmmsearch_output_table = files.hmmsearch_output_path(base)
         hit_reads_fasta        = files.fa_output_path(base)
         hit_reads_orfs_fasta   = files.orf_fasta_output_path(base)
+        unpack = UnpackRawReads(raw_reads)
         
-        orfm   = OrfM(min_orf_length=args.min_orf_length,
+        if unpack.is_zcattable():
+            clazz = ZcatOrfM
+        else:
+            clazz = OrfM
+        orfm = clazz(min_orf_length=args.min_orf_length,
+                      restrict_read_length=args.restrict_read_length)
+        extracting_orfm = OrfM(min_orf_length=args.min_orf_length,
                       restrict_read_length=args.restrict_read_length)
         
         if search_method == 'hmmsearch':
@@ -635,6 +641,7 @@ class Hmmer:
                                         raw_reads,
                                         unpack.format()
                                         )
+
         if not hit_readnames:
             return None, None, None
         
@@ -645,7 +652,6 @@ class Hmmer:
                               hit_reads_orfs_fasta)
             
             hit_reads_fasta=hit_reads_orfs_fasta
-        
         
         ## TODO: This method does not work when searching a genome, or assembled
         ## data, because there may be > 1 copy of gene, and very spaced. Simply
@@ -736,7 +742,7 @@ class Hmmer:
                                         unpack.format()
                                         )
         if not hit_readnames:
-            return None, None
+            return None, None, None
         else:
             return hit_reads_fasta, search_result, hit_read_count
     

@@ -13,7 +13,9 @@ from graftm.hmmer import Hmmer
 from graftm.tree_cleaner import TreeCleaner
 from graftm.taxonomy_extractor import TaxonomyExtractor
 from graftm.getaxnseq import Getaxnseq
+from graftm.deduplicator import Deduplicator
 from skbio.tree import TreeNode
+from graftm.sequence_io import SequenceIO
 
 class Create:
     
@@ -61,7 +63,7 @@ class Create:
         -------
         A list of two:
         1. Path to the created HMM
-        2. Alignment of sequences to this HMM'''
+        2. Path to alignment of sequences to this HMM'''
         counter=0
         if os.path.isfile(base + ".hmm"):
             counter=0
@@ -94,8 +96,8 @@ class Create:
     
     def pipeType(self, hmm):
         logging.debug("Setting pipeline type..")
-        type=[x.split() for x in open(hmm).readlines() if x.startswith('ALPH') or x.startswith('LENG')]
-        for item in type:
+        hmm_type=[x.split() for x in open(hmm).readlines() if x.startswith('ALPH') or x.startswith('LENG')]
+        for item in hmm_type:
             if item[0]=='ALPH':
                 if item[1]=='amino':
                     ptype='aa'
@@ -154,6 +156,13 @@ manually yourself using a tree editor such as ARB or FigTree.
 Once you have a rerooted newick format tree, rerun graftm create
 specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'%s\'
 
+When rerunning, please use the following flags for the command line to account
+for the fact that some sequences may have been removed during the deduplication
+process.
+
+graftM create --taxonomy '%s' --alignment '%s' aln_file
+
+(plus other relevant arguments).
 ''' % tre)
                 exit(2)
         return refpkg
@@ -228,7 +237,7 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
         
         # align sequences to HMM (and potentially build hmm from alignment)
         hmm, output_alignment = self.get_hmm_and_alignment(alignment, base)
-        ptype,hmm_length = self.pipeType(hmm)
+        ptype, _ = self.pipeType(hmm)
         logging.info("Checking for incorrect or fragmented reads")
         insufficiently_aligned_sequences = self._check_reads_hit(open(output_alignment),
                                                                  min_aligned_percent)
@@ -240,12 +249,56 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
                 " amount of the alignment suggesting that potentially they should "
                 "not be included in the alignment e.g. '%s'" % insufficiently_aligned_sequences[0])
         logging.debug("Found no sequences of insufficient length")
+        
+        # Read in taxonomy somehow
+        gtns = Getaxnseq()
+        if rerooted_annotated_tree:
+            logging.info("Building seqinfo and taxonomy file from input annotated tree")
+            taxonomy_definition = TaxonomyExtractor().taxonomy_from_annotated_tree(\
+                    TreeNode.read(open(rerooted_annotated_tree)))
+        elif taxonomy:
+            logging.info("Building seqinfo and taxonomy file from input taxonomy")
+            taxonomy_definition = gtns.read_taxonomy_file(taxonomy)
+        elif taxtastic_seqinfo and taxtastic_taxonomy:
+            logging.info("Reading taxonomy from taxtastic taxonomy and seqinfo files")
+            taxonomy_definition = gtns.read_taxtastic_taxonomy_and_seqinfo\
+                (open(taxtastic_taxonomy), 
+                 open(taxtastic_seqinfo))
+        else:
+            raise Exception("Taxonomy is required somehow e.g. by --taxonomy or --rerooted_annotated_tree")
+        
+        # Make sure each sequence has been assigned a taxonomy:
+        seqio = SequenceIO()
+        aligned_sequence_objects = seqio.read_fasta_file(output_alignment)
+        unannotated = []
+        for s in aligned_sequence_objects:
+            if s.name not in taxonomy_definition:
+                unannotated.append(s.name)
+        if len(unannotated) > 0:
+            for s in unannotated:
+                logging.error("Unable to find sequence '%s' in the taxonomy definition" % s)
+            raise Exception("All sequences must be assigned a taxonomy, cannot continue")
+        
+        # Deduplicate sequences - pplacer cannot handle these
+        logging.info("Deduplicating sequences")
+        dedup = Deduplicator()
+        deduplicated_arrays = dedup.deduplicate(aligned_sequence_objects)
+        deduplicated_taxonomy = dedup.lca_taxonomy(deduplicated_arrays, taxonomy_definition)
+        deduplicated_taxonomy_hash = {}
+        for i, tax in enumerate(deduplicated_taxonomy):
+            deduplicated_taxonomy_hash[deduplicated_arrays[i][0].name] = tax
+        deduplicated_alignment_file = base+"_deduplicated_aligned.fasta"
+        seqio.write_fasta_file([seqs[0] for seqs in deduplicated_arrays],
+                               deduplicated_alignment_file)
+        logging.info("Removed %i sequences as duplicates, leaving %i non-identical sequences"\
+                     % ((len(aligned_sequence_objects)-len(deduplicated_arrays)),
+                        len(deduplicated_arrays)))
             
         # Create tree unless one was provided
         if not rerooted_tree and not rerooted_annotated_tree:
             logging.debug("No tree provided")
             logging.info("Building tree")
-            log_file, tre_file = self.buildTree(output_alignment, base, ptype)
+            log_file, tre_file = self.buildTree(deduplicated_alignment_file, base, ptype)
             no_reroot = False
         else:
             if rerooted_tree:
@@ -257,8 +310,19 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
             else:
                 raise
             no_reroot = True
-            TreeCleaner().match_alignment_and_tree_sequence_ids(output_alignment,
-                                                                tre_file)
+            
+            # Remove any sequences from the tree that are duplicates
+            cleaner = TreeCleaner()
+            tree = TreeNode.read(open(tre_file))
+            removed_sequence_names = []
+            for group in deduplicated_arrays:
+                [removed_sequence_names.append(s.name) for s in group[1:]]        
+            cleaner.remove_sequences(tree, removed_sequence_names)
+            
+            # Ensure there is nothing amiss now as a user-interace thing
+            cleaner.match_alignment_and_tree_sequence_ids(\
+                [g[0].name for g in deduplicated_arrays], tree)
+            
             if tree_log:
                 # User specified a log file, go with that
                 logging.debug("Using user-specified log file %s" % tree_log)
@@ -267,14 +331,14 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
                 logging.info("Generating log file")
                 log_file_tempfile = tempfile.NamedTemporaryFile(suffix='.tree_log', prefix='graftm') 
                 log_file = log_file_tempfile.name
-                input_tree_file = tre_file
-                tre_file1_tempfile = tempfile.NamedTemporaryFile(suffix='.tree', prefix='graftm')
-                tre_file1 = tre_file1_tempfile.name
                 # Make the newick file simple (ie. un-arb it) for fasttree
-                TreeCleaner().clean_newick_file_for_fasttree_input(input_tree_file, tre_file1)
+                cleaner.clean_newick_file_for_fasttree_input(tree)
                 tre_file_tempfile = tempfile.NamedTemporaryFile(suffix='.tree', prefix='graftm')
                 tre_file = tre_file_tempfile.name
-                self.generate_tree_log_file(tre_file1, output_alignment,
+                with tempfile.NamedTemporaryFile(suffix='.tree', prefix='graftm') as f:
+                    tree.write(f)
+                    f.flush()
+                    self.generate_tree_log_file(f.name, deduplicated_alignment_file,
                                             tre_file, log_file, ptype)
             
         # Create tax and seqinfo .csv files
@@ -313,6 +377,7 @@ specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'
         logging.debug("Running command: %s" % cmd)
         subprocess.check_call(cmd, shell=True)
         diamondb = '%s.dmnd' % base
+
 
         # Compile the gpkg
         logging.info("Compiling gpkg")

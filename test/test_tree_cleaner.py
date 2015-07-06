@@ -23,44 +23,53 @@
 
 import unittest
 import os.path
-import tempfile
 import sys
-
-path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
-path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
+from StringIO import StringIO
+from skbio.tree import TreeNode
+from string import split as _
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 from graftm.tree_cleaner import TreeCleaner
 
 class Tests(unittest.TestCase):
     
-    def match(self, tree, alignment):
+    def match(self, tree, names):
         tc  = TreeCleaner()
-        with tempfile.NamedTemporaryFile() as aln:
-            aln.write(alignment)
-            aln.flush()
-            with tempfile.NamedTemporaryFile(suffix='.nwk') as tref:
-                tref.write(tree)
-                tref.flush()
-                
-                return tc.match_alignment_and_tree_sequence_ids(aln.name,
-                                                              tref.name)
+        return tc.match_alignment_and_tree_sequence_ids(\
+                                    names, TreeNode.read(StringIO(tree)))
 
     def test_match_alignment_and_tree_sequence_ids(self):
-        self.match('(a,(b,c));',"\n".join('>a A >b A >c C'.split(' ')))
+        self.match('(a,(b,c));',_('a b c'))
         
     def test_match_alignment_and_tree_sequence_ids_tree_not_align(self):
-        self.assertRaises(Exception, self.match, '(a,(b,c));',"\n".join('>a A >b A'.split(' ')))
+        self.assertRaises(Exception, self.match, '(a,(b,c));',_('a b'))
         
     def test_match_alignment_and_tree_sequence_ids_align_not_tree(self):
-        self.assertRaises(Exception, self.match, '(a,(b,c));',"\n".join('>a A >b A >c C >d T'.split(' ')))
+        self.assertRaises(Exception, self.match, '(a,(b,c));',_('a b c d'))
         
     def test_match_alignment_and_tree_sequence_ids_underscores(self):
-        self.match('(a_2,(b,c));',"\n".join('>a_2 A >b A >c C'.split(' ')))
+        self.match('(\'a_2\',(b,c));',_('a_2 b c'))
         
-    def test_match_alignment_and_tree_sequence_ids_comments(self):
-        self.match('(a,(b,c));',"\n".join('>a comment A >b A >c C'.split(' ')))
+    def test_remove_sequences_easy(self):
+        tc  = TreeCleaner()
+        tree = TreeNode.read(StringIO('(((a,b)F,c)d);'))
+        tc.remove_sequences(tree, ['b'])
+        self.assertEqual('((c,a)d);\n', str(tree))
         
+    def test_remove_sequences_underscores(self):
+        tc  = TreeCleaner()
+        tree = TreeNode.read(StringIO("(((a,b),(c_yeh,L))d);"))
+        tc.remove_sequences(tree, ['c_yeh'])
+        self.assertEqual('(((a,b),L)d);\n', str(tree))
+        
+        
+    def test_remove_sequences_with_named_internal_nodes(self):
+        tc  = TreeCleaner()
+        tree = TreeNode.read(StringIO("('Asulf_Archaeoglobus.1_2280~2522125074':7.17,(('Afulgi_764~2528311132':0.0,'CP006577_764~2588253768':0.0):0.0,'AE000782_746~638154502':0.0)'s__Archaeoglobus fulgidus':7.555):1.461;\n"))
+        tc.remove_sequences(tree, 
+                            ['CP006577_764~2588253768',
+                             'Afulgi_764~2528311132'])
+        self.assertEqual("('Asulf_Archaeoglobus.1_2280~2522125074':7.17,'AE000782_746~638154502':7.555):1.461;\n", str(tree))
 
 if __name__ == "__main__":
     unittest.main()

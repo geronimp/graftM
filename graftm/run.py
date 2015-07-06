@@ -21,7 +21,7 @@ PIPELINE_PROTEIN    = "P"
 PIPELINE_NUCLEOTIDE = "D"
 
 class Run:
-    ### Functions that make up pipelines in GraftM
+    _MIN_VERBOSITY_FOR_ART = 3 # with 2 then, only errors are printed
 
     def __init__(self, args):
         self.args = args
@@ -41,7 +41,7 @@ class Run:
             if hasattr(args, 'reference_package'):
                 self.p = Pplacer(self.args.reference_package)
     
-    def _get_sequence_directions(self, search_result):        
+    def _get_sequence_directions(self, search_result):     
         directions=sum([sum(result.each([
                                          SequenceSearchResult.QUERY_ID_FIELD, 
                                          SequenceSearchResult.ALIGNMENT_DIRECTION
@@ -147,7 +147,7 @@ class Run:
         # The Graft pipeline:
         # Searches for reads using hmmer, and places them in phylogenetic
         # trees to derive a community structure.
-        if self.args.verbosity > 1:
+        if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART:
             print '''
                                 GRAFT
                                 
@@ -171,6 +171,10 @@ class Run:
         seqs_list      = []
         search_results = []
         hit_read_count_list = []
+        if self.args.merge_reads and not hasattr(self.args, 'reverse'):
+            logging.error("--merge requires --reverse to be specified")
+            exit(1)
+
         # Set the output directory if not specified and create that directory
         logging.debug('Creating working directory: %s' % self.args.output_directory)
         self.hk.make_working_directory(self.args.output_directory,
@@ -258,8 +262,10 @@ class Run:
                     hit_reads      = result[0]
                     search_result  = result[1]
                     hit_read_count = result[2]
-                
-                
+                    
+                if not hit_reads:
+                    logging.info('No reads found to alignin %s' % base)
+                    continue
                 logging.info('Aligning reads to reference package database')
                 hit_aligned_reads = self.gmf.aligned_fasta_output_path(base)
                 aln_time = self.h.align(
@@ -314,7 +320,7 @@ class Run:
             self.graft()
 
         elif self.args.subparser_name == 'assemble':
-            if self.args.verbosity > 1: print '''
+            if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART: print '''
                            ASSEMBLE
 
                    Joel Boyd, Ben Woodcroft
@@ -329,7 +335,7 @@ class Run:
             self.tg.main(self.args)
 
         elif self.args.subparser_name == 'extract':
-            if self.args.verbosity > 1: print '''
+            if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART: print '''
                            EXTRACT
 
                    Joel Boyd, Ben Woodcroft
@@ -348,7 +354,7 @@ class Run:
                 self.e.extract(self.args)
 
         elif self.args.subparser_name == 'create':
-            if self.args.verbosity > 1: print '''
+            if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART: print '''
                             CREATE
 
                    Joel Boyd, Ben Woodcroft
@@ -366,15 +372,15 @@ class Run:
                 if self.args.rerooted_annotated_tree:
                     logging.error("--taxonomy is incompatible with --rerooted_annotated_tree")
                     exit(1)
-                if self.args.taxtaxtic_taxonomy or self.args.taxtastic_seqinfo:
-                    logging.error("--taxtastic_taxonomy is incompatible with --taxonomy")
+                if self.args.taxtastic_taxonomy or self.args.taxtastic_seqinfo:
+                    logging.error("--taxtastic_taxonomy and --taxtastic_seqinfo are incompatible with --taxonomy")
                     exit(1)
             elif self.args.rerooted_annotated_tree:
-                if self.args.taxtaxtic_taxonomy or self.args.taxtastic_seqinfo:
-                    logging.error("--taxtastic_taxonomy is incompatible with --rerooted_annotated_tree")
+                if self.args.taxtastic_taxonomy or self.args.taxtastic_seqinfo:
+                    logging.error("--taxtastic_taxonomy and --taxtastic_seqinfo are incompatible with --rerooted_annotated_tree")
                     exit(1)
             else:
-                if not self.args.taxtastic_taxonomy and not self.args.taxtastic_seqinfo:
+                if not self.args.taxtastic_taxonomy or not self.args.taxtastic_seqinfo:
                     logging.error("--taxonomy, --rerooted_annotated_tree or --taxtastic_taxonomy/--taxtastic_seqinfo is required")
                     exit(1)
             if bool(self.args.taxtastic_taxonomy) ^  bool(self.args.taxtastic_seqinfo):

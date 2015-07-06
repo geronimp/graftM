@@ -38,24 +38,86 @@ class Stats_And_Summary:
             for read, tax in placements.iteritems():
                 out.write("%s\t%s\n" % (read, '; '.join(tax)))
 
-    def build_basic_statistics(self, times, hit_read_count_list, placed_reads, base_list, output):
-        files   = '\t'.join(base_list)
-        SSU_18S = '\t'.join([str(x[0]) for x in hit_read_count_list])
-        SSU_16S = '\t'.join([str(x[1]) for x in hit_read_count_list])
-        placed  = '\t'.join([str(x) for x in placed_reads])        
+    def build_basic_statistics(self, summary_hash, output, pipe):
         
+        def compile_run_stats(hash):
+            files = []
+            tot_16S = []
+            tot_18S = []
+            cont_18S = []
+            search_step = []
+            placed_reads = 0
+            aln_step = []
+            euk_check_step = []
+            for base in hash['base_list']:
+                if hash['reverse_pipe']:
+                    files += [base + ' forward', base + ' reverse']
+                    tot_16S += [str(len(hash[base]['forward']['reads'].keys())), str(len(hash[base]['reverse']['reads'].keys()))]
+                    try:
+                        tot_18S += [str(hash[base]['forward']['euk_uniq'] + hash[base]['forward']['euk_contamination']), 
+                                    str(hash[base]['reverse']['euk_uniq'] + hash[base]['reverse']['euk_contamination'])]
+                    except:
+                        tot_18S += ['N/A', 'N/A']
+                    try:
+                        cont_18S += [str(summary_hash[base]['forward']['euk_contamination']), str(summary_hash[base]['reverse']['euk_contamination'])] 
+                    except:
+                        cont_18S = ['N/A']
+                    search_step += [hash[base]['forward']['search_t'], hash[base]['reverse']['search_t']]
+                    aln_step += [hash[base]['forward']['aln_t'], hash[base]['reverse']['aln_t']]
+                    euk_check_step += [hash[base]['forward']['euk_check_t'], hash[base]['reverse']['euk_check_t']]
+                elif not hash['reverse_pipe']:
+                    files += [base]
+                    if hash['merge_reads']:
+                        tot_16S += [str(len(hash[base]['forward']['reads'].keys()))]
+                    else:
+                        tot_16S += [str(len(hash[base]['reads'].keys()))]
+                    try:
+                        placed_reads+=int(tot_16S[0])-int(hash[base]['euk_contamination'])
+                    except:
+
+                        placed_reads+=int(tot_16S[0])
+                    try:
+                        tot_18S += [str(hash[base]['euk_contamination'] + hash[base]['euk_uniq'])]
+
+                    except:
+                        tot_18S += ['N/A']
+                    try:
+                        cont_18S += [str(summary_hash[base]['euk_contamination'])]
+                    except:
+                        cont_18S += ['N/A']
+                    if hash['merge_reads']:
+                        search_step += [hash[base]['forward']['search_t']]
+                        aln_step += [hash[base]['forward']['aln_t']]
+                        euk_check_step += [hash[base]['forward']['euk_check_t']]
+                    else:
+                        search_step += [hash[base]['search_t']]
+                        aln_step += [hash[base]['aln_t']]
+                        euk_check_step += [hash[base]['euk_check_t']]
+                else:
+                    raise Exception('Programming Error')
+            return '\t'.join(files), '\t'.join(tot_16S), '\t'.join(tot_18S), '\t'.join(cont_18S), str(placed_reads), '\t'.join(files), '\t'.join(search_step), '\t'.join(aln_step), '\t'.join(euk_check_step), hash['place_t'], hash['summary_t'], hash['all_t']
+        
+
         stats = """Basic run statistics (count):
-Files:                %s
-# reads detected:     %s
-# 18S reads detected: %s
-reads placed in tree: %s
+
+                             Files:\t%s
+Total number of 16S reads detected:\t%s
+Total number of 18S reads detected:\t%s
+    'Contaminant' eukaryotic reads:\t%s
+              reads placed in tree:\t%s
 
 
 Runtime (seconds):
-Search step:          %s
-Alignment step:       %s
-Tree insertion step:  %s
-    """ % (files, SSU_16S, SSU_18S, placed, times[0], times[1], times[2])
+                             Files:\t%s
+                       Search step:\t%s
+                    Alignment step:\t%s
+              Eukaryote check step:\t%s
+
+               Tree insertion step:\t%s
+                 Summarising steps:\t%s
+                     Total runtime:\t%s
+
+    """ % compile_run_stats(summary_hash)
         
         with open(output, 'w') as stats_file:
             stats_file.write(stats)

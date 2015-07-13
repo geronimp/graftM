@@ -78,7 +78,7 @@ UTILITIES
 =====================================================================================================
 """ % (graftm.__version__)
 
-def header():
+def print_header():
     print """                         
                              GraftM %s""" %(graftm.__version__)
 
@@ -108,7 +108,7 @@ if __name__ == '__main__':
     running_options.add_argument('--input_sequence_type', help='Specify whether the input sequence is "nucleotide" or "protein" sequence data (default=will attempt to auto-detect)', choices = ['protein', 'nucleotide'],  default=argparse.SUPPRESS)
     
     searching_options = graft_parser.add_argument_group('searching options')
-    searching_options.add_argument('--eval', metavar='evalue', help='evalue cutoff for the hmmsearch (default = 1e-5)', default= '1e-5')
+    searching_options.add_argument('--evalue', metavar='evalue', help='evalue cutoff for the hmmsearch (default = 1e-5)', default= '1e-5')
     searching_options.add_argument('--search_and_align_only', action="store_true", help='Stop after reads have been identified (default=False)', default=False)
     searching_options.add_argument('--euk_check', action="store_true", help='Search whole sample for 18S and attempt to estimate relative percentage of Eukaryotes (default=False)', default=False)
     searching_options.add_argument('--search_method', choices=('hmmsearch','diamond'), help='Search method (default=hmmsearch)', default='hmmsearch')
@@ -211,7 +211,7 @@ sequence1    k__kingdom1; p__phylum2
     if(len(sys.argv) == 1 or sys.argv[1] == '-h' or sys.argv[1] == '--help'):
         phelp()
     else:
-        header()
+        print_header()
         args = parser.parse_args()
         if args.log:
             if os.path.isfile(args.log): raise Exception("File %s exists" % args.log)

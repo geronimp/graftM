@@ -1,24 +1,16 @@
 import subprocess
 import os
 import json
-import timeit
 import logging
 import time
 
 from Bio import SeqIO
 
+from graftm.timeit import Timer
 from graftm.classify import Classify
 from graftm.housekeeping import HouseKeeping
+T=Timer()
 
-def timeit(method):
-
-    def timed(*args, **kw):
-        ts = time.time()
-        result = method(*args, **kw)
-        te = time.time()
-        return round(te-ts, 2), result
-
-    return timed
 
 class Pplacer:
     ### Contains function related to processing alignment files to jplace files
@@ -28,7 +20,7 @@ class Pplacer:
     def __init__(self, refpkg):
         self.refpkg = refpkg
         self.hk = HouseKeeping()
-
+        
     # Run pplacer
     def pplacer(self, output_file, output_path, input_path, threads):
         ## Runs pplacer on concatenated alignment file
@@ -83,7 +75,7 @@ class Pplacer:
             jplace_path_list.append(alias_hash[alias]['output_path'])
         return jplace_path_list
     
-    @timeit
+    @T.timeit
     def place(self, reverse_pipe, seqs_list, resolve_placements, files, args):
         '''
         placement - This is the placement pipeline in GraftM, in aligned reads 
@@ -191,7 +183,7 @@ class Compare:
         if check:
             forward_read_names = set([x.replace('/1', '') for x in forward_reads])
             reverse_read_names = set([x.replace('/2', '') for x in reverse_reads])
-        elif not check:
+        else:
             forward_read_names = set(forward_reads)
             reverse_read_names = set(reverse_reads)
         # Report and record the crossover

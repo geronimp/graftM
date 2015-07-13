@@ -3,6 +3,7 @@
 import timeit
 import os
 import logging
+import itertools
 
 from graftm.sequence_search_results import SequenceSearchResult, HMMSearchResult
 from graftm.graftm_output_paths import GraftMFiles
@@ -17,8 +18,8 @@ from graftm.unpack_sequences import UnpackRawReads
 from graftm.graftm_package import GraftMPackage
 from biom.util import biom_open
 
-PIPELINE_PROTEIN    = "P"
-PIPELINE_NUCLEOTIDE = "D"
+PIPELINE_AA = "P"
+PIPELINE_NT = "D"
 
 class Run:
     _MIN_VERBOSITY_FOR_ART = 3 # with 2 then, only errors are printed
@@ -41,30 +42,44 @@ class Run:
             if hasattr(args, 'reference_package'):
                 self.p = Pplacer(self.args.reference_package)
     
-    def _get_sequence_directions(self, search_result):     
-        directions=sum([sum(result.each([
-                                         SequenceSearchResult.QUERY_ID_FIELD, 
-                                         SequenceSearchResult.ALIGNMENT_DIRECTION
-                                         ]
-                                        ), []) \
-                        for result in search_result], 
-                       [])
-        direction_dict={key: item for key, item in zip(directions[0::2], directions[1::2])}
-        return direction_dict
-
+    def _get_sequence_directions(self, search_result): 
+        complement_strand = {}
+        for result in search_result:
+            result_directions = dict(
+                                     result.each([SequenceSearchResult.QUERY_ID_FIELD, 
+                                                  SequenceSearchResult.ALIGNMENT_DIRECTION])
+                                       )
+            complement_strand.update(result_directions)         
+        
+        return complement_strand
+        
     def summarise(self, base_list, trusted_placements, reverse_pipe, times, hit_read_count_list):
         '''
-        summarise - 
+        summarise - write summary information to file, including otu table, biom
+                    file, krona plot, and timing information
         
         Parameters
         ----------
-        base_list : list
+        base_list : array
+            list of each of the files processed by graftm, with the path and 
+            and suffixed removed
         trusted_placements : dict
+            dictionary of placements with entry as the key, a taxonomy string
+            as the value
         reverse_pipe : bool
-        
+            True = run reverse pipe, False = run normal pipeline
+        times : array
+            list of the recorded times for each step in the pipeline in the 
+            format: [search_step_time, alignment_step_time, placement_step_time]
+        hit_read_count_list : array
+            list containing sublists, one for each file run through the GraftM 
+            pipeline, each two entries, the first being the number of putative
+            eukaryotic reads (when searching 16S), the second being the number 
+            of hits aligned and placed in the tree. 
         Returns
         -------
         '''
+        
         # Summary steps.
         placements_list = []
         for base in base_list:
@@ -75,8 +90,7 @@ class Run:
             self.s.readTax(placements, GraftMFiles(base, self.args.output_directory, False).read_tax_output_path(base))
             placements_list.append(placements)
         
-        # TODO: repair if there is demand
-        # Generate coverage table
+        #Generate coverage table
         #logging.info('Building coverage table for %s' % base)
         #self.s.coverage_of_hmm(self.args.aln_hmm_file,
         #                         self.gmf.summary_table_output_path(base),
@@ -166,11 +180,13 @@ class Run:
             gpkg = GraftMPackage.acquire(self.args.graftm_package)
         else:
             gpkg = None
+            
         REVERSE_PIPE   = (True if self.args.reverse else False)
         base_list      = []
         seqs_list      = []
         search_results = []
         hit_read_count_list = []
+        
         if self.args.merge_reads and not hasattr(self.args, 'reverse'):
             logging.error("--merge requires --reverse to be specified")
             exit(1)
@@ -185,7 +201,7 @@ class Run:
         logging.debug("HMM type: %s Trusted Cutoff: %s" % (hmm_type, hmm_tc))
         setattr(self.args, 'type', hmm_type)
         if hmm_tc:
-            setattr(self.args, 'eval', '--cut_tc')
+            setattr(self.args, 'evalue', '--cut_tc')
         # For each pair (or single file passed to GraftM)
         logging.debug('Working with %i file(s)' % len(self.sequence_pair_list))
         for pair in self.sequence_pair_list:
@@ -196,12 +212,6 @@ class Run:
             
             # Guess the sequence file type, if not already specified to GraftM
             unpack = UnpackRawReads(pair[0])
-            if hasattr(self.args, 'input_sequence_type'): 
-                pass
-            else:
-                setattr(self.args, 'input_sequence_type',
-                        self.hk.guess_sequence_type(unpack))
-            logging.debug("Set sequence type of %s to %s" %(pair[0], self.args.input_sequence_type))
             
             # Make the working base subdirectory
             self.hk.make_working_directory(os.path.join(self.args.output_directory,
@@ -231,40 +241,44 @@ class Run:
                                            self.args.output_directory,
                                            direction)
                 
-                if self.args.type == PIPELINE_PROTEIN:
+                if self.args.type == PIPELINE_AA:
                     logging.debug("Running protein pipeline")
-                    search_time, result = self.h.p_search(
-                                                          self.gmf,
-                                                          self.args,
-                                                          base,
-                                                          unpack,
-                                                          read_file,
-                                                          self.args.search_method,
-                                                          gpkg
-                                                          )
+                    search_time, result = self.h.aa_db_search(
+                                                              self.gmf,
+                                                              base,
+                                                              unpack,
+                                                              read_file,
+                                                              self.args.search_method,
+                                                              gpkg,
+                                                              self.args.threads,
+                                                              self.args.evalue,
+                                                              self.args.min_orf_length,
+                                                              self.args.restrict_read_length
+                                                              )
                     hit_reads     = result[0]
                     search_result = result[1]
                     hit_read_count = result[2]
                     
                 # Or the DNA pipeline    
-                elif self.args.type == PIPELINE_NUCLEOTIDE:
+                elif self.args.type == PIPELINE_NT:
                     logging.debug("Running nucleotide pipeline")                   
-                    search_time, result = self.h.d_search(
-                                                          self.gmf,
-                                                          self.args,
-                                                          base,
-                                                          unpack,
-                                                          read_file,
-                                                          self.args.euk_check,
-                                                          self.args.search_method,
-                                                          gpkg
-                                                          )
+                    search_time, result = self.h.nt_db_search(
+                                                              self.gmf,
+                                                              base,
+                                                              unpack,
+                                                              read_file,
+                                                              self.args.euk_check,
+                                                              self.args.search_method,
+                                                              gpkg,
+                                                              self.args.threads,
+                                                              self.args.evalue
+                                                              )
                     hit_reads      = result[0]
                     search_result  = result[1]
                     hit_read_count = result[2]
                     
                 if not hit_reads:
-                    logging.info('No reads found to alignin %s' % base)
+                    logging.info('No reads found to align in %s' % base)
                     continue
                 logging.info('Aligning reads to reference package database')
                 hit_aligned_reads = self.gmf.aligned_fasta_output_path(base)
@@ -288,6 +302,7 @@ class Run:
             self.h.merge_forev_aln(seqs_list, merged_output)
             seqs_list=merged_output
             REVERSE_PIPE = False
+            base_list=base_list[0::2]
         elif REVERSE_PIPE:
             base_list=base_list[0::2]
 

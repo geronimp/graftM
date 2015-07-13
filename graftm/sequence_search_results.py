@@ -93,7 +93,7 @@ class DiamondSearchResult(SequenceSearchResult):
                                  row[8],
                                  row[9],
                                  row[11],
-                                 query_start > query_end,
+                                 query_start < query_end,
                                  ])
         return res
 
@@ -126,10 +126,10 @@ class HMMSearchResult(SequenceSearchResult):
                                 aln_length,
                                 row[4],
                                 row[5],
-                                row[6],
-                                row[7],
+                                alifrom,
+                                alito,
                                 row[13],
-                                alito < alifrom
+                                alito > alifrom
                                 ])
         return res
     @staticmethod
@@ -163,7 +163,7 @@ class HMMSearchResult(SequenceSearchResult):
                                 alifrom,
                                 alito,
                                 row[7],
-                                alito < alifrom
+                                alito > alifrom
                                 ])
         return res
         

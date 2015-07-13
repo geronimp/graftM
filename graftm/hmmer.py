@@ -483,28 +483,62 @@ class Hmmer:
         logging.debug("Running command: %s" % cmd)
         subprocess.check_call(cmd, shell=True)
     
-    def _get_read_names(self, search_result):
-        splits = {}
-        for result in search_result:
+    def _get_read_names(self, search_result, r):
+        '''
+        _get_read_names - loops through hits and alingment spans of hmm hits
+        and determines potentially linked hits (for example, if a gene in a 
+        contig hits a hmm more than once, in two different conserved regions
+        within a gene) and combines them into one 'hit'. The total span of the
+        hits deemed to be linked is returned.
+        
+        Parameters
+        ----------
+        search_result : obj
+            SequenceSearchResult object with all paramaters defined. Used here
+            to create rows containing information on alignment direction and 
+            alignment span.
+        r : int
+            Maximum range that a gene can extend within a contig. Any hits 
+            that extend beyond this length cannot be linked. r is defined as
+            1.5 X the average length of all full length genes used in the 
+            database. This is defined in the CONTENTS.json file within a gpkg.
+        Returns
+        -------
+            Dictionary where keys are the contig/read name. The value for each
+            entry is an array lists, one per hit in each contig, each with the
+            span (min and max) of the alignment. 
+        '''
+        
+        splits = {} # Define an output dictionary to be filled
+        for result in search_result: # Create a table (list of rows contain span, and compliment information
             spans = list(search_result[0].each([SequenceSearchResult.QUERY_ID_FIELD, 
+                                                SequenceSearchResult.ALIGNMENT_DIRECTION,
                                                 SequenceSearchResult.HIT_FROM_FIELD, 
                                                 SequenceSearchResult.HIT_TO_FIELD]))
-            for hit in spans:
-                i = hit[0]
-                t = max(hit[1:]) 
-                f = min(hit[1:])
-                if t == f: continue # if covers none of the query, skip that entry
+            for hit in spans: # For each of these rows (i.e. hits)
+                i = hit[0] # set id to i
+                c = hit[1] # set compliment to c
+                ft = [min(hit[2:]), max(hit[2:])] # set span as ft (i.e. from - to)
+                if ft[0] == ft[1]: continue # if the span covers none of the query, skip that entry (seen this before)
                 if i not in splits: # If the hit hasnt been seen yet
-                    splits[i]=[[f, t]] # add it
-                else: # otherwise (if it has been seen)
-                    for entry in splits[i]: # for each previous entry
-                        if max([entry[0], f]) <= min([entry[1], t]): # Check that the span of the hit does not overlap
-                            break # Break out of the loop if it does (it has been seen before
-                        else: # otherwise
-                            continue
-                    else: # if no break
-                        splits[i].append([f, t]) # Add the new range to be split out in the future
-        return splits
+                    splits[i]={'span':[ft],
+                               'strand':[c]} # add the span and compliment as new entry
+                else: # otherwise (if it has been seen)                   
+                    for idx, entry in enumerate(splits[i]['span']): # for each previously added entry     
+                        if splits[i]['strand'][idx] == c: # If the hit is on the same compliment strand
+                            if min(entry) < min(ft): # if/else to determine which entry comes first (e.g. 1-5, 6-10 not 6-10, 1-5)
+                                if max(ft)-min(entry) < r: # Check if they lie within range of eachother
+                                    entry[1]=max(ft) # ammend the entry if they are
+                                    break # And break the loop
+                            else:
+                                if max(entry)-min(ft) < r:  # Check if they lie within range of eachother
+                                    entry[0] = min(ft) # ammend the entry if they are
+                                    break # And break the loop
+                    else: # if no break occured (no overlap)
+                        splits[i]['span'].append(ft) # Add the new range to be split out in the future
+                        splits[i]['strand'].append(c) # Add the complement strand as well
+        
+        return {key: entry['span'] for key, entry in splits.iteritems()} # return the dict, without strand information which isn't required.
     
     @T.timeit
     def aa_db_search(self, files, base, unpack, raw_reads, search_method, gpkg, 
@@ -590,7 +624,8 @@ class Hmmer:
         
         with tempfile.NamedTemporaryFile(prefix='graftm_readnames') as readnames:
             orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
-            hits = self._get_read_names(search_result)
+            hits = self._get_read_names(search_result, 
+                                        gpkg.contents_hash[gpkg.RANGE_KEY])
             hit_readnames = hits.keys()
             for read in hit_readnames:
                 regex_match = orfm_regex.match(read)
@@ -679,7 +714,8 @@ class Hmmer:
             raise Exception("Diamond searches not supported for nucelotide databases yet")
 
         with tempfile.NamedTemporaryFile(prefix='graftm_readnames') as readnames:
-            hits = self._get_read_names(search_result)
+            hits = self._get_read_names(search_result,
+                                        gpkg.contents_hash[gpkg.RANGE_KEY])
             hit_readnames = hits.keys()
             if euk_check:
                 euk_reads  = self._check_euk_contamination(table_list)

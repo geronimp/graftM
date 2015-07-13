@@ -25,6 +25,7 @@ class GraftMPackage:
     REFERENCE_PACKAGE_KEY = "rfpkg"
     HMM_TRUSTED_CUTOFF_KEY = "TC"
     TAX_INFO_KEY = "tax_info"
+    RANGE_KEY = "range"
     _CONTENTS_FILE_NAME = 'CONTENTS.json'
     
     _CURRENT_VERSION = 2
@@ -36,7 +37,8 @@ class GraftMPackage:
                      SEARCH_HMM_KEY,
                      REFERENCE_PACKAGE_KEY,
                      HMM_TRUSTED_CUTOFF_KEY,
-                     TAX_INFO_KEY
+                     TAX_INFO_KEY,
+                     RANGE_KEY
                      ]}
 
     

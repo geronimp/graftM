@@ -3,6 +3,8 @@ import os
 import json
 import logging
 import time
+import regex
+import re
 
 from Bio import SeqIO
 
@@ -76,7 +78,8 @@ class Pplacer:
         return jplace_path_list
     
     @T.timeit
-    def place(self, reverse_pipe, seqs_list, resolve_placements, files, args):
+    def place(self, reverse_pipe, seqs_list, resolve_placements, files, args,
+              slash_endings):
         '''
         placement - This is the placement pipeline in GraftM, in aligned reads 
                     are placed into phylogenetic trees, and the results interpreted.
@@ -140,17 +143,12 @@ class Pplacer:
                 forward_gup=classifications.pop(sorted(classifications.keys())[0]) 
                 reverse_gup=classifications.pop(sorted(classifications.keys())[0])
                 seqs_list.pop(idx+1)
-                crossover = Compare().compare_hits(
-                                                   forward_gup.keys(), 
-                                                   reverse_gup.keys(), 
-                                                   base_file
-                                                   )
-
                 placements_hash = Compare().compare_placements(
                                                                forward_gup,
                                                                reverse_gup,
-                                                               crossover,
-                                                               args.placements_cutoff
+                                                               args.placements_cutoff,
+                                                               slash_endings,
+                                                               base_file
                                                                )
                 trusted_placements[base_file]=placements_hash['trusted_placements']
                 
@@ -167,27 +165,32 @@ class Compare:
 
     def __init__(self): pass
 
-    def compare_hits(self, forward_reads, reverse_reads, file_name):
+    def _compare_hits(self, forward_reads, reverse_reads, file_name, slash_endings):
         ## Take a paired read run, and compare hits between the two, report the
         ## number of hits each, the crossover, and a
-        def check_reads(read_lists):
-            for read_list in read_lists:
-                read_check = [read for read in read_list if read.startswith('FCC')]
-                if read_check:
-                    return True
-                elif not read_check:
-                    continue
-            return False
-        # Read in the read names for each file
-        check = check_reads([forward_reads, reverse_reads])
-        if check:
-            forward_read_names = set([x.replace('/1', '') for x in forward_reads])
-            reverse_read_names = set([x.replace('/2', '') for x in reverse_reads])
-        else:
-            forward_read_names = set(forward_reads)
-            reverse_read_names = set(reverse_reads)
+        
+        def remove_endings(read_list, slash_endings):
+            orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
+            d = {}
+            for read in read_list:
+                orfm_match=orfm_regex.match(read)
+                
+                if orfm_match:
+                    if slash_endings:
+                        new_read=orfm_match.groups(0)[0][:-2]
+                    else:
+                        new_read=orfm_match.groups(0)[0]
+                elif slash_endings:
+                    new_read=read[:-2]
+                else:
+                    new_read=read
+                d[new_read]=read
+            return d
+        
+        forward_reads=remove_endings(forward_reads, slash_endings)
+        reverse_reads=remove_endings(reverse_reads, slash_endings)
         # Report and record the crossover
-        crossover_hits = [x for x in forward_read_names if x in reverse_read_names]
+        crossover_hits = [x for x in forward_reads.keys() if x in reverse_reads.keys()]
 
         # Check if there are reads to continue with.
         if len(crossover_hits) > 0:
@@ -200,21 +203,22 @@ class Compare:
             raise Exception
         # Return the hash
 
-        return crossover_hits 
+        return crossover_hits, forward_reads, reverse_reads
 
-    def compare_placements(self, forward_gup, reverse_gup, crossover, placement_cutoff):
+    def compare_placements(self, forward_gup, reverse_gup, placement_cutoff, slash_endings, base_file):
         ## Take guppy placement file for the forward and reverse reads, compare
         ## the placement, and make a call as to which is to be trusted. Return
         ## a list of trusted reads for use by the summary step in GraftM
-        # Report and record trusted placements
+        # Report and record trusted placements        
+        crossover, for_dict, rev_dict = self._compare_hits(forward_gup.keys(), 
+                                                           reverse_gup.keys(), 
+                                                           base_file, 
+                                                           slash_endings)
         comparison_hash = {'trusted_placements': {}} # Set up a hash that will record info on each placement
         for read in crossover:
-            if read.startswith('FCC'):
-                f_read = read + '/1'
-                r_read = read + '/2'
-            else:
-                f_read = read
-                r_read = read
+            f_read = for_dict[read]
+            r_read = rev_dict[read]
+            
             # Check read was placed
             if forward_gup.get(f_read) is None or reverse_gup.get(r_read) is None:
                 logging.info('Warning: %s was not inserted into tree' % str(f_read))

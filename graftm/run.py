@@ -255,9 +255,6 @@ class Run:
                                                               self.args.min_orf_length,
                                                               self.args.restrict_read_length
                                                               )
-                    hit_reads     = result[0]
-                    search_result = result[1]
-                    hit_read_count = result[2]
                     
                 # Or the DNA pipeline    
                 elif self.args.type == PIPELINE_NT:
@@ -273,19 +270,16 @@ class Run:
                                                               self.args.threads,
                                                               self.args.evalue
                                                               )
-                    hit_reads      = result[0]
-                    search_result  = result[1]
-                    hit_read_count = result[2]
                     
-                if not hit_reads:
+                if not result.hit_fasta():
                     logging.info('No reads found to align in %s' % base)
                     continue
                 logging.info('Aligning reads to reference package database')
                 hit_aligned_reads = self.gmf.aligned_fasta_output_path(base)
                 aln_time = self.h.align(
-                                        hit_reads,
+                                        result.hit_fasta(),
                                         hit_aligned_reads,
-                                        self._get_sequence_directions(search_result)
+                                        self._get_sequence_directions(result.search_result)
                                         )
                 
                 if not hit_aligned_reads:
@@ -293,10 +287,10 @@ class Run:
                 else:
                     base_list.append(base)
                     seqs_list.append(hit_aligned_reads)
-                    search_results.append(search_result)
-                    hit_read_count_list.append(hit_read_count)
+                    search_results.append(result.search_result)
+                    hit_read_count_list.append(result.hit_count)
                     
-        if self.args.merge_reads:
+        if self.args.merge_reads: 
             merged_output=[GraftMFiles(base, self.args.output_directory, False).aligned_fasta_output_path(base) \
                            for base in base_list]
             self.h.merge_forev_aln(seqs_list, merged_output)
@@ -322,7 +316,8 @@ class Run:
                                             seqs_list,
                                             self.args.resolve_placements,
                                             self.gmf,
-                                            self.args
+                                            self.args,
+                                            result.slash_endings
                                             )
         
         self.summarise(base_list, placements, REVERSE_PIPE, \

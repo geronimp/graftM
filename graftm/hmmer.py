@@ -3,29 +3,25 @@ import os
 import re
 import itertools
 import logging
+
 import tempfile
 import regex
 
-
 from Bio import SeqIO
 from collections import OrderedDict
-
 from graftm.timeit import Timer
 from graftm.housekeeping import HouseKeeping
 from graftm.hmmsearcher import HmmSearcher, NhmmerSearcher
 from graftm.orfm import OrfM, ZcatOrfM
 from graftm.unpack_sequences import UnpackRawReads
-from graftm.diamond import Diamond
-from graftm.sequence_search_results import SequenceSearchResult, HMMSearchResult
-from graftm.graftm_package import GraftMPackage
 from graftm.readHmmTable import HMMreader
 from graftm.db_search_results import DBSearchResult
+
 FORMAT_FASTA    = "FORMAT_FASTA"
 FORMAT_FASTQ    = "FORMAT_FASTQ"
 FORMAT_FASTQ_GZ = "FORMAT_FASTQ_GZ"
 FORMAT_FASTA_GZ = "FORMAT_FASTA_GZ"
 T=Timer()
-
 
 class Hmmer:
 
@@ -35,18 +31,28 @@ class Hmmer:
         self.hk = HouseKeeping()
         
 
-    def hmmalign(self, input_path, directions):
+    def hmmalign(self, input_path, run_stats, for_file, rev_file, for_conv_file, rev_conv_file):
         '''
-        hmmalign - Align reads to the aln_hmm. Receives unaligned sequences and 
+        hmmalign Align reads to the aln_hmm. Receives unaligned sequences and 
         aligns them.
         
         Parameters
         ----------
         input_path : str
             Filename of unaligned hits to be aligned
-        directions : dict
-            dictionary containing read names as keys, and compliment
-            as the entry (True=Forward compliment, False=Reverse compliment)
+        run_stats : dict
+            Dictionary containing run stats. Will have run time from alignment 
+            added to it. Also tells us if there are reads in the reverse 
+            compliment if in nucleotide pipeline
+        for_file : str
+            Output forward compliment path.
+        rev_file : str
+            Output reverse compliment path.
+        for_conv_file : str
+            Output alignment of forward reads with insertions removed
+        rev_conv_file : str
+            Output alignment of reverse reads with insertions removed
+        
         Returns
         -------
         conv_files : array
@@ -54,6 +60,7 @@ class Hmmer:
             reverse reads in aligned fasta format.
         
         '''
+
         
         for_file      = tempfile.NamedTemporaryFile(prefix='for_file', suffix='.fa').name
         rev_file      = tempfile.NamedTemporaryFile(prefix='rev_file', suffix='.fa').name
@@ -65,9 +72,8 @@ class Hmmer:
             reverse = []
             forward = []
             records = list(SeqIO.parse(open(input_path), 'fasta'))
-            
+
             # Split the reads into reverse and forward lists
-            orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
             for record in records:
                 regex_match = orfm_regex.match(record.id)
                 if regex_match:
@@ -78,14 +84,15 @@ class Hmmer:
                     forward.append(record)
                 elif directions[read_id] == False:
                     reverse.append(record)
+
                 else:
                     raise Exception(logging.error('Programming error: hmmalign'))
                     exit(1)
-            
             logging.debug("Found %i forward compliment reads" % len(forward))
             logging.debug("Found %i reverse compliment reads" % len(reverse))
-            
             # Write reverse complement and forward reads to files
+            
+            
             with open(for_file, 'w') as for_aln:
                 logging.debug("Writing forward compliment reads to %s" % for_file)
                 for record in forward:
@@ -114,12 +121,12 @@ class Hmmer:
             subprocess.check_call(cmd, shell=True)
             conv_files = [for_conv_file, rev_conv_file]
             return conv_files
+
         # If there are only forward reads, just hmmalign and be done with it.
         else:
             cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (self.aln_hmm,
-                                                                                                 input_path,
-                                                                                                 for_conv_file)
-           
+                                                                             input_path,
+                                                                             for_conv_file)
             logging.debug("Running command: %s" % cmd)
             subprocess.check_call(cmd, shell=True)
             conv_files = [for_conv_file]
@@ -185,9 +192,10 @@ class Hmmer:
         
         # Run the HMMsearches
         searcher = HmmSearcher(threads, '-E %s' % evalue)
+
         searcher.hmmsearch(input_cmd, self.search_hmm, output_table_list)
-        hmmtables=[HMMSearchResult.import_from_hmmsearch_table(x) for x in output_table_list]
-        return hmmtables
+        
+        return output_table_list
 
     def merge_forev_aln(self, aln_list, outputs): 
         '''
@@ -252,6 +260,7 @@ class Hmmer:
                     except:
                         continue
                     
+
     def nhmmer(self, output_path, unpack, threads, evalue):
         '''
         nhmmer - Search input path using nhmmer
@@ -285,7 +294,6 @@ class Hmmer:
         else:
             raise Exception("Programming error: Expected 1 or more HMMs")
         input_pipe=unpack.command_line()
-        
         searcher = NhmmerSearcher(threads, extra_args='-E %s' % evalue)
         searcher.hmmsearch(input_pipe, self.search_hmm, output_table_list)
         
@@ -308,11 +316,11 @@ class Hmmer:
             detected by both 18S and non-18S HMMs
         
         Returns
-        -------
-        euk_reads : array
+        -------        
             list of all read names deemed to be eukaryotic
+
         '''
-        euk_hit_table              = HMMreader(hmm_hit_tables.pop(-1))
+        euk_hit_table=HMMreader(hmm_hit_tables.pop(-1))
         other_hit_tables           = [HMMreader(x) for x in hmm_hit_tables]
         crossover                  = []
         reads_unique_to_eukaryotes = []   
@@ -338,9 +346,11 @@ class Hmmer:
         else:
             logging.info("Found %s read(s) that may be eukaryotic" % len(reads_with_better_euk_hit + reads_unique_to_eukaryotes))
         
+        run_stats['euk_uniq'] = len(reads_unique_to_eukaryotes)
+        run_stats['euk_contamination'] = len(reads_with_better_euk_hit)
         euk_reads=reads_with_better_euk_hit + reads_unique_to_eukaryotes
         
-        return euk_reads
+        return euk_reads, run_stats
 
     def _extract_from_raw_reads(self, output_path, input_path, raw_sequences_path, input_file_format, hits):
         '''
@@ -383,14 +393,23 @@ class Hmmer:
         fxtract_cmd = "fxtract -H -X -f %s " % input_path
         if input_file_format == FORMAT_FASTA:
             cmd = "%s %s > %s" % (fxtract_cmd, raw_sequences_path, output_path)
+            logging.debug("Running command: %s" % cmd)
+            subprocess.check_call(cmd, shell=True)
         elif input_file_format == FORMAT_FASTQ_GZ:
             cmd = "%s -z %s | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > %s" % (fxtract_cmd, raw_sequences_path, output_path)
+            logging.debug("Running command: %s" % cmd)
+            subprocess.check_call(cmd, shell=True)
         elif input_file_format == FORMAT_FASTA_GZ:
             cmd = "%s -z %s > %s" % (fxtract_cmd, raw_sequences_path, output_path)
+            logging.debug("Running command: %s" % cmd)
+            subprocess.check_call(cmd, shell=True)
         elif input_file_format == FORMAT_FASTQ:
             cmd = "%s %s | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > %s" % (fxtract_cmd, raw_sequences_path, output_path)
+            logging.debug("Running command: %s" % cmd)
+            subprocess.check_call(cmd, shell=True)
         else:
             raise Exception("Programming error")
+
         logging.debug("Running command: %s" % cmd)
         subprocess.check_call(cmd, shell=True)
         
@@ -435,7 +454,7 @@ class Hmmer:
                         output_file.write(fasta_id)
                         output_file.write(fasta_seq)
 
-    def extract_orfs(self, input_path, orfm, orf_out_path):
+    def extract_orfs(self, input_path, raw_orf_path, hmmsearch_out_path, orf_titles_path, orfm, orf_out_path):
         '''
         extract_orfs - Return a path to a FASTA file containing ORFs that hit \
                        the HMM (self.search_hmm)
@@ -449,26 +468,30 @@ class Hmmer:
         orf_out_path
             Path to output fasta file, containing amino acid ORFs
         '''
-        raw_orf_path    = tempfile.NamedTemporaryFile(prefix='orf_hmmsearch').name
-        orf_titles_path = tempfile.NamedTemporaryFile(prefix='orf_titles').name
-        
-        # Build the output_files
-        if len(self.search_hmm) >= 1:
-            output_table_list=[tempfile.NamedTemporaryFile(prefix='orf_hmmsearch').name for x in self.search_hmm]
+        # Build the command
+        output_table_list = []
+        if len(self.search_hmm) > 1:
+            for hmm in self.search_hmm:
+                out = os.path.join(os.path.split(hmmsearch_out_path)[0], os.path.basename(hmm).split('.')[0] +'_'+ os.path.split(hmmsearch_out_path)[1])
+                output_table_list.append(out)
+        elif len(self.search_hmm) == 1:
+            output_table_list.append(hmmsearch_out_path)
         else:
             raise Exception("Programming error: expected 1 or more HMMs")
-
-        # Build ORF calling command orfs on the sequences
+        
+        # Call orfs on the sequences
         orfm_cmd = orfm.command_line()
         cmd = '%s %s > %s' % (orfm_cmd, input_path, raw_orf_path)
         
         logging.debug("Running command: %s" % cmd)
         subprocess.check_call(cmd, shell=True)
-        
+
         cmd = 'cat %s' % raw_orf_path
         searcher = HmmSearcher(1)
         searcher.hmmsearch(cmd, self.search_hmm, output_table_list)
+        
         with open(orf_titles_path, 'w') as output:
+
             reads= set(
                        list(
                             itertools.chain(
@@ -481,6 +504,7 @@ class Hmmer:
             
         # Extract the reads using the titles.
         cmd = 'fxtract -H -X -f %s %s > %s' % (orf_titles_path, raw_orf_path, orf_out_path)
+        
         logging.debug("Running command: %s" % cmd)
         subprocess.check_call(cmd, shell=True)
     
@@ -549,7 +573,7 @@ class Hmmer:
         Amino acid database search pipeline - pipeline where reads are searched
         as amino acids, and hits are identified using hmmsearch or diamond 
         searches
-        
+                
         Parameters
         ----------
         files : obj
@@ -580,7 +604,6 @@ class Hmmer:
         hit_orfs : str
             The output fasta file of reads that hit 
         '''
-        
         # Define outputs
         hmmsearch_output_table = files.hmmsearch_output_path(base)
         hit_reads_fasta        = files.fa_output_path(base)
@@ -591,6 +614,7 @@ class Hmmer:
             clazz = ZcatOrfM
         else:
             clazz = OrfM
+
         orfm = clazz(min_orf_length=min_orf_length,
                      restrict_read_length=restrict_read_length)
         extracting_orfm = OrfM(min_orf_length=min_orf_length,
@@ -682,8 +706,7 @@ class Hmmer:
                      search_method, gpkg, threads, evalue, srch_aln_only):
         '''
         Nucleotide database search pipeline - pipeline where reads are searched
-        as nucleotides, and hits are identified using nhmmer searches
-        
+        as nucleotides, and hits are identified using nhmmer searches        
         Parameters
         ----------
         files : obj
@@ -790,14 +813,73 @@ class Hmmer:
         Returns
         -------
         N/A - output alignment path known.
+
         '''
+        start = timeit.default_timer() # Start search timer
         
+        # First search the reads using the HMM
+        hit_table = self.nhmmer(files.hmmsearch_output_path(base),
+                                unpack,
+                                args.threads,
+                                args.eval)
+        
+        # Next, get a list of readnames
+        run_stats, hit_readnames = self.csv_to_titles(files.readnames_output_path(base),
+                                                      hit_table,
+                                                      run_stats,
+                                                      euk_check)
+        if not hit_readnames:
+            return False, run_stats
+
+        # And extract them from the original sequence file
+        run_stats['reads'], hit_reads = self.extract_from_raw_reads(files.fa_output_path(base),
+                                                                    hit_readnames,
+                                                                    raw_reads,
+                                                                    unpack.format(),
+                                                                    run_stats['reads'])
+        # Define the read length
+        run_stats['read_length'] = self.check_read_length(hit_reads, "D")
+
+        # Stop timing search and start timing euk check step.
+        stop = timeit.default_timer()
+        run_stats['search_t'] = str(int(round((stop - start), 0)) )
+        start = timeit.default_timer()
+
+
+
+        # Stop timing eukaryote check
+        stop = timeit.default_timer()
+        run_stats['euk_check_t'] = str(int(round((stop - start), 0)) )
+
+        # Finally, return the hits
+        return hit_reads, run_stats
+
+    def align(self, files, args, run_stats, base, reads):
+
+        # This pipeline takes unaligned reads, and aligns them agains a hmm,
+        # regardless of their direction. Aligned reads with base insertions
+        # removed are returned in the end. Times and commands are logged.
+
+        start = timeit.default_timer()
+
         # HMMalign the forward reads, and reverse complement reads.
-        alignments=self.hmmalign(input_path,
-                                 directions)
-        self.alignment_correcter(alignments,
-                                 output_path)
+        self.hmmalign(reads,
+                      run_stats,
+                      files.output_for_path(base),
+                      files.output_rev_path(base),
+                      files.conv_output_for_path(base),
+                      files.conv_output_rev_path(base))
 
+        # Correct the alignment for base insertions.
+        if run_stats['rev_true']:
+            self.alignment_correcter([files.conv_output_for_path(base), files.conv_output_rev_path(base)],
+                                     files.aligned_fasta_output_path(base))
+        else:
+            self.alignment_correcter([files.conv_output_for_path(base)],
+                                     files.aligned_fasta_output_path(base))
+        stop = timeit.default_timer()
+        run_stats['aln_t'] = str(int(round((stop - start), 0)) )
 
-
+        # Return
+        return files.aligned_fasta_output_path(base), run_stats
 

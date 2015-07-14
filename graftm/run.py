@@ -5,7 +5,6 @@ import os
 import logging
 import itertools
 
-from graftm.sequence_search_results import SequenceSearchResult, HMMSearchResult
 from graftm.graftm_output_paths import GraftMFiles
 from graftm.extract_sequences import Extract
 from graftm.hmmer import Hmmer
@@ -15,8 +14,6 @@ from graftm.pplacer import Pplacer
 from graftm.assembler import TaxoGroup
 from graftm.create import Create
 from graftm.unpack_sequences import UnpackRawReads
-from graftm.graftm_package import GraftMPackage
-from biom.util import biom_open
 
 PIPELINE_AA = "P"
 PIPELINE_NT = "D"
@@ -79,47 +76,50 @@ class Run:
         Returns
         -------
         '''
-        
         # Summary steps.
+        start           = timeit.default_timer()
         placements_list = []
-        for base in base_list:
+        for base in summary_dict['base_list']:
             # First assign the hash that contains all of the trusted placements
             # to a variable to it can be passed to otu_builder, to be written
             # to a file. :)
-            placements = trusted_placements[base]
+            if summary_dict['reverse_pipe']:
+                placements = summary_dict[base]['comparison_hash']['trusted_placements']
+                summary_dict[base]['read_length'] = (summary_dict[base]['forward']['read_length'] + summary_dict[base]['reverse']['read_length'])/2
+            elif not summary_dict['reverse_pipe']:
+                placements = summary_dict[base]['trusted_placements']
+            else:
+                raise Exception('Programming Error: Assigning placements hash')
+                
             self.s.readTax(placements, GraftMFiles(base, self.args.output_directory, False).read_tax_output_path(base))
             placements_list.append(placements)
         
-        #Generate coverage table
-        #logging.info('Building coverage table for %s' % base)
-        #self.s.coverage_of_hmm(self.args.aln_hmm_file,
-        #                         self.gmf.summary_table_output_path(base),
-        #                         self.gmf.coverage_table_path(base),
-        #                         summary_dict[base]['read_length'])
-        
+        sample_names = summary_dict['base_list']
         logging.info('Writing summary table')
         with open(self.gmf.combined_summary_table_output_path(), 'w') as f:
-            self.s.write_tabular_otu_table(base_list, placements_list, f)
+            self.s.write_tabular_otu_table(sample_names, placements_list, f)
             
         logging.info('Writing biom file')
         with biom_open(self.gmf.combined_biom_output_path(), 'w') as f:
-            biom_successful = self.s.write_biom(base_list, placements_list, f)
+            biom_successful = self.s.write_biom(sample_names, placements_list, f)
         if not biom_successful:
             os.remove(self.gmf.combined_biom_output_path())
         
         logging.info('Building summary krona plot')
-        self.s.write_krona_plot(base_list, placements_list, self.gmf.krona_output_path())
+        self.s.write_krona_plot(sample_names, placements_list, self.gmf.krona_output_path())
         
-        # Basic statistics
-        placed_reads=[len(trusted_placements[base]) for base in base_list]
-        self.s.build_basic_statistics(times, hit_read_count_list, placed_reads, \
-                                      base_list, self.gmf.basic_stats_path())
-        
+        stop = timeit.default_timer()
+        summary_dict['summary_t'] = str(int(round((stop - start), 0)) )
+
+        # Compile basic run statistics if they are wanted
+        summary_dict['stop_all'] = timeit.default_timer()
+        summary_dict['all_t'] = str(int(round((summary_dict['stop_all'] - summary_dict['start_all']), 0)) )
+        self.s.build_basic_statistics(summary_dict, self.gmf.basic_stats_path(), self.args.type)
         # Delete unnecessary files
         logging.info('Cleaning up')
-        for base in base_list:
+        for base in summary_dict['base_list']:
             directions = ['forward', 'reverse']
-            if reverse_pipe:
+            if summary_dict['reverse_pipe']:
                 for i in range(0,2):
                     self.gmf = GraftMFiles(base, self.args.output_directory, directions[i])
                     self.hk.delete([self.gmf.for_aln_path(base),
@@ -137,7 +137,7 @@ class Run:
                                     self.gmf.comb_aln_fa(),
                                     self.gmf.output_for_path(base),
                                     self.gmf.output_rev_path(base)])
-            else:
+            elif not summary_dict['reverse_pipe']:
                 self.gmf = GraftMFiles(base, self.args.output_directory, False)
                 self.hk.delete([self.gmf.for_aln_path(base),
                                 self.gmf.rev_aln_path(base),
@@ -164,7 +164,7 @@ class Run:
         if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART:
             print '''
                                 GRAFT
-                                
+        
                        Joel Boyd, Ben Woodcroft
                        
                                                          __/__
@@ -175,6 +175,7 @@ class Run:
           - _-  -         -             |      ______
              - _                        |_____|
            -                                  |______
+
             ''' 
         if hasattr(self.args, "graftm_package"):
             gpkg = GraftMPackage.acquire(self.args.graftm_package)
@@ -186,11 +187,22 @@ class Run:
         seqs_list      = []
         search_results = []
         hit_read_count_list = []
+
         
         if self.args.merge_reads and not hasattr(self.args, 'reverse'):
             logging.error("--merge requires --reverse to be specified")
             exit(1)
-
+        
+        readstoplace=False # An extra check to make sure there are reads to place with
+        # Set up a dictionary that will record stats as the pipeline is running
+        summary_table = {'euks_checked'      : self.args.euk_check,
+                         'resolve_placements': self.args.resolve_placements,
+                         'base_list'         : [],
+                         'seqs_list'         : [],
+                         'start_all'         : timeit.default_timer(),
+                         'reverse_pipe'      : False,
+                         'merge_reads'       : self.args.merge_reads}
+        
         # Set the output directory if not specified and create that directory
         logging.debug('Creating working directory: %s' % self.args.output_directory)
         self.hk.make_working_directory(self.args.output_directory,
@@ -202,30 +214,45 @@ class Run:
         setattr(self.args, 'type', hmm_type)
         if hmm_tc:
             setattr(self.args, 'evalue', '--cut_tc')
+
         # For each pair (or single file passed to GraftM)
         logging.debug('Working with %i file(s)' % len(self.sequence_pair_list))
         for pair in self.sequence_pair_list:
             # Set the basename, and make an entry to the summary table.
             base = os.path.basename(pair[0]).split('.')[0]
-            pair_direction = ['forward', 'reverse']
-            logging.info("Working on %s" % base)
+            # Set reverse pipe if more than one pair
+            if hasattr(self.args, 'reverse'):
+                summary_table['reverse_pipe'] = True
+                summary_table[base]           = {'reverse':{}, 
+                                                 'forward':{}}
+                pair_direction                = ['forward', 'reverse']
+            else:
+                summary_table[base]           = {}
             
+            # Set pipeline and evalue by checking HMM format
+            hmm_type, hmm_tc = self.hk.setpipe(self.args.aln_hmm_file)
+            logging.debug("HMM type: %s Trusted Cutoff: %s" % (hmm_type, hmm_tc))
+            setattr(self.args, 'type', hmm_type)
+            if hmm_tc:
+                setattr(self.args, 'eval', '--cut_tc')
+                
             # Guess the sequence file type, if not already specified to GraftM
             unpack = UnpackRawReads(pair[0])
-            
+
             # Make the working base subdirectory
             self.hk.make_working_directory(os.path.join(self.args.output_directory,
                                                         base),
-                                           self.args.force)            
+                                           self.args.force)
+            # tell the user which file/s is being processed
+            logging.info("Working on %s" % base)
 
             # for each of the paired end read files
             for read_file in pair:
-                unpack = UnpackRawReads(read_file)
                 if not os.path.isfile(read_file): # Check file exists
                     logging.info('%s does not exist! Skipping this file..' % read_file)
                     continue
                 # Set the output file_name
-                if REVERSE_PIPE:
+                if summary_table['reverse_pipe']:
                     direction = pair_direction.pop(0)
                     logging.info("Working on %s reads" % direction)
                     self.gmf = GraftMFiles(base,
@@ -235,11 +262,13 @@ class Run:
                                                                 base,
                                                                 direction),
                                                    self.args.force)
-                else:
+                elif not summary_table['reverse_pipe']:
                     direction = False
                     self.gmf = GraftMFiles(base,
                                            self.args.output_directory,
                                            direction)
+                else:
+                    raise Exception('Programming Error')
                 
                 if self.args.type == PIPELINE_AA:
                     logging.debug("Running protein pipeline")
@@ -306,9 +335,10 @@ class Run:
         if self.args.search_and_align_only:
             logging.info('Stopping before placement\n')
             exit(0)
-        elif not any(base_list):
+        elif not readstoplace:
             logging.error('No hits in any of the provided files. Cannot continue with no reads to place.\n')
             exit(0)
+        # Tell the user we're on to placing the sequences into the tree.
         self.gmf = GraftMFiles('',
                                self.args.output_directory,
                                False)
@@ -324,6 +354,7 @@ class Run:
         
         self.summarise(base_list, placements, REVERSE_PIPE, \
                        [search_time,aln_time[0],place_time], hit_read_count_list)
+
 
 
     def main(self):
@@ -400,8 +431,7 @@ class Run:
                 exit(1)
             self.hk.checkCreatePrerequisites()
 
-            Create().main(sequences = self.args.sequences, 
-                          alignment=self.args.alignment, 
+            Create().main(alignment=self.args.alignment, 
                           taxonomy=self.args.taxonomy,
                           rerooted_tree=self.args.rerooted_tree,
                           tree_log=self.args.tree_log,

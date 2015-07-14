@@ -1,5 +1,4 @@
 
-
 class HMMreader:
     def __init__(self, table):
         self.entries = {}

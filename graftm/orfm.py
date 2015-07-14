@@ -39,4 +39,4 @@ class ZcatOrfM(OrfM):
         if input_path is None:
             raise Exception("input_path required for ZcatOrfM")
         original = OrfM.command_line(self, input_path=None)
-        return "zcat '%s' | %s" % (input_path, original)
+        return "zcat '%s' |%s" % (input_path, original)

@@ -253,7 +253,8 @@ class Run:
                                                               self.args.threads,
                                                               self.args.evalue,
                                                               self.args.min_orf_length,
-                                                              self.args.restrict_read_length
+                                                              self.args.restrict_read_length,
+                                                              self.args.search_and_align_only
                                                               )
                     
                 # Or the DNA pipeline    
@@ -268,7 +269,8 @@ class Run:
                                                               self.args.search_method,
                                                               gpkg,
                                                               self.args.threads,
-                                                              self.args.evalue
+                                                              self.args.evalue,
+                                                              self.args.search_and_align_only
                                                               )
                     
                 if not result.hit_fasta():

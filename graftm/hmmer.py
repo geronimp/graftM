@@ -543,7 +543,8 @@ class Hmmer:
     
     @T.timeit
     def aa_db_search(self, files, base, unpack, raw_reads, search_method, gpkg, 
-                     threads, evalue, min_orf_length, restrict_read_length):
+                     threads, evalue, min_orf_length, restrict_read_length,
+                     srch_aln_only):
         '''
         Amino acid database search pipeline - pipeline where reads are searched
         as amino acids, and hits are identified using hmmsearch or diamond 
@@ -627,9 +628,18 @@ class Hmmer:
         
         with tempfile.NamedTemporaryFile(prefix='graftm_readnames') as readnames:
             # Write the names of hits to a tmpfile
+            
             orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)') # to remove OrfM suffix from read names
-            hits = self._get_read_names(search_result,  # define the span of hits
-                                        gpkg.contents_hash[gpkg.RANGE_KEY])
+            if srch_aln_only:
+                hits = {key:[] for key in list(
+                                               itertools.chain(
+                                                               *itertools.chain(
+                                                                                *[list(result.each([SequenceSearchResult.QUERY_ID_FIELD])) \
+                                                                                  for result in search_result]
+                                                                                )))}
+            else:
+                hits = self._get_read_names(search_result,  # define the span of hits
+                                            gpkg.contents_hash[gpkg.RANGE_KEY])
             hit_readnames = [orfm_regex.match(name).groups(0)[0] if orfm_regex.match(name) else name for name in hits.keys()] # Define readnames
             for read in hit_readnames:
                 readnames.write(read+'\n')
@@ -642,14 +652,14 @@ class Hmmer:
                                                            unpack.format(),
                                                            hits
                                                            )
-        
-        
+
         if not hit_readnames:
             hit_read_counts=[0,len(hit_readnames)]
             result=DBSearchResult(None, 
                                   search_result, 
                                   hit_read_counts,
                                   None)
+            return result
     
         if unpack.sequence_type() == 'nucleotide':
             # Extract the orfs of these reads that hit the original search
@@ -669,7 +679,7 @@ class Hmmer:
     
     @T.timeit
     def nt_db_search(self, files, base, unpack, raw_reads, euk_check, 
-                     search_method, gpkg, threads, evalue):
+                     search_method, gpkg, threads, evalue, srch_aln_only):
         '''
         Nucleotide database search pipeline - pipeline where reads are searched
         as nucleotides, and hits are identified using nhmmer searches
@@ -721,8 +731,16 @@ class Hmmer:
             raise Exception("Diamond searches not supported for nucelotide databases yet")
 
         with tempfile.NamedTemporaryFile(prefix='graftm_readnames') as readnames:
-            hits = self._get_read_names(search_result,
-                                        gpkg.contents_hash[gpkg.RANGE_KEY])
+            if srch_aln_only:
+                hits = {key:[[]] for key in list(
+                                               itertools.chain(
+                                                               *itertools.chain(
+                                                                                *[list(result.each([SequenceSearchResult.QUERY_ID_FIELD])) \
+                                                                                  for result in search_result]
+                                                                                )))}
+            else:
+                hits = self._get_read_names(search_result,  # define the span of hits
+                                            gpkg.contents_hash[gpkg.RANGE_KEY])
             hit_readnames = hits.keys()
             if euk_check:
                 euk_reads  = self._check_euk_contamination(table_list)

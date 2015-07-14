@@ -3,9 +3,8 @@ import os
 import re
 import itertools
 import logging
-
 import tempfile
-import regex
+
 
 from Bio import SeqIO
 from collections import OrderedDict
@@ -492,13 +491,11 @@ class Hmmer:
         
         with open(orf_titles_path, 'w') as output:
 
-            reads= set(
-                       list(
-                            itertools.chain(
-                                            *[HMMreader(x).names() for x \
-                                              in output_table_list]
-                                            )
-                            )
+            reads= set(    
+                        itertools.chain(
+                                        *[HMMreader(x).names() for x \
+                                          in output_table_list]
+                                        )
                        )
             [output.write(x + '\n') for x in reads]
             
@@ -508,13 +505,13 @@ class Hmmer:
         logging.debug("Running command: %s" % cmd)
         subprocess.check_call(cmd, shell=True)
     
-    def _get_read_names(self, search_result, r):
+    def _get_read_names(self, search_result, max_range):
         '''
-        _get_read_names - loops through hits and alingment spans of hmm hits
-        and determines potentially linked hits (for example, if a gene in a 
-        contig hits a hmm more than once, in two different conserved regions
-        within a gene) and combines them into one 'hit'. The total span of the
-        hits deemed to be linked is returned.
+        _get_read_names - loops through hits and alignment spans of each hit to
+        the hmm and determines if they are linked hits (for example, if a gene 
+        in a contig hits a hmm more than once, in two different conserved 
+        regions) and combines them into one 'hit'. The total span 
+        of the hits deemed to be linked is returned.
         
         Parameters
         ----------
@@ -522,11 +519,12 @@ class Hmmer:
             SequenceSearchResult object with all paramaters defined. Used here
             to create rows containing information on alignment direction and 
             alignment span.
-        r : int
+        max_range : int
             Maximum range that a gene can extend within a contig. Any hits 
-            that extend beyond this length cannot be linked. r is defined as
-            1.5 X the average length of all full length genes used in the 
-            database. This is defined in the CONTENTS.json file within a gpkg.
+            that extend beyond this length cannot be linked. max_range is 
+            defined as 1.5 X the average length of all full length genes used 
+            in the database. This is defined in the CONTENTS.json file within a 
+            gpkg.
         Returns
         -------
             Dictionary where keys are the contig/read name. The value for each
@@ -535,7 +533,7 @@ class Hmmer:
         '''
         
         splits = {} # Define an output dictionary to be filled
-        for result in search_result: # Create a table (list of rows contain span, and compliment information
+        for result in search_result: # Create a table (list of rows contain span, and complement information
             spans = list(search_result[0].each([SequenceSearchResult.QUERY_ID_FIELD, 
                                                 SequenceSearchResult.ALIGNMENT_DIRECTION,
                                                 SequenceSearchResult.HIT_FROM_FIELD, 
@@ -547,16 +545,16 @@ class Hmmer:
                 if ft[0] == ft[1]: continue # if the span covers none of the query, skip that entry (seen this before)
                 if i not in splits: # If the hit hasnt been seen yet
                     splits[i]={'span':[ft],
-                               'strand':[c]} # add the span and compliment as new entry
+                               'strand':[c]} # add the span and complement as new entry
                 else: # otherwise (if it has been seen)                   
                     for idx, entry in enumerate(splits[i]['span']): # for each previously added entry     
-                        if splits[i]['strand'][idx] == c: # If the hit is on the same compliment strand
+                        if splits[i]['strand'][idx] == c: # If the hit is on the same complement strand
                             if min(entry) < min(ft): # if/else to determine which entry comes first (e.g. 1-5, 6-10 not 6-10, 1-5)
-                                if max(ft)-min(entry) < r: # Check if they lie within range of eachother
+                                if max(ft)-min(entry) < max_range: # Check if they lie within range of eachother
                                     entry[1]=max(ft) # ammend the entry if they are
                                     break # And break the loop
                             else:
-                                if max(entry)-min(ft) < r:  # Check if they lie within range of eachother
+                                if max(entry)-min(ft) < max_range:  # Check if they lie within range of eachother
                                     entry[0] = min(ft) # ammend the entry if they are
                                     break # And break the loop
                     else: # if no break occured (no overlap)

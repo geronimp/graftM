@@ -16,6 +16,7 @@ from graftm.assembler import TaxoGroup
 from graftm.create import Create
 from graftm.unpack_sequences import UnpackRawReads
 from graftm.graftm_package import GraftMPackage
+from graftm.cluster import readsClusterer
 from biom.util import biom_open
 
 PIPELINE_AA = "P"
@@ -33,6 +34,7 @@ class Run:
         self.s = Stats_And_Summary()
         self.tg = TaxoGroup()
         self.e = Extract()
+        self.clust = readsClusterer()
         if args.subparser_name == 'graft':
             self.hk.set_attributes(self.args)
             self.hk.set_euk_hmm(self.args)
@@ -185,6 +187,7 @@ class Run:
         base_list      = []
         seqs_list      = []
         search_results = []
+        uc_list        = []
         hit_read_count_list = []
         
         if self.args.merge_reads and not hasattr(self.args, 'reverse'):
@@ -278,6 +281,11 @@ class Run:
                     continue
                 logging.info('Aligning reads to reference package database')
                 hit_aligned_reads = self.gmf.aligned_fasta_output_path(base)
+                
+                if self.args.cluster:
+                    hit_reads, uc = self.clust.cluster(hit_reads)
+                    uc_list.append(uc)
+                    
                 aln_time = self.h.align(
                                         result.hit_fasta(),
                                         hit_aligned_reads,
@@ -313,6 +321,7 @@ class Run:
                                self.args.output_directory,
                                False)
         logging.info("Placing reads into phylogenetic tree")
+        
         place_time, placements=self.p.place(
                                             REVERSE_PIPE,
                                             seqs_list,
@@ -322,6 +331,17 @@ class Run:
                                             result.slash_endings
                                             )
         
+        if self.args.cluster:
+            for idx, base in enumerate(base_list):
+                clusters={}
+                uc = uc_list[idx]
+                place = placements[base]
+                for read_name, taxonomy in place.iteritems():
+                    if any(uc[read_name]):
+                        for clust in uc[read_name]:
+                            clusters[clust] = taxonomy
+                placements[base].update(clusters)
+        import IPython; IPython.embed()
         self.summarise(base_list, placements, REVERSE_PIPE, \
                        [search_time,aln_time[0],place_time], hit_read_count_list)
 

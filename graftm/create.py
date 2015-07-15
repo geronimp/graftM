@@ -208,15 +208,15 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         define_range - define the maximum range within which two hits in a db 
         search can be linked. This is defined as 1.5X the average length of all
         reads in the database. 
-        NOTE: in the interest of speed this function assumes that the fasta 
-        input is correctly formated. If it isn't, define_range will likely fail,
-        and tell the user there may be a problem with the fasta.
+        NOTE: in the interest of speed this function assumes that the FASTA 
+        input is correctly formated. (i.e. headers start with '>' and sequences
+        do not. Nothing else is present within the file).
         
         Parameters
         ----------
         sequences : str
             A path to the sequences in FASTA format. This fasta file is assumed 
-            to be in the correct format. i.e. headers start
+            to be in the correct format. i.e. headers start with '>'
             
         Returns
         -------
@@ -232,14 +232,13 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         output = output.strip().split('\n') # redefine that output as a list, one entry per line
         
         for line in output: # For every entry in the output 
-            if line.startswith('>'): # If it starts with a '>'
-                total_sequence+=1
+            if line.startswith('>'): # If it starts with a '>' (is a header)
+                total_sequence+=1 # increment the total sequence count
             else: # If it is a sequence
-                sequence_count+=len(line) # add it to the total string count
+                sequence_count+=len(line) # add the length of that sequence to the total string count
                 
         # Get the average, multiply by 1.5, and return
         max_range = (sequence_count/total_sequence)*1.5
-        
         return max_range 
 
     def generate_tree_log_file(self, tree, alignment, output_tree_file_path,
@@ -334,6 +333,9 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         deduplicated_alignment_file = base+"_deduplicated_aligned.fasta"
         seqio.write_fasta_file([seqs[0] for seqs in deduplicated_arrays],
                                deduplicated_alignment_file)
+
+        output_alignment=deduplicated_alignment_file
+        
         logging.info("Removed %i sequences as duplicates, leaving %i non-identical sequences"\
                      % ((len(aligned_sequence_objects)-len(deduplicated_arrays)),
                         len(deduplicated_arrays)))

@@ -3,7 +3,6 @@ import os
 import json
 import logging
 import time
-import regex
 import re
 
 from Bio import SeqIO

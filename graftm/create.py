@@ -7,6 +7,7 @@ import shutil
 import tempfile
 import logging
 import subprocess32
+import itertools
 
 from Bio import SeqIO
 from graftm.hmmer import Hmmer
@@ -167,7 +168,7 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
                 exit(2)
         return refpkg
     
-    def _compile(self, base, refpkg, hmm, diamond_database_file, prefix):
+    def _compile(self, base, refpkg, hmm, diamond_database_file, prefix, max_range, tax_info):
         if prefix:
             gpkg = prefix + ".gpkg"
         else:
@@ -181,14 +182,18 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         shutil.copyfile(hmm, os.path.join(gpkg, hmm_file_in_gpkg))
         
         diamond_database_file_in_gpkg = os.path.basename(diamond_database_file)
+        taxonomy_file_in_refpkg       = os.path.join(refpkg, tax_info)
         shutil.copyfile(diamond_database_file, os.path.join(gpkg, diamond_database_file_in_gpkg))
         
         contents = {"version": 2,
-            "aln_hmm": hmm_file_in_gpkg,
-            "search_hmm": [hmm_file_in_gpkg],
-            "rfpkg": refpkg,
-            "TC":False,
-            "diamond_database": diamond_database_file_in_gpkg}
+                    "aln_hmm": hmm_file_in_gpkg,
+                    "search_hmm": [hmm_file_in_gpkg],
+                    "rfpkg": refpkg,
+                    "TC":False,
+                    "diamond_database": diamond_database_file_in_gpkg,
+                    "range": max_range,
+                    "tax_info": taxonomy_file_in_refpkg}
+        
         json.dump(contents, open(os.path.join(gpkg, 'CONTENTS.json'), 'w'))
 
     def cleanup(self, the_trashcan):
@@ -198,6 +203,45 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
             else:
                 os.remove(every_piece_of_junk)
     
+    def _define_range(self, sequences):
+        '''
+        define_range - define the maximum range within which two hits in a db 
+        search can be linked. This is defined as 1.5X the average length of all
+        reads in the database. 
+        NOTE: in the interest of speed this function assumes that the fasta 
+        input is correctly formated. If it isn't, define_range will likely fail,
+        and tell the user there may be a problem with the fasta.
+        
+        Parameters
+        ----------
+        sequences : str
+            A path to the sequences in FASTA format. This fasta file is assumed 
+            to be in the correct format. i.e. headers start
+            
+        Returns
+        -------
+        max_range : int 
+            As described above, 1.5X the size of the average length of genes 
+            within the database
+        '''
+        sequence_count = 0
+        total_sequence = 0
+        
+        cmd = 'cat %s' % sequences # output the sequences to STDOUT
+        output = subprocess.check_output(cmd, shell=True) # run command and catch output
+        output = output.strip().split('\n') # redefine that output as a list, one entry per line
+        
+        for line in output: # For every entry in the output 
+            if line.startswith('>'): # If it starts with a '>'
+                total_sequence+=1
+            else: # If it is a sequence
+                sequence_count+=len(line) # add it to the total string count
+                
+        # Get the average, multiply by 1.5, and return
+        max_range = (sequence_count/total_sequence)*1.5
+        
+        return max_range 
+
     def generate_tree_log_file(self, tree, alignment, output_tree_file_path,
                                output_log_file_path, residue_type):
         '''Generate the FastTree log file given a tree and the alignment that
@@ -378,10 +422,12 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         subprocess.check_call(cmd, shell=True)
         diamondb = '%s.dmnd' % base
 
-
+        # Get range
+        max_range=self._define_range(sequences)
+        
         # Compile the gpkg
         logging.info("Compiling gpkg")
-        self._compile(base, refpkg, hmm, diamondb, prefix)
+        self._compile(base, refpkg, hmm, diamondb, prefix, max_range, tax)
 
         logging.info("Cleaning up")
         self.cleanup(self.the_trash)

@@ -14,7 +14,7 @@ from graftm.pplacer import Pplacer
 from graftm.assembler import TaxoGroup
 from graftm.create import Create
 from graftm.unpack_sequences import UnpackRawReads
-
+from graftm.graftm_package import GraftMPackage
 PIPELINE_AA = "P"
 PIPELINE_NT = "D"
 
@@ -234,7 +234,7 @@ class Run:
             logging.debug("HMM type: %s Trusted Cutoff: %s" % (hmm_type, hmm_tc))
             setattr(self.args, 'type', hmm_type)
             if hmm_tc:
-                setattr(self.args, 'eval', '--cut_tc')
+                setattr(self.args, 'evalue', '--cut_tc')
                 
             # Guess the sequence file type, if not already specified to GraftM
             unpack = UnpackRawReads(pair[0])

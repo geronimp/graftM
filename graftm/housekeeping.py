@@ -84,7 +84,7 @@ class HouseKeeping:
                 exit(1)
 
             # Set string for hmmsearch evalue
-            args.eval = '-E %s' % args.eval
+            args.evalue = '-E %s' % args.evalue
             
             self._check_file_existence(args.forward)
             if hasattr(args, 'reverse'):

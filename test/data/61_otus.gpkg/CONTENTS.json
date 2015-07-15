@@ -1,1 +1,1 @@
-{"aln_hmm": "61_otus.hmm", "rfpkg": "61_otus.refpkg", "search_hmm": ["61_otus.hmm"], "TC": false}
+{"aln_hmm": "61_otus.hmm", "rfpkg": "61_otus.refpkg", "search_hmm": ["61_otus.hmm"], "TC": false, "version": 2, "diamond_database": false, "tax_info":"61_otus.refpkg/61_otus_taxonomy.csv", "range":2149}

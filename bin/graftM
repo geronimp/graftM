@@ -23,6 +23,7 @@ import os
 import logging
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
+
 import graftm.run
 
 class CustomHelpFormatter(argparse.HelpFormatter):
@@ -78,6 +79,12 @@ UTILITIES
 =====================================================================================================
 """ % (graftm.__version__)
 
+
+def print_header():
+    print """                         
+                             GraftM %s""" %(graftm.__version__)
+
+
 debug={1:logging.CRITICAL,
        2:logging.ERROR,
        3:logging.WARNING,
@@ -96,7 +103,7 @@ if __name__ == '__main__':
                                         epilog=__author__)
     input_options = graft_parser.add_argument_group('input options')
     input_options.add_argument('--forward', nargs='+', metavar='forward read (or single read file)', help='One or more files of forward reads .fa, or .fq.gz format.', required=True)
-    input_options.add_argument('--reverse', nargs='+',metavar='reverse read', help='[do NOT use unless you understand the difficulties with this] Optional reverse raw sequence file(s) in .fa, or .fq.gz format', default=argparse.SUPPRESS)
+    input_options.add_argument('--reverse', nargs='+',metavar='reverse read', help='[do NOT use unless you understand the difficulties with this] Optional reverse raw sequence file(s) in .fa, or .fq.gz format', default=None)
     input_options.add_argument('--graftm_package', metavar='reference_package', help='Reference package of gene family', default=argparse.SUPPRESS)
 
     running_options = graft_parser.add_argument_group('running options')
@@ -104,7 +111,7 @@ if __name__ == '__main__':
     running_options.add_argument('--input_sequence_type', help='Specify whether the input sequence is "nucleotide" or "protein" sequence data (default=will attempt to auto-detect)', choices = ['protein', 'nucleotide'],  default=argparse.SUPPRESS)
     
     searching_options = graft_parser.add_argument_group('searching options')
-    searching_options.add_argument('--eval', metavar='evalue', help='evalue cutoff for the hmmsearch (default = 1e-5)', default= '1e-5')
+    searching_options.add_argument('--evalue', metavar='evalue', help='evalue cutoff for the hmmsearch (default = 1e-5)', default= '1e-5')
     searching_options.add_argument('--search_and_align_only', action="store_true", help='Stop after reads have been identified (default=False)', default=False)
     searching_options.add_argument('--euk_check', action="store_true", help='Search whole sample for 18S and attempt to estimate relative percentage of Eukaryotes (default=False)', default=False)
     
@@ -205,6 +212,9 @@ sequence1    k__kingdom1; p__phylum2
     if(len(sys.argv) == 1 or sys.argv[1] == '-h' or sys.argv[1] == '--help'):
         phelp()
     else:
+
+        print_header()
+
         args = parser.parse_args()
         if args.log:
             if os.path.isfile(args.log): raise Exception("File %s exists" % args.log)

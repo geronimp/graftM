@@ -197,7 +197,6 @@ Runtime (seconds):
             counts.append(count)
             observ_metadata.append({'taxonomy': tax})
             otu_ids.append(str(otu_id))
-        
         table = Table(np.array(counts),
                       otu_ids, sample_names, observ_metadata,
                       [{}]*len(sample_names), table_id='GraftM Taxonomy Count Table')

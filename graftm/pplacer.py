@@ -1,13 +1,16 @@
 import subprocess
 import os
 import json
-import timeit
 import logging
+import time
+import re
 
 from Bio import SeqIO
 
+from graftm.timeit import Timer
 from graftm.classify import Classify
 from graftm.housekeeping import HouseKeeping
+T=Timer()
 
 
 class Pplacer:
@@ -18,7 +21,7 @@ class Pplacer:
     def __init__(self, refpkg):
         self.refpkg = refpkg
         self.hk = HouseKeeping()
-
+        
     # Run pplacer
     def pplacer(self, output_file, output_path, input_path, threads):
         ## Runs pplacer on concatenated alignment file
@@ -71,15 +74,41 @@ class Pplacer:
             with open(alias_hash[alias]['output_path'], 'w') as output_path:
                 json.dump(output, output_path, ensure_ascii=False)
             jplace_path_list.append(alias_hash[alias]['output_path'])
-        summary_dict['jplace_path_list'] = jplace_path_list
-        return summary_dict
 
-    def place(self, summary_dict, files, args):
-        ## Pipeline taking multiple alignment files and returning multiple
-        ## placement and guppy files, as well as the comparison between forward
-        ## and reverse reads, if the reverse pipeline is selected
-
-        start = timeit.default_timer() # Start placement timer
+        return jplace_path_list
+    
+    @T.timeit
+    def place(self, reverse_pipe, seqs_list, resolve_placements, files, args,
+              slash_endings):
+        '''
+        placement - This is the placement pipeline in GraftM, in aligned reads 
+                    are placed into phylogenetic trees, and the results interpreted.
+                    If reverse reads are used, this is where the comparisons are made
+                    between placements, for the summary tables to be build in the
+                    next stage.
+         
+        Parameters
+        ----------
+        reverse_pipe : bool
+            True: reverse reads are placed separately
+            False: no reverse reads to place.
+        seqs_list : list
+            list of paths to alignment fastas to be placed into the tree
+        resolve_placements : bool
+            True:resolve placements to their most trusted taxonomy
+            False: classify reads to their most trusted taxonomy, until the 
+                   confidence cutoff is reached. 
+        files : list
+            graftM output file name object
+        args : obj
+            argparse object
+        Returns
+        ------- 
+        trusted_placements : dict
+            dictionary of reads and their trusted placements
+        '''
+        trusted_placements = {}
+        
 
         # Merge the alignments so they can all be placed at once.
         alias_hash = self.alignment_merger(summary_dict['seqs_list'], files.comb_aln_fa())
@@ -109,14 +138,20 @@ class Pplacer:
 
                 forward_gup=classifications.pop(sorted(classifications.keys())[0]) 
                 reverse_gup=classifications.pop(sorted(classifications.keys())[0])
-                summary_dict[base] = Compare().compare_placements(forward_gup,
-                                                                  reverse_gup,
-                                                                  summary_dict[base],
-                                                                  args.placements_cutoff)
 
-            elif not summary_dict['reverse_pipe']: # Set the trusted placements as
-                summary_dict[base]['trusted_placements'] = {}
-
+                seqs_list.pop(idx+1)
+                placements_hash = Compare().compare_placements(
+                                                               forward_gup,
+                                                               reverse_gup,
+                                                               args.placements_cutoff,
+                                                               slash_endings,
+                                                               base_file
+                                                               )
+                trusted_placements[base_file]=placements_hash['trusted_placements']
+                
+            else: # Set the trusted placements as
+                base_file=os.path.basename(file).replace('_hits.aln.fa', '')
+                trusted_placements[base_file]={}
                 for read, entry in classifications[str(idx)].iteritems():
                     summary_dict[base]['trusted_placements'][read] = entry['placement']
         return summary_dict
@@ -126,27 +161,33 @@ class Compare:
 
     def __init__(self): pass
 
-    def compare_hits(self, hash, file_name):
+    def _compare_hits(self, forward_reads, reverse_reads, file_name, slash_endings):
         ## Take a paired read run, and compare hits between the two, report the
         ## number of hits each, the crossover, and a
-        def check_reads(read_lists):
-            for read_list in read_lists:
-                read_check = [read for read in read_list if read.startswith('FCC')]
-                if read_check:
-                    return True
-                elif not read_check:
-                    continue
-            return False
-        # Read in the read names for each file
-        check = check_reads([hash['forward']['reads'].keys(), hash['reverse']['reads'].keys()])
-        if check:
-            forward_read_names = [x.replace('/1', '') for x in hash['forward']['reads'].keys()]
-            reverse_read_names = [x.replace('/2', '') for x in hash['reverse']['reads'].keys()]
-        elif not check:
-            forward_read_names = set(hash['forward']['reads'].keys())
-            reverse_read_names = set(hash['reverse']['reads'].keys())
+        
+        def remove_endings(read_list, slash_endings):
+            orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
+            d = {}
+            for read in read_list:
+                orfm_match=orfm_regex.match(read)
+                
+                if orfm_match:
+                    if slash_endings:
+                        new_read=orfm_match.groups(0)[0][:-2]
+                    else:
+                        new_read=orfm_match.groups(0)[0]
+                elif slash_endings:
+                    new_read=read[:-2]
+                else:
+                    new_read=read
+                d[new_read]=read
+            return d
+        
+        forward_reads=remove_endings(forward_reads, slash_endings)
+        reverse_reads=remove_endings(reverse_reads, slash_endings)
+
         # Report and record the crossover
-        crossover_hits = [x for x in forward_read_names if x in reverse_read_names]
+        crossover_hits = [x for x in forward_reads.keys() if x in reverse_reads.keys()]
 
         hash['crossover'] = crossover_hits
         # Check if there are reads to continue with.
@@ -159,22 +200,24 @@ class Compare:
         else:
             raise Exception
         # Return the hash
+        return crossover_hits, forward_reads, reverse_reads
 
-        return hash 
+    def compare_placements(self, forward_gup, reverse_gup, placement_cutoff, slash_endings, base_file):
 
-    def compare_placements(self, forward_gup, reverse_gup, hash, placement_cutoff):
         ## Take guppy placement file for the forward and reverse reads, compare
         ## the placement, and make a call as to which is to be trusted. Return
         ## a list of trusted reads for use by the summary step in GraftM
-        # Report and record trusted placements
+        # Report and record trusted placements        
+        crossover, for_dict, rev_dict = self._compare_hits(forward_gup.keys(), 
+                                                           reverse_gup.keys(), 
+                                                           base_file, 
+                                                           slash_endings)
         comparison_hash = {'trusted_placements': {}} # Set up a hash that will record info on each placement
-        for read in hash['crossover']:
-            if read.startswith('FCC'):
-                f_read = read + '/1'
-                r_read = read + '/2'
-            else:
-                f_read = read
-                r_read = read
+
+        for read in crossover:
+            f_read = for_dict[read]
+            r_read = rev_dict[read]
+            
             # Check read was placed
             if forward_gup.get(f_read) is None or reverse_gup.get(r_read) is None:
                 logging.info('Warning: %s was not inserted into tree' % str(f_read))

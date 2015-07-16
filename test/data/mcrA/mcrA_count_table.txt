@@ -1,0 +1,2 @@
+#ID	/srv/home/s4293811/gits/git_graftM/test/data/mcrA	ConsensusLineage
+0	1	Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina

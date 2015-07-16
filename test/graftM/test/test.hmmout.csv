@@ -1,0 +1,14 @@
+#                                                                                --- full sequence --- -------------- this domain -------------   hmm coord   ali coord   env coord
+# target name        accession   tlen query name               accession   qlen   E-value  score  bias   #  of  c-Evalue  i-Evalue  score  bias  from    to  from    to  from    to  acc description of target
+#------------------- ---------- -----     -------------------- ---------- ----- --------- ------ ----- --- --- --------- --------- ------ ----- ----- ----- ----- ----- ----- ----- ---- ---------------------
+test                 -            275 homologs.trimmed.aligned -            276  6.2e-137  441.4   6.6   1   1  6.9e-137  6.9e-137  441.3   6.6     1   276     1   275     1   275 1.00 -
+#
+# Program:         hmmsearch
+# Version:         3.1b2 (February 2015)
+# Pipeline mode:   SEARCH
+# Query file:      my_output.gpkg/homologs_0.hmm
+# Target file:     -
+# Option settings: hmmsearch -o /dev/null --domtblout graftM/test/test.hmmout.csv --noali -E 1e-5 --cpu 5 my_output.gpkg/homologs_0.hmm - 
+# Current dir:     /srv/home/s4293811/04_gits/git_graftM/test
+# Date:            Wed Jul 15 15:50:34 2015
+# [ok]

@@ -1,0 +1,14 @@
+# target name        accession  query name           accession  hmmfrom hmm to alifrom  ali to envfrom  env to  sq len strand   E-value  score  bias  description of target
+#------------------- ---------- -------------------- ---------- ------- ------- ------- ------- ------- ------- ------- ------ --------- ------ ----- ---------------------
+1111882              -          82_otus              -                7    1341       2    1478       1    1479    1479    +           0 1123.3  17.5  -
+1111883              -          82_otus              -               33    1280       1    1396       1    1417    1428    +           0 1064.2  65.2  -
+#
+# Program:         nhmmer
+# Version:         3.1b1 (May 2013)
+# Pipeline mode:   SEARCH
+# Query file:      /srv/home/s4293811/gits/git_graftM/test/data/16S.gpkg/82.hmm
+# Target file:     -
+# Option settings: nhmmer -o /dev/null --tblout /srv/home/s4293811/gits/git_graftM/test/data/16S/16S.hmmout.csv --noali -E 1e-5 --cpu 5 /srv/home/s4293811/gits/git_graftM/test/data/16S.gpkg/82.hmm - 
+# Current dir:     /srv/home/s4293811/gits/git_graftM/test
+# Date:            Mon May 25 08:49:38 2015
+# [ok]

@@ -1,0 +1,3 @@
+#ID	/srv/home/s4293811/gits/git_graftM/test/data/16S.gpkg/16S_2.1	ConsensusLineage
+0	1	Root; k__Bacteria; p__Bacteroidetes; c__Flavobacteriia; o__Flavobacteriales; f__Flavobacteriaceae
+1	1	Root; k__Bacteria; p__Gemmatimonadetes; c__Gemm-1

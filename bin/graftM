@@ -117,7 +117,7 @@ if __name__ == '__main__':
     placement_options.add_argument('--placements_cutoff', metavar='confidence', help='Cutoff of placement confidence level (0.5 - 1), default = 0.75', default=0.75)
     placement_options.add_argument('--resolve_placements', action="store_true", help='Force taxonomy down to the best placement', default=False)
     placement_options.add_argument('--merge_reads', action="store_true", help='Merge forward and reverse read alignments for placement')
-    placement_options.add_argument('--cluster', action="store_true", help='Cluster reads at 100% before placement to reduce tree insertion time WARNING: only use with unassembled data (i.e. equel read length)')
+    placement_options.add_argument('--cluster', action="store_true", help='Cluster reads at 100%% before placement to reduce tree insertion time WARNING: only use with unassembled data (i.e. equel read length)')
 
 
 

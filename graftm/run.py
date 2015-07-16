@@ -16,7 +16,8 @@ from graftm.assembler import TaxoGroup
 from graftm.create import Create
 from graftm.unpack_sequences import UnpackRawReads
 from graftm.graftm_package import GraftMPackage
-from graftm.cluster import readsClusterer
+from graftm.deduplicator import Deduplicator
+from graftm.sequence_io import SequenceIO
 from biom.util import biom_open
 
 PIPELINE_AA = "P"
@@ -34,7 +35,7 @@ class Run:
         self.s = Stats_And_Summary()
         self.tg = TaxoGroup()
         self.e = Extract()
-        self.clust = readsClusterer()
+
         if args.subparser_name == 'graft':
             self.hk.set_attributes(self.args)
             self.hk.set_euk_hmm(self.args)
@@ -187,7 +188,7 @@ class Run:
         base_list      = []
         seqs_list      = []
         search_results = []
-        uc_list        = []
+        clusters_list  = []
         hit_read_count_list = []
 
         if self.args.merge_reads and not hasattr(self.args, 'reverse'):
@@ -281,11 +282,11 @@ class Run:
                     continue
                 logging.info('Aligning reads to reference package database')
                 hit_aligned_reads = self.gmf.aligned_fasta_output_path(base)
-
+                
                 if self.args.cluster:
-                    hit_reads, uc = self.clust.cluster(hit_reads)
-                    uc_list.append(uc)
-
+                    result.cluster()
+                    clusters_list.append(result.clusters)
+                    
                 aln_time = self.h.align(
                                         result.hit_fasta(),
                                         hit_aligned_reads,
@@ -301,12 +302,12 @@ class Run:
                     hit_read_count_list.append(result.hit_count)
 
         if self.args.merge_reads:
+            base_list=base_list[0::2]
             merged_output=[GraftMFiles(base, self.args.output_directory, False).aligned_fasta_output_path(base) \
                            for base in base_list]
-            self.h.merge_forev_aln(seqs_list, merged_output)
+            self.h.merge_forev_aln(seqs_list[0::2], seqs_list[1::2], merged_output)
             seqs_list=merged_output
             REVERSE_PIPE = False
-            base_list=base_list[0::2]
         elif REVERSE_PIPE:
             base_list=base_list[0::2]
 
@@ -333,17 +334,17 @@ class Run:
 
         if self.args.cluster:
             for idx, base in enumerate(base_list):
-                clusters={}
-                uc = uc_list[idx]
-                place = placements[base]
+                clusters_taxonomy={}
+                place    = placements[base]
+                clusters = clusters_list[idx]
                 for read_name, taxonomy in place.iteritems():
-                    if any(uc[read_name]):
-                        for clust in uc[read_name]:
-                            clusters[clust] = taxonomy
-                placements[base].update(clusters)
+                    for record in clusters[read_name]:
+                        clusters_taxonomy[record.name]=place[read_name]            
+                placements[base].update(clusters_taxonomy)
 
-        self.summarise(base_list, placements, REVERSE_PIPE, \
-                       [search_time,aln_time[0],place_time], hit_read_count_list)
+        self.summarise(base_list, placements, REVERSE_PIPE, 
+                       [search_time,aln_time[0],place_time], 
+                       hit_read_count_list)
 
 
     def main(self):

@@ -20,11 +20,11 @@ from graftm.sequence_search_results import SequenceSearchResult, HMMSearchResult
 from graftm.graftm_package import GraftMPackage
 from graftm.readHmmTable import HMMreader
 from graftm.db_search_results import DBSearchResult
-FORMAT_FASTA    = "FORMAT_FASTA"
-FORMAT_FASTQ    = "FORMAT_FASTQ"
+FORMAT_FASTA = "FORMAT_FASTA"
+FORMAT_FASTQ = "FORMAT_FASTQ"
 FORMAT_FASTQ_GZ = "FORMAT_FASTQ_GZ"
 FORMAT_FASTA_GZ = "FORMAT_FASTA_GZ"
-T=Timer()
+T = Timer()
 
 
 class Hmmer:
@@ -55,13 +55,13 @@ class Hmmer:
         
         '''
         
-        for_file      = tempfile.NamedTemporaryFile(prefix='for_file', suffix='.fa').name
-        rev_file      = tempfile.NamedTemporaryFile(prefix='rev_file', suffix='.fa').name
+        for_file = tempfile.NamedTemporaryFile(prefix='for_file', suffix='.fa').name
+        rev_file = tempfile.NamedTemporaryFile(prefix='rev_file', suffix='.fa').name
         for_conv_file = tempfile.NamedTemporaryFile(prefix='for_conv_file', suffix='.fa').name
         rev_conv_file = tempfile.NamedTemporaryFile(prefix='rev_conv_file', suffix='.fa').name
         
         # Align input reads to a specified hmm.
-        if False in directions.values(): # Any that are in the reverse direction would be True
+        if False in directions.values():  # Any that are in the reverse direction would be True
             reverse = []
             forward = []
             records = list(SeqIO.parse(open(input_path), 'fasta'))
@@ -71,9 +71,9 @@ class Hmmer:
             for record in records:
                 regex_match = orfm_regex.match(record.id)
                 if regex_match:
-                    read_id=regex_match.groups(0)[0]
+                    read_id = regex_match.groups(0)[0]
                 else:
-                    read_id=record.id
+                    read_id = record.id
                 if directions[read_id] == True:
                     forward.append(record)
                 elif directions[read_id] == False:
@@ -89,9 +89,9 @@ class Hmmer:
             with open(for_file, 'w') as for_aln:
                 logging.debug("Writing forward compliment reads to %s" % for_file)
                 for record in forward:
-                    if record.id and record.seq: # Check that both the sequence and ID fields are there, HMMalign will segfault if not.
-                        for_aln.write('>'+record.id+'\n')
-                        for_aln.write(str(record.seq)+'\n')
+                    if record.id and record.seq:  # Check that both the sequence and ID fields are there, HMMalign will segfault if not.
+                        for_aln.write('>' + record.id + '\n')
+                        for_aln.write(str(record.seq) + '\n')
                         # HMMalign and convert to fasta format
             if any(forward):
                 cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (self.aln_hmm,
@@ -105,8 +105,8 @@ class Hmmer:
                 logging.debug("Writing reverse compliment reads to %s" % rev_file)
                 for record in reverse:
                     if record.id and record.seq:
-                        rev_aln.write('>'+record.id+'\n')
-                        rev_aln.write(str(record.seq.reverse_complement())+'\n')           
+                        rev_aln.write('>' + record.id + '\n')
+                        rev_aln.write(str(record.seq.reverse_complement()) + '\n')           
             cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (self.aln_hmm,
                                                                                         rev_file,
                                                                                         rev_conv_file)
@@ -127,7 +127,7 @@ class Hmmer:
             return conv_files
     
     def makeSequenceBinary(self, sequences, fm):
-        cmd='makehmmerdb %s %s' % (sequences, fm)
+        cmd = 'makehmmerdb %s %s' % (sequences, fm)
         subprocess.check_call(cmd, shell=True)
 
     def hmmsearch(self, output_path, input_path, unpack, seq_type, threads, evalue, orfm):
@@ -168,7 +168,7 @@ class Hmmer:
         output_table_list = []
         if len(self.search_hmm) > 1:
             for hmm in self.search_hmm:
-                out = os.path.join(os.path.split(output_path)[0], os.path.basename(hmm).split('.')[0] +'_'+ os.path.split(output_path)[1])
+                out = os.path.join(os.path.split(output_path)[0], os.path.basename(hmm).split('.')[0] + '_' + os.path.split(output_path)[1])
                 output_table_list.append(out)
         elif len(self.search_hmm) == 1:
             output_table_list.append(output_path)
@@ -176,20 +176,20 @@ class Hmmer:
             raise Exception("Programming error: expected 1 or more HMMs")
         
         # Choose an input to this base command based off the file format found.
-        if seq_type == 'nucleotide': # If the input is nucleotide sequence
+        if seq_type == 'nucleotide':  # If the input is nucleotide sequence
             input_cmd = orfm.command_line(input_path)
-        elif seq_type == 'aminoacid': # If the input is amino acid sequence
-            input_cmd=unpack.command_line()
+        elif seq_type == 'aminoacid':  # If the input is amino acid sequence
+            input_cmd = unpack.command_line()
         else:
             raise Exception('Programming Error: error guessing input sequence type')
         
         # Run the HMMsearches
         searcher = HmmSearcher(threads, '-E %s' % evalue)
         searcher.hmmsearch(input_cmd, self.search_hmm, output_table_list)
-        hmmtables=[HMMSearchResult.import_from_hmmsearch_table(x) for x in output_table_list]
+        hmmtables = [HMMSearchResult.import_from_hmmsearch_table(x) for x in output_table_list]
         return hmmtables
 
-    def merge_forev_aln(self, aln_list, outputs): 
+    def merge_forev_aln(self, forward_aln_list, reverse_aln_list, outputs): 
         '''
         merge_forev_aln - Merges forward and reverse alignments for a given run
         
@@ -208,42 +208,50 @@ class Hmmer:
         -------
         Nothing - output files are known.
         '''
-        
-        
         orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
-
-        while len(aln_list)>0:
-            forward_path=aln_list.pop(0)
-            reverse_path=aln_list.pop(0)
-            output_path=outputs.pop(0)
+        def remove_orfm_end(records):
+            
+            new_dict = {}
+            
+            for key, record in records.iteritems():
+                orfmregex = orfm_regex.match(key)
+                if orfmregex:
+                   new_dict[orfmregex.groups(0)[0]] = record 
+                else:
+                    new_dict[key] = record
+            return new_dict
+        
+        
+        for idx, (forward_path, reverse_path) in enumerate(zip(forward_aln_list, reverse_aln_list)):
+            output_path = outputs[idx]
             logging.info('Merging pair %s, %s' % (os.path.basename(forward_path), os.path.basename(reverse_path)))
-            forward_reads=SeqIO.parse(forward_path,'fasta')
-            reverse_reads=SeqIO.to_dict(SeqIO.parse(reverse_path,'fasta'))
-            reverse_reads={orfm_regex.match(key).groups(0)[0]: value for key, value in reverse_reads.iteritems() if orfm_regex.match(key)}
+            forward_reads = SeqIO.parse(forward_path, 'fasta')
+            reverse_reads = remove_orfm_end(SeqIO.to_dict(SeqIO.parse(reverse_path, 'fasta')))
+            
             with open(output_path, 'w') as out:
                 for forward_record in forward_reads:
                     regex_match = orfm_regex.match(forward_record.id)
                     if regex_match:
-                        id=regex_match.groups(0)[0]
+                        id = regex_match.groups(0)[0]
                     else:
-                        id=forward_record.id
-                    forward_sequence=str(forward_record.seq)
+                        id = forward_record.id
+                    forward_sequence = str(forward_record.seq)
                     try:
-                        reverse_sequence=str(reverse_reads[id].seq)
-                        new_seq=''
-                        if len(forward_sequence)==len(reverse_sequence):
-                            for f,r in zip(forward_sequence, reverse_sequence):
-                                if f==r:
-                                    new_seq+=f
-                                elif f=='-' and r!='-':
-                                    new_seq+=r
-                                elif r=='-' and f!='-':
-                                    new_seq+=f                               
-                                elif f!='-' and r!='-':
+                        reverse_sequence = str(reverse_reads[id].seq)
+                        new_seq = ''
+                        if len(forward_sequence) == len(reverse_sequence):
+                            for f, r in zip(forward_sequence, reverse_sequence):
+                                if f == r:
+                                    new_seq += f
+                                elif f == '-' and r != '-':
+                                    new_seq += r
+                                elif r == '-' and f != '-':
+                                    new_seq += f                               
+                                elif f != '-' and r != '-':
                                     if f != r:
-                                        new_seq+=f
+                                        new_seq += f
                                 else:
-                                    new_seq+='-'
+                                    new_seq += '-'
                         else:
                             logging.error('Alignments do not match')
                             raise Exception('Merging alignments failed: Alignments do not match')
@@ -278,18 +286,18 @@ class Hmmer:
         output_table_list = []
         if len(self.search_hmm) > 1:
             for hmm in self.search_hmm:
-                out = os.path.join(os.path.split(output_path)[0], os.path.basename(hmm).split('.')[0] +'_'+ os.path.split(output_path)[1])
+                out = os.path.join(os.path.split(output_path)[0], os.path.basename(hmm).split('.')[0] + '_' + os.path.split(output_path)[1])
                 output_table_list.append(out)
         elif len(self.search_hmm) == 1:
             output_table_list.append(output_path)
         else:
             raise Exception("Programming error: Expected 1 or more HMMs")
-        input_pipe=unpack.command_line()
+        input_pipe = unpack.command_line()
         
         searcher = NhmmerSearcher(threads, extra_args='-E %s' % evalue)
         searcher.hmmsearch(input_pipe, self.search_hmm, output_table_list)
         
-        hmmtables=[HMMSearchResult.import_from_nhmmer_table(x) for x in output_table_list]
+        hmmtables = [HMMSearchResult.import_from_nhmmer_table(x) for x in output_table_list]
         
         return hmmtables, output_table_list
         
@@ -312,14 +320,14 @@ class Hmmer:
         euk_reads : array
             list of all read names deemed to be eukaryotic
         '''
-        euk_hit_table              = HMMreader(hmm_hit_tables.pop(-1))
-        other_hit_tables           = [HMMreader(x) for x in hmm_hit_tables]
-        crossover                  = []
+        euk_hit_table = HMMreader(hmm_hit_tables.pop(-1))
+        other_hit_tables = [HMMreader(x) for x in hmm_hit_tables]
+        crossover = []
         reads_unique_to_eukaryotes = []   
-        reads_with_better_euk_hit  = []     
+        reads_with_better_euk_hit = []     
         
         for hit in euk_hit_table.names():
-            bits=[]
+            bits = []
             for hit_table in other_hit_tables:
                 if hit in hit_table.names():
                     bits.append(hit_table.bit(hit))
@@ -338,7 +346,7 @@ class Hmmer:
         else:
             logging.info("Found %s read(s) that may be eukaryotic" % len(reads_with_better_euk_hit + reads_unique_to_eukaryotes))
         
-        euk_reads=reads_with_better_euk_hit + reads_unique_to_eukaryotes
+        euk_reads = reads_with_better_euk_hit + reads_unique_to_eukaryotes
         
         return euk_reads
 
@@ -364,20 +372,20 @@ class Hmmer:
         '''  
 
         def extractMultipleHits(stats, reads_path): 
-            reads=SeqIO.to_dict(SeqIO.parse(reads_path, "fasta")) # open up reads as dictionary
-            new_output_path = reads_path.split('.')[0] + '_split.fa' # define the output path
+            reads = SeqIO.to_dict(SeqIO.parse(reads_path, "fasta"))  # open up reads as dictionary
+            new_output_path = reads_path.split('.')[0] + '_split.fa'  # define the output path
             with open(new_output_path, 'w') as out:
-                for read_name, ranges in stats.iteritems(): # For each contig
-                    index=1 
-                    if len(ranges)>1: # if there are multiple hits in that contig
-                        for r in ranges: # for each of those hits
-                            new_record=reads[read_name][r[0]-1:r[1]] # subset the record by the span of that hit
-                            new_record.id=new_record.id+'_split_%i' % index # give that subset record a new header
-                            SeqIO.write(new_record, out, "fasta") # and write it to output
-                            index+=1 # increment the split counter
-                    else: # Otherwise, just write the read back to the file
+                for read_name, ranges in stats.iteritems():  # For each contig
+                    index = 1 
+                    if len(ranges) > 1:  # if there are multiple hits in that contig
+                        for r in ranges:  # for each of those hits
+                            new_record = reads[read_name][r[0] - 1:r[1]]  # subset the record by the span of that hit
+                            new_record.id = new_record.id + '_split_%i' % index  # give that subset record a new header
+                            SeqIO.write(new_record, out, "fasta")  # and write it to output
+                            index += 1  # increment the split counter
+                    else:  # Otherwise, just write the read back to the file
                         SeqIO.write(reads[read_name], out, "fasta")
-            return new_output_path # return the split reads file and celebrate.
+            return new_output_path  # return the split reads file and celebrate.
                 
         # Run fxtract to obtain reads form original sequence file
         fxtract_cmd = "fxtract -H -X -f %s " % input_path
@@ -395,8 +403,8 @@ class Hmmer:
         subprocess.check_call(cmd, shell=True)
         
         # If any of the hits have more than one alignment span (i.e. >1 hit)
-        if any([x for x in hits.values() if len(x)>1]):
-            output_path = extractMultipleHits(hits, output_path) # split them into multiple reads
+        if any([x for x in hits.values() if len(x) > 1]):
+            output_path = extractMultipleHits(hits, output_path)  # split them into multiple reads
             return output_path
         else:
             return output_path
@@ -410,26 +418,26 @@ class Hmmer:
         for record in record_list:
             lengths.append(len(record.seq))
         if pipe == "P":
-            return (sum(lengths) / float(len(lengths)))/3
-        elif pipe =="D":
+            return (sum(lengths) / float(len(lengths))) / 3
+        elif pipe == "D":
             return sum(lengths) / float(len(lengths))
         
     def alignment_correcter(self, alignment_file_list, output_file_name):
         corrected_sequences = {}
         for alignment_file in alignment_file_list:
-            insert_list = [] # Define list containing inserted positions to be removed (lower case characters)
+            insert_list = []  # Define list containing inserted positions to be removed (lower case characters)
             sequence_list = list(SeqIO.parse(open(alignment_file, 'r'), 'fasta'))
-            for sequence in sequence_list: # For each sequence in the alignment
-                for idx, nt in enumerate(list(sequence.seq)): # For each nucleotide in the sequence
-                    if nt.islower(): # Check for lower case character
-                        insert_list.append(idx) # Add to the insert list if it is
-            insert_list = list(OrderedDict.fromkeys(sorted(insert_list, reverse = True))) # Reverse the list and remove duplicate positions
-            for sequence in sequence_list: # For each sequence in the alignment
-                new_seq = list(sequence.seq) # Define a list of sequences to be iterable list for writing
-                for position in insert_list: # For each position in the removal list
-                    del new_seq[position] # Delete that inserted position in every sequence
-                corrected_sequences['>'+sequence.id+'\n'] = (''.join(new_seq)+'\n').replace('~','-')
-        with open(output_file_name, 'w') as output_file: # Create an open file to write the new sequences to
+            for sequence in sequence_list:  # For each sequence in the alignment
+                for idx, nt in enumerate(list(sequence.seq)):  # For each nucleotide in the sequence
+                    if nt.islower():  # Check for lower case character
+                        insert_list.append(idx)  # Add to the insert list if it is
+            insert_list = list(OrderedDict.fromkeys(sorted(insert_list, reverse=True)))  # Reverse the list and remove duplicate positions
+            for sequence in sequence_list:  # For each sequence in the alignment
+                new_seq = list(sequence.seq)  # Define a list of sequences to be iterable list for writing
+                for position in insert_list:  # For each position in the removal list
+                    del new_seq[position]  # Delete that inserted position in every sequence
+                corrected_sequences['>' + sequence.id + '\n'] = (''.join(new_seq) + '\n').replace('~', '-')
+        with open(output_file_name, 'w') as output_file:  # Create an open file to write the new sequences to
                 for fasta_id, fasta_seq in corrected_sequences.iteritems():
                     if any(c.isalpha() for c in fasta_seq):
                         output_file.write(fasta_id)
@@ -449,12 +457,12 @@ class Hmmer:
         orf_out_path
             Path to output fasta file, containing amino acid ORFs
         '''
-        raw_orf_path    = tempfile.NamedTemporaryFile(prefix='orf_hmmsearch').name
+        raw_orf_path = tempfile.NamedTemporaryFile(prefix='orf_hmmsearch').name
         orf_titles_path = tempfile.NamedTemporaryFile(prefix='orf_titles').name
         
         # Build the output_files
         if len(self.search_hmm) >= 1:
-            output_table_list=[tempfile.NamedTemporaryFile(prefix='orf_hmmsearch').name for x in self.search_hmm]
+            output_table_list = [tempfile.NamedTemporaryFile(prefix='orf_hmmsearch').name for x in self.search_hmm]
         else:
             raise Exception("Programming error: expected 1 or more HMMs")
 
@@ -469,7 +477,7 @@ class Hmmer:
         searcher = HmmSearcher(1)
         searcher.hmmsearch(cmd, self.search_hmm, output_table_list)
         with open(orf_titles_path, 'w') as output:
-            reads= set(
+            reads = set(
                        itertools.chain(
                                        *[HMMreader(x).names() for x \
                                          in output_table_list]
@@ -510,39 +518,39 @@ class Hmmer:
             span (min and max) of the alignment. 
         '''
         
-        splits = {} # Define an output dictionary to be filled
-        for result in search_result: # Create a table (list of rows contain span, and complement information
-            spans = list(search_result[0].each([SequenceSearchResult.QUERY_ID_FIELD, 
+        splits = {}  # Define an output dictionary to be filled
+        for result in search_result:  # Create a table (list of rows contain span, and complement information
+            spans = list(search_result[0].each([SequenceSearchResult.QUERY_ID_FIELD,
                                                 SequenceSearchResult.ALIGNMENT_DIRECTION,
-                                                SequenceSearchResult.HIT_FROM_FIELD, 
+                                                SequenceSearchResult.HIT_FROM_FIELD,
                                                 SequenceSearchResult.HIT_TO_FIELD]))
-            for hit in spans: # For each of these rows (i.e. hits)
-                i = hit[0] # set id to i
-                c = hit[1] # set complement to c
-                ft = [min(hit[2:]), max(hit[2:])] # set span as ft (i.e. from - to)
-                if ft[0] == ft[1]: continue # if the span covers none of the query, skip that entry (seen this before)
-                if i not in splits: # If the hit hasnt been seen yet
-                    splits[i]={'span':[ft],
-                               'strand':[c]} # add the span and complement as new entry
-                else: # otherwise (if it has been seen)                   
-                    for idx, entry in enumerate(splits[i]['span']): # for each previously added entry     
-                        if splits[i]['strand'][idx] == c: # If the hit is on the same complement strand
-                            if min(entry) < min(ft): # if/else to determine which entry comes first (e.g. 1-5, 6-10 not 6-10, 1-5)
-                                if max(ft)-min(entry) < max_range: # Check if they lie within range of eachother
-                                    entry[1]=max(ft) # ammend the entry if they are
-                                    break # And break the loop
+            for hit in spans:  # For each of these rows (i.e. hits)
+                i = hit[0]  # set id to i
+                c = hit[1]  # set complement to c
+                ft = [min(hit[2:]), max(hit[2:])]  # set span as ft (i.e. from - to)
+                if ft[0] == ft[1]: continue  # if the span covers none of the query, skip that entry (seen this before)
+                if i not in splits:  # If the hit hasnt been seen yet
+                    splits[i] = {'span':[ft],
+                               'strand':[c]}  # add the span and complement as new entry
+                else:  # otherwise (if it has been seen)                   
+                    for idx, entry in enumerate(splits[i]['span']):  # for each previously added entry     
+                        if splits[i]['strand'][idx] == c:  # If the hit is on the same complement strand
+                            if min(entry) < min(ft):  # if/else to determine which entry comes first (e.g. 1-5, 6-10 not 6-10, 1-5)
+                                if max(ft) - min(entry) < max_range:  # Check if they lie within range of eachother
+                                    entry[1] = max(ft)  # ammend the entry if they are
+                                    break  # And break the loop
                             else:
-                                if max(entry)-min(ft) < max_range:  # Check if they lie within range of eachother
-                                    entry[0] = min(ft) # ammend the entry if they are
-                                    break # And break the loop
-                    else: # if no break occured (no overlap)
-                        splits[i]['span'].append(ft) # Add the new range to be split out in the future
-                        splits[i]['strand'].append(c) # Add the complement strand as well
+                                if max(entry) - min(ft) < max_range:  # Check if they lie within range of eachother
+                                    entry[0] = min(ft)  # ammend the entry if they are
+                                    break  # And break the loop
+                    else:  # if no break occured (no overlap)
+                        splits[i]['span'].append(ft)  # Add the new range to be split out in the future
+                        splits[i]['strand'].append(c)  # Add the complement strand as well
         
-        return {key: entry['span'] for key, entry in splits.iteritems()} # return the dict, without strand information which isn't required.
+        return {key: entry['span'] for key, entry in splits.iteritems()}  # return the dict, without strand information which isn't required.
     
     @T.timeit
-    def aa_db_search(self, files, base, unpack, raw_reads, search_method, gpkg, 
+    def aa_db_search(self, files, base, unpack, raw_reads, search_method, gpkg,
                      threads, evalue, min_orf_length, restrict_read_length,
                      srch_aln_only):
         '''
@@ -583,8 +591,8 @@ class Hmmer:
         
         # Define outputs
         hmmsearch_output_table = files.hmmsearch_output_path(base)
-        hit_reads_fasta        = files.fa_output_path(base)
-        hit_reads_orfs_fasta   = files.orf_fasta_output_path(base)
+        hit_reads_fasta = files.fa_output_path(base)
+        hit_reads_orfs_fasta = files.orf_fasta_output_path(base)
         
         # Define method of opening sequence files to stdout
         if unpack.is_zcattable():
@@ -609,8 +617,8 @@ class Hmmer:
                                            )
 
         elif search_method == 'diamond':
-            #run diamond
-            search_result =  Diamond(
+            # run diamond
+            search_result = Diamond(
                                      database=os.path.join(
                                                            gpkg.base_directory, \
                                                            gpkg.contents_hash[gpkg.DIAMOND_DATABASE_KEY]
@@ -621,15 +629,15 @@ class Hmmer:
                                            raw_reads,
                                            unpack.sequence_type()
                                            )
-            search_result=[search_result]
+            search_result = [search_result]
 
-        else: # if the search_method isn't recognised
+        else:  # if the search_method isn't recognised
             raise Exception("Programming error: unexpected search_method %s" % search_method)
         
         with tempfile.NamedTemporaryFile(prefix='graftm_readnames') as readnames:
             # Write the names of hits to a tmpfile
             
-            orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)') # to remove OrfM suffix from read names
+            orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')  # to remove OrfM suffix from read names
             if srch_aln_only:
                 hits = {key:[] for key in list(
                                                itertools.chain(
@@ -640,9 +648,9 @@ class Hmmer:
             else:
                 hits = self._get_read_names(search_result,  # define the span of hits
                                             gpkg.contents_hash[gpkg.RANGE_KEY])
-            hit_readnames = [orfm_regex.match(name).groups(0)[0] if orfm_regex.match(name) else name for name in hits.keys()] # Define readnames
+            hit_readnames = [orfm_regex.match(name).groups(0)[0] if orfm_regex.match(name) else name for name in hits.keys()]  # Define readnames
             for read in hit_readnames:
-                readnames.write(read+'\n')
+                readnames.write(read + '\n')
 
             readnames.flush()
             hit_reads_fasta = self._extract_from_raw_reads(
@@ -654,9 +662,9 @@ class Hmmer:
                                                            )
 
         if not hit_readnames:
-            hit_read_counts=[0,len(hit_readnames)]
-            result=DBSearchResult(None, 
-                                  search_result, 
+            hit_read_counts = [0, len(hit_readnames)]
+            result = DBSearchResult(None,
+                                  search_result,
                                   hit_read_counts,
                                   None)
             return result
@@ -669,16 +677,16 @@ class Hmmer:
                               hit_reads_orfs_fasta
                               )
             
-            hit_reads_fasta=hit_reads_orfs_fasta
+            hit_reads_fasta = hit_reads_orfs_fasta
         
-        result=DBSearchResult(hit_reads_fasta, 
-                              search_result, 
-                              [0,len(list(itertools.chain(*hits.values())))], # array of hits [euk hits, true hits]. Euk hits alway 0 unless searching from 16S
-                              any([x for x in hit_readnames if x.endswith('\\1') or x.endswith('\\2')])) # Any reads that end in /1 or /2     
+        result = DBSearchResult(hit_reads_fasta,
+                              search_result,
+                              [0, len(list(itertools.chain(*hits.values())))],  # array of hits [euk hits, true hits]. Euk hits alway 0 unless searching from 16S
+                              any([x for x in hit_readnames if x.endswith('\\1') or x.endswith('\\2')]))  # Any reads that end in /1 or /2     
         return result
     
     @T.timeit
-    def nt_db_search(self, files, base, unpack, raw_reads, euk_check, 
+    def nt_db_search(self, files, base, unpack, raw_reads, euk_check,
                      search_method, gpkg, threads, evalue, srch_aln_only):
         '''
         Nucleotide database search pipeline - pipeline where reads are searched
@@ -715,7 +723,7 @@ class Hmmer:
         
         # Define outputs
         hmmsearch_output_table = files.hmmsearch_output_path(base)
-        hit_reads_fasta        = files.fa_output_path(base)
+        hit_reads_fasta = files.fa_output_path(base)
         
         if search_method == "hmmsearch":
             # First search the reads using the HMM
@@ -743,15 +751,15 @@ class Hmmer:
                                             gpkg.contents_hash[gpkg.RANGE_KEY])
             hit_readnames = hits.keys()
             if euk_check:
-                euk_reads  = self._check_euk_contamination(table_list)
-                euk_reads  = set(euk_reads)
+                euk_reads = self._check_euk_contamination(table_list)
+                euk_reads = set(euk_reads)
                 prok_reads = set([hit_readnames for read in hit_readnames\
                                   if read not in euk_reads])
-                for read in prok_reads: readnames.write(read+'\n')
-                hit_read_count=[len(euk_reads), len(prok_reads)]
+                for read in prok_reads: readnames.write(read + '\n')
+                hit_read_count = [len(euk_reads), len(prok_reads)]
             else:
-                [readnames.write(read+'\n') for read in hit_readnames]
-                hit_read_count=[0,len(hit_readnames)]
+                [readnames.write(read + '\n') for read in hit_readnames]
+                hit_read_count = [0, len(hit_readnames)]
             readnames.flush()
             
             hit_reads_fasta = self._extract_from_raw_reads(
@@ -762,13 +770,13 @@ class Hmmer:
                                                            hits
                                                            )
         if not hit_readnames:
-            result=DBSearchResult(None, 
-                                  search_result, 
+            result = DBSearchResult(None,
+                                  search_result,
                                   hit_read_count,
                                   None)
         else:
-            result=DBSearchResult(hit_reads_fasta, 
-                                  search_result, 
+            result = DBSearchResult(hit_reads_fasta,
+                                  search_result,
                                   hit_read_count,
                                   any([x for x in hit_readnames if x.endswith('\1') or x.endswith('\2')]))
         
@@ -793,7 +801,7 @@ class Hmmer:
         '''
         
         # HMMalign the forward reads, and reverse complement reads.
-        alignments=self.hmmalign(input_path,
+        alignments = self.hmmalign(input_path,
                                  directions)
         self.alignment_correcter(alignments,
                                  output_path)

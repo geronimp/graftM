@@ -27,14 +27,8 @@ class GraftMFiles:
     def euk_contam_path(self, out_path):
         return os.path.join(self.outdir, out_path, "%s_euk_contam.txt" % self.basename)
     
-    def main_guppy_path(self):
-        return os.path.join(self.outdir, "placements.guppy")
-    
     def summary_table_output_path(self, out_path):
         return os.path.join(self.outdir, out_path, "%s_count_table.txt" % self.basename)
-    
-    def combined_summary_table_output_path(self):
-        return os.path.join(self.outdir, "combined_count_table.txt")
     
     def krona_output_path(self):
         return os.path.join(self.outdir, "krona.html")
@@ -63,14 +57,8 @@ class GraftMFiles:
     def conv_output_rev_path(self, out_path):
         return os.path.join(self.outdir, out_path, "%s_conv_rev.faa" % self.basename)
     
-    def conv_output_path(self, out_path):
-        return os.path.join(self.outdir, out_path, "%s_conv.faa" % self.basename)
-    
     def comb_aln_fa(self):
         return os.path.join(self.outdir, "combined_alignment.aln.fa")
-
-    def reverse_read_hmmsearch_output_path(self, out_path):
-        return os.path.join(self.outdir, out_path, "%s_rev.hmmout.csv" % self.basename)
 
     def fa_output_path(self, out_path):
         return os.path.join(self.outdir, out_path, "%s_hits.fa" % self.basename)     
@@ -87,20 +75,17 @@ class GraftMFiles:
     def basic_stats_path(self):
         return os.path.join(self.outdir, "basic_stats.txt")
 
-    def command_log_path(self):
-        return os.path.join(self.outdir, "command_log.txt")
-
     def for_aln_path(self, out_path):
         return os.path.join(self.outdir, out_path, "%s_for_aln.fa" % self.basename)
         
     def rev_aln_path(self, out_path):
         return os.path.join(self.outdir, out_path, "%s_rev_aln.fa" % self.basename)
     
-    def coverage_table_path(self, out_path):
-        return os.path.join(self.outdir, out_path, "%s_coverage_table.txt" % self.basename)
-    
     def combined_biom_output_path(self):
         return os.path.join(self.outdir, "graftm.biom")
+    
+    def combined_summary_table_output_path(self):
+        return os.path.join(self.outdir, "combined_count_table.txt")
       
     def base(self, out_path):
         return os.path.join(self.outdir, out_path, "%s" % self.basename)

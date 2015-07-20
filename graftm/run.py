@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 
-import timeit
 import os
 import logging
-import itertools
 
-from graftm.sequence_search_results import SequenceSearchResult, HMMSearchResult
+from graftm.sequence_search_results import SequenceSearchResult
 from graftm.graftm_output_paths import GraftMFiles
 from graftm.extract_sequences import Extract
 from graftm.hmmer import Hmmer
@@ -164,21 +162,7 @@ class Run:
         # The Graft pipeline:
         # Searches for reads using hmmer, and places them in phylogenetic
         # trees to derive a community structure.
-        if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART:
-            print '''
-                                GRAFT
 
-                       Joel Boyd, Ben Woodcroft
-
-                                                         __/__
-                                                  ______|
-          _- - _                         ________|      |_____/
-           - -            -             |        |____/_
-           - _     >>>>  -   >>>>   ____|
-          - _-  -         -             |      ______
-             - _                        |_____|
-           -                                  |______
-            '''
         if hasattr(self.args, "graftm_package"):
             gpkg = GraftMPackage.acquire(self.args.graftm_package)
         else:
@@ -257,8 +241,7 @@ class Run:
                                                               self.args.threads,
                                                               self.args.evalue,
                                                               self.args.min_orf_length,
-                                                              self.args.restrict_read_length,
-                                                              self.args.search_and_align_only
+                                                              self.args.restrict_read_length
                                                               )
 
                 # Or the DNA pipeline
@@ -273,8 +256,7 @@ class Run:
                                                               self.args.search_method,
                                                               gpkg,
                                                               self.args.threads,
-                                                              self.args.evalue,
-                                                              self.args.search_and_align_only
+                                                              self.args.evalue
                                                               )
 
                 if not result.hit_fasta():
@@ -322,14 +304,14 @@ class Run:
                                self.args.output_directory,
                                False)
         logging.info("Placing reads into phylogenetic tree")
-
         place_time, placements=self.p.place(
                                             REVERSE_PIPE,
                                             seqs_list,
                                             self.args.resolve_placements,
                                             self.gmf,
                                             self.args,
-                                            result.slash_endings
+                                            result.slash_endings,
+                                            gpkg.taxonomy_info_path()
                                             )
 
         if self.args.cluster:
@@ -350,6 +332,20 @@ class Run:
     def main(self):
 
         if self.args.subparser_name == 'graft':
+            if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART: print '''
+                                GRAFT
+
+                       Joel Boyd, Ben Woodcroft
+
+                                                         __/__
+                                                  ______|
+          _- - _                         ________|      |_____/
+           - -            -             |        |____/_
+           - _     >>>>  -   >>>>   ____|
+          - _-  -         -             |      ______
+             - _                        |_____|
+           -                                  |______
+            '''
             self.graft()
 
         elif self.args.subparser_name == 'assemble':
@@ -421,7 +417,8 @@ class Run:
                 exit(1)
             self.hk.checkCreatePrerequisites()
 
-            Create().main(sequences = self.args.sequences,
+            Create().main(
+                          sequences = self.args.sequences,
                           alignment=self.args.alignment,
                           taxonomy=self.args.taxonomy,
                           rerooted_tree=self.args.rerooted_tree,

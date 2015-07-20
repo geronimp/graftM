@@ -24,7 +24,7 @@ class GraftMPackage:
     SEARCH_HMM_KEY = "search_hmm"
     REFERENCE_PACKAGE_KEY = "rfpkg"
     HMM_TRUSTED_CUTOFF_KEY = "TC"
-    TAX_INFO_KEY = "tax_info"
+    TAX_INFO_KEY = "taxtastic_taxonomy_file"
     RANGE_KEY = "range"
     _CONTENTS_FILE_NAME = 'CONTENTS.json'
     
@@ -54,7 +54,7 @@ class GraftMPackage:
         pkg = GraftMPackageVersion2()
         
         
-        pkg.base_directory = graftm_package_path
+        pkg._base_directory = graftm_package_path
         pkg.contents_hash = json.load(
                                        open(
                                             os.path.join(
@@ -103,26 +103,29 @@ class GraftMPackageVersion2(GraftMPackage):
                      ]
     
     def diamond_database_path(self):
-        return os.path.join(self.base_directory, 
+        return os.path.join(self._base_directory, 
                             self.contents_hash[GraftMPackage.DIAMOND_DATABASE_KEY])
     
     def search_hmm_paths(self):
-        return [os.path.join(self.base_directory, x) for x in
+        return [os.path.join(self._base_directory, x) for x in
                 self.contents_hash[GraftMPackage.DIAMOND_DATABASE_KEY]]
         
     def alignment_hmm_path(self):
-        return os.path.join(self.base_directory, 
+        return os.path.join(self._base_directory, 
                             self.contents_hash[GraftMPackage.ALIGNMENT_HMM_KEY])
         
     def reference_package_path(self):
-        return os.path.join(self.base_directory, 
+        return os.path.join(self._base_directory, 
                             self.contents_hash[GraftMPackage.REFERENCE_PACKAGE_KEY])
         
     def use_hmm_trusted_cutoff(self):
         return self.contents_hash[GraftMPackage.HMM_TRUSTED_CUTOFF_KEY]
         
-        
+    def taxonomy_info_path(self):
+        return os.path.join(self._base_directory,
+                            self.contents_hash[GraftMPackage.TAX_INFO_KEY])
     
-    
+    def maximum_range(self):
+        return self.contents_hash[GraftMPackage.RANGE_KEY]
 
             

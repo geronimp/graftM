@@ -29,7 +29,7 @@ class UnpackRawReads:
             elif residue in aas:
                 num_protein += 1
             else:
-                raise Exception(logging.error('Encountered unexpected character when attempting to guess sequence type: %s' % (residue)))
+                raise Exception('Encountered unexpected character when attempting to guess sequence type: %s' % (residue))
             count += 1
             if count >300: break
         if float(num_protein) / (num_protein+num_nucleotide) > 0.1:

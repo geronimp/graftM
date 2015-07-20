@@ -192,7 +192,7 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
                     "TC":False,
                     "diamond_database": diamond_database_file_in_gpkg,
                     "range": max_range,
-                    "tax_info": taxonomy_file_in_refpkg}
+                    "taxtastic_taxonomy_file": taxonomy_file_in_refpkg}
         
         json.dump(contents, open(os.path.join(gpkg, 'CONTENTS.json'), 'w'))
 
@@ -208,9 +208,6 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         define_range - define the maximum range within which two hits in a db 
         search can be linked. This is defined as 1.5X the average length of all
         reads in the database. 
-        NOTE: in the interest of speed this function assumes that the FASTA 
-        input is correctly formated. (i.e. headers start with '>' and sequences
-        do not. Nothing else is present within the file).
         
         Parameters
         ----------
@@ -226,16 +223,10 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         '''
         sequence_count = 0
         total_sequence = 0
-        
-        cmd = 'cat %s' % sequences # output the sequences to STDOUT
-        output = subprocess.check_output(cmd, shell=True) # run command and catch output
-        output = output.strip().split('\n') # redefine that output as a list, one entry per line
-        
-        for line in output: # For every entry in the output 
-            if line.startswith('>'): # If it starts with a '>' (is a header)
-                total_sequence+=1 # increment the total sequence count
-            else: # If it is a sequence
-                sequence_count+=len(line) # add the length of that sequence to the total string count
+
+        for record in SeqIO.parse(open(sequences), 'fasta'): # For every sequence in the output 
+            total_sequence+=1 # increment the total sequence count
+            sequence_count+=len(record.seq) # add the length of that sequence to the total string count
                 
         # Get the average, multiply by 1.5, and return
         max_range = (sequence_count/total_sequence)*1.5

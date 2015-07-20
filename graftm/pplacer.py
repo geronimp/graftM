@@ -43,8 +43,8 @@ class Pplacer:
                 for record in alignments: # For each record in the read list
                     record.id = record.id + '_' + str(file_number) # append the unique identifier to the record id
                 SeqIO.write(alignments, output, "fasta") # And write the reads to the file
-                alias_hash[str(file_number)] = {'output_path': os.path.join(os.path.dirname(alignment_file),'placements.jplace') ,
-                                             'place': []}
+                alias_hash[str(file_number)] = {'output_path': os.path.join(os.path.dirname(alignment_file),'placements.jplace'),
+                                                'place': []}
                 file_number += 1
         return alias_hash
 
@@ -66,11 +66,11 @@ class Pplacer:
         # Write the jplace file to their respective file paths.
         jplace_path_list = []
         for alias in alias_hash:
-            output = {'fields': placement_file['fields'],
-                      'version': placement_file['version'],
-                      'tree':  placement_file['tree'],
-                      'placements': alias_hash[alias]['place'],
-                      'metadata': placement_file['metadata']}
+            output = {'fields'     : placement_file['fields'],
+                      'version'    : placement_file['version'],
+                      'tree'       : placement_file['tree'],
+                      'placements' : alias_hash[alias]['place'],
+                      'metadata'   : placement_file['metadata']}
             with open(alias_hash[alias]['output_path'], 'w') as output_path:
                 json.dump(output, output_path, ensure_ascii=False)
             jplace_path_list.append(alias_hash[alias]['output_path'])
@@ -78,7 +78,7 @@ class Pplacer:
     
     @T.timeit
     def place(self, reverse_pipe, seqs_list, resolve_placements, files, args,
-              slash_endings):
+              slash_endings, tax_descr):
         '''
         placement - This is the placement pipeline in GraftM, in aligned reads 
                     are placed into phylogenetic trees, and the results interpreted.
@@ -120,17 +120,13 @@ class Pplacer:
         
         #Read the json of refpkg
         logging.info("Reading classifications")
-        tax_descr=json.load(open(self.refpkg+'/CONTENTS.json'))['files']['taxonomy']
-        classifications=Classify(
-                                 os.path.join(self.refpkg,
-                                              tax_descr)
-                                 ).assignPlacement(
-                                                   jplace, 
-                                                   args.placements_cutoff, 
-                                                   'reads', 
-                                                   resolve_placements
-                                                   )
-                                 
+        classifications=Classify(tax_descr).assignPlacement(
+                                                           jplace, 
+                                                           args.placements_cutoff, 
+                                                           'reads', 
+                                                           resolve_placements
+                                                           )
+                                         
         self.hk.delete([jplace])# Remove combined split, not really useful
         logging.info("Reads classified.")
         # If the reverse pipe has been specified, run the comparisons between the two pipelines. If not then just return.
@@ -217,7 +213,7 @@ class Compare:
         for read in crossover:
             f_read = for_dict[read]
             r_read = rev_dict[read]
-            
+
             # Check read was placed
             if forward_gup.get(f_read) is None or reverse_gup.get(r_read) is None:
                 logging.info('Warning: %s was not inserted into tree' % str(f_read))

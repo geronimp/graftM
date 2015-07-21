@@ -55,7 +55,7 @@ class GraftMPackage:
         
         
         pkg._base_directory = graftm_package_path
-        pkg.contents_hash = json.load(
+        pkg._contents_hash = json.load(
                                        open(
                                             os.path.join(
                                                          graftm_package_path,
@@ -70,7 +70,7 @@ class GraftMPackage:
         return pkg
     
     def check_universal_keys(self, version):
-        h = self.contents_hash
+        h = self._contents_hash
         try:
             v = h[GraftMPackage.VERSION_KEY]
         except KeyError:
@@ -81,7 +81,7 @@ class GraftMPackage:
     def check_required_keys(self, required_keys):
         '''raise InsufficientGraftMPackageException if this package does not
         conform to the standard of the given package'''  
-        h = self.contents_hash    
+        h = self._contents_hash    
         for key in required_keys:
             if key not in h:
                 raise InsufficientGraftMPackageException("package missing key %s" % key)
@@ -104,28 +104,28 @@ class GraftMPackageVersion2(GraftMPackage):
     
     def diamond_database_path(self):
         return os.path.join(self._base_directory, 
-                            self.contents_hash[GraftMPackage.DIAMOND_DATABASE_KEY])
+                            self._contents_hash[GraftMPackage.DIAMOND_DATABASE_KEY])
     
     def search_hmm_paths(self):
         return [os.path.join(self._base_directory, x) for x in
-                self.contents_hash[GraftMPackage.DIAMOND_DATABASE_KEY]]
+                self._contents_hash[GraftMPackage.DIAMOND_DATABASE_KEY]]
         
     def alignment_hmm_path(self):
         return os.path.join(self._base_directory, 
-                            self.contents_hash[GraftMPackage.ALIGNMENT_HMM_KEY])
+                            self._contents_hash[GraftMPackage.ALIGNMENT_HMM_KEY])
         
     def reference_package_path(self):
         return os.path.join(self._base_directory, 
-                            self.contents_hash[GraftMPackage.REFERENCE_PACKAGE_KEY])
+                            self._contents_hash[GraftMPackage.REFERENCE_PACKAGE_KEY])
         
     def use_hmm_trusted_cutoff(self):
-        return self.contents_hash[GraftMPackage.HMM_TRUSTED_CUTOFF_KEY]
+        return self._contents_hash[GraftMPackage.HMM_TRUSTED_CUTOFF_KEY]
         
     def taxonomy_info_path(self):
         return os.path.join(self._base_directory,
-                            self.contents_hash[GraftMPackage.TAX_INFO_KEY])
+                            self._contents_hash[GraftMPackage.TAX_INFO_KEY])
     
     def maximum_range(self):
-        return self.contents_hash[GraftMPackage.RANGE_KEY]
+        return self._contents_hash[GraftMPackage.RANGE_KEY]
 
             

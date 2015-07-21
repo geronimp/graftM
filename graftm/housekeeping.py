@@ -5,9 +5,13 @@ import json
 import tempfile
 import logging
 
+PIPELINE_AA = "P"
+PIPELINE_NT = "D"
+
+
 class UninstalledProgramError(Exception):
     pass
-
+    
 class HouseKeeping:
     ### Functions for setting up the graftM pipeline to run correctly, and 
     ### general housekeeping things like adding and removing directories and 
@@ -30,7 +34,6 @@ class HouseKeeping:
             setattr(args, 'euk_hmm_file', os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'constants', '18S.hmm'))
         else:
             raise Exception('Programming Error: setting the euk HMM')    
-
     
     def setpipe(self, hmm):
         ## Read in the hmm file and return the evalue trusted cutoff and the
@@ -122,10 +125,30 @@ class HouseKeeping:
                 print l
                 msg += l+"\n"
             exit(0)
-            
+
+    def get_maximum_range(self, hmm):
+        '''
+        If no maximum range has been specified, and if using a hmm search, a 
+        maximum range can be determined by using the length of the HMM 
+        
+        Parameters
+        ----------
+        hmm : str
+            path to hmm profile
+        
+        Returns
+        -------
+        Length to search to when linking hits on a single contig
+        '''
+        length=int([x for x in open(hmm) if x.startswith("LENG")][0].split()[1])
+        max_length=round(length*1.5, 0)
+        
+        return max_length
+
     def set_attributes(self, args):
         # Check the presence of all prerequisite programs needed for GraftM
         uninstalled_programs = []
+        
         prerequisites = {'orfm': 'https://github.com/wwood/OrfM',
                         'nhmmer': 'http://hmmer.janelia.org/',
                         'hmmsearch': 'http://hmmer.janelia.org/',
@@ -133,6 +156,7 @@ class HouseKeeping:
                         'pplacer': 'http://matsen.fhcrc.org/pplacer/',
                         'seqmagick': 'https://github.com/fhcrc/seqmagick',
                         'ktImportText': 'http://sourceforge.net/p/krona/home/krona/'}
+        
         for program in prerequisites.keys():
             if self.which(program):
                 pass
@@ -167,17 +191,35 @@ class HouseKeeping:
                         args.search_hmm_files.append(os.path.join(args.graftm_package, hmm))
                     setattr(args, 'aln_hmm_file', os.path.join(args.graftm_package, c['aln_hmm']))
                     setattr(args, 'reference_package', os.path.join(args.graftm_package, c['rfpkg']))
-        elif hasattr(args, 'search_hmm_files'):
-            if not hasattr(args, 'aln_hmm_file'):
-                if len(args.search_hmm_files) == 1:
-                    setattr(args, 'aln_hmm_file', args.search_hmm_files[0])
-                else:
-                    raise Exception("Multiple search HMMs specified, but aln_hmm_file not specified")
-        elif hasattr(args, 'search_hmm_list_file'):
-            setattr(args, 'search_hmm_files', [x.rstrip() for x in open(args.search_hmm_list_file).readlines()])
 
-            if not hasattr(args, 'aln_hmm_file'):
-                raise Exception("Multiple search HMMs specified, but aln_hmm_file not specified")
+        elif hasattr(args, 'search_diamond_files'):
+            if args.search_method == 'diamond': 
+                if hasattr(args, 'aln_hmm_file'):
+                    pass
+                else:
+                    raise Exception("aln_hmm_file not specified")
+            else:
+                raise Exception("Specified HMM databases when not using the diamond search pipeline. Using: %s" % (args.search_method))   
+        
+        elif hasattr(args, 'search_hmm_files'):
+            if args.search_method == 'hmmsearch':
+                if not hasattr(args, 'aln_hmm_file'):
+                    if len(args.search_hmm_files) == 1:
+                        setattr(args, 'aln_hmm_file', args.search_hmm_files[0])
+                    else:
+                        raise Exception("Multiple search HMMs specified, but aln_hmm_file not specified")
+
+            else:
+                raise Exception("Specified HMM search_hmm_files when not using the hmmsearch pipeline. Using: %s" % (args.search_method))
+
+        elif hasattr(args, 'search_hmm_list_file'):
+            if args.search_method == 'hmmsearch':
+                setattr(args, 'search_hmm_files', [x.rstrip() for x in open(args.search_hmm_list_file).readlines()])
+                if not hasattr(args, 'aln_hmm_file'):
+                    raise Exception("Multiple search HMMs specified, but aln_hmm_file not specified")
+            else:
+                raise Exception("Specified HMM search_hmm_files when not using the hmmsearch pipeline. Using: %s" % (args.search_method))
+        
         else:
             raise Exception('No refpkg or HMM specified: Do not know what to search with.')
         return

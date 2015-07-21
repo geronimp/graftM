@@ -586,8 +586,9 @@ class Hmmer:
         return {key: entry['span'] for key, entry in splits.iteritems()}  # return the dict, without strand information which isn't required.
     
     @T.timeit
-    def aa_db_search(self, files, base, unpack, raw_reads, search_method, gpkg,
-                     threads, evalue, min_orf_length, restrict_read_length):
+    def aa_db_search(self, files, base, unpack, raw_reads, search_method, 
+                     maximum_range, threads, evalue, min_orf_length, 
+                     restrict_read_length, diamond_database):
         '''
         Amino acid database search pipeline - pipeline where reads are searched
         as amino acids, and hits are identified using hmmsearch or diamond 
@@ -654,7 +655,7 @@ class Hmmer:
         elif search_method == 'diamond':
             # run diamond
             search_result = Diamond(
-                                     database=gpkg.diamond_database_path(),
+                                     database=diamond_database,
                                      threads=threads,
                                      evalue=evalue,
                                      ).run(
@@ -670,13 +671,23 @@ class Hmmer:
             # Write the names of hits to a tmpfile
             
             orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')  # to remove OrfM suffix from read names
-            hits = self._get_read_names(
-                                        search_result,  # define the span of hits
-                                        gpkg.maximum_range()
-                                        )
-                
+            if maximum_range:
+                    
+                hits = self._get_read_names(
+                                            search_result,  # define the span of hits
+                                            maximum_range
+                                            )
+            else:   
+                hits={}
+                for result in search_result:
+                    for h in result.each([SequenceSearchResult.QUERY_ID_FIELD]):
+                        hits[h]=[]
+            
+            
             hits={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) else key): item for key, item in hits.iteritems()}
+            
             hit_readnames = hits.keys()
+            
             for read in hit_readnames:
                 readnames.write(read + '\n')
 
@@ -715,7 +726,7 @@ class Hmmer:
     
     @T.timeit
     def nt_db_search(self, files, base, unpack, raw_reads, euk_check,
-                     search_method, gpkg, threads, evalue):
+                     search_method, maximum_range, threads, evalue):
         '''
         Nucleotide database search pipeline - pipeline where reads are searched
         as nucleotides, and hits are identified using nhmmer searches
@@ -765,14 +776,20 @@ class Hmmer:
                 
         elif search_method == 'diamond':
             raise Exception("Diamond searches not supported for nucelotide databases yet")
-
         with tempfile.NamedTemporaryFile(prefix='graftm_readnames') as readnames:
-            hits = self._get_read_names(
-                                        search_result,  # define the span of hits
-                                        gpkg.maximum_range()
-                                        )
-                
+            if maximum_range:  
+                hits = self._get_read_names(
+                                            search_result,  # define the span of hits
+                                            maximum_range
+                                            )
+            else:   
+                hits={}
+                for result in search_result:
+                    for h in result.each([SequenceSearchResult.QUERY_ID_FIELD]):
+                        hits[h]=[]
+            
             hit_readnames = hits.keys()
+            
             if euk_check:
                 euk_reads = self._check_euk_contamination(table_list)
                 euk_reads = set(euk_reads)

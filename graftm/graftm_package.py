@@ -103,9 +103,12 @@ class GraftMPackageVersion2(GraftMPackage):
                      ]
     
     def diamond_database_path(self):
-        return os.path.join(self._base_directory, 
-                            self.contents_hash[GraftMPackage.DIAMOND_DATABASE_KEY])
-    
+        if self.contents_hash[GraftMPackage.DIAMOND_DATABASE_KEY]:
+            return os.path.join(self._base_directory, 
+                                self.contents_hash[GraftMPackage.DIAMOND_DATABASE_KEY])
+        else:
+            return None
+        
     def search_hmm_paths(self):
         return [os.path.join(self._base_directory, x) for x in
                 self.contents_hash[GraftMPackage.DIAMOND_DATABASE_KEY]]

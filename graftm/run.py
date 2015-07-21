@@ -13,9 +13,10 @@ from graftm.pplacer import Pplacer
 from graftm.assembler import TaxoGroup
 from graftm.create import Create
 from graftm.unpack_sequences import UnpackRawReads
-from graftm.graftm_package import GraftMPackage
 from graftm.deduplicator import Deduplicator
 from graftm.sequence_io import SequenceIO
+from graftm.graftm_package import GraftMPackage
+
 from biom.util import biom_open
 
 PIPELINE_AA = "P"
@@ -33,7 +34,6 @@ class Run:
         self.s = Stats_And_Summary()
         self.tg = TaxoGroup()
         self.e = Extract()
-
         if args.subparser_name == 'graft':
             self.hk.set_attributes(self.args)
             self.hk.set_euk_hmm(self.args)
@@ -168,13 +168,45 @@ class Run:
         else:
             gpkg = None
 
-        REVERSE_PIPE   = (True if self.args.reverse else False)
-        base_list      = []
-        seqs_list      = []
-        search_results = []
-        clusters_list  = []
+        REVERSE_PIPE        = (True if self.args.reverse else False)
+        base_list           = []
+        seqs_list           = []
+        search_results      = []
+        clusters_list       = []
         hit_read_count_list = []
+        
+        # Get the maximum range, if none exists, make one from the HMM profile
+        if gpkg:
+            maximum_range = gpkg.maximum_range()
+            diamond_db    = gpkg.diamond_database_path()
+            if self.args.search_method == 'diamond':
+                if not diamond_db:
+                    if self.args.search_diamond_file:
+                        diamond_db=self.args.search_diamond_file
+                    else:
+                        logging.error("%s search method selected, but no diamond database specify. \
+                        Please either provide a gpkg to the --graftm_package flag, or a diamond \
+                        database to the --search_diamond_file flag." % self.args.search_method)
+        else:
+            if self.args.maximum_range:
+                maximum_range = self.args.maximum_range
+            else:
+                if self.args.search_method=='hmmsearch':
+                    maximum_range = self.hk.get_maximum_range(self.args.aln_hmm_file)
+                else:
+                    logging.warning('Cannot determine maximum range when using %s pipeline and with no GraftM package specified' % self.args.search_method)
+                    logging.warning('Setting maximum_range to None (linked hits will not be detected)')
+                    maximum_range = None 
+            if self.args.search_diamond_file:
+                diamond_db = self.args.search_diamond_file
+            else:
+                if self.args.search_method == 'hmmsearch':
+                    diamond_db = None
+                else:
+                    logging.error("%s search method selected, but no gpkg or diamond database selected" % self.args.search_method)
 
+            
+        # If merge reads is specified, check that there are reverse reads to merge with
         if self.args.merge_reads and not hasattr(self.args, 'reverse'):
             logging.error("--merge requires --reverse to be specified")
             exit(1)
@@ -237,11 +269,12 @@ class Run:
                                                               unpack,
                                                               read_file,
                                                               self.args.search_method,
-                                                              gpkg,
+                                                              maximum_range,
                                                               self.args.threads,
                                                               self.args.evalue,
                                                               self.args.min_orf_length,
-                                                              self.args.restrict_read_length
+                                                              self.args.restrict_read_length,
+                                                              diamond_db
                                                               )
 
                 # Or the DNA pipeline
@@ -254,7 +287,7 @@ class Run:
                                                               read_file,
                                                               self.args.euk_check,
                                                               self.args.search_method,
-                                                              gpkg,
+                                                              maximum_range,
                                                               self.args.threads,
                                                               self.args.evalue
                                                               )

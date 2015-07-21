@@ -114,6 +114,7 @@ if __name__ == '__main__':
     searching_options.add_argument('--search_and_align_only', action="store_true", help='Stop after reads have been identified (default=False)', default=False)
     searching_options.add_argument('--euk_check', action="store_true", help='Search whole sample for 18S (default=False)', default=False)
     searching_options.add_argument('--search_method', choices=('hmmsearch','diamond'), help='Search method (default=hmmsearch)', default='hmmsearch')
+    searching_options.add_argument('--maximum_range', type=int, help='maximum range to use when searching for potentially linked reads (when searching contigs)', default=None)
     
     placement_options = graft_parser.add_argument_group('placement options')
     placement_options.add_argument('--placements_cutoff', metavar='confidence', help='Cutoff of placement confidence level (0.5 - 1), default = 0.75', default=0.75)
@@ -124,6 +125,7 @@ if __name__ == '__main__':
     nucleotide_options = graft_parser.add_argument_group('nucleotide search-specific options')
     nucleotide_options.add_argument('--search_hmm_files', nargs='+', help='Specify .hmm files to use in search step', default=argparse.SUPPRESS)
     nucleotide_options.add_argument('--search_hmm_list_file', metavar='newline-separated file with paths to each search HMM', default=argparse.SUPPRESS)
+    nucleotide_options.add_argument('--search_diamond_file', nargs=1, help='Specify .dmnd file to use in search step', default=None)
     nucleotide_options.add_argument('--aln_hmm_file', help='Specify a single .hmm file to use in align step (default: the search_hmm_file if there is only 1)', default=argparse.SUPPRESS)
     nucleotide_options.add_argument('--euk_hmm_file', help='Specify the .hmm file to use in the check for euk contamination', default=argparse.SUPPRESS)
     

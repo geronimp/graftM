@@ -535,24 +535,26 @@ class Hmmer:
         '''
         
         splits = {}  # Define an output dictionary to be filled
-        for result in search_result:  # Create a table (list of rows contain span, and complement information
-            spans = list(search_result[0].each(
-                                               [SequenceSearchResult.QUERY_ID_FIELD,
-                                                SequenceSearchResult.ALIGNMENT_DIRECTION,
-                                                SequenceSearchResult.HIT_FROM_FIELD,
-                                                SequenceSearchResult.HIT_TO_FIELD,
-                                                SequenceSearchResult.QUERY_FROM_FIELD,
-                                                SequenceSearchResult.QUERY_TO_FIELD]
-                                               )
+        
+        for idr, result in enumerate(search_result):  # Create a table (list of rows contain span, and complement information
+            spans = list(
+                         result.each(
+                                    [SequenceSearchResult.QUERY_ID_FIELD,
+                                        SequenceSearchResult.ALIGNMENT_DIRECTION,
+                                        SequenceSearchResult.HIT_FROM_FIELD,
+                                        SequenceSearchResult.HIT_TO_FIELD,
+                                        SequenceSearchResult.QUERY_FROM_FIELD,
+                                        SequenceSearchResult.QUERY_TO_FIELD]
+                                       )
                          )
             
             for hit in spans:  # For each of these rows (i.e. hits)
                 i = hit[0]  # set id to i
                 c = hit[1]  # set complement to c
                 ft = [min(hit[2:4]), max(hit[2:4])]  # set span as ft (i.e. from - to)
-                qs = [min(hit[4:6]), max(hit[4:6])]  # seq the query span to qs
-                
+                qs = [min(hit[4:6]), max(hit[4:6])]  # seq the query span to qs    
                 if ft[0] == ft[1]: continue  # if the span covers none of the query, skip that entry (seen this before)
+                
                 if i not in splits:  # If the hit hasnt been seen yet
                     splits[i] = {'span'       : [ft],
                                  'strand'     : [c],
@@ -565,11 +567,18 @@ class Hmmer:
                             previous_q_range = set(range(previous_qs[0], previous_qs[1])) # Get the range of each
                             current_q_range  = set(range(qs[0], qs[1]))
                             query_overlap    = set(previous_q_range).intersection(current_q_range) # Find the intersection between the two ranges
+                            
+                            previous_ft_span = set(range(entry[0], entry[1]))
+                            current_ft_span  = set(range(ft[0], ft[1]))
+                            
                             if any(query_overlap): # If there is
-                                if len(query_overlap) > len(current_q_range)*0.85: # if the overlap spans over 85% of the query
-                                    splits[i]['span'].append(ft) # Add from-to as another entry, this is another hit. 
-                                    splits[i]['strand'].append(c) # Add strand info as well
-                                    break # And break
+                                if float(len(previous_ft_span.intersection(current_ft_span)))/float(len(previous_ft_span)) > 0.5: # if the intersection between the span of each hit is greater than 0.75, consider it the same hit, and continue.
+                                    break
+                                else: # else (i.e. if the hit covers less that 50% of the sequence of the previouys hit
+                                    if len(query_overlap) > (len(current_q_range)*0.75): # if the overlap on the query HMM does not span over 75% 
+                                        splits[i]['span'].append(ft) # Add from-to as another entry, this is another hit. 
+                                        splits[i]['strand'].append(c) # Add strand info as well
+                                        break # And break
                             
                             if min(entry) < min(ft):  # if/else to determine which entry comes first (e.g. 1-5, 6-10 not 6-10, 1-5)
                                 if max(ft) - min(entry) < max_range:  # Check if they lie within range of eachother
@@ -663,7 +672,7 @@ class Hmmer:
                                            unpack.sequence_type()
                                            )
             search_result = [search_result]
-
+        
         else:  # if the search_method isn't recognised
             raise Exception("Programming error: unexpected search_method %s" % search_method)
         
@@ -672,7 +681,7 @@ class Hmmer:
             
             orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')  # to remove OrfM suffix from read names
             if maximum_range:
-                    
+
                 hits = self._get_read_names(
                                             search_result,  # define the span of hits
                                             maximum_range

@@ -336,6 +336,7 @@ class Run:
         self.gmf = GraftMFiles('',
                                self.args.output_directory,
                                False)
+
         logging.info("Placing reads into phylogenetic tree")
         place_time, placements=self.p.place(
                                             REVERSE_PIPE,

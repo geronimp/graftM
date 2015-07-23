@@ -60,7 +60,7 @@ class Hmmer:
             records = list(SeqIO.parse(open(input_path), 'fasta'))
             
             # Split the reads into reverse and forward lists
-            orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
+            orfm_regex = OrfM.regular_expression()
             for record in records:
                 regex_match = orfm_regex.match(record.id)
                 if regex_match:
@@ -136,22 +136,22 @@ class Hmmer:
             UnpackRawReads object, returns string command that will output
             sequences to stdout when called on command line 
             (use: unpack.command_line())
-        seq_type : var
+        seq_type : str
             variable containing a string, either 'nucleotide' or 'aminoacid'.
             Tells the pipeline whether or not to call ORFs on the sequence.
             If sequence is 'nucleotide', ORFs are called. If not, no ORFs.
-        threads : str
+        threads : Integer
             Number of threads to use. Passed to HMMsearch command. 
         evalue : str
             evalue cutoff for HMMsearch to use. Passed to HMMsearch command. 
-        orfm : obj
-            Object that builds the command chunch for calling ORFs on sequences
+        orfm : OrfM
+            Object that builds the command chunk for calling ORFs on sequences
             coming through as stdin. Outputs to stdout. Calls command_line
             to construct final command line string.
 
         Returns
         -------
-        output_table_list : array
+        output_table_list : array of HMMSearchResult
             Includes the name of the output domtblout table given by hmmer          
         '''
 
@@ -200,7 +200,7 @@ class Hmmer:
         -------
         Nothing - output files are known.
         '''
-        orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
+        orfm_regex = OrfM.regular_expression()
         def remove_orfm_end(records):
             
             new_dict = {}
@@ -208,7 +208,7 @@ class Hmmer:
             for key, record in records.iteritems():
                 orfmregex = orfm_regex.match(key)
                 if orfmregex:
-                   new_dict[orfmregex.groups(0)[0]] = record 
+                    new_dict[orfmregex.groups(0)[0]] = record 
                 else:
                     new_dict[key] = record
             return new_dict
@@ -536,7 +536,7 @@ class Hmmer:
         
         splits = {}  # Define an output dictionary to be filled
         
-        for idr, result in enumerate(search_result):  # Create a table (list of rows contain span, and complement information
+        for _, result in enumerate(search_result):  # Create a table (list of rows contain span, and complement information
             spans = list(
                          result.each(
                                     [SequenceSearchResult.QUERY_ID_FIELD,
@@ -618,15 +618,15 @@ class Hmmer:
             The reads to be searched.
         search_method : str
             The method for searching, either 'hmmsearch' or 'diamond'
-        gpkg : obj
+        gpkg : GraftMPackage
             GraftM package object, created by graftm_package.py
-        threads : str
+        threads : int
             Number of threads for hmmer to use
         evalue : str
             evalue cutoff for hmmer to use
-        min_orf_length : str
+        min_orf_length : int
             minimum orf length for orfm to use
-        restrict_read_length : str
+        restrict_read_length : int
             orf length to retrict orfm to.
         Returns
         -------
@@ -679,9 +679,8 @@ class Hmmer:
         with tempfile.NamedTemporaryFile(prefix='graftm_readnames') as readnames:
             # Write the names of hits to a tmpfile
             
-            orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')  # to remove OrfM suffix from read names
+            orfm_regex = OrfM.regular_expression()
             if maximum_range:
-
                 hits = self._get_read_names(
                                             search_result,  # define the span of hits
                                             maximum_range
@@ -699,8 +698,8 @@ class Hmmer:
             
             for read in hit_readnames:
                 readnames.write(read + '\n')
-
             readnames.flush()
+            
             hit_reads_fasta = self._extract_from_raw_reads(
                                                            hit_reads_fasta,
                                                            readnames.name,
@@ -729,8 +728,8 @@ class Hmmer:
         
         result = DBSearchResult(hit_reads_fasta,
                               search_result,
-                              [0, len(list(itertools.chain(*hits.values())))],  # array of hits [euk hits, true hits]. Euk hits alway 0 unless searching from 16S
-                              any([x for x in hit_readnames if x.endswith('/1') or x.endswith('/2')]))  # Any reads that end in /1 or /2     
+                              [0, len([itertools.chain(*hits.values())])],  # array of hits [euk hits, true hits]. Euk hits alway 0 unless searching from 16S
+                              any((x for x in hit_readnames if x.endswith('/1') or x.endswith('/2'))))  # Any reads that end in /1 or /2     
         return result
     
     @T.timeit

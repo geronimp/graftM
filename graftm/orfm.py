@@ -1,4 +1,5 @@
 import logging
+import re
 
 class OrfM:
     def __init__(self, **kwargs):
@@ -29,7 +30,14 @@ class OrfM:
         if input_path:
             cmd += input_path
         logging.debug("OrfM command chunk: %s" % cmd)
-        return cmd 
+        return cmd
+    
+    @staticmethod
+    def regular_expression():
+        '''Return a compiled regular expression matching the OrfM output defline
+        with the originalName, startPosition, frameNumber, orfNumber being
+        the contents of the regular expression'''
+        return re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
 
 class ZcatOrfM(OrfM):
     '''Like OrfM, except separate the zcat and the orfm commands into two

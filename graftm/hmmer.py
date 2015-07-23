@@ -616,7 +616,12 @@ class Hmmer:
             (use: unpack.command_line())
         search_method : str
             The method for searching, either 'hmmsearch' or 'diamond'
-        maximum_range: ?
+        maximum_range : int
+            Maximum range that a gene can extend within a contig. Any hits 
+            that extend beyond this length cannot be linked. max_range is defined 
+            as 1.5 X the average length of all full length genes used in the 
+            search database. This is defined in the CONTENTS.json file within a 
+            gpkg.
         threads : int
             Number of threads for hmmer to use
         evalue : str
@@ -625,7 +630,9 @@ class Hmmer:
             minimum orf length for orfm to use
         restrict_read_length : int
             orf length to retrict orfm to.
-        diamond_database: ?
+        diamond_database : str
+            Path to diamond database to use when searching. Set to 'None' if not 
+            using diamond pipeline 
         Returns
         -------
         String path to amino acid fasta file of reads that hit
@@ -792,7 +799,11 @@ class Hmmer:
         search_method : str
             The method for searching e.g. 'hmmsearch' or 'diamond'
         maximum_range : int
-            ?
+            Maximum range that a gene can extend within a contig. Any hits 
+            that extend beyond this length cannot be linked. max_range is defined 
+            as 1.5 X the average length of all full length genes used in the 
+            search database. This is defined in the CONTENTS.json file within a 
+            gpkg.
         threads : str
             Number of threads for hmmer to use
         evalue : str

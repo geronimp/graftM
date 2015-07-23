@@ -2,9 +2,10 @@ import logging
 import tempfile
 import shutil
 import os
+import subprocess
+
 from graftm.hmmer import Hmmer
 from graftm.unpack_sequences import UnpackRawReads
-import subprocess
 
 class Bootstrapper:
     def generate_hmm_from_contigs(self, search_hmm_files, contig_files, 
@@ -41,36 +42,41 @@ class Bootstrapper:
                 with tempfile.NamedTemporaryFile(prefix='graftm_bootstrap') as \
                                                         hit_reads_orfs_fasta:
                     # search and extract matching ORFs
-                    hmmer.search_and_extract_orfs_matching_protein_database(\
-                                                        unpack,
-                                                          'hmmsearch',
-                                                          maximum_range,
-                                                          threads,
-                                                          evalue,
-                                                          min_orf_length,
-                                                          restrict_read_length,
-                                                          None,
-                                                          None,
-                                                          None,
-                                                          hit_reads_orfs_fasta.name)
+                    with tempfile.NamedTemporaryFile(prefix='graftm_bootstrap2') as \
+                                                        hmmsearch_output_table:
+                        with tempfile.NamedTemporaryFile(prefix='graftm_bootstrap3') as \
+                                                        hit_reads_fasta:
+                            hmmer.search_and_extract_orfs_matching_protein_database(\
+                                    unpack,
+                                    'hmmsearch',
+                                    maximum_range,
+                                    threads,
+                                    evalue,
+                                    min_orf_length,
+                                    restrict_read_length,
+                                    None,
+                                    hmmsearch_output_table.name,
+                                    hit_reads_fasta.name,
+                                    hit_reads_orfs_fasta.name)
                     # Append to the file
-                    shutil.copyfileobj(hit_reads_orfs_fasta.name, orfs.name)
+                    shutil.copyfileobj(open(hit_reads_orfs_fasta.name), orfs)
             
             # Now have a fasta file of ORFs.
             # Check to make sure the file is not zero-length
+            orfs.flush()
             if os.stat(orfs.name).st_size == 0:
-                logging.warn("Failed to find any ORFs in the bootstrap contigs, continuing without bootstrap")
+                logging.warn("Failed to find any matching ORFs in the bootstrap contigs, continuing without bootstrap")
                 return False
             
             # Run mafft to align them
-            with tempfile.NamedTemporaryFile("graftm_bootstrap_aln") as aln:
-                cmd = "mafft %s >%s" % (orfs.name, aln.name)
+            with tempfile.NamedTemporaryFile(prefix="graftm_bootstrap_aln") as aln:
+                cmd = "mafft --auto %s >%s 2>/dev/null" % (orfs.name, aln.name)
                 logging.info("Aligning bootstrap hits..")
                 logging.debug("Running alignment cmd: %s" % cmd)
                 subprocess.check_call(cmd, shell=True)
             
                 # Run hmmbuild to create an HMM
-                cmd = "hmmbuild %s %s" % (output_hmm_file, aln.name)
+                cmd = "hmmbuild --amino %s %s >/dev/null 2>/dev/null" % (output_hmm_file, aln.name)
                 logging.info("Building HMM from bootstrap hits..")
                 logging.debug("Running cmd: %s" % cmd)
                 subprocess.check_call(cmd, shell=True)

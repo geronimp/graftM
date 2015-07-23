@@ -595,7 +595,7 @@ class Hmmer:
         return {key: entry['span'] for key, entry in splits.iteritems()}  # return the dict, without strand information which isn't required.
     
     @T.timeit
-    def aa_db_search(self, files, base, unpack, raw_reads, search_method, 
+    def aa_db_search(self, files, base, unpack, search_method, 
                      maximum_range, threads, evalue, min_orf_length, 
                      restrict_read_length, diamond_database):
         '''
@@ -614,12 +614,9 @@ class Hmmer:
             UnpackRawReads object, returns string command that will output
             sequences to stdout when called on command line 
             (use: unpack.command_line())
-        raw_reads : str
-            The reads to be searched.
         search_method : str
             The method for searching, either 'hmmsearch' or 'diamond'
-        gpkg : GraftMPackage
-            GraftM package object, created by graftm_package.py
+        maximum_range: ?
         threads : int
             Number of threads for hmmer to use
         evalue : str
@@ -628,16 +625,55 @@ class Hmmer:
             minimum orf length for orfm to use
         restrict_read_length : int
             orf length to retrict orfm to.
+        diamond_database: ?
         Returns
         -------
-        hit_orfs : str
-            The output fasta file of reads that hit 
+        String path to amino acid fasta file of reads that hit
         '''
         
         # Define outputs
         hmmsearch_output_table = files.hmmsearch_output_path(base)
         hit_reads_fasta = files.fa_output_path(base)
         hit_reads_orfs_fasta = files.orf_fasta_output_path(base)
+        
+        return self.search_and_extract_orfs_matching_protein_database(\
+                                                    unpack,
+                                                    search_method,
+                                                    maximum_range,
+                                                    threads,
+                                                    evalue,
+                                                    min_orf_length,
+                                                    restrict_read_length,
+                                                    diamond_database,
+                                                    hmmsearch_output_table,
+                                                    hit_reads_fasta,
+                                                    hit_reads_orfs_fasta)
+        
+    def search_and_extract_orfs_matching_protein_database(self,
+                                                      unpack,
+                                                      search_method,
+                                                      maximum_range,
+                                                      threads,
+                                                      evalue,
+                                                      min_orf_length,
+                                                      restrict_read_length,
+                                                      diamond_database,
+                                                      hmmsearch_output_table,
+                                                      hit_reads_fasta,
+                                                      hit_reads_orfs_fasta):
+        '''As per aa_db_search() except slightly lower level. Search an
+        input read set (unpack) and then extract the proteins that hit together 
+        with their containing nucleotide sequences.
+        
+        Parameters
+        ----------
+        hmmsearch_output_table: str
+            path to hmmsearch output table
+        hit_reads_fasta: str
+            path to nucleotide sequences containing hit proteins
+        hit_reads_orfs_fasta: str
+            path to hit proteins, unaligned
+        '''
         
         # Define method of opening sequence files to stdout
         if unpack.is_zcattable():
@@ -653,7 +689,7 @@ class Hmmer:
             # run hmmsearch
             search_result = self.hmmsearch(
                                            hmmsearch_output_table,
-                                           raw_reads,
+                                           unpack.read_file,
                                            unpack,
                                            unpack.sequence_type(),
                                            threads,
@@ -668,7 +704,7 @@ class Hmmer:
                                      threads=threads,
                                      evalue=evalue,
                                      ).run(
-                                           raw_reads,
+                                           unpack.read_file,
                                            unpack.sequence_type()
                                            )
             search_result = [search_result]
@@ -703,7 +739,7 @@ class Hmmer:
             hit_reads_fasta = self._extract_from_raw_reads(
                                                            hit_reads_fasta,
                                                            readnames.name,
-                                                           raw_reads,
+                                                           unpack.read_file,
                                                            unpack.format(),
                                                            hits
                                                            )
@@ -733,7 +769,7 @@ class Hmmer:
         return result
     
     @T.timeit
-    def nt_db_search(self, files, base, unpack, raw_reads, euk_check,
+    def nt_db_search(self, files, base, unpack, euk_check,
                      search_method, maximum_range, threads, evalue):
         '''
         Nucleotide database search pipeline - pipeline where reads are searched
@@ -746,31 +782,59 @@ class Hmmer:
         base : str
             The name of the input file, stripped of all suffixes, and paths. 
             Used for creating file names with 'files' object.
-        input_file_format : var
-            The input format of the file, either FORMAT_FASTA or 
-            FORMAT_FASTQ_GZ.
-        raw_reads : str
-            The reads to be searched.
+        unpack : obj
+            UnpackRawReads object, returns string command that will output
+            sequences to stdout when called on command line 
+            (use: unpack.command_line())
         euk_check : bool
             True indicates the sample will be checked for eukaryotic reads, 
             False indicates not.
         search_method : str
             The method for searching e.g. 'hmmsearch' or 'diamond'
-        gpkg : obj
-            GraftM package object, created by graftm_package.py
+        maximum_range : int
+            ?
         threads : str
             Number of threads for hmmer to use
         evalue : str
             Evalue cutoff for hmmer to use
         Returns
         -------
-        hit_reads : str
-            The output fasta file of reads that hit 
+        String path to amino acid fasta file of reads that hit
         '''
         
         # Define outputs
         hmmsearch_output_table = files.hmmsearch_output_path(base)
         hit_reads_fasta = files.fa_output_path(base)
+        return \
+            self.search_and_extract_nucleotides_matching_nucleotide_database(\
+                                                      unpack,
+                                                      euk_check,
+                                                      search_method,
+                                                      maximum_range,
+                                                      threads,
+                                                      evalue,
+                                                      hmmsearch_output_table,
+                                                      hit_reads_fasta)
+        
+    def search_and_extract_nucleotides_matching_nucleotide_database(self,
+                                                      unpack,
+                                                      euk_check,
+                                                      search_method,
+                                                      maximum_range,
+                                                      threads,
+                                                      evalue,
+                                                      hmmsearch_output_table,
+                                                      hit_reads_fasta):
+        '''As per nt_db_search() except slightly lower level. Search an
+        input read set (unpack) and then extract the sequences that hit.
+        
+        Parameters
+        ----------
+        hmmsearch_output_table: str
+            path to hmmsearch output table
+        hit_reads_fasta: str
+            path to hit nucleotide sequences
+        '''
         
         if search_method == "hmmsearch":
             # First search the reads using the HMM
@@ -813,7 +877,7 @@ class Hmmer:
             hit_reads_fasta = self._extract_from_raw_reads(
                                                            hit_reads_fasta,
                                                            readnames.name,
-                                                           raw_reads,
+                                                           unpack.read_file,
                                                            unpack.format(),
                                                            hits
                                                            )

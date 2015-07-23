@@ -13,8 +13,6 @@ from graftm.pplacer import Pplacer
 from graftm.assembler import TaxoGroup
 from graftm.create import Create
 from graftm.unpack_sequences import UnpackRawReads
-from graftm.deduplicator import Deduplicator
-from graftm.sequence_io import SequenceIO
 from graftm.graftm_package import GraftMPackage
 
 from biom.util import biom_open
@@ -267,7 +265,6 @@ class Run:
                                                               self.gmf,
                                                               base,
                                                               unpack,
-                                                              read_file,
                                                               self.args.search_method,
                                                               maximum_range,
                                                               self.args.threads,
@@ -284,7 +281,6 @@ class Run:
                                                               self.gmf,
                                                               base,
                                                               unpack,
-                                                              read_file,
                                                               self.args.euk_check,
                                                               self.args.search_method,
                                                               maximum_range,

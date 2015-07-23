@@ -1,5 +1,4 @@
 import logging
-import tempfile
 import subprocess
 from signal import signal, SIGPIPE, SIG_DFL
 

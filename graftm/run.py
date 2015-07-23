@@ -16,6 +16,8 @@ from graftm.unpack_sequences import UnpackRawReads
 from graftm.graftm_package import GraftMPackage
 
 from biom.util import biom_open
+import tempfile
+from graftm.bootstrapper import Bootstrapper
 
 PIPELINE_AA = "P"
 PIPELINE_NT = "D"
@@ -261,6 +263,18 @@ class Run:
 
                 if self.args.type == PIPELINE_AA:
                     logging.debug("Running protein pipeline")
+                    if self.args.bootstrap_contigs:
+                        new_hmm = tempfile.NamedTemporaryFile(prefix='graftm_bootstrap',suffix='.hmm')
+                        if Bootstrapper().generate_hmm_from_contigs(self.h.search_hmm,
+                                                                 self.args.bootstrap_contigs,
+                                                                 maximum_range,
+                                                                 self.args.threads,
+                                                                 self.args.evalue,
+                                                                 self.args.min_orf_length,
+                                                                 self.args.restrict_read_length,
+                                                                 new_hmm.path):
+                            self.h.search_hmm.append(new_hmm.path)
+
                     search_time, result = self.h.aa_db_search(
                                                               self.gmf,
                                                               base,
@@ -349,7 +363,7 @@ class Run:
                 clusters_taxonomy={}
                 place    = placements[base]
                 clusters = clusters_list[idx]
-                for read_name, taxonomy in place.iteritems():
+                for read_name in place.keys():
                     for record in clusters[read_name]:
                         clusters_taxonomy[record.name]=place[read_name]            
                 placements[base].update(clusters_taxonomy)

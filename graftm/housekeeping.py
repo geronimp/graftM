@@ -155,7 +155,8 @@ class HouseKeeping:
                         'fxtract': 'https://github.com/ctSkennerton/fxtract',
                         'pplacer': 'http://matsen.fhcrc.org/pplacer/',
                         'seqmagick': 'https://github.com/fhcrc/seqmagick',
-                        'ktImportText': 'http://sourceforge.net/p/krona/home/krona/'}
+                        'ktImportText': 'http://sourceforge.net/p/krona/home/krona/',
+                        'mafft': 'http://mafft.cbrc.jp/alignment/software/'}
         
         for program in prerequisites.keys():
             if self.which(program):

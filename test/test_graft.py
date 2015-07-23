@@ -817,5 +817,33 @@ DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
                         count += 1
                     self.assertEqual(count, len(open(alnFile).readlines()))
                     
+    def test_bootrap_contigs(self):
+        # this read is picked up by bootstrap but not regular graftm
+        testing_read = '''>6407_2
+CGATGTATTGATGCGGCGTGTCTGTATCTACAAGCGCCACCACGGGTATCCCCATCTTGGCCGCCTCGGCGACGGCTTGGGAGTCTAGTCTCGGGTCTAC
+'''
+        
+        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+            fasta.write(testing_read)
+            fasta.flush()
+            original_hmm = os.path.join(path_to_data,'bootstrapper','DNGNGWU00001.hmm')
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --verbosity 1  --forward %s --search_hmms %s --aln_hmm %s --output_directory %s --force --search_and_align_only' % (path_to_script,
+                                                                                                                 fasta.name,
+                                                                                                                 original_hmm,
+                                                                                                                 original_hmm,
+                                                                                                                 tmp)
+                subprocess.check_output(cmd, shell=True)
+                sample_name = os.path.basename(fasta.name[:-3])
+                self.assertEqual('', open(os.path.join(tmp, sample_name, '%s_hits.fa' % sample_name)).read())
+                
+                cmd = "%s --bootstrap_contigs %s" % (cmd, 
+                                                     os.path.join(path_to_data,'bootstrapper','contigs.fa'))
+                self.assertEqual(testing_read, open(os.path.join(tmp, sample_name, '%s_hits.fa' % sample_name)).read())
+
+
+
+        
+                    
 if __name__ == "__main__":
     unittest.main()

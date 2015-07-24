@@ -2,7 +2,6 @@ from graftm.deduplicator import Deduplicator
 from graftm.sequence_io import SequenceIO
 
 import logging
-import os
 
 class DBSearchResult:
     '''

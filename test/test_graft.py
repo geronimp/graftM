@@ -96,6 +96,52 @@ GAGTCCGGACCGTGTCTCAGTTCCGGTGTGGCTGGTCGTCCTCTCAGACCAGCTACGGATTGTCGCCTTGGTGAGCCATT
                     self.assertEqual(expected_aln[count], line.strip())
                     count += 1
                 self.assertEqual(count, len(open(alnFile).readlines()))
+                
+    def test_reverse_complement_protein_db(self):
+        reads='''>example_partial_mcra_revcom
+TTCATTGCGTAGTTAGGATAGTTTGGACCACGGAGTTCGTCTGGGAGACCTTCGTCGCCCTGGTAGGACAGAACAT
+TTGTGGCACCGCACTGGTCCTGCAGGTCGTATCCGAAGAAGCCGAGACGGCCCCATGCTTCCTTGTGCAGGTACAT
+GGAGAGGTACCAGCCAGAGAGACCGGCATTTGCGTTTGCGGTTGCGAGGGCACTACNGACACCGGCTGCGGCTGCG
+AGCACGGTTGCTCTCTGGGANCCACCGAAGTGGTCTTCAAGGGCAGTCGGGAACTTCTCGTAGGTCTCGATACCAT
+AGATTGTGGACTCGGTTGCGATGTCCTTTACGACTTCGAGAGTTGCTTTTACCTTGTTGTCCGTGCCGATGTTTGC
+AGCACCCTTGTACTTGTCGTTGATGTAGTCGATGTTGTAGTACACGTTATTGTCGAGGATATCATCAGTGTATGCA
+GCTGTAGCATACTGTGTGAATCCGACACCACC
+'''
+        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+            fasta.write(reads)
+            fasta.flush()
+
+            data = fasta.name
+            package = os.path.join(path_to_data,'mcrA.gpkg')
+
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --verbosity 2 --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+                                                                                                   data,
+                                                                                                   package,
+                                                                                                   tmp)
+                subprocess.check_output(cmd, shell=True)
+                sample_name = os.path.basename(fasta.name[:-3])
+
+                otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
+                lines = ("\t".join(('#ID',sample_name,'ConsensusLineage')),
+                         "\t".join(('1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                         )
+                count = 0
+                for line in open(otuTableFile):
+                    self.assertEqual(lines[count], line.strip())
+                    count += 1
+                self.assertEqual(count, 2)
+
+                alnFile = os.path.join(tmp, sample_name, '%s_hits.aln.fa' % sample_name)
+                expected_aln = '''>example_partial_mcra_revcom_3_6_9
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GGVGFTQYATAAYTDDILDNNVYYNIDYINDKYKTDNKVKATLEVVKDIATESTIYGIETYEKFPTALEDHFGXSQRATVLAAAAGVXSALATANANAGLSGWYLSMYLHKEAWGRLGFFGYDLQDQCGATNVLSYQGDEGLPDELRGPNYPNYAM----------------------------------------------------------------------
+'''.split()
+                count = 0
+                for line in open(alnFile):
+                    self.assertEqual(expected_aln[count], line.strip())
+                    count += 1
+                self.assertEqual(count, len(open(alnFile).readlines()))        
+        
 
     def test_two_files_one_no_sequences_hit_nucleotide(self):
         reads='''>NS500333:16:H16F3BGXX:1:11101:11211:1402 1:N:0:CGAGGCTG+CTCCTTAC

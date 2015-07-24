@@ -818,9 +818,13 @@ DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
                     self.assertEqual(count, len(open(alnFile).readlines()))
                     
     def test_bootrap_contigs(self):
-        # this read is picked up by bootstrap but not regular graftm
-        testing_read = '''>6407_2
-CGATGTATTGATGCGGCGTGTCTGTATCTACAAGCGCCACCACGGGTATCCCCATCTTGGCCGCCTCGGCGACGGCTTGGGAGTCTAGTCTCGGGTCTAC
+        # this read is picked up by bootstrap but not regular graftm at the evalue
+        testing_read = '''>196339_2
+AAGATGAGCGCCAGGCTCTTCCTCCCCTTGTTGTTGCAGGGGATCATGAAGTCGATGTAT
+TGATGCGGCGTGTCTGTATCTACAAGCGCCACCACGGGTA
+>197849_1
+ATCTACAAGCGCCACCACGGGTATCCCCATCTTGGCCGCCTCGGCGACGGCTTGGGAGTC
+TAGTCTCGGGTCTACTACGAATAGCAAGTCTACCTCAAGG
 '''
         
         with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
@@ -828,7 +832,7 @@ CGATGTATTGATGCGGCGTGTCTGTATCTACAAGCGCCACCACGGGTATCCCCATCTTGGCCGCCTCGGCGACGGCTTGG
             fasta.flush()
             original_hmm = os.path.join(path_to_data,'bootstrapper','DNGNGWU00001.hmm')
             with tempdir.TempDir() as tmp:
-                cmd = '%s graft --verbosity 1  --forward %s --search_hmms %s --aln_hmm %s --output_directory %s --force --search_and_align_only' % (path_to_script,
+                cmd = '%s graft --verbosity 2  --forward %s --search_hmm_files %s --aln_hmm %s --evalue 1e-14 --output_directory %s --force --search_and_align_only' % (path_to_script,
                                                                                                                  fasta.name,
                                                                                                                  original_hmm,
                                                                                                                  original_hmm,
@@ -838,7 +842,8 @@ CGATGTATTGATGCGGCGTGTCTGTATCTACAAGCGCCACCACGGGTATCCCCATCTTGGCCGCCTCGGCGACGGCTTGG
                 self.assertEqual('', open(os.path.join(tmp, sample_name, '%s_hits.fa' % sample_name)).read())
                 
                 cmd = "%s --bootstrap_contigs %s" % (cmd, 
-                                                     os.path.join(path_to_data,'bootstrapper','contigs.fa'))
+                                                     os.path.join(path_to_data,'bootstrapper','contigs.fna'))
+                subprocess.check_output(cmd, shell=True)
                 self.assertEqual(testing_read, open(os.path.join(tmp, sample_name, '%s_hits.fa' % sample_name)).read())
 
 

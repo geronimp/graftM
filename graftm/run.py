@@ -272,8 +272,8 @@ class Run:
                                                                  self.args.evalue,
                                                                  self.args.min_orf_length,
                                                                  self.args.restrict_read_length,
-                                                                 new_hmm.path):
-                            self.h.search_hmm.append(new_hmm.path)
+                                                                 new_hmm.name):
+                            self.h.search_hmm.append(new_hmm.name)
 
                     search_time, result = self.h.aa_db_search(
                                                               self.gmf,

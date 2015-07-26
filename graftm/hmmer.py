@@ -1,6 +1,5 @@
 import subprocess
 import os
-import re
 import itertools
 import logging
 import tempfile
@@ -727,7 +726,7 @@ class Hmmer:
                 hits={}
                 for result in search_result:
                     for h in result.each([SequenceSearchResult.QUERY_ID_FIELD]):
-                        hits[h]=[]
+                        hits[h[0]]=[]
             
             
             hits={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) else key): item for key, item in hits.iteritems()}

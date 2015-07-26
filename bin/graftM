@@ -103,7 +103,7 @@ if __name__ == '__main__':
     input_options = graft_parser.add_argument_group('input options')
     input_options.add_argument('--forward', nargs='+', metavar='forward_read', help='Forward read (or single read file), space separated in .fa, or .fq.gz format.', required=True)
     input_options.add_argument('--reverse', nargs='+',metavar='reverse read', help='[do NOT use unless you understand the difficulties with this] Optional reverse raw sequence file(s) in .fa, or .fq.gz format', default=None)
-    input_options.add_argument('--graftm_package', metavar='reference_package', help='Reference package of gene family', default=argparse.SUPPRESS)
+    input_options.add_argument('--graftm_package', metavar='reference_package', help='Reference package of gene family')
 
     running_options = graft_parser.add_argument_group('running options')
     running_options.add_argument('--threads', type=int, metavar='threads', help='Number of threads to use (default = 5)', default=5)
@@ -214,6 +214,18 @@ sequence1    k__kingdom1; p__phylum2
     assemble_parser.add_argument('--assembly_type', metavar='type of assembly', help='phrap or velvet assembly',choices = ['phrap', 'velvet', 'finishm'], default='velvet')
     assemble_parser.add_argument('--finish', action = 'store_true', help='finish the velvet assembly with an overlap assembly (default=False)', default=False)
     
+    
+    bootstrap_parser = subparsers.add_parser('bootstrap',
+                                            description='Generate a new HMM from the given contigs',
+                                            epilog=__author__)
+    bootstrap_parser.add_argument('--contigs', help='contigs to search', required=True)
+    bootstrap_parser.add_argument('--output_hmm', help='output HMM file', required=True)
+    bootstrap_parser.add_argument('--graftm_package', help='find sequences with this graftm package')
+    bootstrap_parser.add_argument('--search_hmm_files', nargs='+', help='find sequences with this/these HMM(s)')
+    bootstrap_parser.add_argument('--maximum_range', type=int, help='maximum range to use when searching for potentially linked reads when searching contigs (default: from graftm_package or else 1000)', default=1000)
+    bootstrap_parser.add_argument('--evalue', help='evalue cutoff for the hmmsearch (default = 1e-5)', default= '1e-5')
+    bootstrap_parser.add_argument('--min_orf_length', help='Minimum number of nucleotides in an open reading frame (default: %s)' % min_orf_length_default, default=min_orf_length_default, type=int)
+    bootstrap_parser.add_argument('--threads', type=int, metavar='threads', help='Number of threads to use (default = 5)', default=5)
     
     if(len(sys.argv) == 1 or sys.argv[1] == '-h' or sys.argv[1] == '--help'):
         phelp()

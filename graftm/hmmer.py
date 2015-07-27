@@ -453,6 +453,7 @@ class Hmmer:
                         output_file.write(fasta_id)
                         output_file.write(fasta_seq)
 
+
     def _extract_orfs(self, input_path, orfm, hit_readnames, output_path):
         '''
         Provide the read names of orfM orfs that hit, the nucleotide sequences
@@ -470,8 +471,7 @@ class Hmmer:
         hit_readnames : str
             path to a file containin the readnames of hits to the HMM, one per 
             line.
-        '''
-        
+        '''        
         # Write hit readnames to file
         with tempfile.NamedTemporaryFile(prefix='graftm_readnames') as orfm_readnames:
             for readname in hit_readnames: 
@@ -500,10 +500,10 @@ class Hmmer:
             alignment span.
         max_range : int
             Maximum range that a gene can extend within a contig. Any hits 
-            that extend beyond this length cannot be linked. max_range is defined 
-            as 1.5 X the average length of all full length genes used in the 
-            search database. This is defined in the CONTENTS.json file within a 
-            gpkg.
+            that extend beyond this length cannot be linked. max_range is 
+            defined as 1.5 X the average length of all full length genes used 
+            in the search database. This is defined in the CONTENTS.json file 
+            within a gpkg.
         Returns
         -------
             Dictionary where keys are the contig/read name. The value for each
@@ -530,6 +530,7 @@ class Hmmer:
                 c = hit[1]  # set complement to c
                 ft = [min(hit[2:4]), max(hit[2:4])]  # set span as ft (i.e. from - to)
                 qs = [min(hit[4:6]), max(hit[4:6])]  # seq the query span to qs    
+                
                 if ft[0] == ft[1]: continue  # if the span covers none of the query, skip that entry (seen this before)
                 
                 if i not in splits:  # If the hit hasnt been seen yet

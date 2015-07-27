@@ -85,7 +85,7 @@ class Bootstrapper:
             # Check to make sure the file is not zero-length
             orfs.flush()
             if os.stat(orfs.name).st_size == 0:
-                logging.warn("Failed to find any matching ORFs in the bootstrap contigs, continuing without bootstrap")
+                logging.warn("Failed to find any matching ORFs in the bootstrap contigs")
                 return False
             
             # Run mafft to align them

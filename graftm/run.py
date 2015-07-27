@@ -16,7 +16,6 @@ from graftm.unpack_sequences import UnpackRawReads
 from graftm.graftm_package import GraftMPackage
 
 from biom.util import biom_open
-import tempfile
 from graftm.bootstrapper import Bootstrapper
 
 PIPELINE_AA = "P"
@@ -496,5 +495,5 @@ class Run:
                 evalue = args.evalue,
                 min_orf_length = args.min_orf_length,
                 graftm_package = pkg)
-            strapper.generate_hmm_from_contigs(args.contig_files, args.output_hmm)
+            strapper.generate_hmm_from_contigs([args.contigs], args.output_hmm)
 

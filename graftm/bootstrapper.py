@@ -52,7 +52,6 @@ class Bootstrapper:
         True if genes were recovered, else False'''
         
         hmmer = Hmmer(self.search_hmm_files)
-        print self.search_hmm_files
         
         with tempfile.NamedTemporaryFile(prefix='graftm_bootstrap_orfs') as orfs:
             logging.info("Finding bootstrap hits in provided contigs..")

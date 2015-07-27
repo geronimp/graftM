@@ -456,11 +456,11 @@ class Hmmer:
 
     def _extract_orfs(self, input_path, orfm, hit_readnames, output_path):
         '''
-        Provide the read names of orfM orfs that hit, the nucleotide sequences
-        and the orfM command line. First writes the readnames to a tmp file,
-        to be used by fxtract to extract sequences. Then run command, which 
-        calls orfs, and pipes them to fxtarct, which extracts the reads of the 
-        hit orfs we're interested in. 
+        Provide the read names of orfM orfs that hit the hmm, and the nucleotide
+        sequences and the orfM command line. First writes the read names to a
+        tmp file, to be used by fxtract to extract sequences. Then run command, 
+        which calls orfs, and pipes them to fxtract, which extracts the reads of 
+        the hit orfs we're interested in. 
         
         Parameters
         ----------
@@ -574,16 +574,21 @@ class Hmmer:
     
     def _check_for_slash_endings(self, readnames):
         '''
-        Provide a list of readnames to be checked for the /1 or /2 endings which
-        cause troubles downstream when working with paired reads. This function
-        checks the list for ANY read ending in /1 or /2. The reads are first 
-        stripped of any comment lines, using the 'split' function
+        Provide a list of read names to be checked for the /1 or /2 endings 
+        which cause troubles downstream when working with paired reads. This 
+        function checks the list for ANY read ending in /1 or /2. The reads are 
+        first stripped of any comment lines, using the 'split' function
         
         Parameters
         ----------
         readnames : list
-            list of strings, each a reanames to be checked for the /1 or /2 
+            list of strings, each a read name to be checked for the /1 or /2 
             ending
+            
+        Returns
+        -------
+        Boolean. True if /1 or /2 endings are found, False if not.
+        
         '''
         
         # Strip comment lines, if any

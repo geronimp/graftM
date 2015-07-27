@@ -30,9 +30,9 @@ class Hmmer:
         self.aln_hmm = aln_hmm
         
 
-    def hmmalign(self, input_path, directions):
+    def _hmmalign(self, input_path, directions):
         '''
-        hmmalign - Align reads to the aln_hmm. Receives unaligned sequences and 
+        Align reads to the aln_hmm. Receives unaligned sequences and 
         aligns them.
         
         Parameters
@@ -187,7 +187,7 @@ class Hmmer:
             given to graftM. **MUST** be the following pattern: 
             [forward_run1, reverse_run1, forward_run2, reverse_run2 ...]
         outputs : array
-            List of paths to output file to which the merged aligments from the
+            List of paths to output file to which the merged alignments from the
             aln_list will go into. Must be exactly half the size of the aln_list
             (i.e. one output file for every forward and reverse file provided)
         
@@ -337,7 +337,7 @@ class Hmmer:
         
         return euk_reads
 
-    def _extractMultipleHits(self, stats, reads_path, output_path): 
+    def _extract_multiple_hits(self, hits, reads_path, output_path): 
         '''
         splits out regions of a read that hit the HMM. For example when two of 
         same gene are identified within the same contig, The regions mapping to
@@ -345,7 +345,7 @@ class Hmmer:
         
         Parameters
         ----------
-        stats : dict
+        hits : dict
             A dictionary where the keys are the read names, the entry for each 
             is a list of lists, each containing the range within the contig
             (or read) that mapped to the HMM. e.g.:
@@ -367,7 +367,7 @@ class Hmmer:
         '''
         reads = SeqIO.to_dict(SeqIO.parse(reads_path, "fasta"))  # open up reads as dictionary
         with open(output_path, 'w') as out:
-            for read_name, ranges in stats.iteritems():  # For each contig
+            for read_name, ranges in hits.iteritems():  # For each contig
                 index = 1 
                 if len(ranges) > 1:  # if there are multiple hits in that contig
                     for r in ranges:  # for each of those hits
@@ -415,10 +415,10 @@ class Hmmer:
             logging.debug("Running command: %s" % cmd)
             subprocess.check_call(cmd, shell=True)
             
-            self._extractMultipleHits(hits, tmp.name, output_path)  # split them into multiple reads
+            self._extract_multiple_hits(hits, tmp.name, output_path)  # split them into multiple reads
         return output_path
         
-    def alignment_correcter(self, alignment_file_list, output_file_name):
+    def _alignment_correcter(self, alignment_file_list, output_file_name):
         '''
         Remove lower case insertions in alignment outputs from HMM align. Give 
         a list of alignemnts, and an output file name, and each alignment will
@@ -454,52 +454,35 @@ class Hmmer:
                         output_file.write(fasta_id)
                         output_file.write(fasta_seq)
 
-    def extract_orfs(self, input_path, orfm, orf_out_path):
+    def _extract_orfs(self, input_path, orfm, hit_readnames, output_path):
         '''
-        extract_orfs - Return a path to a FASTA file containing ORFs that hit 
-        the HMM (self.search_hmm)
+        Provide the read names of orfM orfs that hit, the nucleotide sequences
+        and the orfM command line. First writes the readnames to a tmp file,
+        to be used by fxtract to extract sequences. Then run command, which 
+        calls orfs, and pipes them to fxtarct, which extracts the reads of the 
+        hit orfs we're interested in. 
         
         Parameters
         ----------
         input_path : str
-            Path to input sequences in fasta nucleotide format
+            Path to input nucleotide sequences in FASTA format.
         orfm: obj
             graftm.OrfM object with parameters already set
-        orf_out_path
-            Path to output fasta file, containing amino acid ORFs
+        hit_readnames : str
+            path to a file containin the readnames of hits to the HMM, one per 
+            line.
         '''
-        raw_orf_path = tempfile.NamedTemporaryFile(prefix='orf_hmmsearch').name
-        orf_titles_path = tempfile.NamedTemporaryFile(prefix='orf_titles').name
         
-        # Build the output_files
-        if len(self.search_hmm) >= 1:
-            output_table_list = [tempfile.NamedTemporaryFile(prefix='orf_hmmsearch').name for x in self.search_hmm]
-        else:
-            raise Exception("Programming error: expected 1 or more HMMs")
-
-        # Build ORF calling command orfs on the sequences
-        orfm_cmd = orfm.command_line()
-        cmd = '%s %s > %s' % (orfm_cmd, input_path, raw_orf_path)
-        
-        logging.debug("Running command: %s" % cmd)
-        subprocess.check_call(cmd, shell=True)
-        
-        cmd = 'cat %s' % raw_orf_path
-        searcher = HmmSearcher(1)
-        searcher.hmmsearch(cmd, self.search_hmm, output_table_list)
-        with open(orf_titles_path, 'w') as output:
-            reads = set(
-                       itertools.chain(
-                                       *[HMMreader(x).names() for x \
-                                         in output_table_list]
-                                       )
-                       )
-            [output.write(x + '\n') for x in reads]
-            
-        # Extract the reads using the titles.
-        cmd = 'fxtract -H -X -f %s %s > %s' % (orf_titles_path, raw_orf_path, orf_out_path)
-        logging.debug("Running command: %s" % cmd)
-        subprocess.check_call(cmd, shell=True)
+        # Write hit readnames to file
+        with tempfile.NamedTemporaryFile(prefix='graftm_readnames') as orfm_readnames:
+            for readname in hit_readnames: 
+                orfm_readnames.write(readname + '\n')
+            orfm_readnames.flush()
+               
+            # Build and run command to extract ORF sequences:
+            orfm_cmd = orfm.command_line()
+            cmd = 'fxtract -H -X -f %s <(%s %s) > %s' % (orfm_readnames.name, orfm_cmd, input_path, output_path)
+            subprocess.check_call(['bash','-c', cmd])
     
     def _get_read_names(self, search_result, max_range):
         '''
@@ -531,7 +514,7 @@ class Hmmer:
         
         splits = {}  # Define an output dictionary to be filled
         
-        for _, result in enumerate(search_result):  # Create a table (list of rows contain span, and complement information
+        for result in search_result:  # Create a table (list of rows contain span, and complement information
             spans = list(
                          result.each(
                                     [SequenceSearchResult.QUERY_ID_FIELD,
@@ -589,6 +572,31 @@ class Hmmer:
         
         return {key: entry['span'] for key, entry in splits.iteritems()}  # return the dict, without strand information which isn't required.
     
+    def _check_for_slash_endings(self, readnames):
+        '''
+        Provide a list of readnames to be checked for the /1 or /2 endings which
+        cause troubles downstream when working with paired reads. This function
+        checks the list for ANY read ending in /1 or /2. The reads are first 
+        stripped of any comment lines, using the 'split' function
+        
+        Parameters
+        ----------
+        readnames : list
+            list of strings, each a reanames to be checked for the /1 or /2 
+            ending
+        '''
+        
+        # Strip comment lines, if any
+        readnames = [x.split()[0] for x in readnames]
+        
+        # Check for /1 and /2 endings:
+        if any(x for x in readnames if x.endswith('/1') or x.endswith('/2')):
+            result = True
+        else:
+            result = False
+            
+        return result
+        
     @T.timeit
     def aa_db_search(self, files, base, unpack, search_method, 
                      maximum_range, threads, evalue, min_orf_length, 
@@ -730,10 +738,12 @@ class Hmmer:
                         hits[h]=[]
             
             
-            hits={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) else key): item for key, item in hits.iteritems()}
-            
-            hit_readnames = hits.keys()
-            
+            orf_hit_readnames = hits.keys() # Orf read hit names
+            if unpack.sequence_type() == 'nucleotide':
+                hits={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) else key): item for key, item in hits.iteritems()}
+                hit_readnames = hits.keys() # Store raw read hit names 
+            else:
+                hit_readnames=orf_hit_readnames
             for read in hit_readnames:
                 readnames.write(read + '\n')
             readnames.flush()
@@ -753,21 +763,22 @@ class Hmmer:
                                     hit_read_counts,
                                     None)
             return result
-    
+        
         if unpack.sequence_type() == 'nucleotide':
             # Extract the orfs of these reads that hit the original search
-            self.extract_orfs(
+            self._extract_orfs(
                               hit_reads_fasta,
                               extracting_orfm,
+                              orf_hit_readnames,
                               hit_reads_orfs_fasta
                               )
-            
             hit_reads_fasta = hit_reads_orfs_fasta
         
+        slash_endings=self._check_for_slash_endings(hit_readnames)
         result = DBSearchResult(hit_reads_fasta,
-                              search_result,
-                              [0, len([itertools.chain(*hits.values())])],  # array of hits [euk hits, true hits]. Euk hits alway 0 unless searching from 16S
-                              any((x for x in hit_readnames if x.endswith('/1') or x.endswith('/2'))))  # Any reads that end in /1 or /2     
+                                search_result,
+                                [0, len([itertools.chain(*hits.values())])],  # array of hits [euk hits, true hits]. Euk hits alway 0 unless searching from 16S
+                                slash_endings)  # Any reads that end in /1 or /2     
         return result
     
     @T.timeit
@@ -894,10 +905,11 @@ class Hmmer:
                                   hit_read_count,
                                   None)
         else:
+            slash_endings=self._check_for_slash_endings(hit_readnames)
             result = DBSearchResult(hit_reads_fasta,
-                                  search_result,
-                                  hit_read_count,
-                                  any([x for x in hit_readnames if x.endswith('/1') or x.endswith('/2')]))
+                                    search_result,
+                                    hit_read_count,
+                                    slash_endings)
         
         return result
         
@@ -920,9 +932,9 @@ class Hmmer:
         '''
         
         # HMMalign the forward reads, and reverse complement reads.
-        alignments = self.hmmalign(input_path,
-                                 directions)
-        self.alignment_correcter(alignments,
+        alignments = self._hmmalign(input_path,
+                                    directions)
+        self._alignment_correcter(alignments,
                                  output_path)
 
 

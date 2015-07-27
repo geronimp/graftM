@@ -184,7 +184,7 @@ class Run:
                     if self.args.search_diamond_file:
                         diamond_db=self.args.search_diamond_file
                     else:
-                        logging.error("%s search method selected, but no diamond database specify. \
+                        logging.error("%s search method selected, but no diamond database specified. \
                         Please either provide a gpkg to the --graftm_package flag, or a diamond \
                         database to the --search_diamond_file flag." % self.args.search_method)
         else:
@@ -222,6 +222,7 @@ class Run:
         setattr(self.args, 'type', hmm_type)
         if hmm_tc:
             setattr(self.args, 'evalue', '--cut_tc')
+        
         # For each pair (or single file passed to GraftM)
         logging.debug('Working with %i file(s)' % len(self.sequence_pair_list))
         for pair in self.sequence_pair_list:
@@ -333,6 +334,7 @@ class Run:
             self.h.merge_forev_aln(seqs_list[0::2], seqs_list[1::2], merged_output)
             seqs_list=merged_output
             REVERSE_PIPE = False
+        
         elif REVERSE_PIPE:
             base_list=base_list[0::2]
 

@@ -91,7 +91,7 @@ class Create:
         logging.debug("Got STDOUT from seqmagick: %s" % out)
         
         alignment_path = "%s.aln.fa" % base
-        self.h.alignment_correcter([tempaln.name], alignment_path)
+        self.h._alignment_correcter([tempaln.name], alignment_path)
 
         return hmm, alignment_path
     

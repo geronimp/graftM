@@ -264,7 +264,7 @@ class Run:
                 if self.args.type == PIPELINE_AA:
                     logging.debug("Running protein pipeline")
                     if self.args.bootstrap_contigs:
-                        new_hmm = tempfile.NamedTemporaryFile(prefix='graftm_bootstrap',suffix='.hmm')
+                        new_hmm = self.gmf.bootstrap_hmm_path()
                         if self.args.graftm_package:
                             pkg = GraftMPackage.acquire(self.args.graftm_package)
                         else:
@@ -278,8 +278,8 @@ class Run:
                             graftm_package = pkg)
                         if boots.generate_hmm_from_contigs(
                                                  self.args.bootstrap_contigs,
-                                                 new_hmm.name):
-                            self.h.search_hmm.append(new_hmm.name)
+                                                 new_hmm):
+                            self.h.search_hmm.append(new_hmm)
 
                     search_time, result = self.h.aa_db_search(
                                                               self.gmf,

@@ -892,6 +892,11 @@ TAGTCTCGGGTCTACTACGAATAGCAAGTCTACCTCAAGG
                 subprocess.check_output(cmd, shell=True)
                 self.assertEqual(testing_read, open(os.path.join(tmp, sample_name, '%s_hits.fa' % sample_name)).read())
 
+                bootstrap_hmm_path = os.path.join(tmp, 'bootstrap.hmm')
+                self.assertTrue(os.path.isfile(bootstrap_hmm_path))
+                self.assertEqual('HMMER3/f [3.1b2 | February 2015]\n',
+                                 open(bootstrap_hmm_path).readlines()[0])
+
 
 
         

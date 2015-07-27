@@ -194,6 +194,7 @@ class Hmmer:
         -------
         Nothing - output files are known.
         '''
+        
         orfm_regex = OrfM.regular_expression()
         def remove_orfm_end(records):
             
@@ -548,11 +549,17 @@ class Hmmer:
                             
                             previous_ft_span = set(range(entry[0], entry[1]))
                             current_ft_span  = set(range(ft[0], ft[1]))
-                            
-                            if any(query_overlap): # If there is
-                                if float(len(previous_ft_span.intersection(current_ft_span)))/float(len(previous_ft_span)) > 0.5: # if the intersection between the span of each hit is greater than 0.75, consider it the same hit, and continue.
+
+                            if any(query_overlap): # If there is an overlap
+                                # if the intersection between the span the current hit is 
+                                # greater than half (0.5) that of a previous span,
+                                # consider it the same hit, and continue.
+                                intersection_fraction = float(len(previous_ft_span.intersection(current_ft_span)))
+                                if intersection_fraction / float(len(previous_ft_span)) >= 0.5: 
                                     break
-                                else: # else (i.e. if the hit covers less that 50% of the sequence of the previouys hit
+                                elif intersection_fraction / float(len(current_ft_span)) >= 0.5:                                                                                            
+                                    break
+                                else: # else (i.e. if the hit covers less that 50% of the sequence of the previous hit
                                     if len(query_overlap) > (len(current_q_range)*0.75): # if the overlap on the query HMM does not span over 75% 
                                         splits[i]['span'].append(ft) # Add from-to as another entry, this is another hit. 
                                         splits[i]['strand'].append(c) # Add strand info as well

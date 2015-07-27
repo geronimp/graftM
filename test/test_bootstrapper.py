@@ -35,13 +35,15 @@ path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
 
 class Tests(unittest.TestCase):
     def test_hello_world(self):
-        boots = Bootstrapper()
+        boots = Bootstrapper(search_hmm_files = [os.path.join(path_to_data,'bootstrapper','DNGNGWU00001.hmm')],
+                             evalue='1e-5',
+                             maximum_range=1000,
+                             threads=1)
         with tempfile.NamedTemporaryFile() as tf:
             self.assertEqual(True,
                              boots.generate_hmm_from_contigs(\
-                                [os.path.join(path_to_data,'bootstrapper','DNGNGWU00001.hmm')],
                                 [os.path.join(path_to_data,'bootstrapper','contigs.fna')],
-                                1000, 1, '1e-5', 96, None, tf.name))
+                                tf.name))
             
             self.assertEqual("HMMER3/f [3.1b2 | February 2015]\n",
                              subprocess.check_output("head -n1 %s" % tf.name,
@@ -54,7 +56,10 @@ class Tests(unittest.TestCase):
                              "".join(open(tf.name).readlines()[16:]))
             
     def test_no_hits(self):
-        boots = Bootstrapper()
+        boots = Bootstrapper(search_hmm_files = [os.path.join(path_to_data,'bootstrapper','DNGNGWU00001.hmm')],
+                             evalue='1e-5',
+                             maximum_range=1000,
+                             threads=1)
         with tempfile.NamedTemporaryFile(suffix=".fasta") as contigs:
             contigs.write(">contig\n")
             contigs.write('A'*300+"\n")
@@ -62,9 +67,8 @@ class Tests(unittest.TestCase):
             with tempfile.NamedTemporaryFile() as tf:
                 self.assertEqual(False,
                              boots.generate_hmm_from_contigs(\
-                                [os.path.join(path_to_data,'bootstrapper','DNGNGWU00001.hmm')],
                                 [contigs.name],
-                                1000, 1, '1e-5', 96, None, tf.name))
+                                tf.name))
         
 
 

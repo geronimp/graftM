@@ -1,6 +1,5 @@
 import subprocess
 import os
-import re
 import itertools
 import logging
 import tempfile
@@ -735,7 +734,7 @@ class Hmmer:
                 hits={}
                 for result in search_result:
                     for h in result.each([SequenceSearchResult.QUERY_ID_FIELD]):
-                        hits[h]=[]
+                        hits[h[0]]=[]
             
             
             orf_hit_readnames = hits.keys() # Orf read hit names

@@ -163,7 +163,7 @@ class Run:
         # Searches for reads using hmmer, and places them in phylogenetic
         # trees to derive a community structure.
 
-        if hasattr(self.args, "graftm_package"):
+        if self.args.graftm_package:
             gpkg = GraftMPackage.acquire(self.args.graftm_package)
         else:
             gpkg = None
@@ -266,14 +266,20 @@ class Run:
                     logging.debug("Running protein pipeline")
                     if self.args.bootstrap_contigs:
                         new_hmm = tempfile.NamedTemporaryFile(prefix='graftm_bootstrap',suffix='.hmm')
-                        if Bootstrapper().generate_hmm_from_contigs(self.h.search_hmm,
-                                                                 self.args.bootstrap_contigs,
-                                                                 maximum_range,
-                                                                 self.args.threads,
-                                                                 self.args.evalue,
-                                                                 self.args.min_orf_length,
-                                                                 self.args.restrict_read_length,
-                                                                 new_hmm.name):
+                        if self.args.graftm_package:
+                            pkg = GraftMPackage.acquire(self.args.graftm_package)
+                        else:
+                            pkg = None
+                        boots = Bootstrapper(
+                            search_hmm_files = self.args.search_hmm_files,
+                            maximum_range = self.args.maximum_range,
+                            threads = self.args.threads,
+                            evalue = self.args.evalue,
+                            min_orf_length = self.args.min_orf_length,
+                            graftm_package = pkg)
+                        if boots.generate_hmm_from_contigs(
+                                                 self.args.bootstrap_contigs,
+                                                 new_hmm.name):
                             self.h.search_hmm.append(new_hmm.name)
 
                     search_time, result = self.h.aa_db_search(
@@ -475,5 +481,22 @@ class Run:
                           taxtastic_taxonomy = self.args.taxtastic_taxonomy,
                           taxtastic_seqinfo = self.args.taxtastic_seqinfo
                           )
-
+        elif self.args.subparser_name == 'bootstrap':
+            args = self.args
+            if not args.graftm_package and not args.search_hmm_files:
+                logging.error("bootstrap mode requires either --graftm_package or --search_hmm_files")
+                exit(1)
+                
+            if args.graftm_package:
+                pkg = GraftMPackage.acquire(args.graftm_package)
+            else:
+                pkg = None
+                
+            strapper = Bootstrapper(search_hmm_files = args.search_hmm_files,
+                maximum_range = args.maximum_range,
+                threads = args.threads,
+                evalue = args.evalue,
+                min_orf_length = args.min_orf_length,
+                graftm_package = pkg)
+            strapper.generate_hmm_from_contigs(args.contig_files, args.output_hmm)
 

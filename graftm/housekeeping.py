@@ -176,7 +176,7 @@ class HouseKeeping:
         
         # Read graftM package and assign HMM and refpkg file
         
-        if hasattr(args, 'graftm_package'):
+        if args.graftm_package:
             if not os.path.isdir(args.graftm_package):
                 raise Exception("%s does not exist. Are you sure you provided the correct path?" % args.graftm_package)
             if self.contents(args.graftm_package) is None:

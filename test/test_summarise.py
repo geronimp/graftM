@@ -24,7 +24,6 @@
 import unittest
 import tempfile
 import os
-import re
 import sys
 import io
 from biom.util import biom_open
@@ -101,13 +100,12 @@ class Tests(unittest.TestCase):
                                                  ],
                           f)
 
-            out = '/tmp/I_hate_file_output_only_commands'
-            if os.path.exists(out):
-                os.remove(out)
-            subprocess.check_call("biom convert -i %s -o %s --table-type 'OTU table' --to-tsv --header-key taxonomy" %
-                                               (biom.name, out), shell=True)
-            observed = open(out).read()
-            self.assertEqual('''# Constructed from biom file
+            with tempfile.NamedTemporaryFile(suffix='csv') as biom_out:
+                os.remove(biom_out.name) #delete because otherwise biom complains
+                subprocess.check_call("biom convert -i %s -o %s --table-type 'OTU table' --to-tsv --header-key taxonomy" %
+                                                   (biom.name, biom_out.name), shell=True)
+                observed = open(biom_out.name).read()
+                self.assertEqual('''# Constructed from biom file
 #OTU ID\tsample1\tsample2\ttaxonomy
 1\t1.0\t0.0\tab; d
 2\t1.0\t1.0\tab; c

@@ -453,10 +453,10 @@ class Hmmer:
                         output_file.write(fasta_id)
                         output_file.write(fasta_seq)
 
-    def extract_orfs(self, input_path, orfm, orf_out_path):
+    def _extract_orfs(self, input_path, orfm, orf_out_path):
         '''
-        extract_orfs - Return a path to a FASTA file containing ORFs that hit 
-        the HMM (self.search_hmm)
+        Return a path to a FASTA file containing ORFs that hit the HMM 
+        (self.search_hmm)
         
         Parameters
         ----------
@@ -467,6 +467,7 @@ class Hmmer:
         orf_out_path
             Path to output fasta file, containing amino acid ORFs
         '''
+        import IPython ; IPython.embed()
         raw_orf_path = tempfile.NamedTemporaryFile(prefix='orf_hmmsearch').name
         orf_titles_path = tempfile.NamedTemporaryFile(prefix='orf_titles').name
         
@@ -517,10 +518,10 @@ class Hmmer:
             alignment span.
         max_range : int
             Maximum range that a gene can extend within a contig. Any hits 
-            that extend beyond this length cannot be linked. max_range is defined 
-            as 1.5 X the average length of all full length genes used in the 
-            search database. This is defined in the CONTENTS.json file within a 
-            gpkg.
+            that extend beyond this length cannot be linked. max_range is 
+            defined as 1.5 X the average length of all full length genes used 
+            in the search database. This is defined in the CONTENTS.json file 
+            within a gpkg.
         Returns
         -------
             Dictionary where keys are the contig/read name. The value for each
@@ -530,7 +531,7 @@ class Hmmer:
         
         splits = {}  # Define an output dictionary to be filled
         
-        for _, result in enumerate(search_result):  # Create a table (list of rows contain span, and complement information
+        for result in search_result:  # Create a table (list of rows contain span, and complement information
             spans = list(
                          result.each(
                                     [SequenceSearchResult.QUERY_ID_FIELD,
@@ -547,6 +548,7 @@ class Hmmer:
                 c = hit[1]  # set complement to c
                 ft = [min(hit[2:4]), max(hit[2:4])]  # set span as ft (i.e. from - to)
                 qs = [min(hit[4:6]), max(hit[4:6])]  # seq the query span to qs    
+                
                 if ft[0] == ft[1]: continue  # if the span covers none of the query, skip that entry (seen this before)
                 
                 if i not in splits:  # If the hit hasnt been seen yet
@@ -755,7 +757,7 @@ class Hmmer:
     
         if unpack.sequence_type() == 'nucleotide':
             # Extract the orfs of these reads that hit the original search
-            self.extract_orfs(
+            self._extract_orfs(
                               hit_reads_fasta,
                               extracting_orfm,
                               hit_reads_orfs_fasta

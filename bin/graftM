@@ -214,7 +214,9 @@ sequence1    k__kingdom1; p__phylum2
     assemble_parser.add_argument('--assembly_type', metavar='type of assembly', help='phrap or velvet assembly',choices = ['phrap', 'velvet', 'finishm'], default='velvet')
     assemble_parser.add_argument('--finish', action = 'store_true', help='finish the velvet assembly with an overlap assembly (default=False)', default=False)
     
-    
+    #########################################################################
+    # Bootstrap                                                             #
+    #########################################################################    
     bootstrap_parser = subparsers.add_parser('bootstrap',
                                             description='Generate a new HMM from the given contigs',
                                             epilog=__author__)
@@ -226,6 +228,12 @@ sequence1    k__kingdom1; p__phylum2
     bootstrap_parser.add_argument('--evalue', help='evalue cutoff for the hmmsearch (default = 1e-5)', default= '1e-5')
     bootstrap_parser.add_argument('--min_orf_length', help='Minimum number of nucleotides in an open reading frame (default: %s)' % min_orf_length_default, default=min_orf_length_default, type=int)
     bootstrap_parser.add_argument('--threads', type=int, metavar='threads', help='Number of threads to use (default = 5)', default=5)
+    
+    logging_options = bootstrap_parser.add_argument_group('logging options')
+    logging_options.add_argument('--verbosity', metavar='verbosity', help='1 - 5, 1 being silent, 5 being noisy indeed. Default = 4', type=int, default=4)
+    logging_options.add_argument('--log', metavar='logfile', help='Output logging information to file', type=str, default=False)    
+    
+    
     
     if(len(sys.argv) == 1 or sys.argv[1] == '-h' or sys.argv[1] == '--help'):
         phelp()

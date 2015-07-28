@@ -88,7 +88,7 @@ class Hmmer:
             logging.debug("Running command: %s" % cmd)
             subprocess.check_call(cmd, shell=True)
             with open(rev_file, 'w') as rev_aln:
-                logging.debug("Writing reverse compliment reads to %s" % rev_file)
+                logging.debug("Writing reverse complement reads to %s" % rev_file)
                 for record in reverse:
                     if record.id and record.seq:
                         rev_aln.write('>' + record.id + '\n')
@@ -194,7 +194,7 @@ class Hmmer:
         -------
         Nothing - output files are known.
         '''
-        
+
         orfm_regex = OrfM.regular_expression()
         def remove_orfm_end(records):
             
@@ -214,7 +214,7 @@ class Hmmer:
             logging.info('Merging pair %s, %s' % (os.path.basename(forward_path), os.path.basename(reverse_path)))
             forward_reads = SeqIO.parse(forward_path, 'fasta')
             reverse_reads = remove_orfm_end(SeqIO.to_dict(SeqIO.parse(reverse_path, 'fasta')))
-            
+
             with open(output_path, 'w') as out:
                 for forward_record in forward_reads:
                     regex_match = orfm_regex.match(forward_record.id)
@@ -244,8 +244,14 @@ class Hmmer:
                             raise Exception('Merging alignments failed: Alignments do not match')
                         out.write('>%s\n' % forward_record.id)
                         out.write('%s\n' % (new_seq))
+                        del reverse_reads[id]
                     except:
                         continue
+                #        out.write('>%s\n' % forward_record.id)
+                #        out.write('%s\n' % (forward_sequence))
+                #for record_id, record in reverse_reads.iteritems():
+                #    out.write('>%s\n' % record_id)
+                #    out.write('%s\n' % (str(record.seq)))
                     
     def nhmmer(self, output_path, unpack, threads, evalue):
         '''
@@ -472,7 +478,8 @@ class Hmmer:
         hit_readnames : str
             path to a file containin the readnames of hits to the HMM, one per 
             line.
-        '''        
+        ''' 
+        
         # Write hit readnames to file
         with tempfile.NamedTemporaryFile(prefix='graftm_readnames') as orfm_readnames:
             for readname in hit_readnames: 

@@ -2,7 +2,7 @@ import logging
 import tempfile
 import shutil
 import os
-import subprocess
+import runm
 
 from graftm.hmmer import Hmmer
 from graftm.unpack_sequences import UnpackRawReads
@@ -93,13 +93,13 @@ class Bootstrapper:
                 cmd = "mafft --auto %s >%s 2>/dev/null" % (orfs.name, aln.name)
                 logging.info("Aligning bootstrap hits..")
                 logging.debug("Running alignment cmd: %s" % cmd)
-                subprocess.check_call(cmd, shell=True)
+                runm.run(cmd)
             
                 # Run hmmbuild to create an HMM
                 cmd = "hmmbuild --amino %s %s >/dev/null 2>/dev/null" % (output_hmm_file, aln.name)
                 logging.info("Building HMM from bootstrap hits..")
                 logging.debug("Running cmd: %s" % cmd)
-                subprocess.check_call(cmd, shell=True)
+                runm.run(cmd)
                 
                 return True
             

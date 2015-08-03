@@ -1,4 +1,4 @@
-import subprocess
+import extern
 import os
 import itertools
 import logging
@@ -85,8 +85,7 @@ class Hmmer:
                                                                                             for_conv_file)
             else:
                 cmd = 'touch %s' % (for_conv_file)
-            logging.debug("Running command: %s" % cmd)
-            subprocess.check_call(cmd, shell=True)
+            extern.run(cmd)
             with open(rev_file, 'w') as rev_aln:
                 logging.debug("Writing reverse compliment reads to %s" % rev_file)
                 for record in reverse:
@@ -96,8 +95,7 @@ class Hmmer:
             cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (self.aln_hmm,
                                                                                         rev_file,
                                                                                         rev_conv_file)
-            logging.debug("Running command: %s" % cmd)
-            subprocess.check_call(cmd, shell=True)
+            extern.run(cmd)
             conv_files = [for_conv_file, rev_conv_file]
             return conv_files
         # If there are only forward reads, just hmmalign and be done with it.
@@ -106,15 +104,14 @@ class Hmmer:
                                                                                                  input_path,
                                                                                                  for_conv_file)
            
-            logging.debug("Running command: %s" % cmd)
-            subprocess.check_call(cmd, shell=True)
+            extern.run(cmd)
             conv_files = [for_conv_file]
             
             return conv_files
     
     def makeSequenceBinary(self, sequences, fm):
         cmd = 'makehmmerdb %s %s' % (sequences, fm)
-        subprocess.check_call(cmd, shell=True)
+        extern.run(cmd)
 
     def hmmsearch(self, output_path, input_path, unpack, seq_type, threads, evalue, orfm):
         '''
@@ -411,8 +408,7 @@ class Hmmer:
                 cmd = "%s %s | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > %s" % (fxtract_cmd, raw_sequences_path, tmp.name)
             else:
                 raise Exception("Programming error")
-            logging.debug("Running command: %s" % cmd)
-            subprocess.check_call(cmd, shell=True)
+            extern.run(cmd)
             
             self._extractMultipleHits(hits, tmp.name, output_path)  # split them into multiple reads
         return output_path
@@ -480,8 +476,7 @@ class Hmmer:
         orfm_cmd = orfm.command_line()
         cmd = '%s %s > %s' % (orfm_cmd, input_path, raw_orf_path)
         
-        logging.debug("Running command: %s" % cmd)
-        subprocess.check_call(cmd, shell=True)
+        extern.run(cmd)
         
         cmd = 'cat %s' % raw_orf_path
         searcher = HmmSearcher(1)
@@ -497,8 +492,7 @@ class Hmmer:
             
         # Extract the reads using the titles.
         cmd = 'fxtract -H -X -f %s %s > %s' % (orf_titles_path, raw_orf_path, orf_out_path)
-        logging.debug("Running command: %s" % cmd)
-        subprocess.check_call(cmd, shell=True)
+        extern.run(cmd)
     
     def _get_read_names(self, search_result, max_range):
         '''

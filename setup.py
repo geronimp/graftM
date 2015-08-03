@@ -20,7 +20,8 @@ setup(name='graftm',
                         'seqmagick ==0.5.0',
                         'scikit-bio ==0.2.2',
                         'subprocess32 ==3.2.6',
-                        'biom-format ==2.1.4'),
-      url='http://geronimp.github.com/graftM',
+                        'biom-format ==2.1.4',
+                        'extern ==0.0.4'),
+      url='http://geronimp.github.io/graftM',
       scripts=['bin/graftM']
 )

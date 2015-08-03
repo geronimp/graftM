@@ -1,17 +1,11 @@
 import os
-import json
 import logging
 
 from Bio import SeqIO
 
-from graftm.assembler import TaxoGroup
 from graftm.classify import Classify
 
 class Extract:
-
-    def __init__(self):
-        self.tg = TaxoGroup()
-
     def extract(self, args):
             if not os.path.isdir(args.profile):
                 logging.error("Profile doesn't exist")

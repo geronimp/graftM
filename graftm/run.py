@@ -10,7 +10,6 @@ from graftm.hmmer import Hmmer
 from graftm.housekeeping import HouseKeeping
 from graftm.summarise import Stats_And_Summary
 from graftm.pplacer import Pplacer
-from graftm.assembler import TaxoGroup
 from graftm.create import Create
 from graftm.unpack_sequences import UnpackRawReads
 from graftm.graftm_package import GraftMPackage
@@ -31,7 +30,6 @@ class Run:
     def setattributes(self, args):
         self.hk = HouseKeeping()
         self.s = Stats_And_Summary()
-        self.tg = TaxoGroup()
         self.e = Extract()
         if args.subparser_name == 'graft':
             self.hk.set_attributes(self.args)
@@ -396,21 +394,6 @@ class Run:
            -                                  |______
             '''
             self.graft()
-
-        elif self.args.subparser_name == 'assemble':
-            if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART: print '''
-                           ASSEMBLE
-
-                   Joel Boyd, Ben Woodcroft
-
-          _- - _               ___            __/
-           -                  /___\____      /\/
-           - _     >>>>   ___/       \_\     \/
-          - _-           /_/            \    /
-             - _        /                \__/
-                       /
-'''
-            self.tg.main(self.args)
 
         elif self.args.subparser_name == 'extract':
             if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART: print '''

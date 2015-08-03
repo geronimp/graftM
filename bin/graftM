@@ -202,17 +202,6 @@ sequence1    k__kingdom1; p__phylum2
     filter_parser.add_argument('--filter_hmms', metavar='<FILTER_HMMS>', help='Directory with HMMs to use when filtering.', required=True)
     filter_parser.add_argument('--output', metavar='<OUTPUT>', help='Directory within which to place filtered reads, and sorted hits')
 
-
-    #########################################################################
-    # Assemble - Attempt to assemble as many full length genes as possible. #
-    #########################################################################
-    assemble_parser = subparsers.add_parser('assemble',
-                                            description='Attempt to assemble as many genes as possible.',
-                                            epilog=__author__)
-    assemble_parser.add_argument('--graft_run', metavar='File produced ', help='guppy file produced by graftM, comma separated (default=True)', default=True)
-    assemble_parser.add_argument('--kmer', metavar='k-mer',  help='k-mer to use for assembly with velvet (default = 51)', default = '51')
-    assemble_parser.add_argument('--assembly_type', metavar='type of assembly', help='phrap or velvet assembly',choices = ['phrap', 'velvet', 'finishm'], default='velvet')
-    assemble_parser.add_argument('--finish', action = 'store_true', help='finish the velvet assembly with an overlap assembly (default=False)', default=False)
     
     #########################################################################
     # Bootstrap                                                             #

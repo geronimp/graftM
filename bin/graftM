@@ -74,6 +74,9 @@ UTILITIES
 
     create      -       Create a graftM packages from sequence alignments and classifications. 
                         See graftM create -h
+                        
+    bootstrap   -       Create new HMMs from a base HMM and an assembly or genome. 
+                        See graftM create -h
 
 =====================================================================================================
 """ % (graftm.__version__)

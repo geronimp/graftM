@@ -1,8 +1,9 @@
 import numpy as np
 from biom.table import Table
 import tempfile
-import subprocess
+import extern
 import logging
+import shlex
 
 class Stats_And_Summary:
 
@@ -182,7 +183,8 @@ Tree insertion step:  %s
             cmd.append(','.join([tmp.name,sample_names[i]]))
 
         # run the actual krona
-        subprocess.check_output(' '.join(cmd), shell=True)
+        cmd = ' '.join(cmd)
+        extern.run(cmd)
 
         # close tempfiles
         for t in tempfiles:

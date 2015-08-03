@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
-import subprocess
 import os
 import json
 import shutil
 import tempfile
 import logging
 import subprocess32
-import itertools
+import extern
 
 from Bio import SeqIO
 from graftm.hmmer import Hmmer
@@ -80,14 +79,12 @@ class Create:
         cmd = "hmmbuild -O %s '%s' '%s'" % (sto.name,
                                               hmm,
                                               alignment)
-        logging.debug("Calling command: %s" % cmd)
-        out = subprocess.check_output(cmd, shell=True) # Call the command
+        out = extern.run(cmd)
         logging.debug("Got STDOUT from hmmbuild: %s" % out)
 
         cmd = "seqmagick convert --input-format stockholm %s %s" % (sto.name,
                                                               tempaln.name)
-        logging.debug("Calling command: %s" % cmd)
-        out = subprocess.check_output(['bash','-c',cmd]) # Call the command
+        out = extern.run(cmd)
         logging.debug("Got STDOUT from seqmagick: %s" % out)
         
         alignment_path = "%s.aln.fa" % base
@@ -122,12 +119,10 @@ class Create:
         tre_file = base + ".tre"
         if ptype == 'na': # If it's a nucleotide sequence
             cmd = "FastTreeMP -quiet -gtr -nt -log %s -out %s %s" % (log_file, tre_file, alignment)
-            logging.debug("Calling command: %s" % (cmd))
-            subprocess.check_call(cmd, shell=True) # Call the command
+            extern.run(cmd)
         else: # Or if its an amino acid sequence
             cmd = "FastTreeMP -quiet -log %s -out %s %s" % (log_file, tre_file, alignment)
-            logging.debug("Calling command: %s" % (cmd))
-            subprocess.check_call(cmd, shell=True) # Call the command
+            extern.run(cmd)
             
         self.the_trash += [log_file, tre_file]
         return log_file, tre_file
@@ -249,8 +244,7 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
             cmd = "FastTree -quiet -nome -mllen -intree '%s' -log %s -out %s %s" %\
                                        (tree, output_log_file_path, 
                                         output_tree_file_path, alignment)
-        logging.debug("Running log creation command %s" % cmd)
-        subprocess.check_call(['bash','-c',cmd])
+        extern.run(cmd)
         
     def main(self, alignment, **kwargs):
         sequences = kwargs.pop('sequences',None)
@@ -411,8 +405,7 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         # Run diamond makedb
         logging.info("Creating diamond database")
         cmd = "diamond makedb --in '%s' -d '%s'" % (sequences, base)
-        logging.debug("Running command: %s" % cmd)
-        subprocess.check_call(cmd, shell=True)
+        extern.run(cmd)
         diamondb = '%s.dmnd' % base
 
         # Get range

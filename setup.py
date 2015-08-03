@@ -21,7 +21,7 @@ setup(name='graftm',
                         'scikit-bio ==0.2.2',
                         'subprocess32 ==3.2.6',
                         'biom-format ==2.1.4',
-                        'runm ==0.0.2'),
-      url='http://geronimp.github.com/graftM',
+                        'extern ==0.0.4'),
+      url='http://geronimp.github.io/graftM',
       scripts=['bin/graftM']
 )

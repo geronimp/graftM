@@ -1,9 +1,8 @@
 import os
 import shutil
-import subprocess
 import json
-import tempfile
 import logging
+import extern
 
 PIPELINE_AA = "P"
 PIPELINE_NT = "D"
@@ -113,7 +112,7 @@ class HouseKeeping:
                          'seqmagick': 'https://github.com/fhcrc/seqmagick',
                          'hmmalign': 'http://hmmer.janelia.org/'}
         for program in prerequisites.keys():
-            if self.which(program):
+            if extern.which(program):
                 pass
             else:
                 uninstalled_programs.append(program)
@@ -159,7 +158,7 @@ class HouseKeeping:
                         'mafft': 'http://mafft.cbrc.jp/alignment/software/'}
         
         for program in prerequisites.keys():
-            if self.which(program):
+            if extern.which(program):
                 pass
             else:
                 uninstalled_programs.append(program)
@@ -223,21 +222,4 @@ class HouseKeeping:
         
         else:
             raise Exception('No refpkg or HMM specified: Do not know what to search with.')
-        return
-    
-    def which(self, program):
-        '''Credits to BamM and http://stackoverflow.com/questions/377017/test-if-executable-exists-in-python'''
-        def is_exe(fpath):
-            return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-        fpath, _ = os.path.split(program)
-        if fpath:
-            if is_exe(program):
-                return program
-        else:
-            for path in os.environ["PATH"].split(os.pathsep):
-                path = path.strip('"')
-                exe_file = os.path.join(path, program)
-                if is_exe(exe_file):
-                    return exe_file
-        return None
 

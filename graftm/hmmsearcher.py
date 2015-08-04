@@ -1,5 +1,5 @@
-import subprocess
 import logging
+import extern
 
 class HmmSearcher:
     r"""Runs hmmsearch given one or many HMMs in a scalable and fast way""" 
@@ -54,7 +54,7 @@ class HmmSearcher:
             # Run hmmsearches with each of the pairs
             cmd = self.__hmm_command(input_pipe, pairs_to_run)
             logging.debug("Running command: %s" % cmd)
-            subprocess.check_call(['bash','-c', cmd])
+            extern.run(cmd)
             
     def __munch_off_batch(self, queue):
         r"""Take a batch of sequences off the queue, and return pairs_to_run.

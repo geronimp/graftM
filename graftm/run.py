@@ -5,18 +5,15 @@ import logging
 
 from graftm.sequence_search_results import SequenceSearchResult
 from graftm.graftm_output_paths import GraftMFiles
-from graftm.extract_sequences import Extract
 from graftm.hmmer import Hmmer
 from graftm.housekeeping import HouseKeeping
 from graftm.summarise import Stats_And_Summary
 from graftm.pplacer import Pplacer
-from graftm.assembler import TaxoGroup
 from graftm.create import Create
 from graftm.unpack_sequences import UnpackRawReads
 from graftm.graftm_package import GraftMPackage
 
 from biom.util import biom_open
-import tempfile
 from graftm.bootstrapper import Bootstrapper
 
 PIPELINE_AA = "P"
@@ -32,8 +29,6 @@ class Run:
     def setattributes(self, args):
         self.hk = HouseKeeping()
         self.s = Stats_And_Summary()
-        self.tg = TaxoGroup()
-        self.e = Extract()
         if args.subparser_name == 'graft':
             self.hk.set_attributes(self.args)
             self.hk.set_euk_hmm(self.args)
@@ -265,7 +260,7 @@ class Run:
                 if self.args.type == PIPELINE_AA:
                     logging.debug("Running protein pipeline")
                     if self.args.bootstrap_contigs:
-                        new_hmm = tempfile.NamedTemporaryFile(prefix='graftm_bootstrap',suffix='.hmm')
+                        new_hmm = self.gmf.bootstrap_hmm_path()
                         if self.args.graftm_package:
                             pkg = GraftMPackage.acquire(self.args.graftm_package)
                         else:
@@ -279,8 +274,8 @@ class Run:
                             graftm_package = pkg)
                         if boots.generate_hmm_from_contigs(
                                                  self.args.bootstrap_contigs,
-                                                 new_hmm.name):
-                            self.h.search_hmm.append(new_hmm.name)
+                                                 new_hmm):
+                            self.h.search_hmm.append(new_hmm)
 
                     search_time, result = self.h.aa_db_search(
                                                               self.gmf,
@@ -400,40 +395,6 @@ class Run:
             '''
             self.graft()
 
-        elif self.args.subparser_name == 'assemble':
-            if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART: print '''
-                           ASSEMBLE
-
-                   Joel Boyd, Ben Woodcroft
-
-          _- - _               ___            __/
-           -                  /___\____      /\/
-           - _     >>>>   ___/       \_\     \/
-          - _-           /_/            \    /
-             - _        /                \__/
-                       /
-'''
-            self.tg.main(self.args)
-
-        elif self.args.subparser_name == 'extract':
-            if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART: print '''
-                           EXTRACT
-
-                   Joel Boyd, Ben Woodcroft
-                                  _
-                         __/__/    |        >a
-                  ______|          |->>>>   --------
-         ________|      |_____/   _|        >b
-        |        |____/_                    -------
-    ____|                                   >c
-        |      ______                       ----------
-        |_____|
-              |______
-'''
-
-            if self.args.seq:
-                self.e.extract(self.args)
-
         elif self.args.subparser_name == 'create':
             if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART: print '''
                             CREATE
@@ -498,5 +459,5 @@ class Run:
                 evalue = args.evalue,
                 min_orf_length = args.min_orf_length,
                 graftm_package = pkg)
-            strapper.generate_hmm_from_contigs(args.contig_files, args.output_hmm)
+            strapper.generate_hmm_from_contigs([args.contigs], args.output_hmm)
 

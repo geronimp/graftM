@@ -50,7 +50,7 @@ class UnpackRawReads:
                                                 shell=True,
                                                 preexec_fn=lambda:signal(SIGPIPE, SIG_DFL)
                                                 )
-            header, seq = tuple(first_seq.strip().split('\n'))
+            _, seq = tuple(first_seq.strip().split('\n'))
             self.type = self._guess_sequence_type_from_string(seq)
             logging.debug("Detected sequence type as %s" % self.type)
             return self.type

@@ -1,7 +1,7 @@
 import logging
 from graftm.sequence_search_results import DiamondSearchResult
 import tempfile
-import subprocess
+import extern
 import os
 
 class Diamond:
@@ -50,8 +50,7 @@ class Diamond:
                 cmd_list.append("--evalue")
                 cmd_list.append(str(self._evalue))
             cmd = ' '.join(cmd_list)
-            logging.debug("Running cmd: %s" % cmd)
-            subprocess.check_call(cmd, shell=True)
+            extern.run(cmd)
             
             daa_name = "%s.daa" % t.name
             res = DiamondSearchResult.import_from_daa_file(daa_name)

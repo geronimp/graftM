@@ -2,7 +2,7 @@ import logging
 import tempfile
 import shutil
 import os
-import subprocess
+import extern
 
 from graftm.hmmer import Hmmer
 from graftm.unpack_sequences import UnpackRawReads
@@ -52,7 +52,6 @@ class Bootstrapper:
         True if genes were recovered, else False'''
         
         hmmer = Hmmer(self.search_hmm_files)
-        print self.search_hmm_files
         
         with tempfile.NamedTemporaryFile(prefix='graftm_bootstrap_orfs') as orfs:
             logging.info("Finding bootstrap hits in provided contigs..")
@@ -86,21 +85,21 @@ class Bootstrapper:
             # Check to make sure the file is not zero-length
             orfs.flush()
             if os.stat(orfs.name).st_size == 0:
-                logging.warn("Failed to find any matching ORFs in the bootstrap contigs, continuing without bootstrap")
+                logging.warn("Failed to find any matching ORFs in the bootstrap contigs")
                 return False
             
             # Run mafft to align them
             with tempfile.NamedTemporaryFile(prefix="graftm_bootstrap_aln") as aln:
-                cmd = "mafft --auto %s >%s 2>/dev/null" % (orfs.name, aln.name)
+                cmd = "mafft --auto %s >%s" % (orfs.name, aln.name)
                 logging.info("Aligning bootstrap hits..")
                 logging.debug("Running alignment cmd: %s" % cmd)
-                subprocess.check_call(cmd, shell=True)
+                extern.run(cmd)
             
                 # Run hmmbuild to create an HMM
-                cmd = "hmmbuild --amino %s %s >/dev/null 2>/dev/null" % (output_hmm_file, aln.name)
+                cmd = "hmmbuild --amino %s %s >/dev/null" % (output_hmm_file, aln.name)
                 logging.info("Building HMM from bootstrap hits..")
                 logging.debug("Running cmd: %s" % cmd)
-                subprocess.check_call(cmd, shell=True)
+                extern.run(cmd)
                 
                 return True
             

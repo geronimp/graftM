@@ -5,12 +5,10 @@ import logging
 
 from graftm.sequence_search_results import SequenceSearchResult
 from graftm.graftm_output_paths import GraftMFiles
-from graftm.extract_sequences import Extract
 from graftm.hmmer import Hmmer
 from graftm.housekeeping import HouseKeeping
 from graftm.summarise import Stats_And_Summary
 from graftm.pplacer import Pplacer
-from graftm.assembler import TaxoGroup
 from graftm.create import Create
 from graftm.unpack_sequences import UnpackRawReads
 from graftm.graftm_package import GraftMPackage
@@ -31,8 +29,6 @@ class Run:
     def setattributes(self, args):
         self.hk = HouseKeeping()
         self.s = Stats_And_Summary()
-        self.tg = TaxoGroup()
-        self.e = Extract()
         if args.subparser_name == 'graft':
             self.hk.set_attributes(self.args)
             self.hk.set_euk_hmm(self.args)
@@ -396,40 +392,6 @@ class Run:
            -                                  |______
             '''
             self.graft()
-
-        elif self.args.subparser_name == 'assemble':
-            if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART: print '''
-                           ASSEMBLE
-
-                   Joel Boyd, Ben Woodcroft
-
-          _- - _               ___            __/
-           -                  /___\____      /\/
-           - _     >>>>   ___/       \_\     \/
-          - _-           /_/            \    /
-             - _        /                \__/
-                       /
-'''
-            self.tg.main(self.args)
-
-        elif self.args.subparser_name == 'extract':
-            if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART: print '''
-                           EXTRACT
-
-                   Joel Boyd, Ben Woodcroft
-                                  _
-                         __/__/    |        >a
-                  ______|          |->>>>   --------
-         ________|      |_____/   _|        >b
-        |        |____/_                    -------
-    ____|                                   >c
-        |      ______                       ----------
-        |_____|
-              |______
-'''
-
-            if self.args.seq:
-                self.e.extract(self.args)
 
         elif self.args.subparser_name == 'create':
             if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART: print '''

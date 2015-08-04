@@ -74,6 +74,9 @@ UTILITIES
 
     create      -       Create a graftM packages from sequence alignments and classifications. 
                         See graftM create -h
+                        
+    bootstrap   -       Create new HMMs from a base HMM and an assembly or genome. 
+                        See graftM create -h
 
 =====================================================================================================
 """ % (graftm.__version__)
@@ -190,29 +193,7 @@ sequence1    k__kingdom1; p__phylum2
     create_logging_options=create_parser.add_argument_group('Logging options')
     create_logging_options.add_argument('--verbosity', metavar='verbosity', help='1 - 5, 1 being silent, 5 being noisy indeed', type=int, default=4)
     create_logging_options.add_argument('--log', metavar='logfile', help='output logging information to file', type=str, default=False)
-    
 
-    ###################################################################    
-    # Filter pipeline - Remove rRNA genes from transcriptome dataset. #
-    ###################################################################
-    filter_parser = subparsers.add_parser('filter',
-                                         description='Remove rRNA genes from transcriptome dataset.',
-                                         epilog=__author__)
-    filter_parser.add_argument('--reads', metavar='<READS>', help='File to be filtered', required=True)
-    filter_parser.add_argument('--filter_hmms', metavar='<FILTER_HMMS>', help='Directory with HMMs to use when filtering.', required=True)
-    filter_parser.add_argument('--output', metavar='<OUTPUT>', help='Directory within which to place filtered reads, and sorted hits')
-
-
-    #########################################################################
-    # Assemble - Attempt to assemble as many full length genes as possible. #
-    #########################################################################
-    assemble_parser = subparsers.add_parser('assemble',
-                                            description='Attempt to assemble as many genes as possible.',
-                                            epilog=__author__)
-    assemble_parser.add_argument('--graft_run', metavar='File produced ', help='guppy file produced by graftM, comma separated (default=True)', default=True)
-    assemble_parser.add_argument('--kmer', metavar='k-mer',  help='k-mer to use for assembly with velvet (default = 51)', default = '51')
-    assemble_parser.add_argument('--assembly_type', metavar='type of assembly', help='phrap or velvet assembly',choices = ['phrap', 'velvet', 'finishm'], default='velvet')
-    assemble_parser.add_argument('--finish', action = 'store_true', help='finish the velvet assembly with an overlap assembly (default=False)', default=False)
     
     #########################################################################
     # Bootstrap                                                             #

@@ -3,6 +3,7 @@ import os
 import itertools
 import logging
 import tempfile
+import subprocess
 
 from Bio import SeqIO
 from collections import OrderedDict
@@ -459,11 +460,8 @@ class Hmmer:
 
     def _extract_orfs(self, input_path, orfm, hit_readnames, output_path):
         '''
-        Provide the read names of orfM orfs that hit the hmm, and the nucleotide
-        sequences and the orfM command line. First writes the read names to a
-        tmp file, to be used by fxtract to extract sequences. Then run command, 
-        which calls orfs, and pipes them to fxtract, which extracts the reads of 
-        the hit orfs we're interested in. 
+        Call ORFs on a file with nucleotide sequences and extract the proteins
+        whose name is in `hit_readnames`.
         
         Parameters
         ----------
@@ -474,17 +472,17 @@ class Hmmer:
         hit_readnames : str
             path to a file containin the readnames of hits to the HMM, one per 
             line.
+        output_path : str
+            Path to output orfs into, in FASTA format.
         ''' 
-        # Write hit readnames to file
-        with tempfile.NamedTemporaryFile(prefix='graftm_readnames') as orfm_readnames:
-            for readname in hit_readnames: 
-                orfm_readnames.write(readname + '\n')
-            orfm_readnames.flush()
-            # Build and run command to extract ORF sequences:
-            orfm_cmd = orfm.command_line()
-            cmd = 'fxtract -H -X -f %s <(%s %s) > %s' % (orfm_readnames.name, orfm_cmd, input_path, output_path)
-            extern.run(cmd)
-    
+        # Build and run command to extract ORF sequences:
+        orfm_cmd = orfm.command_line()
+        cmd = 'fxtract -H -X -f /dev/stdin <(%s %s) > %s' % (orfm_cmd, input_path, output_path)
+        process = subprocess.Popen(["bash", "-c", cmd], 
+                                   stdin=subprocess.PIPE,
+                                   stdout=subprocess.PIPE)
+        process.communicate('\n'.join(hit_readnames))
+
     def _get_read_names(self, search_result, max_range):
         '''
         _get_read_names - loops through hmm hits and their alingment spans to
@@ -503,7 +501,7 @@ class Hmmer:
         max_range : int
             Maximum range that a gene can extend within a contig. Any hits 
             that extend beyond this length cannot be linked. max_range is 
-            defined as 1.5 X the average length of all full length genes used 
+            set as 1.5 X the average length of all full length genes used 
             in the search database. This is defined in the CONTENTS.json file 
             within a gpkg.
         Returns

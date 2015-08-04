@@ -112,7 +112,7 @@ class GraftMPackageVersion2(GraftMPackage):
 
     def search_hmm_paths(self):
         return [os.path.join(self._base_directory, x) for x in
-                self._contents_hash[GraftMPackage.DIAMOND_DATABASE_KEY]]
+                self._contents_hash[GraftMPackage.SEARCH_HMM_KEY]]
 
     def alignment_hmm_path(self):
         return os.path.join(self._base_directory,

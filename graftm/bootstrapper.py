@@ -17,7 +17,7 @@ class Bootstrapper:
         graftm_package: GraftMPackage
             use the search HMMs from this graftm package in addition to
             those specified in search_hmm_files
-        threads, evale, min_orf_length, restrict_read_length:
+        threads, evalue, min_orf_length, restrict_read_length:
             as per hmmer.search_and_extract_orfs_matching_protein_database
         '''
         self.search_hmm_files = kwargs.pop('search_hmm_files',[])
@@ -26,9 +26,11 @@ class Bootstrapper:
         self.evalue = kwargs.pop('evalue',None)
         self.min_orf_length = kwargs.pop('min_orf_length',None)
         graftm_package = kwargs.pop('graftm_package',None)
+
         if graftm_package:
-            for h in graftm_package.search_hmm_files():
-                self.search_hmm_files.append(h)
+            for h in graftm_package.search_hmm_paths():
+                if h not in self.search_hmm_files: 
+                    self.search_hmm_files.append(h)
             if self.maximum_range is None:
                 self.maximum_range = graftm_package.maximum_range()
         if len(kwargs) > 0:

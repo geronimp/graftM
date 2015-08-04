@@ -452,7 +452,7 @@ class Run:
                 pkg = GraftMPackage.acquire(args.graftm_package)
             else:
                 pkg = None
-                
+            
             strapper = Bootstrapper(search_hmm_files = args.search_hmm_files,
                 maximum_range = args.maximum_range,
                 threads = args.threads,

@@ -221,13 +221,13 @@ class Run:
         # For each pair (or single file passed to GraftM)
         logging.debug('Working with %i file(s)' % len(self.sequence_pair_list))
         for pair in self.sequence_pair_list:
-            # Set the basename, and make an entry to the summary table.
-            base = os.path.basename(pair[0]).split('.')[0]
-            pair_direction = ['forward', 'reverse']
-            logging.info("Working on %s" % base)
-
             # Guess the sequence file type, if not already specified to GraftM
             unpack = UnpackRawReads(pair[0])
+            
+            # Set the basename, and make an entry to the summary table.
+            base = unpack.basename()
+            pair_direction = ['forward', 'reverse']
+            logging.info("Working on %s" % base)
 
             # Make the working base subdirectory
             self.hk.make_working_directory(os.path.join(self.args.output_directory,

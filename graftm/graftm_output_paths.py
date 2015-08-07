@@ -2,11 +2,11 @@ import os
 
 class GraftMFiles:
     
-    def __init__(self, old_title, outdir, direction):   
+    def __init__(self, old_title, outdir, direction):
         if direction == 'forward' or direction == 'reverse':
-            self.basename = os.path.join(direction, os.path.basename(old_title).split('.')[0] + '_' + direction)
+            self.basename = os.path.join(direction, old_title + '_' + direction)
         elif direction == False:
-            self.basename = os.path.basename(old_title).split('.')[0] 
+            self.basename = old_title
         else:
             raise Exception('Programming Error.')   
          

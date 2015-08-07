@@ -54,7 +54,7 @@ GCAGCCGCGGTAATTC'''
             data = fasta.name
             package = os.path.join(path_to_data,'61_otus.gpkg')
             with tempdir.TempDir() as tmp:
-                cmd = '%s graft --verbosity 1  --forward %s --graftm_package %s --output_directory %s --force --search_and_align_only' % (path_to_script,
+                cmd = '%s graft --verbosity 2  --forward %s --graftm_package %s --output_directory %s --force --search_and_align_only' % (path_to_script,
                                                                                                                  data,
                                                                                                                  package,
                                                                                                                  tmp)
@@ -79,7 +79,7 @@ GAGTCCGGACCGTGTCTCAGTTCCGGTGTGGCTGGTCGTCCTCTCAGACCAGCTACGGATTGTCGCCTTGGTGAGCCATT
             data = fasta.name
             package = os.path.join(path_to_data,'61_otus.gpkg')
             with tempdir.TempDir() as tmp:
-                cmd = '%s graft --verbosity 1  --forward %s --graftm_package %s --output_directory %s --force --search_and_align_only' % (path_to_script,
+                cmd = '%s graft --verbosity 2  --forward %s --graftm_package %s --output_directory %s --force --search_and_align_only' % (path_to_script,
                                                                                                                  data,
                                                                                                                  package,
                                                                                                                  tmp)
@@ -158,7 +158,7 @@ GAGTCCGGACCGTGTCTCAGTTCCGGTGTGGCTGGTCGTCCTCTCAGACCAGCTACGGATTGTCGCCTTGGTGAGCCATT
                     empty_fasta.write('>seq\n')
                     empty_fasta.write('A'*1000+"\n")
                     empty_fasta.flush()
-                    cmd = '%s graft --verbosity 1  --forward %s %s --graftm_package %s --output_directory %s --force --search_and_align_only' % (path_to_script,
+                    cmd = '%s graft --verbosity 2  --forward %s %s --graftm_package %s --output_directory %s --force --search_and_align_only' % (path_to_script,
                                                                                                                      data,
                                                                                                                      empty_fasta.name,
                                                                                                                      package,
@@ -199,7 +199,7 @@ TGCTTTTACCTTGTTG'''
             package = os.path.join(path_to_data,'mcrA.gpkg')
 
             with tempdir.TempDir() as tmp:
-                cmd = '%s graft --verbosity 1 --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+                cmd = '%s graft --verbosity 2 --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                    data,
                                                                                                    package,
                                                                                                    tmp)
@@ -233,13 +233,13 @@ TGCTTTTACCTTGTTG'''
         package = os.path.join(path_to_data,'61_otus.gpkg')
         
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --verbosity 1  --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --verbosity 2  --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                data,
                                                                                                package,
                                                                                                tmp)
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
-            lines = ("\t".join(('#ID','16S_1','ConsensusLineage')),
+            lines = ("\t".join(('#ID','16S_1.1','ConsensusLineage')),
                      "\t".join(('1','2','Root; k__Bacteria')),
                     )
             count = 0
@@ -262,7 +262,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
             subprocess.check_call('gzip %s' % fastq.name, shell=True)
             
             with tempdir.TempDir() as tmp:
-                cmd = '%s graft --verbosity 1  --forward %s --search_hmm_files %s --search_and_align_only --output_directory %s/out' % (path_to_script,
+                cmd = '%s graft --verbosity 2  --forward %s --search_hmm_files %s --search_and_align_only --output_directory %s/out' % (path_to_script,
                                                                                                    fastq_gz,
                                                                                                    hmm,
                                                                                                    tmp)
@@ -280,14 +280,14 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         data_rev = os.path.join(path_to_data,'16S_inputs','16S_1.2.fa')
         package = os.path.join(path_to_data,'61_otus.gpkg')
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --verbosity 1  --forward %s --reverse %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --verbosity 2  --forward %s --reverse %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                data_for,
                                                                                                data_rev,
                                                                                                package,
                                                                                                tmp)
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
-            lines = ("\t".join(('#ID','16S_1','ConsensusLineage')),
+            lines = ("\t".join(('#ID','16S_1.1','ConsensusLineage')),
                      "\t".join(('1','2','Root; k__Bacteria')),
                     )
             count = 0
@@ -296,22 +296,22 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                 count += 1
             self.assertEqual(count, len(lines))
 
-            self.assertTrue(os.path.isdir(os.path.join(tmp, '16S_1', 'forward'))) # Check forward and reverse reads exist.
-            self.assertTrue(os.path.isdir(os.path.join(tmp, '16S_1', 'reverse')))
+            self.assertTrue(os.path.isdir(os.path.join(tmp, '16S_1.1', 'forward'))) # Check forward and reverse reads exist.
+            self.assertTrue(os.path.isdir(os.path.join(tmp, '16S_1.1', 'reverse')))
 
     def test_multiple_forward_read_run_16S(self):
         data_for1 = os.path.join(path_to_data,'16S_inputs', '16S_1.1.fa')
         data_for2 = os.path.join(path_to_data,'16S_inputs', '16S_2.1.fa')
         package = os.path.join(path_to_data,'61_otus.gpkg')
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --verbosity 1  --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --verbosity 2  --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                data_for1,
                                                                                                data_for2,
                                                                                                package,
                                                                                                tmp)
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
-            lines = ("\t".join(('#ID','16S_1','16S_2','ConsensusLineage')),
+            lines = ("\t".join(('#ID','16S_1.1','16S_2.1','ConsensusLineage')),
                      "\t".join(('1','2','2','Root; k__Bacteria')),
                     )
             count = 0
@@ -327,7 +327,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         data_rev2 = os.path.join(path_to_data,'16S_inputs','16S_2.2.fa')
         package = os.path.join(path_to_data,'61_otus.gpkg')
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --verbosity 1  --forward %s %s --reverse %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --verbosity 2  --forward %s %s --reverse %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                data_for1,
                                                                                                data_for2,
                                                                                                data_rev1,
@@ -336,7 +336,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                                                                                                tmp)
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
-            lines = ("\t".join(('#ID','16S_1','16S_2','ConsensusLineage')),
+            lines = ("\t".join(('#ID','16S_1.1','16S_2.1','ConsensusLineage')),
                      "\t".join(('1','2','2','Root; k__Bacteria')),
                     )
             count = 0
@@ -345,10 +345,10 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                 count += 1
             self.assertEqual(count, len(lines))
 
-            self.assertTrue(os.path.isdir(os.path.join(tmp, '16S_1', 'forward'))) # Check forward and reverse reads exist.
-            self.assertTrue(os.path.isdir(os.path.join(tmp, '16S_1', 'reverse')))
-            self.assertTrue(os.path.isdir(os.path.join(tmp, '16S_2', 'forward'))) # Check forward and reverse reads exist.
-            self.assertTrue(os.path.isdir(os.path.join(tmp, '16S_2', 'reverse')))
+            self.assertTrue(os.path.isdir(os.path.join(tmp, '16S_1.1', 'forward'))) # Check forward and reverse reads exist.
+            self.assertTrue(os.path.isdir(os.path.join(tmp, '16S_1.1', 'reverse')))
+            self.assertTrue(os.path.isdir(os.path.join(tmp, '16S_2.1', 'forward'))) # Check forward and reverse reads exist.
+            self.assertTrue(os.path.isdir(os.path.join(tmp, '16S_2.1', 'reverse')))
 
     # Tests on searching for proteins in nucelic acid sequence
     def test_single_forward_read_run_McrA(self):
@@ -356,13 +356,13 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --verbosity 1  --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --verbosity 2  --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                data,
                                                                                                package,
                                                                                                tmp)
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
-            lines = ("\t".join(('#ID','mcrA_1','ConsensusLineage')),
+            lines = ("\t".join(('#ID','mcrA_1.1','ConsensusLineage')),
                      "\t".join(('1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
@@ -382,14 +382,14 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                 empty_fasta.write('A'*1000+"\n")
                 empty_fasta.flush()
                 
-                cmd = '%s graft --verbosity 1  --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+                cmd = '%s graft --verbosity 2  --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                    empty_fasta.name,
                                                                                                    data,
                                                                                                    package,
                                                                                                    tmp)
                 subprocess.check_output(cmd, shell=True)
                 otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
-                lines = ("\t".join(('#ID','mcrA_1','ConsensusLineage')),
+                lines = ("\t".join(('#ID','mcrA_1.1','ConsensusLineage')),
                          "\t".join(('1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                          )
                 count = 0
@@ -404,14 +404,14 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --verbosity 1  --forward %s --reverse %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --verbosity 2  --forward %s --reverse %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                            data_for,
                                                                                                            data_rev,
                                                                                                            package,
                                                                                                            tmp)
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
-            lines = ("\t".join(('#ID','mcrA_1','ConsensusLineage')),
+            lines = ("\t".join(('#ID','mcrA_1.1','ConsensusLineage')),
                      "\t".join(('1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
@@ -420,8 +420,8 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                 count += 1
             self.assertEqual(count, 2)
 
-            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_1', 'forward'))) # Check forward and reverse reads exist.
-            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_1', 'reverse')))
+            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_1.1', 'forward'))) # Check forward and reverse reads exist.
+            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_1.1', 'reverse')))
 
     def test_multiple_forward_read_run_McrA(self):
         data_for1 = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.1.fna')
@@ -429,14 +429,14 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --verbosity 1  --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --verbosity 2  --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                            data_for1,
                                                                                                            data_for2,
                                                                                                            package,
                                                                                                            tmp)
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
-            lines = ("\t".join(('#ID','mcrA_1','mcrA_2','ConsensusLineage')),
+            lines = ("\t".join(('#ID','mcrA_1.1','mcrA_2.1','ConsensusLineage')),
                      "\t".join(('1','1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
@@ -454,7 +454,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --verbosity 1  --forward %s %s --reverse %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --verbosity 2  --forward %s %s --reverse %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                            data_for1,
                                                                                                            data_for2,
                                                                                                            data_rev1,
@@ -463,7 +463,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                                                                                                            tmp)
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
-            lines = ("\t".join(('#ID','mcrA_1','mcrA_2','ConsensusLineage')),
+            lines = ("\t".join(('#ID','mcrA_1.1','mcrA_2.1','ConsensusLineage')),
                      "\t".join(('1','1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
@@ -472,10 +472,10 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                 count += 1
             self.assertEqual(count, 2)
 
-            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_1', 'forward'))) # Check forward and reverse reads exist.
-            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_1', 'reverse')))
-            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_2', 'forward'))) # Check forward and reverse reads exist.
-            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_2', 'reverse')))
+            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_1.1', 'forward'))) # Check forward and reverse reads exist.
+            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_1.1', 'reverse')))
+            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_2.1', 'forward'))) # Check forward and reverse reads exist.
+            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_2.1', 'reverse')))
 
     # tests on searching amino acid sequence....
     def test_multiple_forward_read_run_McrA_aa(self):
@@ -484,14 +484,14 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --verbosity 1  --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --verbosity 2  --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                            data_for1,
                                                                                                            data_for2,
                                                                                                            package,
                                                                                                            tmp)
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
-            lines = ("\t".join(('#ID','mcrA_1','mcrA_2','ConsensusLineage')),
+            lines = ("\t".join(('#ID','mcrA_1.1','mcrA_2.1','ConsensusLineage')),
                      "\t".join(('1','1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
@@ -508,7 +508,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --verbosity 1  --forward %s %s --reverse %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --verbosity 2  --forward %s %s --reverse %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                            data_for1,
                                                                                                            data_for2,
                                                                                                            data_rev1,
@@ -517,7 +517,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                                                                                                            tmp)
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
-            lines = ("\t".join(('#ID','mcrA_1','mcrA_2','ConsensusLineage')),
+            lines = ("\t".join(('#ID','mcrA_1.1','mcrA_2.1','ConsensusLineage')),
                      "\t".join(('1','1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
@@ -528,23 +528,23 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
 
             subprocess.check_output(cmd, shell=True)
 
-            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_1', 'forward'))) # Check forward and reverse reads exist.
-            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_1', 'reverse')))
-            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_2', 'forward'))) # Check forward and reverse reads exist.
-            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_2', 'reverse')))
+            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_1.1', 'forward'))) # Check forward and reverse reads exist.
+            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_1.1', 'reverse')))
+            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_2.1', 'forward'))) # Check forward and reverse reads exist.
+            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_2.1', 'reverse')))
 
     def test_single_forward_read_run_McrA_aa(self):
         data = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.1.faa')
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --verbosity 1  --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --verbosity 2  --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                data,
                                                                                                package,
                                                                                                tmp)
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
-            lines = ("\t".join(('#ID','mcrA_1','ConsensusLineage')),
+            lines = ("\t".join(('#ID','mcrA_1.1','ConsensusLineage')),
                      "\t".join(('1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
@@ -559,14 +559,14 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --verbosity 1  --forward %s --reverse %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --verbosity 2  --forward %s --reverse %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                            data_for,
                                                                                                            data_rev,
                                                                                                            package,
                                                                                                            tmp)
             subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
-            lines = ("\t".join(('#ID','mcrA_1','ConsensusLineage')),
+            lines = ("\t".join(('#ID','mcrA_1.1','ConsensusLineage')),
                      "\t".join(('1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
@@ -575,15 +575,15 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                 count += 1
             self.assertEqual(count, 2)
 
-            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_1', 'forward'))) # Check forward and reverse reads exist.
-            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_1', 'reverse')))
+            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_1.1', 'forward'))) # Check forward and reverse reads exist.
+            self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_1.1', 'reverse')))
 
     def test_search_and_align_only(self):
         data = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.1.fna')
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --verbosity 1  --search_and_align_only --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --verbosity 2 --search_and_align_only --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                data,
                                                                                                package,
                                                                                                tmp)
@@ -595,7 +595,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
             expected = ['>example_partial_mcra_1_1_8',
                         '-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GGVGFTQYATAAYTDDILDNNVYYNIDYINDKYKTDNKVKATLEVVKDIATESTIYGIETYEKFPTALEDHFGXSQRATVLAAAAGVXSALATANANAGLSGWYLSMYLHKEAWGRLGFFGYDLQDQCGATNVLSYQGDEGLPDELRGPNYPNYAM----------------------------------------------------------------------']
             count = 0
-            alnFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_hits.aln.fa')
+            alnFile = os.path.join(tmp, 'mcrA_1.1', 'mcrA_1.1_hits.aln.fa')
             for line in open(alnFile):
                 self.assertEqual(expected[count], line.strip())
                 count += 1
@@ -606,7 +606,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         hmm = os.path.join(path_to_data,'mcrA.gpkg','mcrA.hmm')
 
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --verbosity 1  --search_and_align_only --forward %s --search_hmm_files %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --verbosity 2 --search_and_align_only --forward %s --search_hmm_files %s --output_directory %s --force' % (path_to_script,
                                                                                                data,
                                                                                                hmm,
                                                                                                tmp)
@@ -618,7 +618,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
             expected = ['>example_partial_mcra_1_1_8',
                         '-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GGVGFTQYATAAYTDDILDNNVYYNIDYINDKYKTDNKVKATLEVVKDIATESTIYGIETYEKFPTALEDHFGXSQRATVLAAAAGVXSALATANANAGLSGWYLSMYLHKEAWGRLGFFGYDLQDQCGATNVLSYQGDEGLPDELRGPNYPNYAM----------------------------------------------------------------------']
             count = 0
-            alnFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_hits.aln.fa')
+            alnFile = os.path.join(tmp, 'mcrA_1.1', 'mcrA_1.1_hits.aln.fa')
             for line in open(alnFile):
                 self.assertEqual(expected[count], line.strip())
                 count += 1
@@ -630,7 +630,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         hmm2 = os.path.join(path_to_data,'mcrA_second_half.gpkg','mcrA.300-557.aln.fasta.hmm')
 
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --verbosity 1  --search_and_align_only --forward %s --search_hmm_files %s %s --output_directory %s --force 2>/dev/null' % (path_to_script,
+            cmd = '%s graft --verbosity 2 --search_and_align_only --forward %s --search_hmm_files %s %s --output_directory %s --force 2>/dev/null' % (path_to_script,
                                                                                                data,
                                                                                                hmm, hmm2,
                                                                                                tmp)
@@ -643,7 +643,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         hmm2 = os.path.join(path_to_data,'mcrA_second_half.gpkg','mcrA.300-557.aln.fasta.hmm')
 
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --verbosity 1  --search_and_align_only --forward %s --search_hmm_files %s %s --aln_hmm_file %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --verbosity 2  --search_and_align_only --forward %s --search_hmm_files %s %s --aln_hmm_file %s --output_directory %s --force' % (path_to_script,
                                                                                                data,
                                                                                                hmm2,hmm,
                                                                                                hmm,
@@ -656,7 +656,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
             expected = ['>example_partial_mcra_1_1_8',
                         '-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GGVGFTQYATAAYTDDILDNNVYYNIDYINDKYKTDNKVKATLEVVKDIATESTIYGIETYEKFPTALEDHFGXSQRATVLAAAAGVXSALATANANAGLSGWYLSMYLHKEAWGRLGFFGYDLQDQCGATNVLSYQGDEGLPDELRGPNYPNYAM----------------------------------------------------------------------']
             count = 0
-            alnFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_hits.aln.fa')
+            alnFile = os.path.join(tmp, 'mcrA_1.1', 'mcrA_1.1_hits.aln.fa')
             for line in open(alnFile):
                 self.assertEqual(expected[count], line.strip())
                 count += 1
@@ -675,7 +675,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
             hmms.write("\n")
             hmms.flush()
             with tempdir.TempDir() as tmp:
-                cmd = '%s graft --verbosity 1  --search_and_align_only --forward %s --search_hmm_list_file %s --aln_hmm_file %s --output_directory %s --force' % (path_to_script,
+                cmd = '%s graft --verbosity 2  --search_and_align_only --forward %s --search_hmm_list_file %s --aln_hmm_file %s --output_directory %s --force' % (path_to_script,
                                                                                                    data,
                                                                                                    hmms.name,
                                                                                                    hmm,
@@ -687,7 +687,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                 expected = ['>example_partial_mcra_1_1_8',
                             '-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GGVGFTQYATAAYTDDILDNNVYYNIDYINDKYKTDNKVKATLEVVKDIATESTIYGIETYEKFPTALEDHFGXSQRATVLAAAAGVXSALATANANAGLSGWYLSMYLHKEAWGRLGFFGYDLQDQCGATNVLSYQGDEGLPDELRGPNYPNYAM----------------------------------------------------------------------']
                 count = 0
-                alnFile = os.path.join(tmp, 'mcrA_1', 'mcrA_1_hits.aln.fa')
+                alnFile = os.path.join(tmp, 'mcrA_1.1', 'mcrA_1.1_hits.aln.fa')
                 for line in open(alnFile):
                     self.assertEqual(expected[count], line.strip())
                     count += 1
@@ -716,7 +716,7 @@ CCGACTGCCCTTGAAGACCACTTCG
             package = os.path.join(path_to_data,'mcrA.gpkg')
 
             with tempdir.TempDir() as tmp:
-                cmd = '%s graft --verbosity 1 --min_orf_length 300 --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+                cmd = '%s graft --verbosity 2 --min_orf_length 300 --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                    data,
                                                                                                    package,
                                                                                                    tmp)
@@ -767,7 +767,7 @@ CCGACTGCCCTTGAAGACCACTTCG
             package = os.path.join(path_to_data,'mcrA.gpkg')
 
             with tempdir.TempDir() as tmp:
-                cmd = '%s graft --verbosity 1  --restrict_read_length 102 --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+                cmd = '%s graft --verbosity 2  --restrict_read_length 102 --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                    data,
                                                                                                    package,
                                                                                                    tmp)
@@ -801,14 +801,14 @@ CCGACTGCCCTTGAAGACCACTTCG
         gpkg=os.path.join(path_to_data, "61_otus.gpkg")
         
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --verbosity 1  --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --verbosity 2  --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                   reads_1,
                                                                                                   reads_2,
                                                                                                   gpkg,
                                                                                                   tmp)
             subprocess.check_output(cmd, shell=True)
             comb_otu_table=os.path.join(tmp, "combined_count_table.txt")
-            expected=('\t'.join(('#ID', 'sample_16S_1', 'sample_16S_2', 'ConsensusLineage')),
+            expected=('\t'.join(('#ID', 'sample_16S_1.1', 'sample_16S_2.1', 'ConsensusLineage')),
                       '\t'.join(('1','1','2','Root; k__Bacteria; p__Cyanobacteria; c__Chloroplast')),
                       '\t'.join(('2','35','42','Root; k__Bacteria; p__Proteobacteria')),
                       '\t'.join(('3','0','2','Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria; o__Rickettsiales; f__mitochondria')),
@@ -845,7 +845,7 @@ DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
                 data = fastq_gz.name
                 package = os.path.join(path_to_data,'61_otus.gpkg')
                 with tempdir.TempDir() as tmp:
-                    cmd = '%s graft --verbosity 1  --forward %s --graftm_package %s --output_directory %s --force --search_and_align_only' % (path_to_script,
+                    cmd = '%s graft --verbosity 2  --forward %s --graftm_package %s --output_directory %s --force --search_and_align_only' % (path_to_script,
                                                                                                                      data,
                                                                                                                      package,
                                                                                                                      tmp)

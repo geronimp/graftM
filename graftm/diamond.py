@@ -1,4 +1,3 @@
-import logging
 from graftm.sequence_search_results import DiamondSearchResult
 import tempfile
 import extern

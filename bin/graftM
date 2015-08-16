@@ -23,7 +23,9 @@ import os
 import logging
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
-import graftm.run
+import graftm
+from graftm.run import Run
+
 
 class CustomHelpFormatter(argparse.HelpFormatter):
     def _split_lines(self, text, width):
@@ -120,8 +122,9 @@ if __name__ == '__main__':
     searching_options.add_argument('--maximum_range', type=int, help='maximum range to use when searching for potentially linked reads (when searching contigs)', default=None)
     searching_options.add_argument('--bootstrap_contigs', nargs='+', help='generate an HMM for searching --forward data by first searching these contigs')
     
-    placement_options = graft_parser.add_argument_group('placement options')
-    placement_options.add_argument('--placements_cutoff', metavar='confidence', help='Cutoff of placement confidence level (0.5 - 1), default = 0.75', default=0.75)
+    placement_options = graft_parser.add_argument_group('taxonomic assignment options')
+    placement_options.add_argument('--assignment_method', help='Taxonomic assignment method used (default=pplacer)', default=Run.PPLACER_TAXONOMIC_ASSIGNMENT, choices=(Run.PPLACER_TAXONOMIC_ASSIGNMENT,Run.DIAMOND_TAXONOMIC_ASSIGNMENT))
+    placement_options.add_argument('--placements_cutoff', metavar='confidence', help='Cutoff of placement confidence level (0.5 - 1), default=0.75', default=0.75)
     placement_options.add_argument('--resolve_placements', action="store_true", help='Force taxonomy down to the best placement (default=False)', default=False)
     placement_options.add_argument('--merge_reads', action="store_true", help='Merge forward and reverse read alignments for placement (default=False)', default=False)
     placement_options.add_argument('--cluster', action="store_true", help='Cluster reads at 100%% before placement to reduce tree insertion time -- ONLY use with unassembled data (i.e. equal read length)')
@@ -228,7 +231,7 @@ sequence1    k__kingdom1; p__phylum2
             logging.basicConfig(level=debug[args.verbosity], format='%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
         
         
-        graftm.run.Run(args).main()
+        Run(args).main()
 
 
 

@@ -22,6 +22,9 @@ PIPELINE_NT = "D"
 class Run:
     _MIN_VERBOSITY_FOR_ART = 3 # with 2 then, only errors are printed
 
+    PPLACER_TAXONOMIC_ASSIGNMENT = 'pplacer'
+    DIAMOND_TAXONOMIC_ASSIGNMENT = 'diamond'
+
     def __init__(self, args):
         self.args = args
         self.setattributes(self.args)
@@ -169,8 +172,8 @@ class Run:
         search_results      = []
         clusters_list       = []
         hit_read_count_list = []
+
         
-        # Get the maximum range, if none exists, make one from the HMM profile
         if gpkg:
             maximum_range = gpkg.maximum_range()
             diamond_db    = gpkg.diamond_database_path()
@@ -183,6 +186,7 @@ class Run:
                         Please either provide a gpkg to the --graftm_package flag, or a diamond \
                         database to the --search_diamond_file flag." % self.args.search_method)
         else:
+            # Get the maximum range, if none exists, make one from the HMM profile
             if self.args.maximum_range:
                 maximum_range = self.args.maximum_range
             else:
@@ -191,7 +195,7 @@ class Run:
                 else:
                     logging.warning('Cannot determine maximum range when using %s pipeline and with no GraftM package specified' % self.args.search_method)
                     logging.warning('Setting maximum_range to None (linked hits will not be detected)')
-                    maximum_range = None 
+                    maximum_range = None
             if self.args.search_diamond_file:
                 diamond_db = self.args.search_diamond_file
             else:
@@ -199,8 +203,13 @@ class Run:
                     diamond_db = None
                 else:
                     logging.error("%s search method selected, but no gpkg or diamond database selected" % self.args.search_method)
+                    
+        if self.args.assignment_method == Run.DIAMOND_TAXONOMIC_ASSIGNMENT:
+            if args.reverse:
+                logging.warn("--reverse reads specified with --assignment_method diamond. Reverse reads will be ignored.")
+                self.args.reverse = None
 
-            
+
         # If merge reads is specified, check that there are reverse reads to merge with
         if self.args.merge_reads and not hasattr(self.args, 'reverse'):
             logging.error("--merge requires --reverse to be specified")
@@ -217,13 +226,13 @@ class Run:
         setattr(self.args, 'type', hmm_type)
         if hmm_tc:
             setattr(self.args, 'evalue', '--cut_tc')
-        
+
         # For each pair (or single file passed to GraftM)
         logging.debug('Working with %i file(s)' % len(self.sequence_pair_list))
         for pair in self.sequence_pair_list:
             # Guess the sequence file type, if not already specified to GraftM
             unpack = UnpackRawReads(pair[0])
-            
+
             # Set the basename, and make an entry to the summary table.
             base = unpack.basename()
             pair_direction = ['forward', 'reverse']
@@ -305,75 +314,106 @@ class Run:
                                                               )
 
                 if not result.hit_fasta():
-                    logging.info('No reads found to align in %s' % base)
+                    logging.info('No reads found in %s' % base)
                     continue
-                logging.info('Aligning reads to reference package database')
-                hit_aligned_reads = self.gmf.aligned_fasta_output_path(base)
-                
-                if self.args.cluster:
-                    result.cluster()
-                    clusters_list.append(result.clusters)
-                    
-                aln_time = self.h.align(
-                                        result.hit_fasta(),
-                                        hit_aligned_reads,
-                                        self._get_sequence_directions(result.search_result)
-                                        )
 
-                if not hit_aligned_reads:
-                    continue
-                else:
-                    base_list.append(base)
+                if self.args.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
+                    logging.info('Aligning reads to reference package database')
+                    hit_aligned_reads = self.gmf.aligned_fasta_output_path(base)
+
+                    if self.args.cluster:
+                        result.cluster()
+                        clusters_list.append(result.clusters)
+
+                    aln_time = self.h.align(
+                                            result.hit_fasta(),
+                                            hit_aligned_reads,
+                                            self._get_sequence_directions(result.search_result)
+                                            )
                     seqs_list.append(hit_aligned_reads)
-                    search_results.append(result.search_result)
-                    hit_read_count_list.append(result.hit_count)
 
-        if self.args.merge_reads:
+                base_list.append(base)
+                search_results.append(result.search_result)
+                hit_read_count_list.append(result.hit_count)
+
+        if self.args.merge_reads: # not run when diamond is the assignment mode- enforced by argparse grokking
             base_list=base_list[0::2]
             merged_output=[GraftMFiles(base, self.args.output_directory, False).aligned_fasta_output_path(base) \
                            for base in base_list]
             self.h.merge_forev_aln(seqs_list[0::2], seqs_list[1::2], merged_output)
             seqs_list=merged_output
             REVERSE_PIPE = False
-        
+
         elif REVERSE_PIPE:
             base_list=base_list[0::2]
 
         # Leave the pipeline if search only was specified
         if self.args.search_and_align_only:
-            logging.info('Stopping before placement\n')
+            logging.info('Stopping before taxonomic assignment phase\n')
             exit(0)
         elif not any(base_list):
-            logging.error('No hits in any of the provided files. Cannot continue with no reads to place.\n')
+            logging.error('No hits in any of the provided files. Cannot continue with no reads to assign taxonomy to.\n')
             exit(0)
         self.gmf = GraftMFiles('',
                                self.args.output_directory,
                                False)
 
-        logging.info("Placing reads into phylogenetic tree")
-        place_time, placements=self.p.place(
-                                            REVERSE_PIPE,
-                                            seqs_list,
-                                            self.args.resolve_placements,
-                                            self.gmf,
-                                            self.args,
-                                            result.slash_endings,
-                                            gpkg.taxonomy_info_path()
-                                            )
+        if self.args.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
+            logging.info("Placing reads into phylogenetic tree")
+            taxonomic_assignment_time, assignments=self.p.place(
+                                                REVERSE_PIPE,
+                                                seqs_list,
+                                                self.args.resolve_placements,
+                                                self.gmf,
+                                                self.args,
+                                                result.slash_endings,
+                                                gpkg.taxonomy_info_path()
+                                                )
+        elif self.args.assignment_method == Run.DIAMOND_TAXONOMIC_ASSIGNMENT:
+            logging.info("Assigning taxonomy with diamond")
+            taxonomic_assignment_time, assignments = self._assign_taxonomy_with_diamond(\
+                        base_list,
+                        gpkg,
+                        self.gmf)
+        else: raise Exception("Unexpected assignment method encountered: %s" % self.args.placement_method)
 
         if self.args.cluster:
             for idx, base in enumerate(base_list):
                 clusters_taxonomy={}
-                place    = placements[base]
+                place    = assignments[base]
                 clusters = clusters_list[idx]
                 for read_name in place.keys():
                     for record in clusters[read_name]:
-                        clusters_taxonomy[record.name]=place[read_name]            
-                placements[base].update(clusters_taxonomy)
+                        clusters_taxonomy[record.name]=place[read_name]
+                assignments[base].update(clusters_taxonomy)
 
-        self.summarise(base_list, placements, REVERSE_PIPE, 
-                       [search_time,aln_time[0],place_time], 
+        self.summarise(base_list, assignments, REVERSE_PIPE,
+                       [search_time,aln_time[0],taxonomic_assignment_time],
                        hit_read_count_list)
+
+    def _assign_taxonomy_with_diamond(self, search_result_sequences,
+                                      graftm_package, graftm_files):
+        '''Run diamond to assign taxonomy
+
+        Parameters
+        ----------
+        search_result_sequences: ?
+        graftm_package: GraftMPackage object
+            Diamond is run against this database
+        graftm_files: GraftMFiles object
+            Result files are written here
+
+        Returns
+        -------
+        list of
+        1. time taken for assignment
+        2. ???? NEEDS WORK
+        '''
+        import IPython; IPython.embed()
+        # For each of the search results,
+        # Run diamond
+        # Extract taxonomy of the best hit
+        # record
 
 
     def main(self):
@@ -447,12 +487,12 @@ class Run:
             if not args.graftm_package and not args.search_hmm_files:
                 logging.error("bootstrap mode requires either --graftm_package or --search_hmm_files")
                 exit(1)
-                
+
             if args.graftm_package:
                 pkg = GraftMPackage.acquire(args.graftm_package)
             else:
                 pkg = None
-            
+
             strapper = Bootstrapper(search_hmm_files = args.search_hmm_files,
                 maximum_range = args.maximum_range,
                 threads = args.threads,

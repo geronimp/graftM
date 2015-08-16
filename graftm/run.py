@@ -420,7 +420,7 @@ class Run:
         -------
         list of
         1. time taken for assignment
-        2. assignments i.e. dict of base_list entry to dict of read names
+        2. assignments i.e. dict of base_list entry to dict of read names to 
             to taxonomies, or None if there was no hit detected.
         '''
         runner = Diamond(graftm_package.diamond_database_path(),
@@ -449,7 +449,8 @@ class Run:
             for seqio in SequenceIO().read_fasta_file(search_result.hit_fasta()):
                 name = seqio.name
                 if name in sequence_id_to_hit:
-                    sequence_id_to_taxonomy[name] = taxonomy_definition[sequence_id_to_hit[name]]
+                    # Add Root; to be in line with pplacer assignment method
+                    sequence_id_to_taxonomy[name] = ['Root']+taxonomy_definition[sequence_id_to_hit[name]]
                 else:
                     # picked up in the initial search (by hmmsearch, say), but diamond misses it
                     sequence_id_to_taxonomy[name] = None

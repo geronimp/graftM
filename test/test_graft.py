@@ -953,7 +953,7 @@ ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGAC
                                                                                                                  os.path.join(path_to_data,'mcrA.gpkg'))
                 subprocess.check_output(cmd, shell=True)
                 expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
-                            ['1','1','mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales; Methanoflorentaceae; Methanoflorens']]
+                            ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales; Methanoflorentaceae; Methanoflorens']]
                 expected = ['\t'.join(l) + '\n' for l in expected]
                 self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
                 

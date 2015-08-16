@@ -131,4 +131,13 @@ class GraftMPackageVersion2(GraftMPackage):
 
     def maximum_range(self):
         return self._contents_hash[GraftMPackage.RANGE_KEY]
+    
+    def _refpkg_contents(self):
+        return json.loads(open(os.path.join(self.reference_package_path(), 'CONTENTS.json')).read())
+    
+    def taxtastic_seqinfo_path(self):
+        return os.path.join(self.reference_package_path(),
+                            self._refpkg_contents()['files']['seq_info'])
+    
+    
 

@@ -15,6 +15,11 @@ from graftm.graftm_package import GraftMPackage
 
 from biom.util import biom_open
 from graftm.bootstrapper import Bootstrapper
+from graftm.diamond import Diamond
+from graftm.getaxnseq import Getaxnseq
+from graftm.sequence_io import SequenceIO
+from graftm.timeit import Timer
+T=Timer()
 
 PIPELINE_AA = "P"
 PIPELINE_NT = "D"
@@ -172,6 +177,7 @@ class Run:
         search_results      = []
         clusters_list       = []
         hit_read_count_list = []
+        db_search_results   = []
 
         
         if gpkg:
@@ -205,7 +211,7 @@ class Run:
                     logging.error("%s search method selected, but no gpkg or diamond database selected" % self.args.search_method)
                     
         if self.args.assignment_method == Run.DIAMOND_TAXONOMIC_ASSIGNMENT:
-            if args.reverse:
+            if self.args.reverse:
                 logging.warn("--reverse reads specified with --assignment_method diamond. Reverse reads will be ignored.")
                 self.args.reverse = None
 
@@ -329,9 +335,10 @@ class Run:
                                             result.hit_fasta(),
                                             hit_aligned_reads,
                                             self._get_sequence_directions(result.search_result)
-                                            )
+                                            )[0]
                     seqs_list.append(hit_aligned_reads)
 
+                db_search_results.append(result)
                 base_list.append(base)
                 search_results.append(result.search_result)
                 hit_read_count_list.append(result.hit_count)
@@ -369,35 +376,41 @@ class Run:
                                                 result.slash_endings,
                                                 gpkg.taxonomy_info_path()
                                                 )
+            if self.args.cluster:
+                for idx, base in enumerate(base_list):
+                    clusters_taxonomy={}
+                    place    = assignments[base]
+                    clusters = clusters_list[idx]
+                    for read_name in place.keys():
+                        for record in clusters[read_name]:
+                            clusters_taxonomy[record.name]=place[read_name]
+                    assignments[base].update(clusters_taxonomy)
+                    
         elif self.args.assignment_method == Run.DIAMOND_TAXONOMIC_ASSIGNMENT:
             logging.info("Assigning taxonomy with diamond")
             taxonomic_assignment_time, assignments = self._assign_taxonomy_with_diamond(\
                         base_list,
+                        db_search_results,
                         gpkg,
                         self.gmf)
+            aln_time = 'n/a'
         else: raise Exception("Unexpected assignment method encountered: %s" % self.args.placement_method)
 
-        if self.args.cluster:
-            for idx, base in enumerate(base_list):
-                clusters_taxonomy={}
-                place    = assignments[base]
-                clusters = clusters_list[idx]
-                for read_name in place.keys():
-                    for record in clusters[read_name]:
-                        clusters_taxonomy[record.name]=place[read_name]
-                assignments[base].update(clusters_taxonomy)
-
         self.summarise(base_list, assignments, REVERSE_PIPE,
-                       [search_time,aln_time[0],taxonomic_assignment_time],
+                       [search_time,aln_time,taxonomic_assignment_time],
                        hit_read_count_list)
 
-    def _assign_taxonomy_with_diamond(self, search_result_sequences,
+    @T.timeit
+    def _assign_taxonomy_with_diamond(self, base_list, db_search_results,
                                       graftm_package, graftm_files):
         '''Run diamond to assign taxonomy
 
         Parameters
         ----------
-        search_result_sequences: ?
+        base_list: list of str
+            list of sequence block names
+        db_search_results: list of DBSearchResult
+            the result of running hmmsearches
         graftm_package: GraftMPackage object
             Diamond is run against this database
         graftm_files: GraftMFiles object
@@ -407,14 +420,42 @@ class Run:
         -------
         list of
         1. time taken for assignment
-        2. ???? NEEDS WORK
+        2. assignments i.e. dict of base_list entry to dict of read names
+            to taxonomies, or None if there was no hit detected.
         '''
-        import IPython; IPython.embed()
+        runner = Diamond(graftm_package.diamond_database_path(),
+                         self.args.threads, 
+                         self.args.evalue)
+        taxonomy_definition = Getaxnseq().read_taxtastic_taxonomy_and_seqinfo\
+                (open(graftm_package.taxonomy_info_path()), 
+                 open(graftm_package.taxtastic_seqinfo_path()))
+        results = {}
+        
         # For each of the search results,
-        # Run diamond
-        # Extract taxonomy of the best hit
-        # record
-
+        for i, search_result in enumerate(db_search_results):
+            sequence_id_to_hit = {}
+            # Run diamond
+            logging.debug("Running diamond on %s" % search_result.hit_fasta())
+            diamond_result = runner.run(search_result.hit_fasta(), UnpackRawReads.PROTEIN_SEQUENCE_TYPE)
+            for res in diamond_result.each([SequenceSearchResult.QUERY_ID_FIELD,
+                                            SequenceSearchResult.HIT_ID_FIELD]):
+                if res[0] in sequence_id_to_hit:
+                    # do not accept duplicates
+                    raise Exception("Duplicate sequence name or bad diamond parameters for %s" % res[0])
+                sequence_id_to_hit[res[0]] = res[1]
+            
+            # Extract taxonomy of the best hit, and add in the no hits
+            sequence_id_to_taxonomy = {}
+            for seqio in SequenceIO().read_fasta_file(search_result.hit_fasta()):
+                name = seqio.name
+                if name in sequence_id_to_hit:
+                    sequence_id_to_taxonomy[name] = taxonomy_definition[sequence_id_to_hit[name]]
+                else:
+                    # picked up in the initial search (by hmmsearch, say), but diamond misses it
+                    sequence_id_to_taxonomy[name] = None
+            
+            results[base_list[i]] = sequence_id_to_taxonomy
+        return results
 
     def main(self):
 

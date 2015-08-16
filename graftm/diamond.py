@@ -2,6 +2,7 @@ from graftm.sequence_search_results import DiamondSearchResult
 import tempfile
 import extern
 import os
+from graftm.unpack_sequences import UnpackRawReads
 
 class Diamond:
     def __init__(self, database, threads=None, evalue=None):
@@ -26,9 +27,9 @@ class Diamond:
         '''
         
         cmd_list = ["diamond"]
-        if input_sequence_type == 'protein':
+        if input_sequence_type == UnpackRawReads.PROTEIN_SEQUENCE_TYPE:
             cmd_list.append('blastp')
-        elif input_sequence_type == 'nucleotide':
+        elif input_sequence_type == UnpackRawReads.NUCLEOTIDE_SEQUENCE_TYPE:
             cmd_list.append('blastx')
         else:
             raise Exception("Programming error")

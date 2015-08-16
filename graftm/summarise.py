@@ -3,7 +3,6 @@ from biom.table import Table
 import tempfile
 import extern
 import logging
-import shlex
 
 class Stats_And_Summary:
 

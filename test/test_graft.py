@@ -902,17 +902,20 @@ ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGAC
         with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
             fasta.write(testing_read)
             fasta.flush()
-            tmp = '/tmp/blah'
-            #with '/tmp/blah' as tmp:#tempdir.TempDir() as tmp:
-            cmd = '%s graft --verbosity 2 --search_method diamond --forward %s --output_directory %s --force --graftm_package %s' % (path_to_script,
-                                                                                                             fasta.name,
-                                                                                                             tmp,
-                                                                                                             os.path.join(path_to_data,'mcrA.gpkg'))
-            subprocess.check_output(cmd, shell=True)
-            expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
-                        ['1','1','mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales']]
-            expected = ['\t'.join(l) + '\n' for l in expected]
-            self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
+            
+            #with tempdir.TempDir() as tmp:
+            tmp = '/tmp/blah';
+            if True:
+                cmd = '%s graft --verbosity 5 --search_method diamond --forward %s --output_directory %s --force --graftm_package %s' % (path_to_script,
+                                                                                                                 fasta.name,
+                                                                                                                 tmp,
+                                                                                                                 os.path.join(path_to_data,'mcrA.gpkg'))
+                print cmd
+                subprocess.check_output(cmd, shell=True)
+                expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
+                            ['1','1','mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales']]
+                expected = ['\t'.join(l) + '\n' for l in expected]
+                self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
                 
     def test_diamond_placement_method(self):
         testing_read = '''>Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040
@@ -937,18 +940,16 @@ ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGAC
         with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
             fasta.write(testing_read)
             fasta.flush()
-            tmp = '/tmp/blah'
-            #with '/tmp/blah' as tmp:#tempdir.TempDir() as tmp:
-            cmd = '%s graft --verbosity 2 --search_method diamond --forward %s --output_directory %s --force --assignment_method diamond --graftm_package %s' % (path_to_script,
-                                                                                                             fasta.name,
-                                                                                                             tmp,
-                                                                                                             os.path.join(path_to_data,'mcrA.gpkg'))
-            print cmd
-            subprocess.check_output(cmd, shell=True)
-            expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
-                        ['1','1','mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales; Methanoflorentaceae; Methanoflorens']]
-            expected = ['\t'.join(l) + '\n' for l in expected]
-            self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --verbosity 2 --search_method diamond --forward %s --output_directory %s --force --assignment_method diamond --graftm_package %s' % (path_to_script,
+                                                                                                                 fasta.name,
+                                                                                                                 tmp,
+                                                                                                                 os.path.join(path_to_data,'mcrA.gpkg'))
+                subprocess.check_output(cmd, shell=True)
+                expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
+                            ['1','1','mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales; Methanoflorentaceae; Methanoflorens']]
+                expected = ['\t'.join(l) + '\n' for l in expected]
+                self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
 
 
 

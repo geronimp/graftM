@@ -317,7 +317,8 @@ class Run:
                 aln_time = self.h.align(
                                         result.hit_fasta(),
                                         hit_aligned_reads,
-                                        self._get_sequence_directions(result.search_result)
+                                        self._get_sequence_directions(result.search_result),
+                                        self.args.type
                                         )
 
                 if not hit_aligned_reads:

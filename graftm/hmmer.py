@@ -81,34 +81,48 @@ class Hmmer:
                     for_aln.write(str(record.seq) + '\n')
                     # HMMalign and convert to fasta format
             if any(forward):
-                cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (self.aln_hmm,
-                                                                                            for_file,
-                                                                                            for_conv_file)
+                self.hmmalign_sequences(self.aln_hmm, for_file, for_conv_file)
             else:
                 cmd = 'touch %s' % (for_conv_file)
-            extern.run(cmd)
+                extern.run(cmd)
             with open(rev_file, 'w') as rev_aln:
                 logging.debug("Writing reverse complement reads to %s" % rev_file)
                 for record in reverse:
                     if record.id and record.seq:
                         rev_aln.write('>' + record.id + '\n')
-                        rev_aln.write(str(record.seq.reverse_complement()) + '\n')           
-            cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (self.aln_hmm,
-                                                                                        rev_file,
-                                                                                        rev_conv_file)
-            extern.run(cmd)
+                        rev_aln.write(str(record.seq.reverse_complement()) + '\n')
+            self.hmmalign_sequences(self.aln_hmm, rev_file, rev_conv_file)
             conv_files = [for_conv_file, rev_conv_file]
             return conv_files
         # If there are only forward reads, just hmmalign and be done with it.
         else:
-            cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (self.aln_hmm,
-                                                                                                 input_path,
-                                                                                                 for_conv_file)
-           
-            extern.run(cmd)
+            self.hmmalign_sequences(self.aln_hmm, input_path, for_conv_file)
             conv_files = [for_conv_file]
             
             return conv_files
+        
+    def hmmalign_sequences(self, hmm, sequences, output_file):
+        '''Run hmmalign and convert output to aligned fasta format
+        
+        Parameters
+        ----------
+        hmm: str
+            path to hmm file
+        sequences: str
+            path to file of sequences to be aligned
+        output_file: str
+            write sequences to this file
+        
+        Returns
+        -------
+        nothing
+        '''
+        
+        cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (hmm,
+                                                                                           sequences,
+                                                                                           output_file)
+           
+        extern.run(cmd)
     
     def makeSequenceBinary(self, sequences, fm):
         cmd = 'makehmmerdb %s %s' % (sequences, fm)
@@ -313,7 +327,6 @@ class Hmmer:
         '''
         euk_hit_table = HMMreader(hmm_hit_tables.pop(-1))
         other_hit_tables = [HMMreader(x) for x in hmm_hit_tables]
-        crossover = []
         reads_unique_to_eukaryotes = []   
         reads_with_better_euk_hit = []     
         
@@ -421,20 +434,24 @@ class Hmmer:
             self._extract_multiple_hits(hits, tmp.name, output_path)  # split them into multiple reads
         return output_path
         
-    def _alignment_correcter(self, alignment_file_list, output_file_name):
+    def alignment_correcter(self, alignment_file_list, output_file_name):
         '''
         Remove lower case insertions in alignment outputs from HMM align. Give 
-        a list of alignemnts, and an output file name, and each alignment will
+        a list of alignments, and an output file name, and each alignment will
         be corrected, and written to a single file, ready to be placed together
         using pplacer.
         
         Parameters
         ----------
         alignment_file_list : array
-            List of strings, each the path to differen alignments from the 
+            List of strings, each the path to different alignments from the 
             inputs provided to GraftM 
         output_file_name : str
             The path and filename of the output file desired.
+            
+        Returns
+        -------
+        nothing
         '''
         
         corrected_sequences = {}

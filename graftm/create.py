@@ -16,6 +16,7 @@ from graftm.getaxnseq import Getaxnseq
 from graftm.deduplicator import Deduplicator
 from skbio.tree import TreeNode
 from graftm.sequence_io import SequenceIO
+import tempdir
 
 class Create:
     
@@ -43,41 +44,28 @@ class Create:
                 to_return.append(s.name)
         return to_return
         
-    def get_hmm_and_alignment(self, alignment, base):
+    def _get_hmm_from_alignment(self, alignment, hmm_filename, output_alignment_filename):
         '''Return a HMM file and alignment of sequences to that HMM
         
-        Returns
-        -------
-        * HMM file
-        * Alignment of sequences to that HMM
-        '''
-        logging.debug("Building HMM from alignment")
-        hmm, output_alignment = self.buildHmm(alignment, base)
-        self.the_trash += [hmm]
-        return hmm, output_alignment
-    
-    def buildHmm(self, alignment, base):
-        '''Make a HMM called base.hmm with the given alignment file
+        Parameters
+        ----------
+        alignment: str
+            path to aligned proteins
+        hmm_filename: str
+            write the hmm to this file path
+        output_alignment_filename: str
+            write the output alignment to this file path
         
         Returns
         -------
-        A list of two:
-        1. Path to the created HMM
-        2. Path to alignment of sequences to this HMM'''
-        counter=0
-        if os.path.isfile(base + ".hmm"):
-            counter=0
-            while os.path.isfile(base + ".hmm"):
-                base=base+'_%s' % (str(counter))
-                counter+=1
-            hmm = base + ".hmm"
-        else:   
-            hmm = base + ".hmm" # Set a name for a hmm
-
+        Nothing
+        '''
+        logging.debug("Building HMM from alignment")
+        
         sto = tempfile.NamedTemporaryFile(suffix='.sto',prefix='graftm')
         tempaln = tempfile.NamedTemporaryFile(suffix='.fasta',prefix='graftm')
         cmd = "hmmbuild -O %s '%s' '%s'" % (sto.name,
-                                              hmm,
+                                              hmm_filename,
                                               alignment)
         out = extern.run(cmd)
         logging.debug("Got STDOUT from hmmbuild: %s" % out)
@@ -87,12 +75,31 @@ class Create:
         out = extern.run(cmd)
         logging.debug("Got STDOUT from seqmagick: %s" % out)
         
-        alignment_path = "%s.aln.fa" % base
-        self.h._alignment_correcter([tempaln.name], alignment_path)
-
-        return hmm, alignment_path
+        Hmmer(hmm_filename).alignment_correcter([tempaln.name], output_alignment_filename)
+        
+    def _align_sequences_to_hmm(self, sequences_file, hmm_file, output_alignment_file):
+        '''Align sequences to an HMM, and return a path to an alignment of
+        these proteins after cleanup so that they can be used for tree-making
+        
+        Parameters
+        ----------
+        sequences_file: str
+            path to file of unaligned protein sequences
+        hmm_file: str
+            path to hmm file
+        output_alignment_file: str
+            write alignment to this file
+        
+        Returns
+        -------
+        nothing
+        '''
+        hmmer = Hmmer(hmm_file)
+        tempalign = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.fasta')
+        hmmer.hmmalign_sequences(hmm_file, sequences_file, tempalign.name)
+        hmmer.alignment_correcter([tempalign.name], output_alignment_file)
     
-    def pipeType(self, hmm):
+    def _pipe_type(self, hmm):
         logging.debug("Setting pipeline type..")
         hmm_type=[x.split() for x in open(hmm).readlines() if x.startswith('ALPH') or x.startswith('LENG')]
         for item in hmm_type:
@@ -111,10 +118,10 @@ class Create:
         logging.debug("Found alignment length as: %s" % leng)
         return ptype, leng
     
-    def checkAlnLength(self, alignment):
+    def _check_aln_length(self, alignment):
         return len(list(SeqIO.parse(open(alignment, 'r'), 'fasta'))[0].seq)
     
-    def buildTree(self, alignment, base, ptype): 
+    def _build_tree(self, alignment, base, ptype): 
         log_file = base + ".tre.log"
         tre_file = base + ".tre"
         if ptype == 'na': # If it's a nucleotide sequence
@@ -127,7 +134,7 @@ class Create:
         self.the_trash += [log_file, tre_file]
         return log_file, tre_file
 
-    def callTaxitCreate(self, base, aln_file, tre, tre_log, tax, seq, prefix, no_reroot):
+    def _taxit_create(self, base, aln_file, tre, tre_log, tax, seq, prefix, no_reroot):
         if prefix:
             refpkg = prefix + ".refpkg"
         else:
@@ -177,21 +184,22 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         shutil.copyfile(hmm, os.path.join(gpkg, hmm_file_in_gpkg))
         
         diamond_database_file_in_gpkg = os.path.basename(diamond_database_file)
-        taxonomy_file_in_refpkg       = os.path.join(refpkg, tax_info)
         shutil.copyfile(diamond_database_file, os.path.join(gpkg, diamond_database_file_in_gpkg))
         
-        contents = {"version": 2,
-                    "aln_hmm": hmm_file_in_gpkg,
-                    "search_hmm": [hmm_file_in_gpkg],
-                    "rfpkg": refpkg,
-                    "TC":False,
+        refpkg_in_gpkg = "%s.refpkg" % os.path.basename(base)
+        shutil.copytree(refpkg, os.path.join(gpkg, refpkg_in_gpkg))
+        
+        contents = {"graftm_package_version": 2,
+                    "align_hmm": hmm_file_in_gpkg,
+                    "search_hmms": [hmm_file_in_gpkg],
+                    "refpkg": refpkg,
+                    "trusted_cutoff":False,
                     "diamond_database": diamond_database_file_in_gpkg,
-                    "range": max_range,
-                    "taxtastic_taxonomy_file": taxonomy_file_in_refpkg}
+                    "range": max_range}
         
         json.dump(contents, open(os.path.join(gpkg, 'CONTENTS.json'), 'w'))
 
-    def cleanup(self, the_trashcan):
+    def _cleanup(self, the_trashcan):
         for every_piece_of_junk in the_trashcan:
             if os.path.isdir(every_piece_of_junk):
                 shutil.rmtree(every_piece_of_junk)
@@ -227,7 +235,7 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         max_range = (sequence_count/total_sequence)*1.5
         return max_range 
 
-    def generate_tree_log_file(self, tree, alignment, output_tree_file_path,
+    def _generate_tree_log_file(self, tree, alignment, output_tree_file_path,
                                output_log_file_path, residue_type):
         '''Generate the FastTree log file given a tree and the alignment that
         made that tree
@@ -253,19 +261,29 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         tree_log = kwargs.pop('tree_log', None)
         prefix = kwargs.pop('prefix', None)
         rerooted_annotated_tree = kwargs.pop('rerooted_annotated_tree', None)
+        user_hmm = kwargs.pop('hmm', None)
         min_aligned_percent = kwargs.pop('min_aligned_percent',0.0)
         taxtastic_taxonomy = kwargs.pop('taxtastic_taxonomy', None)
         taxtastic_seqinfo = kwargs.pop('taxtastic_seqinfo', None)
         if len(kwargs) > 0:
             raise Exception("Unexpected arguments detected: %s" % kwargs)
         
-        base=os.path.basename(alignment).split('.')[0]
+        tmp = tempdir.TempDir()
+        base = os.path.join(tmp.name, os.path.basename(alignment).split('.')[0])
             
         logging.info("Building gpkg for %s" % base)
         
         # align sequences to HMM (and potentially build hmm from alignment)
-        hmm, output_alignment = self.get_hmm_and_alignment(alignment, base)
-        ptype, _ = self.pipeType(hmm)
+        output_alignment_f = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa')
+        output_alignment = output_alignment_f.name
+        if user_hmm:
+            hmm = user_hmm
+            self._align_sequences_to_hmm(hmm, sequences, output_alignment)
+        else:
+            hmm_f = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.hmm')
+            hmm = hmm_f.name
+            self._get_hmm_from_alignment(alignment, hmm, output_alignment)
+        ptype, _ = self._pipe_type(hmm)
         logging.info("Checking for incorrect or fragmented reads")
         insufficiently_aligned_sequences = self._check_reads_hit(open(output_alignment),
                                                                  min_aligned_percent)
@@ -329,7 +347,7 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         if not rerooted_tree and not rerooted_annotated_tree:
             logging.debug("No tree provided")
             logging.info("Building tree")
-            log_file, tre_file = self.buildTree(deduplicated_alignment_file, base, ptype)
+            log_file, tre_file = self._build_tree(deduplicated_alignment_file, base, ptype)
             no_reroot = False
         else:
             if rerooted_tree:
@@ -369,13 +387,13 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
                 with tempfile.NamedTemporaryFile(suffix='.tree', prefix='graftm') as f:
                     tree.write(f)
                     f.flush()
-                    self.generate_tree_log_file(f.name, deduplicated_alignment_file,
+                    self._generate_tree_log_file(f.name, deduplicated_alignment_file,
                                             tre_file, log_file, ptype)
             
         # Create tax and seqinfo .csv files
         if taxtastic_taxonomy and taxtastic_seqinfo:
             logging.info("Creating reference package")
-            refpkg = self.callTaxitCreate(base, output_alignment, tre_file, 
+            refpkg = self._taxit_create(base, output_alignment, tre_file, 
                                           log_file, taxtastic_taxonomy,
                                           taxtastic_seqinfo, prefix, no_reroot)
         else:
@@ -399,7 +417,7 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
             
             # Create the reference package
             logging.info("Creating reference package")
-            refpkg = self.callTaxitCreate(base, output_alignment, tre_file, 
+            refpkg = self._taxit_create(base, output_alignment, tre_file, 
                                           log_file, tax, seq, prefix, no_reroot)
         
         # Run diamond makedb
@@ -416,6 +434,6 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         self._compile(base, refpkg, hmm, diamondb, prefix, max_range, tax)
 
         logging.info("Cleaning up")
-        self.cleanup(self.the_trash)
+        self._cleanup(self.the_trash)
         
         logging.info("Finished\n")

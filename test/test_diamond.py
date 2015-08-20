@@ -25,6 +25,7 @@ import unittest
 import sys
 import os
 import tempfile
+from graftm.unpack_sequences import UnpackRawReads
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 from graftm.diamond import Diamond
@@ -58,7 +59,7 @@ VAFATGNSNAGINGWYLSQILHKEYHSRLGFYGYDLQDQCGAANSLSIRSDEGLLHECRG'''
             f.write(self._protein_query)
             f.flush()
             d = Diamond(os.path.join(path_to_data,'diamond','mcra.faa.dmnd'))
-            res = d.run(f.name, 'protein')
+            res = d.run(f.name, UnpackRawReads.PROTEIN_SEQUENCE_TYPE)
             # ben@ben:~/git/graftM.local/test$ diamond view -a /tmp/a
             # seq1    637699780    100.0    548    0    0    1    548    1    548    0.0e+00    1111.3
             # seq2    638201361    100.0    472    0    0    1    472    1    472    2.9e-283    963.0

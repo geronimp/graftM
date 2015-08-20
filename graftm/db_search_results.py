@@ -7,17 +7,17 @@ class DBSearchResult:
     '''
     DBSearchResult - Class for containing results from search pipeline in GraftM
     '''
-    def __init__(self, ouput_reads, search_result, hit_read_count, slash_endings):
+    def __init__(self, output_reads, search_result, hit_read_count, slash_endings):
         self.clust = Deduplicator()
         self.seqio = SequenceIO()
         
-        self.ouput_reads   = ouput_reads
+        self.output_reads   = output_reads
         self.search_result = search_result
         self.hit_count     = hit_read_count
         self.slash_endings = slash_endings
     
     def hit_fasta(self): # Return the path to the fasta file of hits
-        return self.ouput_reads
+        return self.output_reads
     
     def search_objects(self): # Return SequenceSearchResult object with parameters defined
         return self.search_result
@@ -51,7 +51,7 @@ class DBSearchResult:
             objects (from SequenceIO with parameters defined) that belong to
             each cluster.
         '''
-        clustered_reads_output_path=self.ouput_reads.replace('.fa','_clustered.fa') # Define the output path to write representative sequences to
+        clustered_reads_output_path=self.output_reads.replace('.fa','_clustered.fa') # Define the output path to write representative sequences to
         logging.debug('Writing representative sequences of each cluster to: %s' % clustered_reads_output_path) # Report the name of the file
         cluster_dict={} # Define an empty deictionary to store cluster information
         with open(clustered_reads_output_path, 'w') as out: 
@@ -71,6 +71,6 @@ class DBSearchResult:
         logging.debug('Found %i reads' % len(reads)) # Report number found
         self.groups=self.clust.deduplicate(reads) # Cluster redundant sequences
         logging.debug('Clustered to %s groups' % len(self.groups)) # Report number of clusters
-        self.ouput_reads, self.clusters=self._write_cluster(self.groups) # Write to file, and re-define output_reads and set cluster variable.
+        self.output_reads, self.clusters=self._write_cluster(self.groups) # Write to file, and re-define output_reads and set cluster variable.
         
     

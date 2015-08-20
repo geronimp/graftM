@@ -118,7 +118,7 @@ class Hmmer:
         nothing
         '''
         
-        cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (hmm,
+        cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm --output-format fasta - %s' % (hmm,
                                                                                            sequences,
                                                                                            output_file)
            
@@ -469,10 +469,10 @@ class Hmmer:
                     del new_seq[position]  # Delete that inserted position in every sequence
                 corrected_sequences['>' + sequence.id + '\n'] = (''.join(new_seq) + '\n').replace('~', '-')
         with open(output_file_name, 'w') as output_file:  # Create an open file to write the new sequences to
-                for fasta_id, fasta_seq in corrected_sequences.iteritems():
-                    if any(c.isalpha() for c in fasta_seq):
-                        output_file.write(fasta_id)
-                        output_file.write(fasta_seq)
+            for fasta_id, fasta_seq in corrected_sequences.iteritems():
+                if any(c.isalpha() for c in fasta_seq):
+                    output_file.write(fasta_id)
+                    output_file.write(fasta_seq)
 
 
     def _extract_orfs(self, input_path, orfm, hit_readnames, output_path):
@@ -962,7 +962,7 @@ class Hmmer:
         # HMMalign the forward reads, and reverse complement reads.
         alignments = self._hmmalign(input_path,
                                     directions)
-        self._alignment_correcter(alignments,
+        self.alignment_correcter(alignments,
                                  output_path)
 
 

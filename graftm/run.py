@@ -374,7 +374,7 @@ class Run:
                                                 self.gmf,
                                                 self.args,
                                                 result.slash_endings,
-                                                gpkg.taxonomy_info_path()
+                                                gpkg.taxtastic_taxonomy_path()
                                                 )
             if self.args.cluster:
                 for idx, base in enumerate(base_list):
@@ -427,7 +427,7 @@ class Run:
                          self.args.threads, 
                          self.args.evalue)
         taxonomy_definition = Getaxnseq().read_taxtastic_taxonomy_and_seqinfo\
-                (open(graftm_package.taxonomy_info_path()), 
+                (open(graftm_package.taxtastic_taxonomy_path()), 
                  open(graftm_package.taxtastic_seqinfo_path()))
         results = {}
         
@@ -522,7 +522,8 @@ class Run:
                           rerooted_annotated_tree=self.args.rerooted_annotated_tree,
                           min_aligned_percent=float(self.args.min_aligned_percent)/100,
                           taxtastic_taxonomy = self.args.taxtastic_taxonomy,
-                          taxtastic_seqinfo = self.args.taxtastic_seqinfo
+                          taxtastic_seqinfo = self.args.taxtastic_seqinfo,
+                          force = self.args.force
                           )
         elif self.args.subparser_name == 'bootstrap':
             args = self.args

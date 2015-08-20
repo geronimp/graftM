@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os
-import json
 import shutil
 import tempfile
 import logging
@@ -17,6 +16,7 @@ from graftm.deduplicator import Deduplicator
 from skbio.tree import TreeNode
 from graftm.sequence_io import SequenceIO
 import tempdir
+from graftm.graftm_package import GraftMPackageVersion2
 
 class Create:
     
@@ -77,7 +77,7 @@ class Create:
         
         Hmmer(hmm_filename).alignment_correcter([tempaln.name], output_alignment_filename)
         
-    def _align_sequences_to_hmm(self, sequences_file, hmm_file, output_alignment_file):
+    def _align_sequences_to_hmm(self, hmm_file, sequences_file, output_alignment_file):
         '''Align sequences to an HMM, and return a path to an alignment of
         these proteins after cleanup so that they can be used for tree-making
         
@@ -134,12 +134,7 @@ class Create:
         self.the_trash += [log_file, tre_file]
         return log_file, tre_file
 
-    def _taxit_create(self, base, aln_file, tre, tre_log, tax, seq, prefix, no_reroot):
-        if prefix:
-            refpkg = prefix + ".refpkg"
-        else:
-            refpkg = base + ".refpkg"
-            
+    def _taxit_create(self, base, aln_file, tre, tre_log, tax, seq, refpkg, no_reroot):
         cmd = "taxit create -f %s -P %s -t %s -s %s -c -l  %s -T %s -i %s"\
             % (aln_file, refpkg, tre, tre_log, base, tax, seq)
             
@@ -153,12 +148,19 @@ class Create:
             try:
                 subprocess32.check_call(cmd, shell=True, timeout=20)
             except (subprocess32.TimeoutExpired, subprocess32.CalledProcessError):
-                logging.error('''taxit create failed to run in a small amount of time suggesting that
+                nontemp_tax_file = 'graftm_create_taxonomy.csv'
+                shutil.copy(tax, nontemp_tax_file)
+                nontemp_aln_file = 'graftm_create_alignment.faa'
+                shutil.copy(aln_file, nontemp_aln_file)
+                
+                logging.error('''
+taxit create failed to run in a small amount of time suggesting that
 rerooting was unsuccessful. Unfortunately this tree will need to be rerooted 
 manually yourself using a tree editor such as ARB or FigTree.
 Once you have a rerooted newick format tree, rerun graftm create
-specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'%s\'
+specifying the new tree with --rerooted_tree. The tree file to be rerooted is \'%s\'''' % tre)
 
+                logging.error('''
 When rerunning, please use the following flags for the command line to account
 for the fact that some sequences may have been removed during the deduplication
 process.
@@ -166,38 +168,11 @@ process.
 graftM create --taxonomy '%s' --alignment '%s' aln_file
 
 (plus other relevant arguments).
-''' % tre)
+''' % (nontemp_tax_file, nontemp_aln_file))
                 exit(2)
         return refpkg
     
-    def _compile(self, base, refpkg, hmm, diamond_database_file, prefix, max_range, tax_info):
-        if prefix:
-            gpkg = prefix + ".gpkg"
-        else:
-            gpkg = base + ".gpkg"
-        if os.path.isdir(gpkg): 
-            raise Exception("Detected gpkg with name %s" % (gpkg))
-        os.mkdir(gpkg)
-        os.rename(refpkg, os.path.join(gpkg, refpkg))
-        
-        hmm_file_in_gpkg = os.path.basename(hmm)
-        shutil.copyfile(hmm, os.path.join(gpkg, hmm_file_in_gpkg))
-        
-        diamond_database_file_in_gpkg = os.path.basename(diamond_database_file)
-        shutil.copyfile(diamond_database_file, os.path.join(gpkg, diamond_database_file_in_gpkg))
-        
-        refpkg_in_gpkg = "%s.refpkg" % os.path.basename(base)
-        shutil.copytree(refpkg, os.path.join(gpkg, refpkg_in_gpkg))
-        
-        contents = {"graftm_package_version": 2,
-                    "align_hmm": hmm_file_in_gpkg,
-                    "search_hmms": [hmm_file_in_gpkg],
-                    "refpkg": refpkg,
-                    "trusted_cutoff":False,
-                    "diamond_database": diamond_database_file_in_gpkg,
-                    "range": max_range}
-        
-        json.dump(contents, open(os.path.join(gpkg, 'CONTENTS.json'), 'w'))
+
 
     def _cleanup(self, the_trashcan):
         for every_piece_of_junk in the_trashcan:
@@ -246,7 +221,7 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         '''
         if residue_type=='na':
             cmd = "FastTree -quiet -gtr -nt -nome -mllen -intree '%s' -log %s -out %s %s" %\
-                                       (tree, output_log_file_path, 
+                                       (tree, output_log_file_path,
                                         output_tree_file_path, alignment)
         elif residue_type=='aa':
             cmd = "FastTree -quiet -nome -mllen -intree '%s' -log %s -out %s %s" %\
@@ -254,7 +229,8 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
                                         output_tree_file_path, alignment)
         extern.run(cmd)
         
-    def main(self, alignment, **kwargs):
+    def main(self, **kwargs):
+        alignment = kwargs.pop('alignment',None)
         sequences = kwargs.pop('sequences',None)
         taxonomy = kwargs.pop('taxonomy',None)
         rerooted_tree = kwargs.pop('rerooted_tree',None)
@@ -262,16 +238,29 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         prefix = kwargs.pop('prefix', None)
         rerooted_annotated_tree = kwargs.pop('rerooted_annotated_tree', None)
         user_hmm = kwargs.pop('hmm', None)
-        min_aligned_percent = kwargs.pop('min_aligned_percent',0.0)
+        min_aligned_percent = kwargs.pop('min_aligned_percent',0.01)
         taxtastic_taxonomy = kwargs.pop('taxtastic_taxonomy', None)
         taxtastic_seqinfo = kwargs.pop('taxtastic_seqinfo', None)
+        force_overwrite = kwargs.pop('force',False)
         if len(kwargs) > 0:
             raise Exception("Unexpected arguments detected: %s" % kwargs)
         
+        locus_name = os.path.basename(sequences).split('.')[0]
         tmp = tempdir.TempDir()
-        base = os.path.join(tmp.name, os.path.basename(alignment).split('.')[0])
+        base = os.path.join(tmp.name, locus_name)
             
-        logging.info("Building gpkg for %s" % base)
+        if prefix:
+            output_gpkg_path = prefix
+        else:
+            output_gpkg_path = "%s.gpkg"
+            
+        if os.path.exists(output_gpkg_path):
+            if force_overwrite:
+                logging.warn("Deleting previous directory %s" % output_gpkg_path)
+                shutil.rmtree(output_gpkg_path)
+            else:
+                raise Exception("Cowardly refusing to overwrite gpkg to already existing %s" % output_gpkg_path)
+        logging.info("Building gpkg for %s" % output_gpkg_path)
         
         # align sequences to HMM (and potentially build hmm from alignment)
         output_alignment_f = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa')
@@ -336,9 +325,6 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         deduplicated_alignment_file = base+"_deduplicated_aligned.fasta"
         seqio.write_fasta_file([seqs[0] for seqs in deduplicated_arrays],
                                deduplicated_alignment_file)
-
-        output_alignment=deduplicated_alignment_file
-        
         logging.info("Removed %i sequences as duplicates, leaving %i non-identical sequences"\
                      % ((len(aligned_sequence_objects)-len(deduplicated_arrays)),
                         len(deduplicated_arrays)))
@@ -368,7 +354,7 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
                 [removed_sequence_names.append(s.name) for s in group[1:]]        
             cleaner.remove_sequences(tree, removed_sequence_names)
             
-            # Ensure there is nothing amiss now as a user-interace thing
+            # Ensure there is nothing amiss now as a user-interface thing
             cleaner.match_alignment_and_tree_sequence_ids(\
                 [g[0].name for g in deduplicated_arrays], tree)
             
@@ -391,11 +377,13 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
                                             tre_file, log_file, ptype)
             
         # Create tax and seqinfo .csv files
+        refpkg = "%s.refpkg" % output_gpkg_path
+        self.the_trash.append(refpkg)
         if taxtastic_taxonomy and taxtastic_seqinfo:
             logging.info("Creating reference package")
-            refpkg = self._taxit_create(base, output_alignment, tre_file, 
+            refpkg = self._taxit_create(base, deduplicated_alignment_file, tre_file, 
                                           log_file, taxtastic_taxonomy,
-                                          taxtastic_seqinfo, prefix, no_reroot)
+                                          taxtastic_seqinfo, refpkg, no_reroot)
         else:
             gtns = Getaxnseq()
             seq = base+"_seqinfo.csv"
@@ -417,8 +405,8 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
             
             # Create the reference package
             logging.info("Creating reference package")
-            refpkg = self._taxit_create(base, output_alignment, tre_file, 
-                                          log_file, tax, seq, prefix, no_reroot)
+            refpkg = self._taxit_create(base, deduplicated_alignment_file, tre_file, 
+                                          log_file, tax, seq, refpkg, no_reroot)
         
         # Run diamond makedb
         logging.info("Creating diamond database")
@@ -431,7 +419,7 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         
         # Compile the gpkg
         logging.info("Compiling gpkg")
-        self._compile(base, refpkg, hmm, diamondb, prefix, max_range, tax)
+        GraftMPackageVersion2.compile(output_gpkg_path, locus_name, refpkg, hmm, diamondb, max_range)
 
         logging.info("Cleaning up")
         self._cleanup(self.the_trash)

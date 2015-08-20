@@ -3,6 +3,7 @@ import shutil
 import json
 import logging
 import extern
+from graftm.graftm_package import GraftMPackage
 
 PIPELINE_AA = "P"
 PIPELINE_NT = "D"
@@ -178,19 +179,17 @@ class HouseKeeping:
         if args.graftm_package:
             if not os.path.isdir(args.graftm_package):
                 raise Exception("%s does not exist. Are you sure you provided the correct path?" % args.graftm_package)
-            if self.contents(args.graftm_package) is None:
-                raise Exception('Misformatted GraftM package')
-            elif self.contents(args.graftm_package) is not None:
-                c = self.contents(args.graftm_package)
+            else:
+                gpkg = GraftMPackage.acquire(args.graftm_package)
                 if hasattr(args, 'search_hmm_files'): # If a hmm is specified, overwrite the one graftM package
-                    setattr(args, 'aln_hmm_file', os.path.join(args.graftm_package, c['aln_hmm']))
-                    setattr(args, 'reference_package', os.path.join(args.graftm_package, c['rfpkg']))
+                    setattr(args, 'aln_hmm_file', gpkg.alignment_hmm_path())
+                    setattr(args, 'reference_package', gpkg.reference_package_path())
                 else:
                     setattr(args, 'search_hmm_files', [])
-                    for hmm in c['search_hmm']:
+                    for hmm in gpkg.search_hmm_paths():
                         args.search_hmm_files.append(os.path.join(args.graftm_package, hmm))
-                    setattr(args, 'aln_hmm_file', os.path.join(args.graftm_package, c['aln_hmm']))
-                    setattr(args, 'reference_package', os.path.join(args.graftm_package, c['rfpkg']))
+                    setattr(args, 'aln_hmm_file', gpkg.alignment_hmm_path())
+                    setattr(args, 'reference_package', gpkg.reference_package_path())
 
         elif hasattr(args, 'search_diamond_files'):
             if args.search_method == 'diamond': 

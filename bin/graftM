@@ -182,7 +182,7 @@ sequence1    k__kingdom1; p__phylum2
 ''')
 
     create = create_parser.add_argument_group('Common options')
-    create.add_argument('--taxonomy', metavar='TAX', help='File containing two tab separated columns, the first with the ID of the sequences, the second with the taxonomy string (required unless --rerooted_annotated_tree is specified)')
+    create.add_argument('--taxonomy', metavar='TAX', help='File containing two tab separated columns, the first with the ID of the sequences, the second with the taxonomy string (required unless --rerooted_annotated_tree or --hmm is specified)')
     create.add_argument('--alignment', metavar='ALN', help='An alignment with which to build a custom HMM and tree (required)', required=True)
     create.add_argument('--sequences', metavar='FASTA', help='Unaligned sequences (required)', required=True)
     create.add_argument('--rerooted_tree', help='A tree with which to build the refpkg, appropriately rooted. (default: generate tree with FastTree and attempt reroot with taxtastic)')
@@ -195,6 +195,7 @@ sequence1    k__kingdom1; p__phylum2
     create_lesser_options.add_argument('--tree_log', help='A log file for the tree. (default: generate from tree and alignment)')
     create_lesser_options.add_argument('--taxtastic_taxonomy', help='A taxtastic format taxonomy file. (default: use taxonomy from --taxonomy)')
     create_lesser_options.add_argument('--taxtastic_seqinfo', help='A taxtastic format seqinfo file. (default: use taxonomy from --taxonomy)')
+    create_lesser_options.add_argument('--force', action="store_true", help='Overwrite output gpkg directory if it exists. (default: be cowardly and don\'t)', default=False)
     
     create_logging_options=create_parser.add_argument_group('Logging options')
     create_logging_options.add_argument('--verbosity', metavar='verbosity', help='1 - 5, 1 being silent, 5 being noisy indeed', type=int, default=4)

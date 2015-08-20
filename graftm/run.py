@@ -179,7 +179,7 @@ class Run:
         hit_read_count_list = []
         db_search_results   = []
 
-        
+
         if gpkg:
             maximum_range = gpkg.maximum_range()
             diamond_db    = gpkg.diamond_database_path()
@@ -209,7 +209,7 @@ class Run:
                     diamond_db = None
                 else:
                     logging.error("%s search method selected, but no gpkg or diamond database selected" % self.args.search_method)
-                    
+
         if self.args.assignment_method == Run.DIAMOND_TAXONOMIC_ASSIGNMENT:
             if self.args.reverse:
                 logging.warn("--reverse reads specified with --assignment_method diamond. Reverse reads will be ignored.")
@@ -385,7 +385,7 @@ class Run:
                         for record in clusters[read_name]:
                             clusters_taxonomy[record.name]=place[read_name]
                     assignments[base].update(clusters_taxonomy)
-                    
+
         elif self.args.assignment_method == Run.DIAMOND_TAXONOMIC_ASSIGNMENT:
             logging.info("Assigning taxonomy with diamond")
             taxonomic_assignment_time, assignments = self._assign_taxonomy_with_diamond(\
@@ -420,17 +420,17 @@ class Run:
         -------
         list of
         1. time taken for assignment
-        2. assignments i.e. dict of base_list entry to dict of read names to 
+        2. assignments i.e. dict of base_list entry to dict of read names to
             to taxonomies, or None if there was no hit detected.
         '''
         runner = Diamond(graftm_package.diamond_database_path(),
-                         self.args.threads, 
+                         self.args.threads,
                          self.args.evalue)
         taxonomy_definition = Getaxnseq().read_taxtastic_taxonomy_and_seqinfo\
                 (open(graftm_package.taxtastic_taxonomy_path()), 
                  open(graftm_package.taxtastic_seqinfo_path()))
         results = {}
-        
+
         # For each of the search results,
         for i, search_result in enumerate(db_search_results):
             sequence_id_to_hit = {}
@@ -441,9 +441,11 @@ class Run:
                                             SequenceSearchResult.HIT_ID_FIELD]):
                 if res[0] in sequence_id_to_hit:
                     # do not accept duplicates
-                    raise Exception("Duplicate sequence name or bad diamond parameters for %s" % res[0])
-                sequence_id_to_hit[res[0]] = res[1]
-            
+                    if sequence_id_to_hit[res[0]] != res[1]:
+                        raise Exception("Diamond unexpectedly gave two hits for a single query sequence for %s" % res[0])
+                else:
+                    sequence_id_to_hit[res[0]] = res[1]
+
             # Extract taxonomy of the best hit, and add in the no hits
             sequence_id_to_taxonomy = {}
             for seqio in SequenceIO().read_fasta_file(search_result.hit_fasta()):
@@ -454,7 +456,7 @@ class Run:
                 else:
                     # picked up in the initial search (by hmmsearch, say), but diamond misses it
                     sequence_id_to_taxonomy[name] = None
-            
+
             results[base_list[i]] = sequence_id_to_taxonomy
         return results
 

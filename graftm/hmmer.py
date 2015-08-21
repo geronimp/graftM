@@ -500,12 +500,12 @@ class Hmmer:
             with open(output_path, 'w') as open_output_path:
                 for record in records:                    
                     entry=sequence_frame_info_dict[record.id]
+                    indfrom=(min(entry[2], entry[1])-1)
+                    indto=max(entry[2], entry[1])
                     if entry[0] == False:
-                        ind=max(entry[2], entry[1])
-                        record.seq = max([x for x in record.seq[:ind].reverse_complement().translate().split("*")], key=len)                       
+                        record.seq = max([x for x in record.seq[indfrom:indto].reverse_complement().translate().split("*")], key=len)                       
                     else:
-                        ind=(min(entry[2], entry[1])-1)
-                        record.seq = max([x for x in record.seq[ind:].translate().split("*")], key=len)                        
+                        record.seq = max([x for x in record.seq[indfrom:indto].translate().split("*")], key=len)                        
                     SeqIO.write(record, open_output_path, "fasta")
                 open_output_path.flush()
                         

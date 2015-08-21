@@ -1,0 +1,1 @@
+{"rfpkg": "homologs.refpkg", "version": 2, "diamond_database": "homologs.dmnd", "TC": false, "range": 829.5, "aln_hmm": "homologs_0.hmm", "taxtastic_taxonomy_file": "homologs.refpkg/homologs_taxonomy.csv", "search_hmm": ["homologs_0.hmm"]}

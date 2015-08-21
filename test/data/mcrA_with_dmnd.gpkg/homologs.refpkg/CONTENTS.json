@@ -1,0 +1,29 @@
+{
+    "files": {
+        "phylo_model": "phylo_model9eDX4K.json", 
+        "taxonomy": "homologs_taxonomy.csv", 
+        "tree": "graftmMUpy0V.tree", 
+        "aln_fasta": "homologs_deduplicated_aligned.fasta", 
+        "seq_info": "homologs_seqinfo.csv", 
+        "tree_stats": "graftmqxMB0b.tree_log"
+    }, 
+    "rollback": null, 
+    "log": [
+        "Stripped refpkg (removed 0 files)", 
+        "Loaded initial files into empty refpkg"
+    ], 
+    "metadata": {
+        "create_date": "2015-07-28 11:42:22", 
+        "format_version": "1.1", 
+        "locus": "homologs"
+    }, 
+    "rollforward": null, 
+    "md5": {
+        "phylo_model": "a060050ee63db8d5ad5e680133300970", 
+        "taxonomy": "b5fdacad5342d0dd1a0023671e5c1753", 
+        "tree": "64e6ce0cf1aba27bacb6d1c34503fa7d", 
+        "aln_fasta": "2f6c75f312f9937ac7f7211999cf08ff", 
+        "seq_info": "75c4e52efeaf37053bf46e3661d397e1", 
+        "tree_stats": "7f7352ec997590c9e37511dc3a489506"
+    }
+}

@@ -971,7 +971,9 @@ class Hmmer:
         reverse_direction : dict
             A dictionary of read names, with the entries being the complement 
             strand of the read (True = forward, False = reverse)
-            
+        pipeline : str
+            Either "P" or "D" corresponding to the protein and nucleotide (DNA)
+            pipelines, respectively. 
         Returns
         -------
         N/A - output alignment path known.

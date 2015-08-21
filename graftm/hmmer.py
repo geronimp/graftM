@@ -4,7 +4,7 @@ import itertools
 import logging
 import tempfile
 import subprocess
-
+from Bio import Seq
 from Bio import SeqIO
 from Bio.Alphabet import generic_dna
 from collections import OrderedDict
@@ -501,13 +501,12 @@ class Hmmer:
                 for record in records:                    
                     entry=sequence_frame_info_dict[record.id]
                     if entry[0] == False:
-                        frame_start = int(entry[2])-1
-                        record.seq= record.seq[frame_start:].reverse_complement()[:int(entry[1])].translate(to_stop=True)
-                        SeqIO.write(record, open_output_path, "fasta")
+                        ind=max(entry[2], entry[1])
+                        record.seq = max([x for x in record.seq[:ind].reverse_complement().translate().split("*")], key=len)                       
                     else:
-                        frame_start = int(entry[1])-1
-                        record.seq=record.seq[frame_start:entry[2]].translate(to_stop=True)
-                        SeqIO.write(record, open_output_path, "fasta")
+                        ind=(min(entry[2], entry[1])-1)
+                        record.seq = max([x for x in record.seq[ind:].translate().split("*")], key=len)                        
+                    SeqIO.write(record, open_output_path, "fasta")
                 open_output_path.flush()
                         
 

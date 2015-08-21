@@ -4,7 +4,7 @@ import itertools
 import logging
 import tempfile
 import subprocess
-from Bio import Seq
+
 from Bio import SeqIO
 from Bio.Alphabet import generic_dna
 from collections import OrderedDict

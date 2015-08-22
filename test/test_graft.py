@@ -26,6 +26,7 @@ import subprocess
 import os.path
 import tempdir
 import tempfile
+import extern
 
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
@@ -67,6 +68,7 @@ GCAGCCGCGGTAATTC'''
                     self.assertEqual(expected_reads[count], line.strip())
                     count += 1
                 self.assertEqual(count, len(open(hits_file).readlines()))
+        
             
     def test_finds_reverse_complement(self):
         reads='''>NS500333:16:H16F3BGXX:1:11101:11211:1402 1:N:0:CGAGGCTG+CTCCTTAC
@@ -994,7 +996,7 @@ ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGAC
                 self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
 
 
-
+    
 
         
                     

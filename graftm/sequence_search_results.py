@@ -155,16 +155,17 @@ class HMMSearchResult(SequenceSearchResult):
             alifrom    = int(row[17])
             alito      = int(row[18])
             aln_length = (alito-alifrom if alito-alifrom>0 else alifrom-alito)
-            res.results.append([row[0],
-                                row[3],
-                                aln_length,
-                                int(row[15]),
-                                int(row[16]),
-                                alifrom,
-                                alito,
-                                row[7],
-                                alito > alifrom
-                                ])
+            if alito != alifrom: #this actually happens..
+                res.results.append([row[0],
+                                    row[3],
+                                    aln_length,
+                                    int(row[15]),
+                                    int(row[16]),
+                                    alifrom,
+                                    alito,
+                                    row[7],
+                                    True
+                                    ])
         return res
         
         

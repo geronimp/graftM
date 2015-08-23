@@ -81,13 +81,16 @@ class Tests(unittest.TestCase):
                           rerooted_tree=os.path.join(path_to_data,'create','decorated.tree'),
                           min_aligned_percent=0.5,
                           prefix=tmp+".gpkg")
+            original_alignment_length = len(open(os.path.join(tmp+'.gpkg',os.path.basename(tmp)+'.gpkg.refpkg','homologs_deduplicated_aligned.fasta')).readlines())
         with tempdir.TempDir() as tmp:
-            self.assertRaises(Exception, Create().main,
-                              alignment=os.path.join(path_to_data,'create','homologs.trimmed.aligned.faa'),
-                              taxonomy=os.path.join(path_to_data,'create','homologs.tax2tree.rerooted.decorated.tree-consensus-strings'),
-                              rerooted_tree=os.path.join(path_to_data,'create','decorated.tree'), 
-                              min_aligned_percent=0.9,
-                              prefix=tmp)
+            Create().main(alignment=os.path.join(path_to_data,'create','homologs.trimmed.aligned.faa'),
+                      taxonomy=os.path.join(path_to_data,'create','homologs.tax2tree.rerooted.decorated.tree-consensus-strings'),
+                      sequences=os.path.join(path_to_data,'create','homologs.trimmed.unaligned.faa'),
+                      #rerooted_tree=os.path.join(path_to_data,'create','decorated.tree'), 
+                      min_aligned_percent=0.9,
+                      prefix=tmp+".gpkg")
+            self.assertEqual(original_alignment_length-4, # 2 sequences get removed
+                             len(open(os.path.join(tmp+'.gpkg',os.path.basename(tmp)+'.gpkg.refpkg','homologs_deduplicated_aligned.fasta')).readlines()))
             
     def test_hmm_input(self):
         with tempdir.TempDir() as tmp:

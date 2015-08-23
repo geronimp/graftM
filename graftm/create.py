@@ -228,6 +228,34 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
                                        (tree, output_log_file_path, 
                                         output_tree_file_path, alignment)
         extern.run(cmd)
+    
+    def _remove_sequences_from_alignment(self, sequence_names, input_alignment_file, output_alignment_file):
+        '''Remove sequences from the alignment file that have names in
+        sequence_names
+        
+        Parameters
+        ----------
+        sequence_names: list of str
+            names of sequences to remove
+        input_alignment_file: str
+            path to alignment file to remove from
+        output_alignment_file: str
+            path to alignment file to write to
+            
+        Returns
+        -------
+        int: number of sequences written to file'''
+        nameset = set(sequence_names)
+        num_written = 0
+        with open(output_alignment_file, 'w') as f:
+            for s in SeqIO.parse(open(input_alignment_file), "fasta"):
+                if s.name not in nameset:
+                    f.write(">"+s.name+"\n")
+                    f.write(str(s.seq)+"\n")
+                    num_written += 1
+        return num_written
+                
+
         
     def main(self, **kwargs):
         alignment = kwargs.pop('alignment',None)
@@ -277,13 +305,18 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         insufficiently_aligned_sequences = self._check_reads_hit(open(output_alignment),
                                                                  min_aligned_percent)
         if len(insufficiently_aligned_sequences) > 0:
-            logging.error("One or more alignments do not span > %.2f %% of HMM" % (min_aligned_percent*100))
+            logging.warn("One or more alignments do not span > %.2f %% of HMM" % (min_aligned_percent*100))
             for s in insufficiently_aligned_sequences:
-                logging.error("Insufficient alignment of %s" % s)
-            raise Exception("One or more sequences did not span a sufficient"+
-                " amount of the alignment suggesting that potentially they should "
-                "not be included in the alignment e.g. '%s'" % insufficiently_aligned_sequences[0])
-        logging.debug("Found no sequences of insufficient length")
+                logging.warn("Insufficient alignment of %s, not including this sequence" % s)
+            output_alignment_f2 = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa')
+            output_alignment2 = output_alignment_f2.name
+            num_sequences = self._remove_sequences_from_alignment(insufficiently_aligned_sequences, output_alignment,output_alignment2)
+            output_alignment = output_alignment2
+            logging.info("After removing insufficiently aligned sequences, left with %i sequences aligned" % num_sequences)
+            if num_sequences < 4:
+                raise Exception("Too few sequences remaining in alignment after removing insufficiently aligned sequences: %i" % num_sequences)
+        else:
+            logging.debug("Found no sequences of insufficient length")
         
         # Read in taxonomy somehow
         gtns = Getaxnseq()

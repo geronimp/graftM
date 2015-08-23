@@ -334,8 +334,10 @@ class Run:
                     aln_time = self.h.align(
                                             result.hit_fasta(),
                                             hit_aligned_reads,
-                                            self._get_sequence_directions(result.search_result)
-                                            )[0]
+                                            self._get_sequence_directions(result.search_result),
+                                            self.args.type
+                                            )
+
                     seqs_list.append(hit_aligned_reads)
 
                 db_search_results.append(result)

@@ -527,6 +527,7 @@ class Run:
                           min_aligned_percent=float(self.args.min_aligned_percent)/100,
                           taxtastic_taxonomy = self.args.taxtastic_taxonomy,
                           taxtastic_seqinfo = self.args.taxtastic_seqinfo,
+                          user_hmm = self.args.hmm,
                           force = self.args.force
                           )
         elif self.args.subparser_name == 'bootstrap':

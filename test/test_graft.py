@@ -1052,6 +1052,36 @@ ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGAC
                             ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales; Methanoflorentaceae; Methanoflorens']]
                 expected = ['\t'.join(l) + '\n' for l in expected]
                 self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
+                
+                
+                expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
+                            ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales; Methanoflorentaceae; Methanoflorens']]
+                expected = ['\t'.join(l) + '\n' for l in expected]
+                self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
+
+    def test_hit_where_sequence_evalue_is_good_but_individuals_bad(self):
+        # the first one is a real hit, the second has several hits better but none better than 1e-5
+        testing = '''>2509711280 Pleur7313DRAFT_05268 ribosomal protein S19, bacterial/organelle [Pleurocapsa sp. PCC 7319]
+MSRSLKKGPFIADSLLKKIEKLNANNKKEVIKTWSRASTILPQMVGHTIAVHNGRQHIPVFISDQMVGHKLGEFAPTRTFRGHAKSDKKGRR
+>2509712449 Pleur7313DRAFT_06440 FOG: WD40 repeat [Pleurocapsa sp. PCC 7319]
+MSKSVVINLGSGDLYKGFPRVTAQLWAAGYPRPEQFIGSLPAAPALAESYRTWQSIYKALCSRLVLFSRGPDDDDDELEIDEGGITQVSEVSFDALGQQLHESLNAWLKSVEFLNIERQLRSQLDPSEEIRVIIETNDEQLRRLPWHCWDFVEDYYYSEAALSRPEYKRIKRSPSKINRKKVRILAVLGNSQGIDLEVERRFLKGLPDAETVFLVNPSRHEFNEQLWNSQGWDILFFAGHSQSEGKTGRIYLNENKTNNSLTVEQLKEALKEAIKNDLYLAIFNSCDGLGLANALGKLNLPQIIVMREPVPNRVAQEFFKHFLSAFASQRSPLYSAVRQARRQLQGLENEFPSASWLPVISQNPAVEPPTWLQLGGIPPCPYRGLSAFREEDAHLFCGREEFTANLLKEVKSKPLVAVVGASGSGKSSVVFAGLIPHLQQDTDLCWQIVSFRPGNNPVDSLAAALVPLWQQRENNQEDNLASRDNSIVELELFLALRRDELALSKLIKSLVESPKTRLLLIADQFEELYTLSNQAERQFFLTLLLNAVKFAPAFTLVLTLRADFYGYILGDRSWSDALQGAIQNLGSMSRSELQLVIEKPAALMQVKLEQGLTDKLINNVWEQPGRLPLLEFALTQLWSKQQHGLLTHQAYSEIGGVSSALANHAEAVYAQLSETDKQLVQQVFLQLVRLGEETEATRRLATRDEIKAENWDLVTRLASARLVVTNHRYSTGKETVEIVHESLIKSWGRLQQWLLLDGDFRRWQEQLRTAIGQWQWQGSSSNQDTLLRGKPLTDASNWLQKRFQELTDSERSFIQASLEQRNNHIKAEKRRQQWTILGLTLGSILAVSLMGVARWQWQKVRIGELYALTKSSEVLFADNDRLNALVKAIAAQEKLQKLGRVDTKLQNQVESILRRSIYGANESNRLSGHHGAVWGVAFSPDGQTIASTSWDNTIKLWSRNGKELKTITGHVEEVWGVAFSPDGQTIATASGDNTVKLWQHDGTLLKTLTGHGDIVYSVAFSPDGQAIATASGDNTVKLWQRDGTLVKTLTGHEASVWGVAFNPNGQTIASAGWDKKVKLWSRDGALLKTLESHQAPVNALAFSPDGQTIATASNDKTVKLWSRDGTLLKTLEGHDDDVWGISFSPDGQTFASVSGDKTVKLWSRDGTLLQTLEGHDDEVWGVSFSPDGQTLASAGDDKTIRLWQRDNKLLTTLSSHSAGVNGVAFSPDEQLIASAGWDKTVKLWNSNGSLLKTLIGHSAAINALAFEPGGNIIATASADNTVKFWQRDGTLLKTLIGHRAGVNAVVFSPDGEIVASASADTTVKLWSREGTLLKTLTGHRAGVNAVVFSPDGEMVASASADNTVKFWSRDGTELKTFKAHGDRLYALAFSFDGQMLATASADNTVKLWNRDGTELKTLNGHNGTVWGVAFSPDGQTIATASGDNTVNLWKLDGTLLTTLNAHNSAVNAIAFNSDGNRLTSASEDRTVIVWDLNRVRSLDEILAYSCDWVQHYLQNNANVNPEALLLCGKIENLNPQ
+'''
+        
+        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+            fasta.write(testing)
+            fasta.flush()
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --verbosity 2 --search_and_align_only --forward %s --output_directory %s --force --search_hmm_files %s' % (path_to_script,
+                                                                                                                 fasta.name,
+                                                                                                                 tmp,
+                                                                                                                 os.path.join(path_to_data,'s19.hmm'))
+                extern.run(cmd)
+                expected = '''>2509711280 Pleur7313DRAFT_05268 ribosomal protein S19, bacterial/organelle [Pleurocapsa sp. PCC 7319]
+MSRSLKKGPFIADSLLKKIEKLNANNKKEVIKTWSRASTILPQMVGHTIAVHNGRQHIPV
+FISDQMVGHKLGEFAPTRTFRGHAKSDKKGRR
+'''
+                self.assertEqual(expected, open(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "%s_hits.fa" % os.path.basename(fasta.name)[:-3])).read())
+        
 
 
     

@@ -188,7 +188,7 @@ class Hmmer:
             raise Exception('Programming Error: error guessing input sequence type')
         
         # Run the HMMsearches
-        searcher = HmmSearcher(threads, '-E %s' % evalue)
+        searcher = HmmSearcher(threads, '--domE %s' % evalue)
         searcher.hmmsearch(input_cmd, self.search_hmm, output_table_list)
         hmmtables = [HMMSearchResult.import_from_hmmsearch_table(x) for x in output_table_list]
         return hmmtables
@@ -305,7 +305,7 @@ class Hmmer:
             raise Exception("Programming error: Expected 1 or more HMMs")
         input_pipe = unpack.command_line()
         
-        searcher = NhmmerSearcher(threads, extra_args='-E %s' % evalue)
+        searcher = NhmmerSearcher(threads, extra_args='--incE %s -E %s' % (evalue, evalue))
         searcher.hmmsearch(input_pipe, self.search_hmm, output_table_list)
         
         hmmtables = [HMMSearchResult.import_from_nhmmer_table(x) for x in output_table_list]
@@ -573,7 +573,7 @@ class Hmmer:
                 i = hit[0]  # set id to i
                 c = hit[1]  # set complement to c
                 ft = [min(hit[2:4]), max(hit[2:4])]  # set span as ft (i.e. from - to)
-                qs = [min(hit[4:6]), max(hit[4:6])]  # seq the query span to qs    
+                qs = [min(hit[4:6]), max(hit[4:6])]  # seq the query span to qs
                 
                 if ft[0] == ft[1]: continue  # if the span covers none of the query, skip that entry (seen this before)
                 

@@ -250,8 +250,7 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         with open(output_alignment_file, 'w') as f:
             for s in SeqIO.parse(open(input_alignment_file), "fasta"):
                 if s.name not in nameset:
-                    f.write(">"+s.name+"\n")
-                    f.write(str(s.seq)+"\n")
+                    SeqIO.write(s, f, "fasta")
                     num_written += 1
         return num_written
                 
@@ -310,9 +309,15 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
                 logging.warn("Insufficient alignment of %s, not including this sequence" % s)
             output_alignment_f2 = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa')
             output_alignment2 = output_alignment_f2.name
-            num_sequences = self._remove_sequences_from_alignment(insufficiently_aligned_sequences, output_alignment,output_alignment2)
+            num_sequences = self._remove_sequences_from_alignment(insufficiently_aligned_sequences, output_alignment, output_alignment2)
             output_alignment = output_alignment2
-            logging.info("After removing insufficiently aligned sequences, left with %i sequences aligned" % num_sequences)
+            
+            sequences_f2 = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.faa')
+            sequences2 = sequences_f2.name
+            self._remove_sequences_from_alignment(insufficiently_aligned_sequences, sequences, sequences2)
+            sequences = sequences2
+            
+            logging.info("After removing %i insufficiently aligned sequences, left with %i sequences" % (len(insufficiently_aligned_sequences), num_sequences))
             if num_sequences < 4:
                 raise Exception("Too few sequences remaining in alignment after removing insufficiently aligned sequences: %i" % num_sequences)
         else:

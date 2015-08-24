@@ -208,7 +208,7 @@ sequence1    k__kingdom1; p__phylum2
     bootstrap_parser = subparsers.add_parser('bootstrap',
                                             description='Generate a new HMM from the given contigs',
                                             epilog=__author__)
-    bootstrap_parser.add_argument('--contigs', help='contigs to search', required=True)
+    bootstrap_parser.add_argument('--contigs', nargs='+', help='contigs to search', required=True)
     bootstrap_parser.add_argument('--output_hmm', help='output HMM file', required=True)
     bootstrap_parser.add_argument('--graftm_package', help='find sequences with this graftm package')
     bootstrap_parser.add_argument('--search_hmm_files', nargs='+', help='find sequences with this/these HMM(s)')

@@ -547,5 +547,5 @@ class Run:
                 evalue = args.evalue,
                 min_orf_length = args.min_orf_length,
                 graftm_package = pkg)
-            strapper.generate_hmm_from_contigs([args.contigs], args.output_hmm)
+            strapper.generate_hmm_from_contigs(args.contigs, args.output_hmm)
 

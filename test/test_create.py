@@ -27,6 +27,7 @@ import tempdir
 import sys
 import extern
 from graftm.graftm_package import GraftMPackageVersion2
+import logging
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 from graftm.create import Create
@@ -104,4 +105,5 @@ class Tests(unittest.TestCase):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.ERROR)
     unittest.main()

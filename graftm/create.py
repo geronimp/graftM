@@ -141,13 +141,22 @@ class Create:
         if no_reroot:
             cmd += ' --no-reroot'
             logging.debug("Calling command assuming pre-rerooting: %s" % cmd)
-            subprocess32.check_call(cmd, shell=True)
+            extern.run(cmd)
         else:
             logging.debug("Calling command: %s" % cmd)
             logging.info("Attempting to run taxit create with rerooting capabilities")
             try:
-                subprocess32.check_call(cmd, shell=True, timeout=20)
-            except (subprocess32.TimeoutExpired, subprocess32.CalledProcessError):
+                process = subprocess32.Popen(['bash','-c',cmd],
+                                           stdout=subprocess32.PIPE,
+                                           stderr=subprocess32.PIPE)
+                stdout, stderr = process.communicate(timeout=20)
+                    
+                if process.returncode != 0:
+                    raise extern.ExternCalledProcessError(cmd,
+                                               process.returncode,
+                                               stderr,
+                                               stdout)
+            except (subprocess32.TimeoutExpired, extern.ExternCalledProcessError):
                 nontemp_tax_file = 'graftm_create_taxonomy.csv'
                 shutil.copy(tax, nontemp_tax_file)
                 nontemp_aln_file = 'graftm_create_alignment.faa'

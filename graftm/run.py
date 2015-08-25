@@ -514,6 +514,12 @@ class Run:
             if bool(self.args.taxtastic_taxonomy) ^  bool(self.args.taxtastic_seqinfo):
                 logging.error("Both or neither of --taxtastic_taxonomy and --taxtastic_seqinfo must be defined")
                 exit(1)
+            if not self.args.alignment and not self.args.hmm:
+                logging.error("Either --alignment or --hmm must be set")
+                exit(1)
+            if self.args.alignment and self.args.hmm:
+                logging.error("--alignment and --hmm cannot both be set")
+                exit(1)
             self.hk.checkCreatePrerequisites()
 
             Create().main(

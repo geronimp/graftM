@@ -26,6 +26,7 @@ import subprocess
 import os.path
 import tempdir
 import tempfile
+import extern
 
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
@@ -33,6 +34,68 @@ path_to_samples = os.path.join(os.path.dirname(os.path.realpath(__file__)),'samp
 
 
 class Tests(unittest.TestCase):
+
+    def test_diamond_translate(self):
+        reads='''>HWI-ST1243:121:D1AF9ACXX:8:1101:12684:12444
+GTCAACAACCCCGCAATGCAACAGATGTGGGATGAGATCAGACGTACAGTTATCGTCGGTCTCGACCAGGCCCACGAGACGCTGACCAGAAGACTCGGTAAGGAAGTTACCCCTGAGACCATCAACGGCTATCTTGAGGCGTTGAACCAC
+>HWI-ST1243:121:D1AF9ACXX:8:1101:14973:25766
+CATGACGTCAGTCCCGGAGACGTTGTACGGCATAAGTTGCCGCTGACCAAGCGTCATACCGCCGAGGTGCACGTTGACGTTGTATGCGGGAATTCCTCGGTCCTTGGCGATCTTTGCGCCCCATTCCTGGAACTCGCGCTTGTCCTTGGA
+>HWI-ST1243:121:D1AF9ACXX:8:1101:4414:35570
+GGCCGATATGGTCCAGTCTTCGAGGAAGTACCCGAACGACCCCGCCAGGCAAGCGCTTGAGACAGTAGCACTTGGTGCGGTAATCTTCGACCAGATCTACCTCGGTTCCTGCATGTCCGGCGGTGTTGGGTTCACCCAATACGCCACCGC
+>HWI-ST1243:121:D1AF9ACXX:8:1101:3408:44386
+CTACAAGCTCTCCGGAACTGAGTATGTAGTAGAGGGCGACGATCTGCACTTCGTCAACAATCCAGCCATTCAGCAGATGTGGGATGATGTCAGGAGGACCATTGTAGTAGGTCTGGACATGGCCCACGAGGTTCTGCAAAAGCGCCTCGG
+>HWI-ST1243:121:D1AF9ACXX:8:1101:4036:46970
+CAACAAGTTGTTCCCTGCAAAGCAAGCTGGGCAACTTAAGAAGGCAATCGGCAAGACGCTCTGGCAGGGTGTGCACATCCCGACGATCGTCTCACGAACGTGCGACGGCGGTAAGACGAGCAGATGGGTTGCCTGGCAGACGTGTATGTG
+>HWI-ST1243:121:D1AF9ACXX:8:1101:6810:63372
+CATGACGTCAGTCCCGGAGACGTTGTACGGCATAAGTTGCCGCTGACCAAGCGTCATACCGCCGAGGTGCACGTTGACGTTGTATGCGGGAATTCCTCGGTCCTTGGCGATCTTTGCGCCCAATTCCTGGAACTCGCGCTTGTCCTTGGA
+>HWI-ST1243:121:D1AF9ACXX:8:1101:13819:75491
+CACGAGCAGATGGTCTGCTATGCAGATCGGTATGTCGTTCATCGCTGCATACAACATGTGTGCCGGTGAGGCAGCTGTGGCAGACCTGGCGTTTGCGCCCAAGCGCGCAAGCCTCTTGGGGGTGGCGGACGTGCTTCCACACTCCCGCAC
+>HWI-ST1243:121:D1AF9ACXX:8:1101:17503:91050
+CGCTTGGTCAGCGGCAACTTATGCCGTACAACGTCTCCGGGACTGACGTCATGTGTGAAGGCGATGACCTCCACTACGTCAACAACCCCGCAATGCAACAGATGTGGGATGAGATCAGACGTACAGTTATCGTCGGTCTCGACCAGGCCC
+>HWI-ST1243:121:D1AF9ACXX:8:1101:2683:99866
+TCCCGGCAAAGAGTGCAGCAGCACTGAAGGCCACAGTCGGCAAGTCGATGTACCAGGCAGTGCACATCCCCACAACCGTCAGCAGGACCTGCGACGGCGGAACCACCTCCCGGTGGTCTGCAATGCAGATCGGTATGTCCTTCATTGGAG
+>HWI-ST1243:121:D1AF9ACXX:8:1102:6995:2759
+GATCGTATATGTCAGGCGGTGTCGGTTTCACGCAGTACGCAACTGCAGCATACACCGATAACATCCTCGACGACTACAGCTACTACGGCAACGACTACGCCAAGAAGTACGGAGCGGACGGAGCGGCGCCAGCGACGATGGACGGCGTTC'''
+        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+            fasta.write(reads)
+            fasta.flush()
+            data = fasta.name
+            package = os.path.join(path_to_data,'mcrA_with_dmnd.gpkg/')
+            with tempdir.TempDir() as tmp:                
+                cmd = '%s graft --verbosity 2 --search_method diamond --forward %s --graftm_package %s --output_directory %s --force --search_and_align_only' % (path_to_script,
+                                                                                                                 data,
+                                                                                                                 package,
+                                                                                                                 tmp)
+                subprocess.check_output(cmd, shell=True)
+                sample_name = os.path.basename(fasta.name[:-3])
+                orfFile = os.path.join(tmp, sample_name, '%s_orf.fa' % sample_name)
+                expected_aln = '''>HWI-ST1243:121:D1AF9ACXX:8:1101:4036:46970
+NKLFPAKQAGQLKKAIGKTLWQGVHIPTIVSRTCDGGKTSRWVAWQTCM
+>HWI-ST1243:121:D1AF9ACXX:8:1101:6810:63372
+SKDKREFQELGAKIAKDRGIPAYNVNVHLGGMTLGQRQLMPYNVSGTDVM
+>HWI-ST1243:121:D1AF9ACXX:8:1101:3408:44386
+YKLSGTEYVVEGDDLHFVNNPAIQQMWDDVRRTIVVGLDMAHEVLQKRL
+>HWI-ST1243:121:D1AF9ACXX:8:1101:2683:99866
+PAKSAAALKATVGKSMYQAVHIPTTVSRTCDGGTTSRWSAMQIGMSFIG
+>HWI-ST1243:121:D1AF9ACXX:8:1101:14973:25766
+SKDKREFQEWGAKIAKDRGIPAYNVNVHLGGMTLGQRQLMPYNVSGTDVM
+>HWI-ST1243:121:D1AF9ACXX:8:1101:13819:75491
+TSRWSAMQIGMSFIAAYNMCAGEAAVADLAFAPKRASLLGVADVLPHSR
+>HWI-ST1243:121:D1AF9ACXX:8:1101:17503:91050
+LGQRQLMPYNVSGTDVMCEGDDLHYVNNPAMQQMWDEIRRTVIVGLDQA
+>HWI-ST1243:121:D1AF9ACXX:8:1101:4414:35570
+ADMVQSSRKYPNDPARQALETVALGAVIFDQIYLGSCMSGGVGFTQYAT
+>HWI-ST1243:121:D1AF9ACXX:8:1101:12684:12444
+VNNPAMQQMWDEIRRTVIVGLDQAHETLTRRLGKEVTPETINGYLEALNH
+>HWI-ST1243:121:D1AF9ACXX:8:1102:6995:2759
+SYMSGGVGFTQYATAAYTDNILDDYSYYGNDYAKKYGADGAAPATMDGV
+'''.split()
+                count = 0
+                for line in open(orfFile):
+                    self.assertEqual(expected_aln[count], line.strip())
+                    count += 1
+                self.assertEqual(count, len(open(orfFile).readlines()))
+
 
     def test_split_for_reads_hitting_same_HMM_region_but_within_merge(self):
         read='''>1000
@@ -67,6 +130,7 @@ GCAGCCGCGGTAATTC'''
                     self.assertEqual(expected_reads[count], line.strip())
                     count += 1
                 self.assertEqual(count, len(open(hits_file).readlines()))
+        
             
     def test_finds_reverse_complement(self):
         reads='''>NS500333:16:H16F3BGXX:1:11101:11211:1402 1:N:0:CGAGGCTG+CTCCTTAC
@@ -872,7 +936,6 @@ TGATGCGGCGTGTCTGTATCTACAAGCGCCACCACGGGTA
 ATCTACAAGCGCCACCACGGGTATCCCCATCTTGGCCGCCTCGGCGACGGCTTGGGAGTC
 TAGTCTCGGGTCTACTACGAATAGCAAGTCTACCTCAAGG
 '''
-        
         with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
             fasta.write(testing_read)
             fasta.flush()
@@ -896,8 +959,130 @@ TAGTCTCGGGTCTACTACGAATAGCAAGTCTACCTCAAGG
                 self.assertTrue(os.path.isfile(bootstrap_hmm_path))
                 self.assertEqual('HMMER3/f [3.1b2 | February 2015]\n',
                                  open(bootstrap_hmm_path).readlines()[0])
+                
+    def test_diamond_search_with_pplacer(self):
+        testing_read = '''>Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040
+ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGACGACCTATAAGCGCGAGGGGTGGACTCAGTCCAAGGACAAGCGCGAGTTCCAGGAATGGGGCGCAAAAATCGCCAAGGACCGTGGAATACCGGCGTACAACGTCAACGTCCACCTCGGCGGTATGACCCTCGGCCAGCGGCAACTCATGCCGTACAATGTCTCTGGGACCGACGTGATGTGTGAAGGCGATGACCTCCACTACGTCAACAACCCCGCAATGCAACAGATGTGGGATGAGATCAGGCGTACGGTTATCGTAGGTCTTGACACCGCTCACGAGACGCTGACCAGGAGACTCGGCAAGGAGGTTACCCCCGAGACCATCAACGGCTATCTCGAGGCATTGAACCACACGATGCCCGGTGCGGCCATTGTCCAAGAACACATGGTGGAAACCCACCCTGCGCTCGTTGAAGACTGCTTCGTAAAAGTCTTCACCGGCGACGATGACCTCGCC'''
+        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+            fasta.write(testing_read)
+            fasta.flush()
+            
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --verbosity 2 --search_method diamond --forward %s --output_directory %s --force --graftm_package %s' % (path_to_script,
+                                                                                                                 fasta.name,
+                                                                                                                 tmp,
+                                                                                                                 os.path.join(path_to_data,'mcrA.gpkg'))
+                subprocess.check_output(cmd, shell=True)
+                expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
+                            ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales']]
+                expected = ['\t'.join(l) + '\n' for l in expected]
+                self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
+                
+    def test_diamond_search_with_pplacer_protein_input(self):
+        testing_read = '''>2518787893 METHANOFLORENS STORDALENMIRENSIS MCRA
+MATEKTQKMFLEAMKKKFAEDPTSNKTTYKREGWTQSKDKREFQEWGAKIAKDRGIPAY
+NVNVHLGMTLGQRQLMPYNVSGTDVMCEGDDLHYVNNPAMQQMWDEIRRTVIVGLDTAH
+ETLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA'''
+        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+            fasta.write(testing_read)
+            fasta.flush()
+            
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --verbosity 2 --search_method diamond --forward %s --output_directory %s --force --graftm_package %s' % (path_to_script,
+                                                                                                                 fasta.name,
+                                                                                                                 tmp,
+                                                                                                                 os.path.join(path_to_data,'mcrA.gpkg'))
+                subprocess.check_output(cmd, shell=True)
+                expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
+                            ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales']]
+                expected = ['\t'.join(l) + '\n' for l in expected]
+                self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
+                
+    def test_diamond_placement_method(self):
+        testing_read = '''>Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040
+ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGACGACCTATAAGCGCGAGGGGTGGACTCAGTCCAAGGACAAGCGCGAGTTCCAGGAATGGGGCGCAAAAATCGCCAAGGACCGTGGAATACCGGCGTACAACGTCAACGTCCACCTCGGCGGTATGACCCTCGGCCAGCGGCAACTCATGCCGTACAATGTCTCTGGGACCGACGTGATGTGTGAAGGCGATGACCTCCACTACGTCAACAACCCCGCAATGCAACAGATGTGGGATGAGATCAGGCGTACGGTTATCGTAGGTCTTGACACCGCTCACGAGACGCTGACCAGGAGACTCGGCAAGGAGGTTACCCCCGAGACCATCAACGGCTATCTCGAGGCATTGAACCACACGATGCCCGGTGCGGCCATTGTCCAAGAACACATGGTGGAAACCCACCCTGCGCTCGTTGAAGACTGCTTCGTAAAAGTCTTCACCGGCGACGATGACCTCGCC'''
+        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+            fasta.write(testing_read)
+            fasta.flush()
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --verbosity 2  --forward %s --output_directory %s --force --assignment_method diamond --graftm_package %s' % (path_to_script,
+                                                                                                                 fasta.name,
+                                                                                                                 tmp,
+                                                                                                                 os.path.join(path_to_data,'mcrA.gpkg'))
+                subprocess.check_output(cmd, shell=True)
+                expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
+                            ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales; Methanoflorentaceae; Methanoflorens']]
+                expected = ['\t'.join(l) + '\n' for l in expected]
+                self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
+                
+    def test_diamond_placement_method_protein_input(self):
+        testing_read = '''>2518787893 METHANOFLORENS STORDALENMIRENSIS MCRA
+MATEKTQKMFLEAMKKKFAEDPTSNKTTYKREGWTQSKDKREFQEWGAKIAKDRGIPAY
+NVNVHLGMTLGQRQLMPYNVSGTDVMCEGDDLHYVNNPAMQQMWDEIRRTVIVGLDTAH
+ETLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA'''
+        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+            fasta.write(testing_read)
+            fasta.flush()
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --verbosity 2  --forward %s --output_directory %s --force --assignment_method diamond --graftm_package %s' % (path_to_script,
+                                                                                                                 fasta.name,
+                                                                                                                 tmp,
+                                                                                                                 os.path.join(path_to_data,'mcrA.gpkg'))
+                subprocess.check_output(cmd, shell=True)
+                expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
+                            ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales; Methanoflorentaceae; Methanoflorens']]
+                expected = ['\t'.join(l) + '\n' for l in expected]
+                self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
+                
+    def test_diamond_search_and_place_method(self):
+        testing_read = '''>Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040
+ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGACGACCTATAAGCGCGAGGGGTGGACTCAGTCCAAGGACAAGCGCGAGTTCCAGGAATGGGGCGCAAAAATCGCCAAGGACCGTGGAATACCGGCGTACAACGTCAACGTCCACCTCGGCGGTATGACCCTCGGCCAGCGGCAACTCATGCCGTACAATGTCTCTGGGACCGACGTGATGTGTGAAGGCGATGACCTCCACTACGTCAACAACCCCGCAATGCAACAGATGTGGGATGAGATCAGGCGTACGGTTATCGTAGGTCTTGACACCGCTCACGAGACGCTGACCAGGAGACTCGGCAAGGAGGTTACCCCCGAGACCATCAACGGCTATCTCGAGGCATTGAACCACACGATGCCCGGTGCGGCCATTGTCCAAGAACACATGGTGGAAACCCACCCTGCGCTCGTTGAAGACTGCTTCGTAAAAGTCTTCACCGGCGACGATGACCTCGCC'''
+        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+            fasta.write(testing_read)
+            fasta.flush()
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --verbosity 2 --search_method diamond --forward %s --output_directory %s --force --assignment_method diamond --graftm_package %s' % (path_to_script,
+                                                                                                                 fasta.name,
+                                                                                                                 tmp,
+                                                                                                                 os.path.join(path_to_data,'mcrA.gpkg'))
+                subprocess.check_output(cmd, shell=True)
+                expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
+                            ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales; Methanoflorentaceae; Methanoflorens']]
+                expected = ['\t'.join(l) + '\n' for l in expected]
+                self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
+                
+                
+                expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
+                            ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales; Methanoflorentaceae; Methanoflorens']]
+                expected = ['\t'.join(l) + '\n' for l in expected]
+                self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
+
+    def test_hit_where_sequence_evalue_is_good_but_individuals_bad(self):
+        # the first one is a real hit, the second has several hits better but none better than 1e-5
+        testing = '''>2509711280 Pleur7313DRAFT_05268 ribosomal protein S19, bacterial/organelle [Pleurocapsa sp. PCC 7319]
+MSRSLKKGPFIADSLLKKIEKLNANNKKEVIKTWSRASTILPQMVGHTIAVHNGRQHIPVFISDQMVGHKLGEFAPTRTFRGHAKSDKKGRR
+>2509712449 Pleur7313DRAFT_06440 FOG: WD40 repeat [Pleurocapsa sp. PCC 7319]
+MSKSVVINLGSGDLYKGFPRVTAQLWAAGYPRPEQFIGSLPAAPALAESYRTWQSIYKALCSRLVLFSRGPDDDDDELEIDEGGITQVSEVSFDALGQQLHESLNAWLKSVEFLNIERQLRSQLDPSEEIRVIIETNDEQLRRLPWHCWDFVEDYYYSEAALSRPEYKRIKRSPSKINRKKVRILAVLGNSQGIDLEVERRFLKGLPDAETVFLVNPSRHEFNEQLWNSQGWDILFFAGHSQSEGKTGRIYLNENKTNNSLTVEQLKEALKEAIKNDLYLAIFNSCDGLGLANALGKLNLPQIIVMREPVPNRVAQEFFKHFLSAFASQRSPLYSAVRQARRQLQGLENEFPSASWLPVISQNPAVEPPTWLQLGGIPPCPYRGLSAFREEDAHLFCGREEFTANLLKEVKSKPLVAVVGASGSGKSSVVFAGLIPHLQQDTDLCWQIVSFRPGNNPVDSLAAALVPLWQQRENNQEDNLASRDNSIVELELFLALRRDELALSKLIKSLVESPKTRLLLIADQFEELYTLSNQAERQFFLTLLLNAVKFAPAFTLVLTLRADFYGYILGDRSWSDALQGAIQNLGSMSRSELQLVIEKPAALMQVKLEQGLTDKLINNVWEQPGRLPLLEFALTQLWSKQQHGLLTHQAYSEIGGVSSALANHAEAVYAQLSETDKQLVQQVFLQLVRLGEETEATRRLATRDEIKAENWDLVTRLASARLVVTNHRYSTGKETVEIVHESLIKSWGRLQQWLLLDGDFRRWQEQLRTAIGQWQWQGSSSNQDTLLRGKPLTDASNWLQKRFQELTDSERSFIQASLEQRNNHIKAEKRRQQWTILGLTLGSILAVSLMGVARWQWQKVRIGELYALTKSSEVLFADNDRLNALVKAIAAQEKLQKLGRVDTKLQNQVESILRRSIYGANESNRLSGHHGAVWGVAFSPDGQTIASTSWDNTIKLWSRNGKELKTITGHVEEVWGVAFSPDGQTIATASGDNTVKLWQHDGTLLKTLTGHGDIVYSVAFSPDGQAIATASGDNTVKLWQRDGTLVKTLTGHEASVWGVAFNPNGQTIASAGWDKKVKLWSRDGALLKTLESHQAPVNALAFSPDGQTIATASNDKTVKLWSRDGTLLKTLEGHDDDVWGISFSPDGQTFASVSGDKTVKLWSRDGTLLQTLEGHDDEVWGVSFSPDGQTLASAGDDKTIRLWQRDNKLLTTLSSHSAGVNGVAFSPDEQLIASAGWDKTVKLWNSNGSLLKTLIGHSAAINALAFEPGGNIIATASADNTVKFWQRDGTLLKTLIGHRAGVNAVVFSPDGEIVASASADTTVKLWSREGTLLKTLTGHRAGVNAVVFSPDGEMVASASADNTVKFWSRDGTELKTFKAHGDRLYALAFSFDGQMLATASADNTVKLWNRDGTELKTLNGHNGTVWGVAFSPDGQTIATASGDNTVNLWKLDGTLLTTLNAHNSAVNAIAFNSDGNRLTSASEDRTVIVWDLNRVRSLDEILAYSCDWVQHYLQNNANVNPEALLLCGKIENLNPQ
+'''
+        
+        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+            fasta.write(testing)
+            fasta.flush()
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --verbosity 2 --search_and_align_only --forward %s --output_directory %s --force --search_hmm_files %s' % (path_to_script,
+                                                                                                                 fasta.name,
+                                                                                                                 tmp,
+                                                                                                                 os.path.join(path_to_data,'s19.hmm'))
+                extern.run(cmd)
+                expected = '''>2509711280 Pleur7313DRAFT_05268 ribosomal protein S19, bacterial/organelle [Pleurocapsa sp. PCC 7319]
+MSRSLKKGPFIADSLLKKIEKLNANNKKEVIKTWSRASTILPQMVGHTIAVHNGRQHIPV
+FISDQMVGHKLGEFAPTRTFRGHAKSDKKGRR
+'''
+                self.assertEqual(expected, open(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "%s_hits.fa" % os.path.basename(fasta.name)[:-3])).read())
+        
 
 
+    
 
         
                     

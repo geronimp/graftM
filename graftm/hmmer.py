@@ -6,6 +6,7 @@ import tempfile
 import subprocess
 
 from Bio import SeqIO
+from Bio.Alphabet import generic_dna
 from collections import OrderedDict
 
 from graftm.timeit import Timer
@@ -20,7 +21,8 @@ FORMAT_FASTA = "FORMAT_FASTA"
 FORMAT_FASTQ = "FORMAT_FASTQ"
 FORMAT_FASTQ_GZ = "FORMAT_FASTQ_GZ"
 FORMAT_FASTA_GZ = "FORMAT_FASTA_GZ"
-
+PIPELINE_AA = "P"
+PIPELINE_NT = "D"
 T = Timer()
 
 class Hmmer:
@@ -28,9 +30,8 @@ class Hmmer:
     def __init__(self, search_hmm, aln_hmm=None):
         self.search_hmm = search_hmm
         self.aln_hmm = aln_hmm
-        
 
-    def _hmmalign(self, input_path, directions):
+    def _hmmalign(self, input_path, directions, pipeline):
         '''
         Align reads to the aln_hmm. Receives unaligned sequences and 
         aligns them.
@@ -53,8 +54,13 @@ class Hmmer:
         for_conv_file = tempfile.NamedTemporaryFile(prefix='for_conv_file', suffix='.fa').name
         rev_conv_file = tempfile.NamedTemporaryFile(prefix='rev_conv_file', suffix='.fa').name
         
-        # Align input reads to a specified hmm.
-        if False in directions.values():  # Any that are in the reverse direction would be True
+        if pipeline == PIPELINE_AA:
+            reverse_complement_reads_present=False            
+        else:
+            reverse_complement_reads_present=False in directions.values()
+        
+        # Align input reads to a specified hmm.        
+        if reverse_complement_reads_present:  # Any that are in the reverse direction would be True
             reverse = []
             forward = []
             records = list(SeqIO.parse(open(input_path), 'fasta'))
@@ -81,34 +87,48 @@ class Hmmer:
                     for_aln.write(str(record.seq) + '\n')
                     # HMMalign and convert to fasta format
             if any(forward):
-                cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (self.aln_hmm,
-                                                                                            for_file,
-                                                                                            for_conv_file)
+                self.hmmalign_sequences(self.aln_hmm, for_file, for_conv_file)
             else:
                 cmd = 'touch %s' % (for_conv_file)
-            extern.run(cmd)
+                extern.run(cmd)
             with open(rev_file, 'w') as rev_aln:
                 logging.debug("Writing reverse complement reads to %s" % rev_file)
                 for record in reverse:
                     if record.id and record.seq:
                         rev_aln.write('>' + record.id + '\n')
-                        rev_aln.write(str(record.seq.reverse_complement()) + '\n')           
-            cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (self.aln_hmm,
-                                                                                        rev_file,
-                                                                                        rev_conv_file)
-            extern.run(cmd)
+                        rev_aln.write(str(record.seq.reverse_complement()) + '\n')
+            self.hmmalign_sequences(self.aln_hmm, rev_file, rev_conv_file)
             conv_files = [for_conv_file, rev_conv_file]
             return conv_files
         # If there are only forward reads, just hmmalign and be done with it.
         else:
-            cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm - %s' % (self.aln_hmm,
-                                                                                                 input_path,
-                                                                                                 for_conv_file)
-           
-            extern.run(cmd)
+            self.hmmalign_sequences(self.aln_hmm, input_path, for_conv_file)
             conv_files = [for_conv_file]
             
             return conv_files
+        
+    def hmmalign_sequences(self, hmm, sequences, output_file):
+        '''Run hmmalign and convert output to aligned fasta format
+        
+        Parameters
+        ----------
+        hmm: str
+            path to hmm file
+        sequences: str
+            path to file of sequences to be aligned
+        output_file: str
+            write sequences to this file
+        
+        Returns
+        -------
+        nothing
+        '''
+        
+        cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm --output-format fasta - %s' % (hmm,
+                                                                                           sequences,
+                                                                                           output_file)
+           
+        extern.run(cmd)
     
     def makeSequenceBinary(self, sequences, fm):
         cmd = 'makehmmerdb %s %s' % (sequences, fm)
@@ -168,7 +188,7 @@ class Hmmer:
             raise Exception('Programming Error: error guessing input sequence type')
         
         # Run the HMMsearches
-        searcher = HmmSearcher(threads, '-E %s' % evalue)
+        searcher = HmmSearcher(threads, '--domE %s' % evalue)
         searcher.hmmsearch(input_cmd, self.search_hmm, output_table_list)
         hmmtables = [HMMSearchResult.import_from_hmmsearch_table(x) for x in output_table_list]
         return hmmtables
@@ -285,7 +305,7 @@ class Hmmer:
             raise Exception("Programming error: Expected 1 or more HMMs")
         input_pipe = unpack.command_line()
         
-        searcher = NhmmerSearcher(threads, extra_args='-E %s' % evalue)
+        searcher = NhmmerSearcher(threads, extra_args='--incE %s -E %s' % (evalue, evalue))
         searcher.hmmsearch(input_pipe, self.search_hmm, output_table_list)
         
         hmmtables = [HMMSearchResult.import_from_nhmmer_table(x) for x in output_table_list]
@@ -313,7 +333,6 @@ class Hmmer:
         '''
         euk_hit_table = HMMreader(hmm_hit_tables.pop(-1))
         other_hit_tables = [HMMreader(x) for x in hmm_hit_tables]
-        crossover = []
         reads_unique_to_eukaryotes = []   
         reads_with_better_euk_hit = []     
         
@@ -421,20 +440,24 @@ class Hmmer:
             self._extract_multiple_hits(hits, tmp.name, output_path)  # split them into multiple reads
         return output_path
         
-    def _alignment_correcter(self, alignment_file_list, output_file_name):
+    def alignment_correcter(self, alignment_file_list, output_file_name):
         '''
         Remove lower case insertions in alignment outputs from HMM align. Give 
-        a list of alignemnts, and an output file name, and each alignment will
+        a list of alignments, and an output file name, and each alignment will
         be corrected, and written to a single file, ready to be placed together
         using pplacer.
         
         Parameters
         ----------
         alignment_file_list : array
-            List of strings, each the path to differen alignments from the 
+            List of strings, each the path to different alignments from the 
             inputs provided to GraftM 
         output_file_name : str
             The path and filename of the output file desired.
+            
+        Returns
+        -------
+        nothing
         '''
         
         corrected_sequences = {}
@@ -452,16 +475,16 @@ class Hmmer:
                     del new_seq[position]  # Delete that inserted position in every sequence
                 corrected_sequences['>' + sequence.id + '\n'] = (''.join(new_seq) + '\n').replace('~', '-')
         with open(output_file_name, 'w') as output_file:  # Create an open file to write the new sequences to
-                for fasta_id, fasta_seq in corrected_sequences.iteritems():
-                    if any(c.isalpha() for c in fasta_seq):
-                        output_file.write(fasta_id)
-                        output_file.write(fasta_seq)
+            for fasta_id, fasta_seq in corrected_sequences.iteritems():
+                if any(c.isalpha() for c in fasta_seq):
+                    output_file.write(fasta_id)
+                    output_file.write(fasta_seq)
 
 
-    def _extract_orfs(self, input_path, orfm, hit_readnames, output_path):
+    def _extract_orfs(self, input_path, orfm, hit_readnames, output_path, search_method, sequence_frame_info_list=None):
         '''
         Call ORFs on a file with nucleotide sequences and extract the proteins
-        whose name is in `hit_readnames`.
+        whose name is in `hit_readnames`. 
         
         Parameters
         ----------
@@ -474,14 +497,35 @@ class Hmmer:
             line.
         output_path : str
             Path to output orfs into, in FASTA format.
+        search_method : str
+            The method for searching, either 'hmmsearch' or 'diamond'        
+        sequence_frame_info : list
+            A dataframe (list of lists) containing readname, alignment direction
+            and alignment start point information
         ''' 
-        # Build and run command to extract ORF sequences:
-        orfm_cmd = orfm.command_line()
-        cmd = 'fxtract -H -X -f /dev/stdin <(%s %s) > %s' % (orfm_cmd, input_path, output_path)
-        process = subprocess.Popen(["bash", "-c", cmd], 
-                                   stdin=subprocess.PIPE,
-                                   stdout=subprocess.PIPE)
-        process.communicate('\n'.join(hit_readnames))
+        if search_method == "hmmsearch":
+            # Build and run command to extract ORF sequences:
+            orfm_cmd = orfm.command_line()
+            cmd = 'fxtract -H -X -f /dev/stdin <(%s %s) > %s' % (orfm_cmd, input_path, output_path)
+            process = subprocess.Popen(["bash", "-c", cmd], 
+                                       stdin=subprocess.PIPE,
+                                       stdout=subprocess.PIPE)
+            process.communicate('\n'.join(hit_readnames))
+        elif search_method == "diamond":
+            sequence_frame_info_dict = {x[0]:[x[1], x[2], x[3]] for x in sequence_frame_info_list}
+            records = SeqIO.parse(input_path, "fasta")
+            with open(output_path, 'w') as open_output_path:
+                for record in records:                    
+                    entry=sequence_frame_info_dict[record.id]
+                    indfrom=(min(entry[2], entry[1])-1)
+                    indto=max(entry[2], entry[1])
+                    if entry[0] == False:
+                        record.seq = max([x for x in record.seq[indfrom:indto].reverse_complement().translate().split("*")], key=len)                       
+                    else:
+                        record.seq = max([x for x in record.seq[indfrom:indto].translate().split("*")], key=len)                        
+                    SeqIO.write(record, open_output_path, "fasta")
+                open_output_path.flush()
+                        
 
     def _get_read_names(self, search_result, max_range):
         '''
@@ -529,7 +573,7 @@ class Hmmer:
                 i = hit[0]  # set id to i
                 c = hit[1]  # set complement to c
                 ft = [min(hit[2:4]), max(hit[2:4])]  # set span as ft (i.e. from - to)
-                qs = [min(hit[4:6]), max(hit[4:6])]  # seq the query span to qs    
+                qs = [min(hit[4:6]), max(hit[4:6])]  # seq the query span to qs
                 
                 if ft[0] == ft[1]: continue  # if the span covers none of the query, skip that entry (seen this before)
                 
@@ -766,6 +810,7 @@ class Hmmer:
                                                            unpack.format(),
                                                            hits
                                                            )
+            
 
         if not hit_readnames:
             hit_read_counts = [0, len(hit_readnames)]
@@ -781,8 +826,15 @@ class Hmmer:
                               hit_reads_fasta,
                               extracting_orfm,
                               orf_hit_readnames,
-                              hit_reads_orfs_fasta
+                              hit_reads_orfs_fasta,
+                              search_method,
+                              list(search_result[0].each([SequenceSearchResult.QUERY_ID_FIELD,
+                                                          SequenceSearchResult.ALIGNMENT_DIRECTION,  
+                                                          SequenceSearchResult.QUERY_FROM_FIELD,
+                                                          SequenceSearchResult.QUERY_TO_FIELD])
+                                   )
                               )
+            
             hit_reads_fasta = hit_reads_orfs_fasta
         
         slash_endings=self._check_for_slash_endings(hit_readnames)
@@ -925,8 +977,8 @@ class Hmmer:
         return result
         
     @T.timeit
-    def align(self, input_path, output_path, directions):
-        '''align - Takes input path to fasta of unlaigned reads, aligns them to
+    def align(self, input_path, output_path, directions, pipeline):
+        '''align - Takes input path to fasta of unaligned reads, aligns them to
         a HMM, and returns the aligned reads in the output path
         
         Parameters
@@ -936,7 +988,9 @@ class Hmmer:
         reverse_direction : dict
             A dictionary of read names, with the entries being the complement 
             strand of the read (True = forward, False = reverse)
-            
+        pipeline : str
+            Either "P" or "D" corresponding to the protein and nucleotide (DNA)
+            pipelines, respectively. 
         Returns
         -------
         N/A - output alignment path known.
@@ -944,8 +998,9 @@ class Hmmer:
         
         # HMMalign the forward reads, and reverse complement reads.
         alignments = self._hmmalign(input_path,
-                                    directions)
-        self._alignment_correcter(alignments,
+                                    directions,
+                                    pipeline)
+        self.alignment_correcter(alignments,
                                  output_path)
 
 

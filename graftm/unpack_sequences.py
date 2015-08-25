@@ -11,6 +11,9 @@ class UnpackRawReads:
     FORMAT_FASTQ_GZ = "FORMAT_FASTQ_GZ"
     FORMAT_FASTA_GZ = "FORMAT_FASTA_GZ"
     
+    PROTEIN_SEQUENCE_TYPE = 'aminoacid'
+    NUCLEOTIDE_SEQUENCE_TYPE = 'nucleotide'
+    
     _EXTENSION_TO_FILE_TYPE = {'.fa': FORMAT_FASTA,
                                '.faa': FORMAT_FASTA,
                                '.fna': FORMAT_FASTA,
@@ -36,7 +39,7 @@ class UnpackRawReads:
         (string) seq parameter, else 'nucleotide'. Raise Exception if a
         non-standard character is encountered'''
         # Define expected residues for each sequence type
-        aas = set(['P','V','L','I','M','F','Y','W','H','K','R','Q','N','E','D','S'])
+        aas = set(['P','V','L','I','M','F','Y','W','H','K','R','Q','N','E','D','S','X'])
         nas = set(['A', 'T', 'G', 'C', 'N', 'U'])
         
         num_nucleotide = 0
@@ -52,9 +55,9 @@ class UnpackRawReads:
             count += 1
             if count >300: break
         if float(num_protein) / (num_protein+num_nucleotide) > 0.1:
-            return 'aminoacid'
+            return self.PROTEIN_SEQUENCE_TYPE
         else:
-            return 'nucleotide'
+            return self.NUCLEOTIDE_SEQUENCE_TYPE
     
     def sequence_type(self):
         '''Guess the type of input sequence provided to graftM (i.e. nucleotide

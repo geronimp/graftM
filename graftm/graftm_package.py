@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 
 class InsufficientGraftMPackageException(Exception): pass
 
@@ -19,12 +20,11 @@ class GraftMPackage:
     # The key names are unlikely to change across package format versions,
     # so store them here in the superclass
     DIAMOND_DATABASE_KEY = 'diamond_database'
-    VERSION_KEY = 'version'
-    ALIGNMENT_HMM_KEY = 'aln_hmm'
-    SEARCH_HMM_KEY = "search_hmm"
-    REFERENCE_PACKAGE_KEY = "rfpkg"
-    HMM_TRUSTED_CUTOFF_KEY = "TC"
-    TAX_INFO_KEY = "taxtastic_taxonomy_file"
+    VERSION_KEY = 'graftm_package_version'
+    ALIGNMENT_HMM_KEY = 'align_hmm'
+    SEARCH_HMM_KEY = "search_hmms"
+    REFERENCE_PACKAGE_KEY = "refpkg"
+    HMM_TRUSTED_CUTOFF_KEY = "trusted_cutoff"
     RANGE_KEY = "range"
     _CONTENTS_FILE_NAME = 'CONTENTS.json'
 
@@ -37,7 +37,6 @@ class GraftMPackage:
                      SEARCH_HMM_KEY,
                      REFERENCE_PACKAGE_KEY,
                      HMM_TRUSTED_CUTOFF_KEY,
-                     TAX_INFO_KEY,
                      RANGE_KEY
                      ]}
 
@@ -125,10 +124,44 @@ class GraftMPackageVersion2(GraftMPackage):
     def use_hmm_trusted_cutoff(self):
         return self._contents_hash[GraftMPackage.HMM_TRUSTED_CUTOFF_KEY]
 
-    def taxonomy_info_path(self):
-        return os.path.join(self._base_directory,
-                            self._contents_hash[GraftMPackage.TAX_INFO_KEY])
-
     def maximum_range(self):
         return self._contents_hash[GraftMPackage.RANGE_KEY]
+    
+    def _refpkg_contents(self):
+        return json.loads(open(os.path.join(self.reference_package_path(), 'CONTENTS.json')).read())
+    
+    def taxtastic_seqinfo_path(self):
+        return os.path.join(self.reference_package_path(),
+                            self._refpkg_contents()['files']['seq_info'])
+        
+    def taxtastic_taxonomy_path(self):
+        return os.path.join(self.reference_package_path(),
+                            self._refpkg_contents()['files']['taxonomy'])
+        
+    @staticmethod
+    def compile(output_package_path, locus, refpkg_path, hmm_path, diamond_database_file, max_range, trusted_cutoff=False):
+        if os.path.exists(output_package_path): 
+            raise Exception("Detected gpkg with name %s" % output_package_path)
+        os.mkdir(output_package_path)
+        
+        hmm_file_in_gpkg = os.path.basename(hmm_path)
+        shutil.copyfile(hmm_path, os.path.join(output_package_path, hmm_file_in_gpkg))
+        
+        diamond_database_file_in_gpkg = os.path.basename(diamond_database_file)
+        shutil.copyfile(diamond_database_file, os.path.join(output_package_path, diamond_database_file_in_gpkg))
+        
+        refpkg_in_gpkg = os.path.basename(refpkg_path)
+        shutil.copytree(refpkg_path, os.path.join(output_package_path, refpkg_in_gpkg))
+        
+        contents = {GraftMPackage.VERSION_KEY: GraftMPackageVersion2.version,
+                    GraftMPackage.ALIGNMENT_HMM_KEY: hmm_file_in_gpkg,
+                    GraftMPackage.SEARCH_HMM_KEY: [hmm_file_in_gpkg],
+                    GraftMPackage.REFERENCE_PACKAGE_KEY: refpkg_in_gpkg,
+                    GraftMPackage.HMM_TRUSTED_CUTOFF_KEY: trusted_cutoff,
+                    GraftMPackage.DIAMOND_DATABASE_KEY: diamond_database_file_in_gpkg,
+                    GraftMPackage.RANGE_KEY: max_range}
+        
+        json.dump(contents, open(os.path.join(output_package_path, GraftMPackage._CONTENTS_FILE_NAME), 'w'))
+    
+    
 

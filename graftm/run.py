@@ -232,6 +232,26 @@ class Run:
         setattr(self.args, 'type', hmm_type)
         if hmm_tc:
             setattr(self.args, 'evalue', '--cut_tc')
+            
+        # Generate bootstrap HMM if required
+        if self.args.bootstrap_contigs:
+            #this is a hack, it should really use GraftMFiles but that class isn't currently flexible enough
+            new_hmm = os.path.join(self.args.output_directory, "bootstrap.hmm")
+            if self.args.graftm_package:
+                pkg = GraftMPackage.acquire(self.args.graftm_package)
+            else:
+                pkg = None
+            boots = Bootstrapper(
+                search_hmm_files = self.args.search_hmm_files,
+                maximum_range = self.args.maximum_range,
+                threads = self.args.threads,
+                evalue = self.args.evalue,
+                min_orf_length = self.args.min_orf_length,
+                graftm_package = pkg)
+            if boots.generate_hmm_from_contigs(
+                                     self.args.bootstrap_contigs,
+                                     new_hmm):
+                self.h.search_hmm.append(new_hmm)
 
         # For each pair (or single file passed to GraftM)
         logging.debug('Working with %i file(s)' % len(self.sequence_pair_list))
@@ -274,24 +294,6 @@ class Run:
 
                 if self.args.type == PIPELINE_AA:
                     logging.debug("Running protein pipeline")
-                    if self.args.bootstrap_contigs:
-                        new_hmm = self.gmf.bootstrap_hmm_path()
-                        if self.args.graftm_package:
-                            pkg = GraftMPackage.acquire(self.args.graftm_package)
-                        else:
-                            pkg = None
-                        boots = Bootstrapper(
-                            search_hmm_files = self.args.search_hmm_files,
-                            maximum_range = self.args.maximum_range,
-                            threads = self.args.threads,
-                            evalue = self.args.evalue,
-                            min_orf_length = self.args.min_orf_length,
-                            graftm_package = pkg)
-                        if boots.generate_hmm_from_contigs(
-                                                 self.args.bootstrap_contigs,
-                                                 new_hmm):
-                            self.h.search_hmm.append(new_hmm)
-
                     search_time, result = self.h.aa_db_search(
                                                               self.gmf,
                                                               base,

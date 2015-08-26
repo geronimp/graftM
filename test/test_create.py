@@ -26,11 +26,11 @@ import os.path
 import tempdir
 import sys
 import extern
-from graftm.graftm_package import GraftMPackageVersion2
 import logging
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 from graftm.create import Create
+from graftm.graftm_package import GraftMPackageVersion2
 
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')

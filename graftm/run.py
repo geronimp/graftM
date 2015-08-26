@@ -235,7 +235,8 @@ class Run:
             
         # Generate bootstrap HMM if required
         if self.args.bootstrap_contigs:
-            new_hmm = self.gmf.bootstrap_hmm_path()
+            #this is a hack, it should really use GraftMFiles but that class isn't currently flexible enough
+            new_hmm = os.path.join(self.args.output_directory, "bootstrap.hmm")
             if self.args.graftm_package:
                 pkg = GraftMPackage.acquire(self.args.graftm_package)
             else:

@@ -364,12 +364,13 @@ class Run:
                                False)
 
 
-        # Classification steps        
-        if not self.args.no_clustering:
-            C=Clusterer()
-            seqs_list=C.cluster(seqs_list)
+
 
         if self.args.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
+            # Classification steps        
+            if not self.args.no_clustering:
+                C=Clusterer()
+                seqs_list=C.cluster(seqs_list)
             logging.info("Placing reads into phylogenetic tree")
             taxonomic_assignment_time, assignments=self.p.place(REVERSE_PIPE,
                                                                 seqs_list,

@@ -12,14 +12,14 @@ from graftm.pplacer import Pplacer
 from graftm.create import Create
 from graftm.unpack_sequences import UnpackRawReads
 from graftm.graftm_package import GraftMPackage
-
-from biom.util import biom_open
 from graftm.bootstrapper import Bootstrapper
 from graftm.diamond import Diamond
 from graftm.getaxnseq import Getaxnseq
 from graftm.sequence_io import SequenceIO
 from graftm.timeit import Timer
 from graftm.clusterer import Clusterer
+from biom.util import biom_open
+
 T=Timer()
 
 PIPELINE_AA = "P"
@@ -365,9 +365,7 @@ class Run:
 
 
         # Classification steps        
-        if self.args.no_clustering:
-            pass # Stop clustering here
-        else:
+        if not self.args.no_clustering:
             C=Clusterer()
             seqs_list=C.cluster(seqs_list)
 
@@ -381,9 +379,7 @@ class Run:
                                                                 result.slash_endings,
                                                                 gpkg.taxtastic_taxonomy_path())
             
-            if self.args.no_clustering:
-                pass
-            else:
+            if not self.args.no_clustering:
                 assignments = C.uncluster_annotations(assignments)
 
         elif self.args.assignment_method == Run.DIAMOND_TAXONOMIC_ASSIGNMENT:

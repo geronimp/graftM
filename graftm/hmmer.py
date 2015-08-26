@@ -836,12 +836,12 @@ class Hmmer:
                               )
             
             hit_reads_fasta = hit_reads_orfs_fasta
-        
         slash_endings=self._check_for_slash_endings(hit_readnames)
         result = DBSearchResult(hit_reads_fasta,
                                 search_result,
                                 [0, len([itertools.chain(*hits.values())])],  # array of hits [euk hits, true hits]. Euk hits alway 0 unless searching from 16S
                                 slash_endings)  # Any reads that end in /1 or /2     
+        logging.info("%s read(s) detected" % hit_read_counts[1])
         return result
     
     @T.timeit
@@ -974,6 +974,7 @@ class Hmmer:
                                     hit_read_count,
                                     slash_endings)
         
+        logging.info("%s read(s) detected" % hit_read_count[1])
         return result
         
     @T.timeit

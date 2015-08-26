@@ -19,6 +19,7 @@ from graftm.diamond import Diamond
 from graftm.getaxnseq import Getaxnseq
 from graftm.sequence_io import SequenceIO
 from graftm.timeit import Timer
+from graftm.clusterer import Clusterer
 T=Timer()
 
 PIPELINE_AA = "P"
@@ -326,11 +327,6 @@ class Run:
                 if self.args.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
                     logging.info('Aligning reads to reference package database')
                     hit_aligned_reads = self.gmf.aligned_fasta_output_path(base)
-
-                    if self.args.cluster:
-                        result.cluster()
-                        clusters_list.append(result.clusters)
-
                     aln_time = self.h.align(
                                             result.hit_fasta(),
                                             hit_aligned_reads,
@@ -367,26 +363,28 @@ class Run:
                                self.args.output_directory,
                                False)
 
+
+        # Classification steps        
+        if self.args.no_clustering:
+            pass # Stop clustering here
+        else:
+            C=Clusterer()
+            seqs_list=C.cluster(seqs_list)
+
         if self.args.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
             logging.info("Placing reads into phylogenetic tree")
-            taxonomic_assignment_time, assignments=self.p.place(
-                                                REVERSE_PIPE,
-                                                seqs_list,
-                                                self.args.resolve_placements,
-                                                self.gmf,
-                                                self.args,
-                                                result.slash_endings,
-                                                gpkg.taxtastic_taxonomy_path()
-                                                )
-            if self.args.cluster:
-                for idx, base in enumerate(base_list):
-                    clusters_taxonomy={}
-                    place    = assignments[base]
-                    clusters = clusters_list[idx]
-                    for read_name in place.keys():
-                        for record in clusters[read_name]:
-                            clusters_taxonomy[record.name]=place[read_name]
-                    assignments[base].update(clusters_taxonomy)
+            taxonomic_assignment_time, assignments=self.p.place(REVERSE_PIPE,
+                                                                seqs_list,
+                                                                self.args.resolve_placements,
+                                                                self.gmf,
+                                                                self.args,
+                                                                result.slash_endings,
+                                                                gpkg.taxtastic_taxonomy_path())
+            
+            if self.args.no_clustering:
+                pass
+            else:
+                assignments = C.uncluster_annotations(assignments)
 
         elif self.args.assignment_method == Run.DIAMOND_TAXONOMIC_ASSIGNMENT:
             logging.info("Assigning taxonomy with diamond")

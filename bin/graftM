@@ -173,16 +173,10 @@ sequence1    k__kingdom1; p__phylum2
  Internally, the taxonomic levels separated by '; ' are assumed to be kingdom,
  phylum, class, order, family, genus, species. However, this may not matter
  for the purposes of using graftM. The prefixes e.g. 'k__' are not required.
-
- Often, the tree cannot be automatically rerooted because of the computational
- difficulty of that task, and so must be done by hand. To specify a rooted
- tree,
-  $ graftM create --alignment my_alignment.fasta --taxonomy my_taxonomy.tsv --rerooted_tree my_tree.tre
-
 ''')
 
     create = create_parser.add_argument_group('Common options')
-    create.add_argument('--taxonomy', metavar='TAX', help='File containing two tab separated columns, the first with the ID of the sequences, the second with the taxonomy string (required unless --rerooted_annotated_tree or --hmm is specified)')
+    create.add_argument('--taxonomy', metavar='TAX', help='File containing two tab separated columns, the first with the ID of the sequences, the second with the taxonomy string (required unless --rerooted_annotated_tree or --taxtastic_taxonomy and --taxtastic_seqinfo are specified)')
     create.add_argument('--alignment', metavar='ALN', help='An alignment with which to build a custom HMM and tree (required unless --hmm is set)')
     create.add_argument('--sequences', metavar='FASTA', help='Unaligned sequences (required)', required=True)
     create.add_argument('--rerooted_tree', help='A tree with which to build the refpkg, appropriately rooted. (default: generate tree with FastTree and attempt reroot with taxtastic)')

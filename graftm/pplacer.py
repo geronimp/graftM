@@ -123,7 +123,6 @@ class Pplacer:
                                                            'reads', 
                                                            resolve_placements
                                                            )
-                                         
         self.hk.delete([jplace])# Remove combined split, not really useful
         logging.info("Reads classified.")
         # If the reverse pipe has been specified, run the comparisons between the two pipelines. If not then just return.
@@ -143,7 +142,7 @@ class Pplacer:
                                                                base_file
                                                                )
                 trusted_placements[base_file]=placements_hash['trusted_placements']
-                
+               
             else: # Set the trusted placements as
                 base_file=os.path.basename(file).replace('_hits.aln.fa', '')
                 trusted_placements[base_file]={}
@@ -206,11 +205,11 @@ class Compare:
                                                            reverse_gup.keys(), 
                                                            base_file, 
                                                            slash_endings)
+        
         comparison_hash = {'trusted_placements': {}} # Set up a hash that will record info on each placement
         for read in crossover:
             f_read = for_dict[read]
             r_read = rev_dict[read]
-
             # Check read was placed
             if forward_gup.get(f_read) is None or reverse_gup.get(r_read) is None:
                 logging.info('Warning: %s was not inserted into tree' % str(f_read))
@@ -258,6 +257,6 @@ class Compare:
                         raise Exception('Programming Error: Comparing confidence values')
                 else:
                     raise Exception('Programming Error: Comparison of placement resolution')               
-                
+             
         return comparison_hash # Return the hash
 

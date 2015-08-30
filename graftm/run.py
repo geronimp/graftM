@@ -363,14 +363,11 @@ class Run:
                                self.args.output_directory,
                                False)
 
-
-
-
         if self.args.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
             # Classification steps        
             if not self.args.no_clustering:
                 C=Clusterer()
-                seqs_list=C.cluster(seqs_list)
+                seqs_list=C.cluster(seqs_list, REVERSE_PIPE)
             logging.info("Placing reads into phylogenetic tree")
             taxonomic_assignment_time, assignments=self.p.place(REVERSE_PIPE,
                                                                 seqs_list,
@@ -379,10 +376,9 @@ class Run:
                                                                 self.args,
                                                                 result.slash_endings,
                                                                 gpkg.taxtastic_taxonomy_path())
-            
             if not self.args.no_clustering:
-                assignments = C.uncluster_annotations(assignments)
-
+                assignments = C.uncluster_annotations(assignments, REVERSE_PIPE)
+        
         elif self.args.assignment_method == Run.DIAMOND_TAXONOMIC_ASSIGNMENT:
             logging.info("Assigning taxonomy with diamond")
             taxonomic_assignment_time, assignments = self._assign_taxonomy_with_diamond(\
@@ -392,7 +388,6 @@ class Run:
                         self.gmf)
             aln_time = 'n/a'
         else: raise Exception("Unexpected assignment method encountered: %s" % self.args.placement_method)
-
         self.summarise(base_list, assignments, REVERSE_PIPE,
                        [search_time,aln_time,taxonomic_assignment_time],
                        hit_read_count_list)

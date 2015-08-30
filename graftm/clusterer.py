@@ -1,5 +1,6 @@
 from graftm.deduplicator import Deduplicator
 from graftm.sequence_io import SequenceIO
+from graftm.orfm import OrfM
 import logging
 import os
 
@@ -9,8 +10,11 @@ class Clusterer:
         self.clust = Deduplicator()
         self.seqio = SequenceIO()
         self.seq_library = {}
+        
+        self.orfm_regex = OrfM.regular_expression()
+        
     
-    def uncluster_annotations(self, input_annotations):
+    def uncluster_annotations(self, input_annotations, REVERSE_PIPE):
         '''
         Update the annotations hash provided by pplacer to include all 
         representatives within each cluster
@@ -21,6 +25,8 @@ class Clusterer:
             Classifications for each representative sequence of the clusters. 
             each key being the sequence name, and the entry being the taxonomy
             string as a list. 
+        REVERSE_PIPE : bool
+            True/False, whether the reverse reads pipeline is being followed.
         
         Returns
         -------
@@ -30,19 +36,27 @@ class Clusterer:
         '''
         output_annotations = {}
         for placed_alignment_file_path, clusters in self.seq_library.iteritems():
+            
+            if REVERSE_PIPE and placed_alignment_file_path.endswith("_reverse_clustered.fa"): continue
             placed_alignment_file = os.path.basename(placed_alignment_file_path)
             cluster_classifications = input_annotations[placed_alignment_file]
             
-            placed_alignment_base = placed_alignment_file.replace('_clustered.fa', '')
-            output_annotations[placed_alignment_base] = {}
-            
-            for rep_read_name, rep_read_taxonomy in cluster_classifications.iteritems():
+            if REVERSE_PIPE:
+                placed_alignment_base = placed_alignment_file.replace('_forward_clustered.fa', '')
+            else:
+                placed_alignment_base = placed_alignment_file.replace('_clustered.fa', '')
+            output_annotations[placed_alignment_base] = {}  
+            for rep_read_name, rep_read_taxonomy in cluster_classifications.iteritems():        
+                
+                if REVERSE_PIPE:
+                    orfm_regex = OrfM.regular_expression()
+                    clusters={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) else key): item for key, item in clusters.iteritems()}
                 for read in clusters[rep_read_name]:
                     output_annotations[placed_alignment_base][read.name] = rep_read_taxonomy
-        
+                
         return output_annotations        
 
-    def cluster(self, input_fasta_list):
+    def cluster(self, input_fasta_list, REVERSE_PIPE):
         '''
         cluster - Clusters reads at 100% identity level and  writes them to 
         file. Resets the input_fasta variable as the FASTA file containing the 
@@ -52,6 +66,8 @@ class Clusterer:
         ----------
         input_fasta_list : list
             list of strings, each a path to input fasta files to be clustered.
+        REVERSE_PIPE : bool
+            True/False, whether the reverse reads pipeline is being followed.
         Returns
         -------
         output_fasta_list : list

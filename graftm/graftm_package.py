@@ -93,7 +93,7 @@ class GraftMPackageVersion2(GraftMPackage):
     version = 2
 
     _REQUIRED_KEYS = [
-                     GraftMPackage.DIAMOND_DATABASE_KEY,
+                     #GraftMPackage.DIAMOND_DATABASE_KEY, #not required for nucleotide packages
                      GraftMPackage.VERSION_KEY,
                      GraftMPackage.ALIGNMENT_HMM_KEY,
                      GraftMPackage.SEARCH_HMM_KEY,
@@ -139,16 +139,41 @@ class GraftMPackageVersion2(GraftMPackage):
                             self._refpkg_contents()['files']['taxonomy'])
         
     @staticmethod
-    def compile(output_package_path, locus, refpkg_path, hmm_path, diamond_database_file, max_range, trusted_cutoff=False):
+    def compile(output_package_path, refpkg_path, hmm_path, diamond_database_file, max_range, trusted_cutoff=False):
+        '''Create a new GraftM package with the given inputs. Any files
+        specified as parameters are copied into the final package so can
+        be removed after calling this function.
+        
+        Parameters
+        ----------
+        output_package_path: str
+            path to the package being created (must not exist)
+        refpkg_path: str
+            path to pplacer reference package
+        hmm_path: str
+            path to the search and align HMM
+        diamond_database_file: str
+            path to diamond DB file, or None for nucleotide packages
+        max_rage: str
+            as per maximum_range()
+        trusted_cutoff: boolean
+            set TC in search HMM
+            
+        Returns
+        -------
+        Nothing
+        '''
+        
         if os.path.exists(output_package_path): 
-            raise Exception("Detected gpkg with name %s" % output_package_path)
+            raise Exception("Not writing new GraftM package to already existing file/directory with name %s" % output_package_path)
         os.mkdir(output_package_path)
         
         hmm_file_in_gpkg = os.path.basename(hmm_path)
         shutil.copyfile(hmm_path, os.path.join(output_package_path, hmm_file_in_gpkg))
         
-        diamond_database_file_in_gpkg = os.path.basename(diamond_database_file)
-        shutil.copyfile(diamond_database_file, os.path.join(output_package_path, diamond_database_file_in_gpkg))
+        if diamond_database_file:
+            diamond_database_file_in_gpkg = os.path.basename(diamond_database_file)
+            shutil.copyfile(diamond_database_file, os.path.join(output_package_path, diamond_database_file_in_gpkg))
         
         refpkg_in_gpkg = os.path.basename(refpkg_path)
         shutil.copytree(refpkg_path, os.path.join(output_package_path, refpkg_in_gpkg))
@@ -158,8 +183,9 @@ class GraftMPackageVersion2(GraftMPackage):
                     GraftMPackage.SEARCH_HMM_KEY: [hmm_file_in_gpkg],
                     GraftMPackage.REFERENCE_PACKAGE_KEY: refpkg_in_gpkg,
                     GraftMPackage.HMM_TRUSTED_CUTOFF_KEY: trusted_cutoff,
-                    GraftMPackage.DIAMOND_DATABASE_KEY: diamond_database_file_in_gpkg,
                     GraftMPackage.RANGE_KEY: max_range}
+        if diamond_database_file:
+            contents[GraftMPackage.DIAMOND_DATABASE_KEY] = diamond_database_file_in_gpkg
         
         json.dump(contents, open(os.path.join(output_package_path, GraftMPackage._CONTENTS_FILE_NAME), 'w'))
     

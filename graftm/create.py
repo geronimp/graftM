@@ -19,6 +19,8 @@ import tempdir
 from graftm.graftm_package import GraftMPackageVersion2
 
 class Create:
+    _PROTEIN_PACKAGE_TYPE = 'protein_package_type'
+    _NUCLEOTIDE_PACKAGE_TYPE = 'nucleotide_package_type'
     
     def __init__(self): 
         self.h=Hmmer(None, None)
@@ -105,9 +107,9 @@ class Create:
         for item in hmm_type:
             if item[0]=='ALPH':
                 if item[1]=='amino':
-                    ptype='aa'
+                    ptype=Create._PROTEIN_PACKAGE_TYPE
                 elif item[1]=='DNA' or 'RNA':
-                    ptype='na'
+                    ptype=Create._NUCLEOTIDE_PACKAGE_TYPE
                 else:
                     raise Exception("Unfamiliar HMM type: %s" % (item[1]))
             elif item[0]=='LENG':
@@ -124,7 +126,7 @@ class Create:
     def _build_tree(self, alignment, base, ptype): 
         log_file = base + ".tre.log"
         tre_file = base + ".tre"
-        if ptype == 'na': # If it's a nucleotide sequence
+        if ptype == Create._NUCLEOTIDE_PACKAGE_TYPE: # If it's a nucleotide sequence
             cmd = "FastTreeMP -quiet -gtr -nt -log %s -out %s %s" % (log_file, tre_file, alignment)
             extern.run(cmd)
         else: # Or if its an amino acid sequence
@@ -228,11 +230,11 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         -------
         Nothing. The log file as parameter is written as the log file.
         '''
-        if residue_type=='na':
+        if residue_type==Create._NUCLEOTIDE_PACKAGE_TYPE:
             cmd = "FastTree -quiet -gtr -nt -nome -mllen -intree '%s' -log %s -out %s %s" %\
                                        (tree, output_log_file_path,
                                         output_tree_file_path, alignment)
-        elif residue_type=='aa':
+        elif residue_type==Create._PROTEIN_PACKAGE_TYPE:
             cmd = "FastTree -quiet -nome -mllen -intree '%s' -log %s -out %s %s" %\
                                        (tree, output_log_file_path, 
                                         output_tree_file_path, alignment)
@@ -288,7 +290,7 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         if prefix:
             output_gpkg_path = prefix
         else:
-            output_gpkg_path = "%s.gpkg"
+            output_gpkg_path = "%s.gpkg" % locus_name
             
         if os.path.exists(output_gpkg_path):
             if force_overwrite:
@@ -457,16 +459,20 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         
         # Run diamond makedb
         logging.info("Creating diamond database")
-        cmd = "diamond makedb --in '%s' -d '%s'" % (sequences, base)
-        extern.run(cmd)
-        diamondb = '%s.dmnd' % base
+        if ptype == Create._PROTEIN_PACKAGE_TYPE:
+            cmd = "diamond makedb --in '%s' -d '%s'" % (sequences, base)
+            extern.run(cmd)
+            diamondb = '%s.dmnd' % base
+        elif ptype == Create._NUCLEOTIDE_PACKAGE_TYPE:
+            diamondb = None
+        else: raise Exception("Programming error")
 
         # Get range
         max_range=self._define_range(sequences)
         
         # Compile the gpkg
         logging.info("Compiling gpkg")
-        GraftMPackageVersion2.compile(output_gpkg_path, locus_name, refpkg, hmm, diamondb, max_range)
+        GraftMPackageVersion2.compile(output_gpkg_path, refpkg, hmm, diamondb, max_range)
 
         logging.info("Cleaning up")
         self._cleanup(self.the_trash)

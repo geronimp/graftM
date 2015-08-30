@@ -1,9 +1,8 @@
 import os
 import shutil
-import json
 import logging
-import extern
 from graftm.graftm_package import GraftMPackage
+from graftm.prerequisite_checker import PrerequisiteChecker
 
 PIPELINE_AA = "P"
 PIPELINE_NT = "D"
@@ -16,15 +15,6 @@ class HouseKeeping:
     ### Functions for setting up the graftM pipeline to run correctly, and 
     ### general housekeeping things like adding and removing directories and 
     ### files.
-    
-    def __init__(self): pass
-
-    def contents(self, path):
-        contents = os.path.join(path, 'CONTENTS.json')
-        if os.path.isfile(contents):
-            return json.load(open(contents, 'r'))
-        else:
-            return None
 
     def set_euk_hmm(self, args):
         'Set the hmm used by graftM to cross check for euks.'
@@ -107,24 +97,7 @@ class HouseKeeping:
             
     
     def checkCreatePrerequisites(self):
-        uninstalled_programs = []
-        prerequisites = {'taxit': 'https://github.com/fhcrc/taxtastic',
-                         'FastTree': 'http://www.microbesonline.org/fasttree/',
-                         'seqmagick': 'https://github.com/fhcrc/seqmagick',
-                         'hmmalign': 'http://hmmer.janelia.org/'}
-        for program in prerequisites.keys():
-            if extern.which(program):
-                pass
-            else:
-                uninstalled_programs.append(program)
-        if uninstalled_programs:
-            msg = "The following programs must be installed to run GraftM create\n"
-            logging.info(msg)
-            for program in uninstalled_programs:
-                l = '\t%s\t%s' % (program, prerequisites[program])
-                print l
-                msg += l+"\n"
-            exit(0)
+        PrerequisiteChecker.check_prerequisites(('taxit','FastTreeMP','seqmagick','hmmalign','mafft'))
 
     def get_maximum_range(self, hmm):
         '''
@@ -146,36 +119,9 @@ class HouseKeeping:
         return max_length
 
     def set_attributes(self, args):
-        # Check the presence of all prerequisite programs needed for GraftM
-        uninstalled_programs = []
-        
-        prerequisites = {'orfm': 'https://github.com/wwood/OrfM',
-                        'nhmmer': 'http://hmmer.janelia.org/',
-                        'hmmsearch': 'http://hmmer.janelia.org/',
-                        'fxtract': 'https://github.com/ctSkennerton/fxtract',
-                        'pplacer': 'http://matsen.fhcrc.org/pplacer/',
-                        'seqmagick': 'https://github.com/fhcrc/seqmagick',
-                        'ktImportText': 'http://sourceforge.net/p/krona/home/krona/',
-                        'mafft': 'http://mafft.cbrc.jp/alignment/software/'}
-        
-        for program in prerequisites.keys():
-            if extern.which(program):
-                pass
-            else:
-                uninstalled_programs.append(program)
-        if uninstalled_programs:
-            msg = "The following programs must be installed to run GraftM\n"
-            logging.info(msg)
-            for program in uninstalled_programs:
-                l = '\t%s\t%s' % (program, prerequisites[program])
-                print l
-                msg += l+"\n"
-            raise UninstalledProgramError(msg)
-        else:
-            pass
+        PrerequisiteChecker.check_prerequisites(('orfm','nhmmer','hmmsearch','fxtract','pplacer','seqmagick','ktImportText','diamond'))
         
         # Read graftM package and assign HMM and refpkg file
-        
         if args.graftm_package:
             if not os.path.isdir(args.graftm_package):
                 raise Exception("%s does not exist. Are you sure you provided the correct path?" % args.graftm_package)

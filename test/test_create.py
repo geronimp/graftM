@@ -26,11 +26,11 @@ import os.path
 import tempdir
 import sys
 import extern
-from graftm.graftm_package import GraftMPackageVersion2
 import logging
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 from graftm.create import Create
+from graftm.graftm_package import GraftMPackageVersion2
 
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
@@ -101,6 +101,20 @@ class Tests(unittest.TestCase):
                           hmm=os.path.join(path_to_data, 'create', 'first5.hmm'), # an HMM created from just the first 5 sequences
                           prefix=gpkg)
             self.assertEqual('NAME  first10\n', open(GraftMPackageVersion2.acquire(gpkg).alignment_hmm_path()).readlines()[1])
+            
+    def test_dna_package(self):
+        with tempdir.TempDir() as tmp:
+            gpkg = tmp+".gpkg"
+            Create().main(sequences=os.path.join(path_to_data,'create','61_otus.fasta'),
+                          taxtastic_taxonomy=os.path.join(path_to_data,'61_otus.gpkg','61_otus.refpkg','61_otus_taxonomy.csv'),
+                          taxtastic_seqinfo=os.path.join(path_to_data,'61_otus.gpkg','61_otus.refpkg','61_otus_seqinfo.csv'),
+                          alignment=os.path.join(path_to_data,'61_otus.gpkg','61_otus.refpkg','61_otus.aln.fa'),
+                          prefix=gpkg)
+            pkg = GraftMPackageVersion2.acquire(gpkg)
+            self.assertEqual('NAME  61_otus.aln\n', open(pkg.alignment_hmm_path()).readlines()[1])
+            with self.assertRaises(KeyError):
+                pkg.diamond_database_path()
+        
         
 
 

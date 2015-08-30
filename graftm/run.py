@@ -449,7 +449,7 @@ class Run:
                     sequence_id_to_taxonomy[name] = ['Root']+taxonomy_definition[sequence_id_to_hit[name]]
                 else:
                     # picked up in the initial search (by hmmsearch, say), but diamond misses it
-                    sequence_id_to_taxonomy[name] = None
+                    sequence_id_to_taxonomy[name] = ['Root']
 
             results[base_list[i]] = sequence_id_to_taxonomy
         return results

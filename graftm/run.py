@@ -12,13 +12,14 @@ from graftm.pplacer import Pplacer
 from graftm.create import Create
 from graftm.unpack_sequences import UnpackRawReads
 from graftm.graftm_package import GraftMPackage
-
-from biom.util import biom_open
 from graftm.bootstrapper import Bootstrapper
 from graftm.diamond import Diamond
 from graftm.getaxnseq import Getaxnseq
 from graftm.sequence_io import SequenceIO
 from graftm.timeit import Timer
+from graftm.clusterer import Clusterer
+from biom.util import biom_open
+
 T=Timer()
 
 PIPELINE_AA = "P"
@@ -328,11 +329,6 @@ class Run:
                 if self.args.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
                     logging.info('Aligning reads to reference package database')
                     hit_aligned_reads = self.gmf.aligned_fasta_output_path(base)
-
-                    if self.args.cluster:
-                        result.cluster()
-                        clusters_list.append(result.clusters)
-
                     aln_time = self.h.align(
                                             result.hit_fasta(),
                                             hit_aligned_reads,
@@ -370,26 +366,21 @@ class Run:
                                False)
 
         if self.args.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
+            # Classification steps        
+            if not self.args.no_clustering:
+                C=Clusterer()
+                seqs_list=C.cluster(seqs_list, REVERSE_PIPE)
             logging.info("Placing reads into phylogenetic tree")
-            taxonomic_assignment_time, assignments=self.p.place(
-                                                REVERSE_PIPE,
-                                                seqs_list,
-                                                self.args.resolve_placements,
-                                                self.gmf,
-                                                self.args,
-                                                result.slash_endings,
-                                                gpkg.taxtastic_taxonomy_path()
-                                                )
-            if self.args.cluster:
-                for idx, base in enumerate(base_list):
-                    clusters_taxonomy={}
-                    place    = assignments[base]
-                    clusters = clusters_list[idx]
-                    for read_name in place.keys():
-                        for record in clusters[read_name]:
-                            clusters_taxonomy[record.name]=place[read_name]
-                    assignments[base].update(clusters_taxonomy)
-
+            taxonomic_assignment_time, assignments=self.p.place(REVERSE_PIPE,
+                                                                seqs_list,
+                                                                self.args.resolve_placements,
+                                                                self.gmf,
+                                                                self.args,
+                                                                result.slash_endings,
+                                                                gpkg.taxtastic_taxonomy_path())
+            if not self.args.no_clustering:
+                assignments = C.uncluster_annotations(assignments, REVERSE_PIPE)
+        
         elif self.args.assignment_method == Run.DIAMOND_TAXONOMIC_ASSIGNMENT:
             logging.info("Assigning taxonomy with diamond")
             taxonomic_assignment_time, assignments = self._assign_taxonomy_with_diamond(\
@@ -399,7 +390,6 @@ class Run:
                         self.gmf)
             aln_time = 'n/a'
         else: raise Exception("Unexpected assignment method encountered: %s" % self.args.placement_method)
-
         self.summarise(base_list, assignments, REVERSE_PIPE,
                        [search_time,aln_time,taxonomic_assignment_time],
                        hit_read_count_list)

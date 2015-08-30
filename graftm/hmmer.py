@@ -568,7 +568,6 @@ class Hmmer:
                                         SequenceSearchResult.QUERY_TO_FIELD]
                                        )
                          )
-            
             for hit in spans:  # For each of these rows (i.e. hits)
                 i = hit[0]  # set id to i
                 c = hit[1]  # set complement to c
@@ -619,7 +618,7 @@ class Hmmer:
                     else:  # if no break occured (no overlap)
                         splits[i]['span'].append(ft)  # Add the new range to be split out in the future
                         splits[i]['strand'].append(c)  # Add the complement strand as well
-        
+    
         return {key: entry['span'] for key, entry in splits.iteritems()}  # return the dict, without strand information which isn't required.
     
     def _check_for_slash_endings(self, readnames):
@@ -781,6 +780,8 @@ class Hmmer:
             # Write the names of hits to a tmpfile
             
             orfm_regex = OrfM.regular_expression()
+            
+            
             if maximum_range:
                 hits = self._get_read_names(
                                             search_result,  # define the span of hits
@@ -822,26 +823,27 @@ class Hmmer:
         
         if unpack.sequence_type() == 'nucleotide':
             # Extract the orfs of these reads that hit the original search
+            
             self._extract_orfs(
-                              hit_reads_fasta,
-                              extracting_orfm,
-                              orf_hit_readnames,
-                              hit_reads_orfs_fasta,
-                              search_method,
-                              list(search_result[0].each([SequenceSearchResult.QUERY_ID_FIELD,
-                                                          SequenceSearchResult.ALIGNMENT_DIRECTION,  
-                                                          SequenceSearchResult.QUERY_FROM_FIELD,
-                                                          SequenceSearchResult.QUERY_TO_FIELD])
-                                   )
-                              )
+                               hit_reads_fasta,
+                               extracting_orfm,
+                               orf_hit_readnames,
+                               hit_reads_orfs_fasta,
+                               search_method,
+                               list(search_result[0].each([SequenceSearchResult.QUERY_ID_FIELD,
+                                                           SequenceSearchResult.ALIGNMENT_DIRECTION,  
+                                                           SequenceSearchResult.QUERY_FROM_FIELD,
+                                                           SequenceSearchResult.QUERY_TO_FIELD])
+                                    )
+                               )
             
             hit_reads_fasta = hit_reads_orfs_fasta
-        
         slash_endings=self._check_for_slash_endings(hit_readnames)
         result = DBSearchResult(hit_reads_fasta,
                                 search_result,
                                 [0, len([itertools.chain(*hits.values())])],  # array of hits [euk hits, true hits]. Euk hits alway 0 unless searching from 16S
                                 slash_endings)  # Any reads that end in /1 or /2     
+        logging.info("%s read(s) detected" % len(hits))
         return result
     
     @T.timeit
@@ -974,6 +976,7 @@ class Hmmer:
                                     hit_read_count,
                                     slash_endings)
         
+        logging.info("%s read(s) detected" % len(hits))
         return result
         
     @T.timeit

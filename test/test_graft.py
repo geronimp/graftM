@@ -27,6 +27,7 @@ import os.path
 import tempdir
 import tempfile
 import extern
+import json
 
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
@@ -35,6 +36,51 @@ path_to_samples = os.path.join(os.path.dirname(os.path.realpath(__file__)),'samp
 
 class Tests(unittest.TestCase):
 
+    def test_cluster(self):
+        reads = """>HWI-ST1243:121:D1AF9ACXX:8:1101:12684:12444
+GTCAACAACCCCGCAATGCAACAGATGTGGGATGAGATCAGACGTACAGTTATCGTCGGTCTCGACCAGGCCCACGAGACGCTGACCAGAAGACTCGGTAAGGAAGTTACCCCTGAGACCATCAACGGCTATCTTGAGGCGTTGAACCAC
+>HWI-ST1243:121:D1AF9ACXX:8:1101:14973:25766
+CATGACGTCAGTCCCGGAGACGTTGTACGGCATAAGTTGCCGCTGACCAAGCGTCATACCGCCGAGGTGCACGTTGACGTTGTATGCGGGAATTCCTCGGTCCTTGGCGATCTTTGCGCCCCATTCCTGGAACTCGCGCTTGTCCTTGGA
+>HWI-ST1243:121:D1AF9ACXX:8:1101:4414:35570
+GGCCGATATGGTCCAGTCTTCGAGGAAGTACCCGAACGACCCCGCCAGGCAAGCGCTTGAGACAGTAGCACTTGGTGCGGTAATCTTCGACCAGATCTACCTCGGTTCCTGCATGTCCGGCGGTGTTGGGTTCACCCAATACGCCACCGC
+>HWI-ST1243:121:D1AF9ACXX:8:1101:12684:12444_2
+GTCAACAACCCCGCAATGCAACAGATGTGGGATGAGATCAGACGTACAGTTATCGTCGGTCTCGACCAGGCCCACGAGACGCTGACCAGAAGACTCGGTAAGGAAGTTACCCCTGAGACCATCAACGGCTATCTTGAGGCGTTGAACCAC
+>HWI-ST1243:121:D1AF9ACXX:8:1101:14973:25766_2
+CATGACGTCAGTCCCGGAGACGTTGTACGGCATAAGTTGCCGCTGACCAAGCGTCATACCGCCGAGGTGCACGTTGACGTTGTATGCGGGAATTCCTCGGTCCTTGGCGATCTTTGCGCCCCATTCCTGGAACTCGCGCTTGTCCTTGGA"""
+        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+            fasta.write(reads)
+            fasta.flush()
+            data = fasta.name
+            package = os.path.join(path_to_data,'mcrA_with_dmnd.gpkg/')
+            with tempdir.TempDir() as tmp:                
+                cmd = '%s graft --verbosity 2 --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+                                                                                                                 data,
+                                                                                                                 package,
+                                                                                                                 tmp)
+                subprocess.check_output(cmd, shell=True)
+                sample_name = os.path.basename(fasta.name[:-3])
+                otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
+                lines = ("\t".join(('#ID',sample_name,'ConsensusLineage')),
+                         "\t".join(('1','4','Root; p__Euryarchaeota')),
+                         "\t".join(('2','1','Root; p__Euryarchaeota; c__Methanomicrobia_2; o__[Methanomassiliicoccus]; f__[Methanomassiliicoccus]; g__Methanomassiliicoccus')),
+                         )
+                count = 0
+                for line in open(otuTableFile):
+                    self.assertEqual(lines[count], line.strip())
+                    count += 1
+                self.assertEqual(count, 3)
+                
+                placements_file = os.path.join(tmp, sample_name, "placements.jplace")
+                open_placements_file = json.load(open(placements_file))
+                self.assertEqual(len(open_placements_file["placements"]), 3)
+              
+                placements = sorted((u'HWI-ST1243:121:D1AF9ACXX:8:1101:4414:35570_2_2_3_0', 
+                                     u'HWI-ST1243:121:D1AF9ACXX:8:1101:14973:25766_1_4_3_0', 
+                                     u'HWI-ST1243:121:D1AF9ACXX:8:1101:12684:12444_2_1_1_2_0'))
+                for idx, placed_read_name in enumerate(sorted(tuple([y[0] for y in [x['nm'][0] for x in open_placements_file["placements"]]]))):
+                    self.assertEqual(placements[idx], placed_read_name)
+                                                
+    
     def test_diamond_translate(self):
         reads='''>HWI-ST1243:121:D1AF9ACXX:8:1101:12684:12444
 GTCAACAACCCCGCAATGCAACAGATGTGGGATGAGATCAGACGTACAGTTATCGTCGGTCTCGACCAGGCCCACGAGACGCTGACCAGAAGACTCGGTAAGGAAGTTACCCCTGAGACCATCAACGGCTATCTTGAGGCGTTGAACCAC
@@ -95,6 +141,8 @@ SYMSGGVGFTQYATAAYTDNILDDYSYYGNDYAKKYGADGAAPATMDGV
                     self.assertEqual(expected_aln[count], line.strip())
                     count += 1
                 self.assertEqual(count, len(open(orfFile).readlines()))
+                
+
 
 
     def test_split_for_reads_hitting_same_HMM_region_but_within_merge(self):

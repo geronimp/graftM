@@ -41,15 +41,16 @@ class Tests(unittest.TestCase):
                              threads=1)
         with tempfile.NamedTemporaryFile() as tf:
             self.assertEqual(True,
-                             boots.generate_hmm_from_contigs(\
+                             boots.generate_bootstrap_database_from_contigs(\
                                 [os.path.join(path_to_data,'bootstrapper','contigs.fna')],
-                                tf.name))
-            
+                                tf.name,
+                                "hmmsearch"))
+
             self.assertEqual("HMMER3/f [3.1b2 | February 2015]\n",
                              subprocess.check_output("head -n1 %s" % tf.name,
                                                      shell=True))
             self.assertEqual('NSEQ  2\n', open(tf.name).readlines()[10])
-            
+
     def test_no_hits(self):
         boots = Bootstrapper(search_hmm_files = [os.path.join(path_to_data,'bootstrapper','DNGNGWU00001.hmm')],
                              evalue='1e-5',
@@ -61,13 +62,14 @@ class Tests(unittest.TestCase):
             contigs.flush()
             with tempfile.NamedTemporaryFile() as tf:
                 self.assertEqual(False,
-                             boots.generate_hmm_from_contigs(\
+                             boots.generate_bootstrap_database_from_contigs(\
                                 [contigs.name],
-                                tf.name))
-        
+                                tf.name,
+                                "hmmsearch"))
+
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.ERROR)
     unittest.main()
-    
+

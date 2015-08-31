@@ -257,8 +257,10 @@ class Run:
                                      self.args.bootstrap_contigs,
                                      new_database,
                                      self.args.search_method):
-                self.h.search_hmm.append(new_database)
-            
+                if self.args.search_method == "hmmsearch":
+                    self.h.search_hmm.append(new_database)
+                else:
+                    diamond_db = new_database
             
 
         # For each pair (or single file passed to GraftM)

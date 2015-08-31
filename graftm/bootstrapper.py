@@ -28,14 +28,17 @@ class Bootstrapper:
         self.evalue = kwargs.pop('evalue',None)
         self.min_orf_length = kwargs.pop('min_orf_length',None)
         graftm_package = kwargs.pop('graftm_package',None)
-
         if graftm_package:
+            self.diamond_database = graftm_package.diamond_database_path()
             self.unaligned_sequence_database = graftm_package.unaligned_sequence_database()
             for h in graftm_package.search_hmm_paths():
                 if h not in self.search_hmm_files: 
                     self.search_hmm_files.append(h)
             if self.maximum_range is None:
                 self.maximum_range = graftm_package.maximum_range()
+        else:
+            self.diamond_database = None
+            self.unaligned_sequence_database = None
             
         if len(kwargs) > 0:
             raise Exception("Unexpected arguments detected: %s" % kwargs)
@@ -85,7 +88,7 @@ class Bootstrapper:
                                     self.evalue,
                                     self.min_orf_length,
                                     None,
-                                    None,
+                                    (self.diamond_database if self.diamond_database else None),
                                     hmmsearch_output_table.name,
                                     hit_reads_fasta.name,
                                     hit_reads_orfs_fasta.name)
@@ -119,19 +122,19 @@ class Bootstrapper:
                     extern.run(cmd)
                 
                 elif search_method == "diamond":
-                    import IPython ; IPython.embed()
+
                     # Concatenate database with existing database
                     with tempfile.NamedTemporaryFile(prefix="concatenated_databse") as databasefile:
-                        for f in [orfs.name, self.unaligned_database]:
+                        for f in [orfs.name, self.unaligned_sequence_database]:
                             for line in open(f):
                                 databasefile.write(line)
                         databasefile.flush()
                                 
-                    # Run diamond make to create a diamond database
-                    cmd = "diamond makedb --in '%s' -d '%s'" % (databasefile.name, output_database_file)
-                    logging.info("Building a diamond database from bootstrap hits..")
-                    logging.debug("Running cmd: %s" % cmd)
-                    extern.run(cmd)
+                        # Run diamond make to create a diamond database
+                        cmd = "diamond makedb --in '%s' -d '%s'" % (databasefile.name, output_database_file)
+                        logging.info("Building a diamond database from bootstrap hits..")
+                        logging.debug("Running cmd: %s" % cmd)
+                        extern.run(cmd)
                 
                 else:
                     raise Exception("Search method not recognised: %s" % search_method)

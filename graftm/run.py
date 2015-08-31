@@ -180,7 +180,6 @@ class Run:
         hit_read_count_list = []
         db_search_results   = []
 
-
         if gpkg:
             maximum_range = gpkg.maximum_range()
             diamond_db    = gpkg.diamond_database_path()
@@ -234,10 +233,8 @@ class Run:
         if hmm_tc:
             setattr(self.args, 'evalue', '--cut_tc')
             
-        # Generate bootstrap HMM if required
+        # Generate bootstrap database if required
         if self.args.bootstrap_contigs:
-            #this is a hack, it should really use GraftMFiles but that class isn't currently flexible enough
-            new_hmm = os.path.join(self.args.output_directory, "bootstrap.hmm")
             if self.args.graftm_package:
                 pkg = GraftMPackage.acquire(self.args.graftm_package)
             else:
@@ -249,10 +246,20 @@ class Run:
                 evalue = self.args.evalue,
                 min_orf_length = self.args.min_orf_length,
                 graftm_package = pkg)
-            if boots.generate_hmm_from_contigs(
+            
+            #this is a hack, it should really use GraftMFiles but that class isn't currently flexible enough
+            new_database = (os.path.join(self.args.output_directory, "bootstrap.hmm") \
+                            if self.args.search_method == "hmmsearch" \
+                            else os.path.join(self.args.output_directory, "bootstrap")
+                            )
+            
+            if boots.generate_bootstrap_database_from_contigs(
                                      self.args.bootstrap_contigs,
-                                     new_hmm):
-                self.h.search_hmm.append(new_hmm)
+                                     new_database,
+                                     self.args.search_method):
+                self.h.search_hmm.append(new_database)
+            
+            
 
         # For each pair (or single file passed to GraftM)
         logging.debug('Working with %i file(s)' % len(self.sequence_pair_list))
@@ -545,5 +552,5 @@ class Run:
                 evalue = args.evalue,
                 min_orf_length = args.min_orf_length,
                 graftm_package = pkg)
-            strapper.generate_hmm_from_contigs(args.contigs, args.output_hmm)
+            strapper.generate_bootstrap_database_from_contigs(args.contigs, args.output_hmm)
 

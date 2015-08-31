@@ -26,6 +26,7 @@ class GraftMPackage:
     REFERENCE_PACKAGE_KEY = "refpkg"
     HMM_TRUSTED_CUTOFF_KEY = "trusted_cutoff"
     RANGE_KEY = "range"
+    UNALIGNED_SEQUENCE_DATABASE_KEY = "unaligned_sequence_database"
     _CONTENTS_FILE_NAME = 'CONTENTS.json'
 
     _CURRENT_VERSION = 2
@@ -108,6 +109,9 @@ class GraftMPackageVersion2(GraftMPackage):
         else:
             return None
 
+    def unaligned_sequence_database(self):
+        return os.path.join(self._base_directory,
+                            self._contents_hash[GraftMPackage.UNALIGNED_SEQUENCE_DATABASE_KEY])
 
     def search_hmm_paths(self):
         return [os.path.join(self._base_directory, x) for x in

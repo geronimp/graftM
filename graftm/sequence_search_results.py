@@ -90,8 +90,8 @@ class DiamondSearchResult(SequenceSearchResult):
                                  row[3],
                                  query_start,
                                  query_end,
-                                 row[8],
-                                 row[9],
+                                 int(row[8]),
+                                 int(row[9]),
                                  row[11],
                                  query_start < query_end,
                                  ])

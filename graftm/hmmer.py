@@ -588,7 +588,7 @@ class Hmmer:
                             previous_q_range = set(range(previous_qs[0], previous_qs[1])) # Get the range of each
                             current_q_range  = set(range(qs[0], qs[1]))
                             query_overlap    = set(previous_q_range).intersection(current_q_range) # Find the intersection between the two ranges
-                            
+
                             previous_ft_span = set(range(entry[0], entry[1]))
                             current_ft_span  = set(range(ft[0], ft[1]))
 

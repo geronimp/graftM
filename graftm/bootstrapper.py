@@ -66,6 +66,10 @@ class Bootstrapper:
         
         hmmer = Hmmer(self.search_hmm_files)
         seqio = SequenceIO()
+    
+        if self.diamond_database == None and self.unaligned_sequence_database == None:
+            logging.warning("Cannot bootstrap continue with no diamond database or unaligned sequences.") 
+            return False
         
         with tempfile.NamedTemporaryFile(prefix='graftm_bootstrap_orfs') as orfs:
             logging.info("Finding bootstrap hits in provided contigs..")

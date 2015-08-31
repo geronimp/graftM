@@ -21,6 +21,9 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #=======================================================================
 
+from graftm.graftm_package import GraftMPackage
+
+
 import unittest
 import os.path
 import sys
@@ -50,6 +53,20 @@ class Tests(unittest.TestCase):
                              subprocess.check_output("head -n1 %s" % tf.name,
                                                      shell=True))
             self.assertEqual('NSEQ  2\n', open(tf.name).readlines()[10])
+
+    def test_hello_world_diamond(self):
+        gpkg=os.path.join(path_to_data, "bootstrapper", "D1_gpkg_for_diamond.gpkg")
+        boots = Bootstrapper(search_hmm_files = [os.path.join(path_to_data,'bootstrapper','DNGNGWU00001.hmm')],
+                             evalue='1e-5',
+                             maximum_range=1000,
+                             threads=1,
+                             graftm_package=GraftMPackage.acquire(gpkg))
+        with tempfile.NamedTemporaryFile() as tf:
+            self.assertEqual(True,
+                             boots.generate_bootstrap_database_from_contigs(\
+                                [os.path.join(path_to_data,'bootstrapper','diamond_bootstrap_contigs.fna')],
+                                tf.name,
+                                "diamond"))
 
     def test_no_hits(self):
         boots = Bootstrapper(search_hmm_files = [os.path.join(path_to_data,'bootstrapper','DNGNGWU00001.hmm')],

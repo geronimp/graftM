@@ -114,6 +114,15 @@ class Tests(unittest.TestCase):
             self.assertEqual('NAME  61_otus.aln\n', open(pkg.alignment_hmm_path()).readlines()[1])
             with self.assertRaises(KeyError):
                 pkg.diamond_database_path()
+                
+    def test_create_no_alignment(self):
+        with tempdir.TempDir() as tmp:
+            gpkg = tmp+".gpkg"
+            Create().main(sequences=os.path.join(path_to_data,'create','homologs.trimmed.unaligned.faa'),
+                          taxonomy=os.path.join(path_to_data,'create','homologs.tax2tree.rerooted.decorated.tree-consensus-strings'),
+                          prefix=gpkg)
+            self.assertTrue(os.path.exists(GraftMPackageVersion2.acquire(gpkg).alignment_hmm_path()))
+        
         
         
 

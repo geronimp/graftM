@@ -68,7 +68,7 @@ class Tests(unittest.TestCase):
         with self.assertRaises(TreeParaphyleticException):
             Reannotator()._reroot_tree_by_old_root(\
                 TreeNode.read(StringIO('((A,B):1,(C,D):2);')),
-                TreeNode.read(StringIO('((A,C):1,(C,B):2);')))
+                TreeNode.read(StringIO('((A,D):1,(C,B):2);')))
 
 
 

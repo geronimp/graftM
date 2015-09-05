@@ -5,7 +5,29 @@ class TreeParaphyleticException(Exception): pass
 class Reannotator:
     def _reroot_tree_by_old_root(self, old_tree, new_tree):
         '''reroot the new tree so that it matches the old tree's root, if 
-        possible.'''
+        possible. If more than one rerooting is possible, root at the longest
+        internal branch that is consistent with the root of the old_tree.
+        
+        Parameters
+        ----------
+        old_tree: skbio.TreeNode
+            The old tree to try to match the root from
+        new_tree: skbio.TreeNode
+            tree to be rerooted in the same place as the old_tree.
+            Must include at least one leaf from each side of the old_tree's
+            root (matching by TreeNode.name), but may not have all leaves from
+            the old tree, and can have extra leaves. 
+            
+        Returns
+        -------
+        The new_tree rooted by the root of the old tree
+        
+        Exceptions
+        ----------
+        TreeParaphyleticException
+            If either of the old_tree's branches are not monophyletic in the
+            new tree
+        '''
         
         # make a list of the left and right leaf names that are in the new tree
         if len(old_tree.children) != 2: raise Exception("Expected a binary tree, root node has number of children != 2")
@@ -32,10 +54,8 @@ class Reannotator:
             new_tree = self._reroot_workaround(new_tree, left_lca)
             new_lca = new_tree.lowest_common_ancestor(old_right_tip_names)
             
-        print new_tree.ascii_art()
         if new_lca.parent is None:
             raise TreeParaphyleticException("Tree paraphyletic case #2")
-        print str(new_tree)
         far_node = self._find_longest_internal_branch_node(new_tree, new_lca)
         new_tree = self._reroot_workaround(new_tree, far_node)
         
@@ -43,11 +63,22 @@ class Reannotator:
         
     def _find_longest_internal_branch_node(self, root_node, node):
         '''return the node that has the longest branch length between the given
-        node and the root'''
+        node and the root
+        
+        Parameters
+        ----------
+        root_node: skbio.TreeNode
+            root of the tree
+        node: skbio.TreeNode
+            a node from the tree
+            
+        Returns
+        -------
+        The node that has the largest length between the node and the root_node
+        '''
         max_length = -1
         max_node = None
         while node.parent is not None:
-            print "testing %s" % str(node)
             if node.length > max_length:
                 max_node = node
                 max_length = node.length
@@ -56,7 +87,21 @@ class Reannotator:
     
     def _reroot_workaround(self, tree, node):
         '''reroot the tree by adding a new node and removing the old root
-        node, preserving distances'''
+        node, preserving distances. A new root node is added above the node
+        with zero length, and the correct length to the sister node. The old
+        root node is removed from the tree, again preserving distances.
+        
+        Parameters
+        ----------
+        tree: skbio.TreeNode
+            tree to be rerooted
+        node: skbio.TreeNode
+            node that is part of the tree to be rerooted.
+            
+        Returns
+        -------
+        The input tree rerooted.
+        '''
         if node == tree:
             raise Exception("Unexpected rooting: cannot reroot by current root")
         elif node in tree.children:
@@ -72,11 +117,9 @@ class Reannotator:
             return new_root
         else:
             # regular case, new root is down the tree somewhere
-            print tree.ascii_art()
             an_old_child = tree.children[0]
             OLD_CHILD_NAME = 'ochild'
             an_old_child.name = OLD_CHILD_NAME
-            print "Rooting at %s" % str(node)
             
             # create new root and reroot there
             new_root = TreeNode(length=0.0, children=[node], parent=node.parent)
@@ -97,7 +140,6 @@ class Reannotator:
             n.length = n.length + child.length
             n.children = grandchildren
             n.name = None
-            print new_root.ascii_art()
     
             return new_root
         

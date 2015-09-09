@@ -526,6 +526,7 @@ class Run:
                           taxtastic_taxonomy = self.args.taxtastic_taxonomy,
                           taxtastic_seqinfo = self.args.taxtastic_seqinfo,
                           hmm = self.args.hmm,
+                          search_hmm_files = self.args.search_hmm_files,
                           force = self.args.force
                           )
         elif self.args.subparser_name == 'bootstrap':

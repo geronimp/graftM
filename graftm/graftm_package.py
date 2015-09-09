@@ -139,7 +139,8 @@ class GraftMPackageVersion2(GraftMPackage):
                             self._refpkg_contents()['files']['taxonomy'])
         
     @staticmethod
-    def compile(output_package_path, refpkg_path, hmm_path, diamond_database_file, max_range, trusted_cutoff=False):
+    def compile(output_package_path, refpkg_path, hmm_path, diamond_database_file, max_range, 
+                trusted_cutoff=False, search_hmm_files=None):
         '''Create a new GraftM package with the given inputs. Any files
         specified as parameters are copied into the final package so can
         be removed after calling this function.
@@ -151,13 +152,18 @@ class GraftMPackageVersion2(GraftMPackage):
         refpkg_path: str
             path to pplacer reference package
         hmm_path: str
-            path to the search and align HMM
+            path to the align HMM. Used as the search HMM if search_hmm_files
+            is None
         diamond_database_file: str
             path to diamond DB file, or None for nucleotide packages
         max_rage: str
             as per maximum_range()
         trusted_cutoff: boolean
             set TC in search HMM
+        search_hmm_files: list of str or None
+            use these HMMs for search instead of the hmm_path. All
+            basenames of these paths must be unique, and not the same as
+            hmm_path.
             
         Returns
         -------
@@ -178,9 +184,21 @@ class GraftMPackageVersion2(GraftMPackage):
         refpkg_in_gpkg = os.path.basename(refpkg_path)
         shutil.copytree(refpkg_path, os.path.join(output_package_path, refpkg_in_gpkg))
         
+        if search_hmm_files:
+            search_hmm_files_in_gpkg_names =\
+                [os.path.basename(path) for path in search_hmm_files]
+            if hmm_file_in_gpkg in search_hmm_files_in_gpkg_names:
+                raise Exception("Search and align HMMs must all have different basenames to create a new gpkg")
+            if len(set(search_hmm_files_in_gpkg_names)) != len(search_hmm_files_in_gpkg_names):
+                raise Exception("Search HMMs must have different basenames to create a new gpkg")
+            for i, search_hmm in enumerate(search_hmm_files):
+                shutil.copyfile(search_hmm, os.path.join(output_package_path, search_hmm_files_in_gpkg_names[i]))
+        else:
+            search_hmm_files_in_gpkg_names = [hmm_file_in_gpkg]
+        
         contents = {GraftMPackage.VERSION_KEY: GraftMPackageVersion2.version,
                     GraftMPackage.ALIGNMENT_HMM_KEY: hmm_file_in_gpkg,
-                    GraftMPackage.SEARCH_HMM_KEY: [hmm_file_in_gpkg],
+                    GraftMPackage.SEARCH_HMM_KEY: search_hmm_files_in_gpkg_names,
                     GraftMPackage.REFERENCE_PACKAGE_KEY: refpkg_in_gpkg,
                     GraftMPackage.HMM_TRUSTED_CUTOFF_KEY: trusted_cutoff,
                     GraftMPackage.RANGE_KEY: max_range}

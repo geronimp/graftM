@@ -276,6 +276,7 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         prefix = kwargs.pop('prefix', None)
         rerooted_annotated_tree = kwargs.pop('rerooted_annotated_tree', None)
         user_hmm = kwargs.pop('hmm', None)
+        search_hmm_files = kwargs.pop('search_hmm_files',None)
         min_aligned_percent = kwargs.pop('min_aligned_percent',0.01)
         taxtastic_taxonomy = kwargs.pop('taxtastic_taxonomy', None)
         taxtastic_seqinfo = kwargs.pop('taxtastic_seqinfo', None)
@@ -472,7 +473,8 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         
         # Compile the gpkg
         logging.info("Compiling gpkg")
-        GraftMPackageVersion2.compile(output_gpkg_path, refpkg, hmm, diamondb, max_range)
+        GraftMPackageVersion2.compile(output_gpkg_path, refpkg, hmm, diamondb, max_range,
+                                      search_hmm_files=search_hmm_files)
 
         logging.info("Cleaning up")
         self._cleanup(self.the_trash)

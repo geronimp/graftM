@@ -31,7 +31,7 @@ class Hmmer:
     def __init__(self, search_hmm, aln_hmm=None):
         self.search_hmm = search_hmm
         self.aln_hmm = aln_hmm
-
+        
     def _hmmalign(self, input_path, directions, pipeline):
         '''
         Align reads to the aln_hmm. Receives unaligned sequences and 

@@ -1,1 +1,1 @@
-{"align_hmm": "61_otus.hmm", "refpkg": "61_otus.refpkg", "search_hmms": ["61_otus.hmm"], "trusted_cutoff": false, "graftm_package_version": 2, "diamond_database": false, "range":2149}
+{"align_hmm": "61_otus.hmm", "refpkg": "61_otus.refpkg", "search_hmms": ["61_otus.hmm"], "trusted_cutoff": false, "graftm_package_version": 3, "diamond_database": false, "range":2149, "unaligned_sequence_database": false}

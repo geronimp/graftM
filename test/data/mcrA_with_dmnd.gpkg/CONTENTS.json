@@ -1,1 +1,1 @@
-{"refpkg": "homologs.refpkg", "graftm_package_version": 2, "diamond_database": "homologs.dmnd", "trusted_cutoff": false, "range": 829.5, "align_hmm": "homologs_0.hmm", "search_hmms": ["homologs_0.hmm"]}
+{"refpkg": "homologs.refpkg", "graftm_package_version": 3, "diamond_database": "homologs.dmnd", "trusted_cutoff": false, "range": 829.5, "align_hmm": "homologs_0.hmm", "search_hmms": ["homologs_0.hmm"], "unaligned_sequence_database": false}

@@ -168,7 +168,7 @@ class Run:
             gpkg = GraftMPackage.acquire(self.args.graftm_package)
         else:
             gpkg = None
-
+      
         REVERSE_PIPE        = (True if self.args.reverse else False)
         base_list           = []
         seqs_list           = []

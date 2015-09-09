@@ -18,6 +18,8 @@ from graftm.getaxnseq import Getaxnseq
 from graftm.sequence_io import SequenceIO
 from graftm.timeit import Timer
 from graftm.clusterer import Clusterer
+from graftm.decorater import Decorate
+
 from biom.util import biom_open
 
 T=Timer()
@@ -547,3 +549,21 @@ class Run:
                 graftm_package = pkg)
             strapper.generate_hmm_from_contigs(args.contigs, args.output_hmm)
 
+        elif self.args.subparser_name == 'decorate':
+            if self.args.rerooted_tree:
+                if self.args.unrooted_tree:
+                    logging.warning("Both an un-rooted tree and rooted tree were provided, so it's unlcear what you are asking graftM to do. \
+If you're unsure how to use GraftM decorate use graftM decorate -h")
+                    exit(1)
+                elif self.args.reference_tree:
+                    logging.warning("Both an un-rooted tree and referece tree were provided, so it's unclear what you are asking graftM to do. \
+If you're unsure how to use GraftM decorate use graftM decorate -h")
+                    exit(1)
+            elif self.args.unrooted_tree and self.args.reference_tree:
+                logging.debug("Using provided reference tree %s to reroot %s and decorating with %s" % (self.args.reference_tree, 
+                                                                                                        self.args.unrooted_tree, 
+                                                                                                        self.args.input_taxonomy))
+                
+                import IPython ; IPython.embed()
+            
+            

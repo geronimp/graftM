@@ -10,6 +10,11 @@ from graftm.unpack_sequences import UnpackRawReads
 from graftm.sequence_io import SequenceIO
 
 class Bootstrapper:
+    
+    # Define constants.
+    DIAMOND_SEARCH_METHOD = "diamond"
+    HMM_SEARCH_METHOD = "hmmsearch"    
+
     def __init__(self, **kwargs):
         '''
         Parameters
@@ -28,9 +33,12 @@ class Bootstrapper:
         self.evalue = kwargs.pop('evalue',None)
         self.min_orf_length = kwargs.pop('min_orf_length',None)
         graftm_package = kwargs.pop('graftm_package',None)
+        if len(kwargs) > 0:
+            raise Exception("Unexpected arguments detected: %s" % kwargs)
+        
         if graftm_package:
             self.diamond_database = graftm_package.diamond_database_path()
-            self.unaligned_sequence_database = graftm_package.unaligned_sequence_database()
+            self.unaligned_sequence_database = graftm_package.unaligned_sequence_database_path()
             for h in graftm_package.search_hmm_paths():
                 if h not in self.search_hmm_files: 
                     self.search_hmm_files.append(h)
@@ -66,10 +74,10 @@ class Bootstrapper:
         
         hmmer = Hmmer(self.search_hmm_files)
         seqio = SequenceIO()
-    
-        if self.diamond_database == None and self.unaligned_sequence_database == None:
-            logging.warning("Cannot bootstrap continue with no diamond database or unaligned sequences.") 
-            return False
+        if search_method == self.DIAMOND_SEARCH_METHOD:
+            if self.diamond_database == None or self.unaligned_sequence_database == None:
+                logging.warning("Cannot bootstrap continue with no diamond database or unaligned sequences.") 
+                return False
         
         with tempfile.NamedTemporaryFile(prefix='graftm_bootstrap_orfs') as orfs:
             logging.info("Finding bootstrap hits in provided contigs..")
@@ -103,32 +111,34 @@ class Bootstrapper:
             # Check to make sure the file is not zero-length
             orfs.flush()
             
-            if len(seqio.read_fasta_file(orfs.name)) <= 1:# Just to build on this, you need to check if there is > 1 hit
-                                                          # otherwise mafft will fail to align, causing a crash when hmmbuild is 
-                                                          # run on an empty file.
-                logging.warn("Failed to find two or more matching ORFs in the bootstrap contigs")
-                return False
+
             
             with tempfile.NamedTemporaryFile(prefix="graftm_bootstrap_aln") as aln:
                     
-                if search_method == "hmmsearch":
-                    # Run mafft to align them
+                if search_method == self.HMM_SEARCH_METHOD:
                     
+                    # Check that there is more than one sequence to align.
+                    if len(seqio.read_fasta_file(orfs.name)) <= 1:# Just to build on this, you need to check if there is > 1 hit
+                                                                  # otherwise mafft will fail to align, causing a crash when hmmbuild is 
+                                                                  # run on an empty file.
+                        logging.warn("Failed to find two or more matching ORFs in the bootstrap contigs")
+                        return False
+                    
+                    # Run mafft to align them
                     cmd = "mafft --auto %s >%s" % (orfs.name, aln.name)
                     logging.info("Aligning bootstrap hits..")
-                    logging.debug("Running alignment cmd: %s" % cmd)
                     extern.run(cmd)
                 
                     # Run hmmbuild to create an HMM
                     cmd = "hmmbuild --amino %s %s >/dev/null" % (output_database_file, aln.name)
                     logging.info("Building HMM from bootstrap hits..")
-                    logging.debug("Running cmd: %s" % cmd)
+
                     extern.run(cmd)
                 
-                elif search_method == "diamond":
+                elif search_method == self.DIAMOND_SEARCH_METHOD:
 
                     # Concatenate database with existing database
-                    with tempfile.NamedTemporaryFile(prefix="concatenated_databse") as databasefile:
+                    with tempfile.NamedTemporaryFile(prefix="concatenated_database") as databasefile:
                         for f in [orfs.name, self.unaligned_sequence_database]:
                             for line in open(f):
                                 databasefile.write(line)
@@ -137,7 +147,6 @@ class Bootstrapper:
                         # Run diamond make to create a diamond database
                         cmd = "diamond makedb --in '%s' -d '%s'" % (databasefile.name, output_database_file)
                         logging.info("Building a diamond database from bootstrap hits..")
-                        logging.debug("Running cmd: %s" % cmd)
                         extern.run(cmd)
                 
                 else:

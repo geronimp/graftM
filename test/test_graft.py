@@ -792,6 +792,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                                                                                                    hmms.name,
                                                                                                    hmm,
                                                                                                    tmp)
+                print cmd
                 subprocess.check_output(cmd, shell=True)
                 otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
                 # otu table should not exist
@@ -800,7 +801,9 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                             '-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GGVGFTQYATAAYTDDILDNNVYYNIDYINDKYKTDNKVKATLEVVKDIATESTIYGIETYEKFPTALEDHFGXSQRATVLAAAAGVXSALATANANAGLSGWYLSMYLHKEAWGRLGFFGYDLQDQCGATNVLSYQGDEGLPDELRGPNYPNYAM----------------------------------------------------------------------']
                 count = 0
                 alnFile = os.path.join(tmp, 'mcrA_1.1', 'mcrA_1.1_hits.aln.fa')
+                
                 for line in open(alnFile):
+                    
                     self.assertEqual(expected[count], line.strip())
                     count += 1
                 self.assertEqual(count, len(expected))
@@ -994,12 +997,14 @@ TAGTCTCGGGTCTACTACGAATAGCAAGTCTACCTCAAGG
                                                                                                                  original_hmm,
                                                                                                                  original_hmm,
                                                                                                                  tmp)
+                
                 subprocess.check_output(cmd, shell=True)
                 sample_name = os.path.basename(fasta.name[:-3])
                 self.assertEqual('', open(os.path.join(tmp, sample_name, '%s_hits.fa' % sample_name)).read())
                 
                 cmd = "%s --bootstrap_contigs %s" % (cmd, 
                                                      os.path.join(path_to_data,'bootstrapper','contigs.fna'))
+
                 subprocess.check_output(cmd, shell=True)
                 self.assertEqual(testing_read, open(os.path.join(tmp, sample_name, '%s_hits.fa' % sample_name)).read())
 

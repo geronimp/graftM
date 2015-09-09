@@ -32,14 +32,16 @@ class GraftMPackage:
     _CURRENT_VERSION = 2
 
     _REQUIRED_KEYS = {'2': [
-                     DIAMOND_DATABASE_KEY,
-                     VERSION_KEY,
-                     ALIGNMENT_HMM_KEY,
-                     SEARCH_HMM_KEY,
-                     REFERENCE_PACKAGE_KEY,
-                     HMM_TRUSTED_CUTOFF_KEY,
-                     RANGE_KEY
-                     ]}
+                             DIAMOND_DATABASE_KEY,
+                             VERSION_KEY,
+                             ALIGNMENT_HMM_KEY,
+                             SEARCH_HMM_KEY,
+                             REFERENCE_PACKAGE_KEY,
+                             HMM_TRUSTED_CUTOFF_KEY,
+                             RANGE_KEY,
+                             UNALIGNED_SEQUENCE_DATABASE_KEY
+                             ]
+                      }
 
 
     @staticmethod
@@ -109,7 +111,7 @@ class GraftMPackageVersion2(GraftMPackage):
         else:
             return None
 
-    def unaligned_sequence_database(self):
+    def unaligned_sequence_database_path(self):
         return os.path.join(self._base_directory,
                             self._contents_hash[GraftMPackage.UNALIGNED_SEQUENCE_DATABASE_KEY])
 

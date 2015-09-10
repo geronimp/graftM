@@ -47,7 +47,8 @@ class GraftMPackage:
                              SEARCH_HMM_KEY,
                              REFERENCE_PACKAGE_KEY,
                              HMM_TRUSTED_CUTOFF_KEY,
-                             RANGE_KEY
+                             RANGE_KEY,
+                             UNALIGNED_SEQUENCE_DATABASE_KEY
                              ]
                       }
 
@@ -75,8 +76,10 @@ class GraftMPackage:
                                        )
 
         # check we are at current version otherwise choke
-        pkg.check_universal_keys(3)
-        pkg.check_required_keys(GraftMPackageVersion3._REQUIRED_KEYS)
+        import IPython ; IPython.embed()
+        v = pkg._contents_hash[pkg.VERSION_KEY]
+        pkg.check_universal_keys(v)
+        pkg.check_required_keys(GraftMPackage._REQUIRED_KEYS[str(v)])
         return pkg
 
     def check_universal_keys(self, version):
@@ -116,13 +119,6 @@ class GraftMPackageVersion2(GraftMPackage):
         if self._contents_hash[GraftMPackage.DIAMOND_DATABASE_KEY]:
             return os.path.join(self._base_directory,
                                 self._contents_hash[GraftMPackage.DIAMOND_DATABASE_KEY])
-        else:
-            return None
-
-    def unaligned_sequence_database_path(self):
-        if self._contents_hash[GraftMPackage.UNALIGNED_SEQUENCE_DATABASE_KEY]:
-            return os.path.join(self._base_directory,
-                                self._contents_hash[GraftMPackage.UNALIGNED_SEQUENCE_DATABASE_KEY])
         else:
             return None
         
@@ -219,6 +215,13 @@ class GraftMPackageVersion3(GraftMPackageVersion2):
                      GraftMPackage.UNALIGNED_SEQUENCE_DATABASE_KEY
                      ]
     
+    def unaligned_sequence_database_path(self):
+        if self._contents_hash[GraftMPackage.UNALIGNED_SEQUENCE_DATABASE_KEY]:
+            return os.path.join(self._base_directory,
+                                self._contents_hash[GraftMPackage.UNALIGNED_SEQUENCE_DATABASE_KEY])
+        else:
+            return None
+        
     @staticmethod
     def compile(output_package_path, refpkg_path, hmm_path, diamond_database_file, 
                 max_range, unaligned_sequence_database, trusted_cutoff=False):

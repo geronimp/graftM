@@ -102,6 +102,18 @@ class Tests(unittest.TestCase):
                           prefix=gpkg)
             self.assertEqual('NAME  first10\n', open(GraftMPackageVersion2.acquire(gpkg).alignment_hmm_path()).readlines()[1])
             
+    def test_search_hmms_input(self):
+        with tempdir.TempDir() as tmp:
+            gpkg = tmp+".gpkg"
+            Create().main(sequences=os.path.join(path_to_data,'create','homologs.trimmed.unaligned.faa'),
+                          taxonomy=os.path.join(path_to_data,'create','homologs.tax2tree.rerooted.decorated.tree-consensus-strings'),
+                          hmm=os.path.join(path_to_data, 'create', 'first5.hmm'), # an HMM created from just the first 5 sequences
+                          search_hmm_files=[os.path.join(path_to_data, 'create', 'homologs.hmm')],
+                          prefix=gpkg)
+            self.assertEqual('NAME  first10\n', open(GraftMPackageVersion2.acquire(gpkg).alignment_hmm_path()).readlines()[1])
+            self.assertEqual(1, len(GraftMPackageVersion2.acquire(gpkg).search_hmm_paths()))
+            self.assertEqual('NAME  homologs.trimmed.aligned\n', open(GraftMPackageVersion2.acquire(gpkg).search_hmm_paths()[0]).readlines()[1])
+            
     def test_dna_package(self):
         with tempdir.TempDir() as tmp:
             gpkg = tmp+".gpkg"

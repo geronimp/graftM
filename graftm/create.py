@@ -45,6 +45,23 @@ class Create:
             if num_aligned <= min_length:
                 to_return.append(s.name)
         return to_return
+    
+    def _align_sequences(self, input_sequences_path, output_alignment_path):
+        '''Align sequences into alignment_file
+        
+        Parameters
+        ----------
+        input_sequences_path: str
+            path to input sequences in fasta format
+        output_alignment_path: str
+            path to output alignment path
+            
+        Returns
+        -------
+        Nothing
+        '''
+        cmd = "mafft --auto '%s' >%s" % (input_sequences_path, output_alignment_path)
+        extern.run(cmd)
         
     def _get_hmm_from_alignment(self, alignment, hmm_filename, output_alignment_filename):
         '''Return a HMM file and alignment of sequences to that HMM
@@ -308,6 +325,11 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
             hmm = user_hmm
             self._align_sequences_to_hmm(hmm, sequences, output_alignment)
         else:
+            if not alignment:
+                alignment_tempfile = tempfile.NamedTemporaryFile(prefix='graftm_create', suffix='.aln.fasta')
+                alignment = alignment_tempfile.name 
+                self._align_sequences(sequences, alignment)
+                
             hmm_f = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.hmm')
             hmm = hmm_f.name
             self._get_hmm_from_alignment(alignment, hmm, output_alignment)

@@ -32,7 +32,6 @@ class GraftMPackage:
     _CURRENT_VERSION = 3
 
     _REQUIRED_KEYS = {'2': [
-                             DIAMOND_DATABASE_KEY,
                              VERSION_KEY,
                              ALIGNMENT_HMM_KEY,
                              SEARCH_HMM_KEY,
@@ -41,7 +40,6 @@ class GraftMPackage:
                              RANGE_KEY
                              ],
                       '3': [
-                             DIAMOND_DATABASE_KEY,
                              VERSION_KEY,
                              ALIGNMENT_HMM_KEY,
                              SEARCH_HMM_KEY,
@@ -76,7 +74,6 @@ class GraftMPackage:
                                        )
 
         # check we are at current version otherwise choke
-        import IPython ; IPython.embed()
         v = pkg._contents_hash[pkg.VERSION_KEY]
         pkg.check_universal_keys(v)
         pkg.check_required_keys(GraftMPackage._REQUIRED_KEYS[str(v)])
@@ -105,15 +102,6 @@ class GraftMPackage:
 
 class GraftMPackageVersion2(GraftMPackage):
     version = 2
-
-    _REQUIRED_KEYS = [
-                     #GraftMPackage.DIAMOND_DATABASE_KEY, #not required for nucleotide packages
-                     GraftMPackage.VERSION_KEY,
-                     GraftMPackage.ALIGNMENT_HMM_KEY,
-                     GraftMPackage.SEARCH_HMM_KEY,
-                     GraftMPackage.REFERENCE_PACKAGE_KEY,
-                     GraftMPackage.HMM_TRUSTED_CUTOFF_KEY
-                     ]
 
     def diamond_database_path(self):
         if self._contents_hash[GraftMPackage.DIAMOND_DATABASE_KEY]:
@@ -205,15 +193,6 @@ class GraftMPackageVersion2(GraftMPackage):
 class GraftMPackageVersion3(GraftMPackageVersion2):
     
     version = 3
-    
-    _REQUIRED_KEYS = [
-                     GraftMPackage.VERSION_KEY,
-                     GraftMPackage.ALIGNMENT_HMM_KEY,
-                     GraftMPackage.SEARCH_HMM_KEY,
-                     GraftMPackage.REFERENCE_PACKAGE_KEY,
-                     GraftMPackage.HMM_TRUSTED_CUTOFF_KEY,
-                     GraftMPackage.UNALIGNED_SEQUENCE_DATABASE_KEY
-                     ]
     
     def unaligned_sequence_database_path(self):
         if self._contents_hash[GraftMPackage.UNALIGNED_SEQUENCE_DATABASE_KEY]:

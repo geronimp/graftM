@@ -16,7 +16,7 @@ from graftm.deduplicator import Deduplicator
 from skbio.tree import TreeNode
 from graftm.sequence_io import SequenceIO
 import tempdir
-from graftm.graftm_package import GraftMPackageVersion2
+from graftm.graftm_package import GraftMPackageVersion3
 
 class Create:
     _PROTEIN_PACKAGE_TYPE = 'protein_package_type'
@@ -472,7 +472,7 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         
         # Compile the gpkg
         logging.info("Compiling gpkg")
-        GraftMPackageVersion2.compile(output_gpkg_path, refpkg, hmm, diamondb, max_range)
+        GraftMPackageVersion3.compile(output_gpkg_path, refpkg, hmm, diamondb, max_range, sequences)
 
         logging.info("Cleaning up")
         self._cleanup(self.the_trash)

@@ -27,7 +27,6 @@ PIPELINE_NT = "D"
 
 class Run:
     _MIN_VERBOSITY_FOR_ART = 3 # with 2 then, only errors are printed
-
     PPLACER_TAXONOMIC_ASSIGNMENT = 'pplacer'
     DIAMOND_TAXONOMIC_ASSIGNMENT = 'diamond'
 
@@ -139,7 +138,6 @@ class Run:
                                     self.gmf.orf_hmmsearch_output_path(base),
                                     self.gmf.hmmsearch_output_path(base),
                                     self.gmf.orf_output_path(base),
-                                    self.gmf.comb_aln_fa(),
                                     self.gmf.output_for_path(base),
                                     self.gmf.output_rev_path(base)])
             else:
@@ -156,7 +154,6 @@ class Run:
                                 self.gmf.hmmsearch_output_path(base),
                                 self.gmf.orf_hmmsearch_output_path(base),
                                 self.gmf.orf_output_path(base),
-                                self.gmf.comb_aln_fa(),
                                 self.gmf.output_for_path(base),
                                 self.gmf.output_rev_path(base)])
 
@@ -171,7 +168,7 @@ class Run:
             gpkg = GraftMPackage.acquire(self.args.graftm_package)
         else:
             gpkg = None
-
+      
         REVERSE_PIPE        = (True if self.args.reverse else False)
         base_list           = []
         seqs_list           = []
@@ -180,18 +177,17 @@ class Run:
         hit_read_count_list = []
         db_search_results   = []
 
-
         if gpkg:
             maximum_range = gpkg.maximum_range()
             diamond_db    = gpkg.diamond_database_path()
-            if self.args.search_method == 'diamond':
+            if self.args.search_method == 'diamond':                    
+                if self.args.search_diamond_file:
+                    diamond_db=self.args.search_diamond_file[0]
                 if not diamond_db:
-                    if self.args.search_diamond_file:
-                        diamond_db=self.args.search_diamond_file
-                    else:
-                        logging.error("%s search method selected, but no diamond database specified. \
-                        Please either provide a gpkg to the --graftm_package flag, or a diamond \
-                        database to the --search_diamond_file flag." % self.args.search_method)
+                    logging.error("%s search method selected, but no diamond database specified. \
+                    Please either provide a gpkg to the --graftm_package flag, or a diamond \
+                    database to the --search_diamond_file flag." % self.args.search_method)
+                    raise Exception()
         else:
             # Get the maximum range, if none exists, make one from the HMM profile
             if self.args.maximum_range:
@@ -216,7 +212,7 @@ class Run:
                 logging.warn("--reverse reads specified with --assignment_method diamond. Reverse reads will be ignored.")
                 self.args.reverse = None
 
-
+       
         # If merge reads is specified, check that there are reverse reads to merge with
         if self.args.merge_reads and not hasattr(self.args, 'reverse'):
             logging.error("--merge requires --reverse to be specified")
@@ -234,10 +230,8 @@ class Run:
         if hmm_tc:
             setattr(self.args, 'evalue', '--cut_tc')
             
-        # Generate bootstrap HMM if required
+        # Generate bootstrap database if required
         if self.args.bootstrap_contigs:
-            #this is a hack, it should really use GraftMFiles but that class isn't currently flexible enough
-            new_hmm = os.path.join(self.args.output_directory, "bootstrap.hmm")
             if self.args.graftm_package:
                 pkg = GraftMPackage.acquire(self.args.graftm_package)
             else:
@@ -249,10 +243,22 @@ class Run:
                 evalue = self.args.evalue,
                 min_orf_length = self.args.min_orf_length,
                 graftm_package = pkg)
-            if boots.generate_hmm_from_contigs(
+            
+            #this is a hack, it should really use GraftMFiles but that class isn't currently flexible enough
+            new_database = (os.path.join(self.args.output_directory, "bootstrap.hmm") \
+                            if self.args.search_method == "hmmsearch" \
+                            else os.path.join(self.args.output_directory, "bootstrap")
+                            )
+            
+            if boots.generate_bootstrap_database_from_contigs(
                                      self.args.bootstrap_contigs,
-                                     new_hmm):
-                self.h.search_hmm.append(new_hmm)
+                                     new_database,
+                                     self.args.search_method):
+                if self.args.search_method == "hmmsearch":
+                    self.h.search_hmm.append(new_database)
+                else:
+                    diamond_db = new_database
+            
 
         # For each pair (or single file passed to GraftM)
         logging.debug('Working with %i file(s)' % len(self.sequence_pair_list))
@@ -295,32 +301,32 @@ class Run:
 
                 if self.args.type == PIPELINE_AA:
                     logging.debug("Running protein pipeline")
-                    search_time, result = self.h.aa_db_search(
-                                                              self.gmf,
-                                                              base,
-                                                              unpack,
-                                                              self.args.search_method,
-                                                              maximum_range,
-                                                              self.args.threads,
-                                                              self.args.evalue,
-                                                              self.args.min_orf_length,
-                                                              self.args.restrict_read_length,
-                                                              diamond_db
-                                                              )
+                    search_time, (result, read_complement_information) = self.h.aa_db_search(
+                                                          self.gmf,
+                                                          base,
+                                                          unpack,
+                                                          self.args.search_method,
+                                                          maximum_range,
+                                                          self.args.threads,
+                                                          self.args.evalue,
+                                                          self.args.min_orf_length,
+                                                          self.args.restrict_read_length,
+                                                          diamond_db
+                                                          )
 
                 # Or the DNA pipeline
                 elif self.args.type == PIPELINE_NT:
                     logging.debug("Running nucleotide pipeline")
-                    search_time, result = self.h.nt_db_search(
-                                                              self.gmf,
-                                                              base,
-                                                              unpack,
-                                                              self.args.euk_check,
-                                                              self.args.search_method,
-                                                              maximum_range,
-                                                              self.args.threads,
-                                                              self.args.evalue
-                                                              )
+                    search_time, (result, read_complement_information) = self.h.nt_db_search(
+                                                          self.gmf,
+                                                          base,
+                                                          unpack,
+                                                          self.args.euk_check,
+                                                          self.args.search_method,
+                                                          maximum_range,
+                                                          self.args.threads,
+                                                          self.args.evalue
+                                                          )
 
                 if not result.hit_fasta():
                     logging.info('No reads found in %s' % base)
@@ -329,15 +335,18 @@ class Run:
                 if self.args.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
                     logging.info('Aligning reads to reference package database')
                     hit_aligned_reads = self.gmf.aligned_fasta_output_path(base)
-                    aln_time = self.h.align(
-                                            result.hit_fasta(),
-                                            hit_aligned_reads,
-                                            self._get_sequence_directions(result.search_result),
-                                            self.args.type
-                                            )
-
-                    seqs_list.append(hit_aligned_reads)
-
+                    aln_time, aln_result = self.h.align(
+                                                        result.hit_fasta(),
+                                                        hit_aligned_reads,
+                                                        read_complement_information,
+                                                        self.args.type
+                                                        )
+                    if aln_result:
+                        seqs_list.append(hit_aligned_reads)
+                    else:
+                        logging.info("No more aligned sequences to place!")
+                        continue
+                
                 db_search_results.append(result)
                 base_list.append(base)
                 search_results.append(result.search_result)
@@ -545,5 +554,5 @@ class Run:
                 evalue = args.evalue,
                 min_orf_length = args.min_orf_length,
                 graftm_package = pkg)
-            strapper.generate_hmm_from_contigs(args.contigs, args.output_hmm)
+            strapper.generate_bootstrap_database_from_contigs(args.contigs, args.output_hmm)
 

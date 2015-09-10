@@ -1,3 +1,4 @@
+
 import extern
 import os
 import itertools
@@ -30,7 +31,7 @@ class Hmmer:
     def __init__(self, search_hmm, aln_hmm=None):
         self.search_hmm = search_hmm
         self.aln_hmm = aln_hmm
-
+        
     def _hmmalign(self, input_path, directions, pipeline):
         '''
         Align reads to the aln_hmm. Receives unaligned sequences and 
@@ -68,6 +69,7 @@ class Hmmer:
             # Split the reads into reverse and forward lists
             for record in records:
                 read_id = record.id
+
                 if directions[read_id] == True:
                     forward.append(record)
                 elif directions[read_id] == False:
@@ -75,7 +77,7 @@ class Hmmer:
                 else:
                     raise Exception(logging.error('Programming error: hmmalign'))
                     exit(1)
-            
+
             logging.debug("Found %i forward direction reads" % len(forward))
             logging.debug("Found %i reverse direction reads" % len(reverse))
             
@@ -389,17 +391,25 @@ class Hmmer:
         Nothing, output path is known.
         '''
         reads = SeqIO.to_dict(SeqIO.parse(reads_path, "fasta"))  # open up reads as dictionary
+        split_complement_info = {}
+        
         with open(output_path, 'w') as out:
-            for read_name, ranges in hits.iteritems():  # For each contig
+            for read_name, entry in hits.iteritems():  # For each contig
                 index = 1 
+                ranges = entry["span"]
+                complement = entry["strand"]
                 if len(ranges) > 1:  # if there are multiple hits in that contig
-                    for r in ranges:  # for each of those hits
+                    for idx, r in enumerate(ranges):  # for each of those hits
                         new_record = reads[read_name][r[0] - 1:r[1]]  # subset the record by the span of that hit
                         new_record.id = new_record.id + '_split_%i' % index  # give that subset record a new header
                         SeqIO.write(new_record, out, "fasta")  # and write it to output
                         index += 1  # increment the split counter
+                        split_complement_info[new_record.id] = complement[idx]
                 else:  # Otherwise, just write the read back to the file
                     SeqIO.write(reads[read_name], out, "fasta")
+                    split_complement_info[read_name] = complement[0]
+        
+        return split_complement_info
 
     def _extract_from_raw_reads(self, output_path, input_path, raw_sequences_path, input_file_format, hits):
         '''
@@ -420,6 +430,11 @@ class Hmmer:
             FORMAT_FASTA, denoting the format of the input sequence
         hits : dict
             A hash with the readnames as the keys and the spans as the values
+        
+        Returns
+        -------
+        complement_info : hash
+            Read complement information, True = forward False = Reverse
         '''  
         
         with tempfile.NamedTemporaryFile(prefix='_raw_extracted_reads.fa') as tmp:
@@ -437,8 +452,9 @@ class Hmmer:
                 raise Exception("Programming error")
             extern.run(cmd)
             
-            self._extract_multiple_hits(hits, tmp.name, output_path)  # split them into multiple reads
-        return output_path
+            complement_info = self._extract_multiple_hits(hits, tmp.name, output_path)  # split them into multiple reads
+        
+        return output_path, complement_info
         
     def alignment_correcter(self, alignment_file_list, output_file_name):
         '''
@@ -457,7 +473,7 @@ class Hmmer:
             
         Returns
         -------
-        nothing
+        True or False, depending if reads were written to file
         '''
         
         corrected_sequences = {}
@@ -474,11 +490,26 @@ class Hmmer:
                 for position in insert_list:  # For each position in the removal list
                     del new_seq[position]  # Delete that inserted position in every sequence
                 corrected_sequences['>' + sequence.id + '\n'] = (''.join(new_seq) + '\n').replace('~', '-')
-        with open(output_file_name, 'w') as output_file:  # Create an open file to write the new sequences to
-            for fasta_id, fasta_seq in corrected_sequences.iteritems():
-                if any(c.isalpha() for c in fasta_seq):
-                    output_file.write(fasta_id)
-                    output_file.write(fasta_seq)
+        
+        pre_filter_count=len(corrected_sequences)
+        corrected_sequences={key:item for key, item in corrected_sequences.iteritems() if len(item.replace('-', '')) >10}
+        
+        post_filter_count=len(corrected_sequences)
+        logging.info("Filtered %i short sequences from the alignment" % \
+                        (pre_filter_count-post_filter_count)
+                    )
+        logging.info("%i sequences remaining" % post_filter_count)
+        
+        if len(corrected_sequences) >= 1:
+            with open(output_file_name, 'w') as output_file:  # Create an open file to write the new sequences to
+                for fasta_id, fasta_seq in corrected_sequences.iteritems():
+                    if len(fasta_seq.strip().replace('-','')) > 10:
+                        if any(c.isalpha() for c in fasta_seq):
+                            output_file.write(fasta_id)
+                            output_file.write(fasta_seq)
+            return True
+        else:
+            return False
 
 
     def _extract_orfs(self, input_path, orfm, hit_readnames, output_path, search_method, sequence_frame_info_list=None):
@@ -511,11 +542,12 @@ class Hmmer:
                                        stdin=subprocess.PIPE,
                                        stdout=subprocess.PIPE)
             process.communicate('\n'.join(hit_readnames))
+
         elif search_method == "diamond":
             sequence_frame_info_dict = {x[0]:[x[1], x[2], x[3]] for x in sequence_frame_info_list}
             records = SeqIO.parse(input_path, "fasta")
             with open(output_path, 'w') as open_output_path:
-                for record in records:                    
+                for record in records:             
                     entry=sequence_frame_info_dict[record.id]
                     indfrom=(min(entry[2], entry[1])-1)
                     indto=max(entry[2], entry[1])
@@ -529,7 +561,7 @@ class Hmmer:
 
     def _get_read_names(self, search_result, max_range):
         '''
-        _get_read_names - loops through hmm hits and their alingment spans to
+        _get_read_names - loops through hmm hits and their alignment spans to
         determine if they are potentially linked (for example, if one gene in a 
         contig hits a hmm more than once, in two different conserved regions
         of that gene) and combines them into one 'hit' because they are 
@@ -568,58 +600,57 @@ class Hmmer:
                                         SequenceSearchResult.QUERY_TO_FIELD]
                                        )
                          )
+            
             for hit in spans:  # For each of these rows (i.e. hits)
-                i = hit[0]  # set id to i
-                c = hit[1]  # set complement to c
-                ft = [min(hit[2:4]), max(hit[2:4])]  # set span as ft (i.e. from - to)
-                qs = [min(hit[4:6]), max(hit[4:6])]  # seq the query span to qs
+                read_id = hit[0]  # set id to i
+                complement = hit[1]  # set complement to c
+                hit_ft = [min(hit[2:4]), max(hit[2:4])]  # set span as ft (i.e. from - to)
+                database_ft = [min(hit[4:6]), max(hit[4:6])]  # seq the query span to qs
                 
-                if ft[0] == ft[1]: continue  # if the span covers none of the query, skip that entry (seen this before)
+                if hit_ft[0] == hit_ft[1]: continue  # if the span covers none of the query, skip that entry (seen this before)
                 
-                if i not in splits:  # If the hit hasnt been seen yet
-                    splits[i] = {'span'       : [ft],
-                                 'strand'     : [c],
-                                 'query_span' : [qs]}  # add the span and complement as new entry
+                if read_id not in splits:  # If the hit hasnt been seen yet
+                    splits[read_id] = {'span'       : [hit_ft],
+                                       'strand'     : [complement],
+                                       'query_span' : [database_ft]}  # add the span and complement as new entry
                 else:  # otherwise (if it has been seen)      
-                    for idx, entry in enumerate(splits[i]['span']):  # for each previously added entry                                  
-                        if splits[i]['strand'][idx] == c:  # If the hit is on the same complement strand
+                    old_hit=splits[read_id]
+                    
+                    for idx, old_span in enumerate(old_hit['span']):  # for each previously added entry                                  
+                        if old_hit['strand'][idx] == complement:  # If the hit is on the same complement strand       
                             
-                            previous_qs      = splits[i]['query_span'][idx] # Get the query span of the previous hit
-                            previous_q_range = set(range(previous_qs[0], previous_qs[1])) # Get the range of each
-                            current_q_range  = set(range(qs[0], qs[1]))
-                            query_overlap    = set(previous_q_range).intersection(current_q_range) # Find the intersection between the two ranges
+                            ###### Check if they hit the same region in the HMM ######
+                            old_database_ft = old_hit["query_span"][idx]
+                            old_database_ft_range = range(min(old_database_ft), max(old_database_ft))
+                            database_ft_range = range(min(database_ft), max(database_ft))
+                            intersection_length = float(len(set(old_database_ft_range).intersection(database_ft_range)))
+                            if intersection_length/float(len(database_ft_range)) > 0.10:
+                            ##########################################################
                             
-                            previous_ft_span = set(range(entry[0], entry[1]))
-                            current_ft_span  = set(range(ft[0], ft[1]))
-
-                            if any(query_overlap): # If there is an overlap
-                                # if the intersection between the span the current hit is 
-                                # greater than half (0.5) that of a previous span,
-                                # consider it the same hit, and continue.
-                                intersection_fraction = float(len(previous_ft_span.intersection(current_ft_span)))
-                                if intersection_fraction / float(len(previous_ft_span)) >= 0.5: 
+                                ###### Check that they arent just the same hit ######
+                                old_hit_ft = old_hit["span"][idx]
+                                old_hit_ft_range = range(min(old_hit_ft), max(old_hit_ft))
+                                hit_ft_range = range(min(hit_ft), max(hit_ft))
+                                intersection_length = float(len(set(old_hit_ft_range).intersection(hit_ft_range)))
+                                if intersection_length/float(len(hit_ft_range)) > 0.10:
                                     break
-                                elif intersection_fraction / float(len(current_ft_span)) >= 0.5:                                                                                            
-                                    break
-                                else: # else (i.e. if the hit covers less that 50% of the sequence of the previous hit
-                                    if len(query_overlap) > (len(current_q_range)*0.75): # if the overlap on the query HMM does not span over 75% 
-                                        splits[i]['span'].append(ft) # Add from-to as another entry, this is another hit. 
-                                        splits[i]['strand'].append(c) # Add strand info as well
-                                        break # And break
+                                else:
+                                    continue       
+                                #####################################################
                             
-                            if min(entry) < min(ft):  # if/else to determine which entry comes first (e.g. 1-5, 6-10 not 6-10, 1-5)
-                                if max(ft) - min(entry) < max_range:  # Check if they lie within range of eachother
-                                    entry[1] = max(ft)  # ammend the entry if they are
+                            if min(old_span) < min(hit_ft):  # if/else to determine which entry comes first (e.g. 1-5, 6-10 not 6-10, 1-5)
+                                if max(hit_ft) - min(old_span) < max_range:  # Check if they lie within range of eachother
+                                    old_span[1] = max(hit_ft)  # ammend the entry if they are
                                     break  # And break the loop
                             else:
-                                if max(entry) - min(ft) < max_range:  # Check if they lie within range of eachother
-                                    entry[0] = min(ft)  # ammend the entry if they are
+                                if max(old_span) - min(hit_ft) < max_range:  # Check if they lie within range of eachother
+                                    old_span[0] = min(hit_ft)  # ammend the entry if they are
                                     break  # And break the loop
                     else:  # if no break occured (no overlap)
-                        splits[i]['span'].append(ft)  # Add the new range to be split out in the future
-                        splits[i]['strand'].append(c)  # Add the complement strand as well
-    
-        return {key: entry['span'] for key, entry in splits.iteritems()}  # return the dict, without strand information which isn't required.
+                        old_hit['span'].append(hit_ft)  # Add the new range to be split out in the future
+                        old_hit['strand'].append(complement)  # Add the complement strand as well
+     
+        return splits  # return the dict, without strand information which isn't required.
     
     def _check_for_slash_endings(self, readnames):
         '''
@@ -790,10 +821,16 @@ class Hmmer:
             else:   
                 hits={}
                 for result in search_result:
-                    for h in result.each([SequenceSearchResult.QUERY_ID_FIELD]):
-                        hits[h[0]]=[]
-            
-            
+                    for h in list(result.each([SequenceSearchResult.QUERY_ID_FIELD,
+                                               SequenceSearchResult.ALIGNMENT_DIRECTION,
+                                               SequenceSearchResult.HIT_FROM_FIELD,
+                                               SequenceSearchResult.HIT_TO_FIELD,
+                                               SequenceSearchResult.QUERY_FROM_FIELD,
+                                               SequenceSearchResult.QUERY_TO_FIELD])):
+                        hits[h[0]]={"strand":[h[1]],
+                                    "span":[[h[2], h[3]]],
+                                    "query_span":[[h[4], h[5]]]}
+        
             orf_hit_readnames = hits.keys() # Orf read hit names
             if unpack.sequence_type() == 'nucleotide':
                 hits={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) else key): item for key, item in hits.iteritems()}
@@ -804,7 +841,7 @@ class Hmmer:
                 readnames.write(read + '\n')
             readnames.flush()
             
-            hit_reads_fasta = self._extract_from_raw_reads(
+            hit_reads_fasta, complement_information = self._extract_from_raw_reads(
                                                            hit_reads_fasta,
                                                            readnames.name,
                                                            unpack.read_file,
@@ -819,7 +856,7 @@ class Hmmer:
                                     search_result,
                                     hit_read_counts,
                                     None)
-            return result
+            return result, complement_information
         
         if unpack.sequence_type() == 'nucleotide':
             # Extract the orfs of these reads that hit the original search
@@ -843,8 +880,14 @@ class Hmmer:
                                 search_result,
                                 [0, len([itertools.chain(*hits.values())])],  # array of hits [euk hits, true hits]. Euk hits alway 0 unless searching from 16S
                                 slash_endings)  # Any reads that end in /1 or /2     
-        logging.info("%s read(s) detected" % len(hits))
-        return result
+
+        if maximum_range:
+            n_hits = sum([len(x["strand"]) for x in hits.values()])
+        else:
+            n_hits = len(hits.keys())
+        logging.info("%s read(s) detected" % n_hits)
+                
+        return result, complement_information
     
     @T.timeit
     def nt_db_search(self, files, base, unpack, euk_check,
@@ -932,6 +975,7 @@ class Hmmer:
             raise Exception("Diamond searches not supported for nucelotide databases yet")
         with tempfile.NamedTemporaryFile(prefix='graftm_readnames') as readnames:
             if maximum_range:  
+                
                 hits = self._get_read_names(
                                             search_result,  # define the span of hits
                                             maximum_range
@@ -939,9 +983,15 @@ class Hmmer:
             else:   
                 hits={}
                 for result in search_result:
-                    for h in result.each([SequenceSearchResult.QUERY_ID_FIELD]):
-                        hits[h]=[]
-            
+                    for h in list(result.each([SequenceSearchResult.QUERY_ID_FIELD,
+                                               SequenceSearchResult.ALIGNMENT_DIRECTION,
+                                               SequenceSearchResult.HIT_FROM_FIELD,
+                                               SequenceSearchResult.HIT_TO_FIELD,
+                                               SequenceSearchResult.QUERY_FROM_FIELD,
+                                               SequenceSearchResult.QUERY_TO_FIELD])):
+                        hits[h[0]]={"strand":[h[1]],
+                                    "span":[[h[2], h[3]]],
+                                    "query_span":[[h[4], h[5]]]}
             hit_readnames = hits.keys()
             
             if euk_check:
@@ -956,14 +1006,14 @@ class Hmmer:
                 hit_read_count = [0, len(hit_readnames)]
             readnames.flush()
             
-            hit_reads_fasta = self._extract_from_raw_reads(
+            hit_reads_fasta, complement_information = self._extract_from_raw_reads(
                                                            hit_reads_fasta,
                                                            readnames.name,
                                                            unpack.read_file,
                                                            unpack.format(),
                                                            hits
                                                            )
-
+        
         if not hit_readnames:
             result = DBSearchResult(None,
                                   search_result,
@@ -976,8 +1026,13 @@ class Hmmer:
                                     hit_read_count,
                                     slash_endings)
         
-        logging.info("%s read(s) detected" % len(hits))
-        return result
+        if maximum_range:
+            n_hits = sum([len(x["strand"]) for x in hits.values()])
+        else:
+            n_hits = len(hits)
+        logging.info("%s read(s) detected" % n_hits)
+        
+        return result, complement_information
         
     @T.timeit
     def align(self, input_path, output_path, directions, pipeline):
@@ -994,6 +1049,8 @@ class Hmmer:
         pipeline : str
             Either "P" or "D" corresponding to the protein and nucleotide (DNA)
             pipelines, respectively. 
+        read_complement_information : hash
+            dictionary containing 
         Returns
         -------
         N/A - output alignment path known.
@@ -1003,8 +1060,10 @@ class Hmmer:
         alignments = self._hmmalign(input_path,
                                     directions,
                                     pipeline)
-        self.alignment_correcter(alignments,
-                                 output_path)
+        alignment_result = self.alignment_correcter(alignments,
+                                                    output_path)
+        return alignment_result
+        
 
 
 

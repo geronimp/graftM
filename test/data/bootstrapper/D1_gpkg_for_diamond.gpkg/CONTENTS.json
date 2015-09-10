@@ -1,0 +1,1 @@
+{"align_hmm": "DNGNGWU00001_mingle_output_good_seqs.hmm", "refpkg": "1.gpkg.refpkg", "diamond_database": "DNGNGWU00001_mingle_output_good_seqs.dmnd", "graftm_package_version": 3, "trusted_cutoff": false, "unaligned_sequence_database": "DNGNGWU00001_mingle_output_good_seqs.hmm.single_copies.fasta", "range": 396.0, "search_hmms": ["DNGNGWU00001_mingle_output_good_seqs.hmm"]}

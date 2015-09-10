@@ -27,21 +27,23 @@ class Decorator:
             reference_tree
         '''
         reference_tree_path = kwargs.pop('reference_tree_path', None)
-        tree_path = kwargs.pop('old_tree_path', None)
+        tree_path = kwargs.pop('tree_path', None)
         
-        if old_tree_path == None:
+        if tree_path == None:
             logging.error("No tree for provided for Decorator class to modify")
             exit(1)
         else:
             logging.debug("Importing old tree from file: %s" 
                             % tree_path)
             self.tree = TreeNode.read(open(tree_path, "r"))  
-            
+        
         if reference_tree_path:
             logging.debug("Importing reference tree from file: %s" 
                             % reference_tree_path)
             self.reference_tree = TreeNode.read(open(reference_tree_path, "r"))   
-        
+        else:
+            self.reference_tree = None
+            
         if len(kwargs) > 0:
             raise Exception("Unexpected arguments provided to Decorator class: %s" % kwargs)
         
@@ -51,7 +53,7 @@ class Decorator:
         self.tree = reannotator._reroot_tree_by_old_root(self.reference_tree, 
                                                          self.tree)
         
-    def main(self, taxonomy, base):
+    def main(self, taxonomy, output_tree, output_tax):
         '''Decorate and if necessary, re-root the tree. If an old reference tree
         is provided it is assumed that re-rooting is desired
         
@@ -62,21 +64,15 @@ class Decorator:
             taxonomy of all or some if the sequences used to construct the tree.
             This taxonomy will be used by the tree_decorator.TreeDecorator class
             to decorate self.tree
-        base: str
-            The basename of the original tree that was provided to this
-            (Decorator) class. Used for creating output names for the decorated
-            taxonomy file, and the ouptut tree.'''        
+        output_tree: str
+            Path to file to which the decorated tree will be written to.
+        output_tax: str
+            Path to file to which the decorated taxonomy will be written to.'''        
         
         # Reroot
         if self.reference_tree:
             self._reroot()
             
-        # Set output file names
-        output_taxonomy = "%s.taxonomy.tsv" % (base)
-        output_tree = ("%s.rerooted.decorated.tree" % (self.reference_tree)
-                       if self.reference_tree
-                       else "%s.decorated.tree")
-        
         # Decorate
         td =  TreeDecorator(self.tree,
                             taxonomy)

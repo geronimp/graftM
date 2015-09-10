@@ -565,17 +565,16 @@ If you're unsure how to use GraftM decorate use graftM decorate -h")
 If you're unsure how to use GraftM decorate use graftM decorate -h")
                     exit(1)
                 
-                dec = Decorator(old_tree_path = self.args.rerooted_tree)
+                dec = Decorator(tree_path = self.args.rerooted_tree)
             
             elif self.args.unrooted_tree and self.args.reference_tree:
                 logging.debug("Using provided reference tree %s to reroot %s and decorating with %s" % (self.args.reference_tree, 
                                                                                                         self.args.unrooted_tree, 
                                                                                                         self.args.input_taxonomy))
                 dec = Decorator(reference_tree_path = self.args.reference_tree,
-                                old_tree_path = self.args.unrooted_tree)
+                                tree_path = self.args.unrooted_tree)
                 
-            import IPython ; IPython.embed()
-            dec.main(self.args.taxonomy, base) 
+            dec.main(self.args.input_taxonomy, self.args.output_tree, self.args.output_taxonomy) 
             
             
             

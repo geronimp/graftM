@@ -129,7 +129,6 @@ class Reannotator:
             # remove leftover dummy root
             old_child_node = new_root.find(OLD_CHILD_NAME)
             nodes_to_remove = [n for n in [old_child_node,old_child_node.parent] if len(n.children) == 1]
-            import IPython ; IPython.embed()
             if len(nodes_to_remove) != 1: raise Exception("Unexpected number of 1 child nodes")
             n = nodes_to_remove[0]
             child = n.children[0]

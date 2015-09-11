@@ -43,7 +43,6 @@ class Decorator:
             self.reference_tree = TreeNode.read(open(reference_tree_path, "r"))   
         else:
             self.reference_tree = None
-            
         if len(kwargs) > 0:
             raise Exception("Unexpected arguments provided to Decorator class: %s" % kwargs)
         

@@ -7,7 +7,8 @@ from graftm.prerequisite_checker import PrerequisiteChecker
 PIPELINE_AA = "P"
 PIPELINE_NT = "D"
 
-
+class InvalidFileExtensionError(Exception):
+    pass
 class UninstalledProgramError(Exception):
     pass
     
@@ -16,6 +17,26 @@ class HouseKeeping:
     ### general housekeeping things like adding and removing directories and 
     ### files.
 
+    def file_basename(self, file):
+        '''
+        Strips the path and last extension from the file variable. If the 
+        extension is found to be valid, the basename will be returned. Otherwise
+        an error will be raise and graftM will exit
+        '''
+        valid_extensions = set(".tree",
+                               ".tre")
+        split_file = os.path.basename(file).split('.')
+        base, suffix = '.'.join(split_file[:-1]), split_file[-1]
+        
+        if suffix in valid_extensions:
+            return base
+        else:
+            logging.error("Invalid file extension found on file: %s" % file)
+            logging.error("For trees, please provide a file with one of the \
+following extensions: %s" % ' '.join(valid_extensions.keys()))
+            exit(1)
+            
+            
     def set_euk_hmm(self, args):
         'Set the hmm used by graftM to cross check for euks.'
         if hasattr(args, 'euk_hmm_file'):

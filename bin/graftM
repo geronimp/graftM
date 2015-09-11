@@ -68,7 +68,9 @@ COMMUNITY PROFILING
 
     graft       -       Search for and phylogenetically classify reads associated with a single
                         marker gene, and construct a community profile
-                        e.g. usage:
+                        See graftM graft -h
+                        
+                        Example usage:
                             $ graftM graft --forward <READS> --graftm_package <GRAFTM_PACKAGE>
 
 =====================================================================================================
@@ -78,7 +80,11 @@ UTILITIES
                         See graftM create -h
                         
     bootstrap   -       Create new HMMs from a base HMM and an assembly or genome. 
-                        See graftM create -h
+                        See graftM bootstrap -h
+    
+    decorate    -       Decorate a tree with provided taxonomy, and attempt to re-root the tree
+                        (if needed) using a reference rooted tree.
+                        See graftM decorate -h
 
 =====================================================================================================
 """ % (graftm.__version__)
@@ -200,7 +206,7 @@ sequence1    k__kingdom1; p__phylum2
     # Bootstrap                                                             #
     #########################################################################    
     bootstrap_parser = subparsers.add_parser('bootstrap',
-                                            description='Generate a new HMM from the given contigs',
+                                            description='Generate a new HMM/database from the given contigs',
                                             epilog=__author__)
     bootstrap_parser.add_argument('--contigs', nargs='+', help='contigs to search', required=True)
     bootstrap_parser.add_argument('--output_hmm', help='output HMM file', required=True)
@@ -215,8 +221,31 @@ sequence1    k__kingdom1; p__phylum2
     logging_options.add_argument('--verbosity', metavar='verbosity', help='1 - 5, 1 being silent, 5 being noisy indeed. Default = 4', type=int, default=4)
     logging_options.add_argument('--log', metavar='logfile', help='Output logging information to file', type=str, default=False)    
     
-    
-    
+    #########################################################################
+    # argparser for "decorate" - Reroot, and decorate a gene tree                           
+  
+    decorate_parser = subparsers.add_parser('decorate',
+                                            description='Reroot, and decorate a gene tree',
+                                            epilog=__author__)
+    # Main decorate options       
+    decorate_options = decorate_parser.add_argument_group('decorate options')                       
+    decorate_options.add_argument('--input_taxonomy', type = str, help='Input taxonomy of sequences used to build tree. This taxonomy \
+must be in GreenGenes format.', required = True)
+    decorate_options.add_argument('--unrooted_tree', type = str, help='Path to unrooted tree in newick format. GraftM decorate will attempt to \
+reroot using the tree provided to --reference_tree (required). Once rerooted, GraftM will decorate this tree and write it to the file providede tot he --output_tree flag.', default = None)
+    decorate_options.add_argument('--reference_tree', type = str, help='Path to tree that is rooted correctly that will be used to reroot the \
+tree provided to the --unrooted_tree flag (required). ', default = None)
+    decorate_options.add_argument('--rerooted_tree', type = str, help='Rerooted tree. GraftM will decorate this tree and write to file provided to the --output_tree flag.', required=False)    
+    decorate_options.add_argument('--output_tree', type = str, help='File path to output decorated and re-rooted (if needed) tree to.', required=True)
+    decorate_options.add_argument('--output_taxonomy',type = str, help='File path to output decorated taxonomy strings in GreenGenes format \
+corresponding to each leaf in the tree.', required=True)
+                            
+    # Logging options                                        
+    logging_options = decorate_parser.add_argument_group('logging options')
+    logging_options.add_argument('--verbosity', metavar='verbosity', help='1 - 5, 1 being silent, 5 being noisy indeed. Default = 4', type=int, default=4)
+    logging_options.add_argument('--log', metavar='logfile', help='Output logging information to file', type=str, default=False) 
+    #########################################################################    
+                     
     if(len(sys.argv) == 1 or sys.argv[1] == '-h' or sys.argv[1] == '--help'):
         phelp()
     else:
@@ -228,6 +257,7 @@ sequence1    k__kingdom1; p__phylum2
         else:
             logging.basicConfig(level=debug[args.verbosity], format='%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
         
+        logging.debug("Ran command: %s" % ' '.join(sys.argv))
         
         Run(args).main()
 

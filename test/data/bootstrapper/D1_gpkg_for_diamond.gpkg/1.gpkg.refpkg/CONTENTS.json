@@ -1,0 +1,53 @@
+{
+    "files": {
+        "phylo_model": "phylo_modelMEgkVy.json", 
+        "taxonomy": "DNGNGWU00001_mingle_output_good_seqs_taxonomy.csv", 
+        "tree": "treeSNpXl4.tre", 
+        "aln_fasta": "DNGNGWU00001_mingle_output_good_seqs_deduplicated_aligned.fasta", 
+        "seq_info": "DNGNGWU00001_mingle_output_good_seqs_seqinfo.csv", 
+        "tree_stats": "DNGNGWU00001_mingle_output_good_seqs.tre.log"
+    }, 
+    "rollback": {
+        "files": {
+            "phylo_model": "phylo_modelMEgkVy.json", 
+            "taxonomy": "DNGNGWU00001_mingle_output_good_seqs_taxonomy.csv", 
+            "tree": "DNGNGWU00001_mingle_output_good_seqs.tre", 
+            "aln_fasta": "DNGNGWU00001_mingle_output_good_seqs_deduplicated_aligned.fasta", 
+            "seq_info": "DNGNGWU00001_mingle_output_good_seqs_seqinfo.csv", 
+            "tree_stats": "DNGNGWU00001_mingle_output_good_seqs.tre.log"
+        }, 
+        "rollback": null, 
+        "metadata": {
+            "create_date": "2015-08-25 01:41:23", 
+            "format_version": "1.1", 
+            "locus": "/tmp/tmpRMSGv5/DNGNGWU00001_mingle_output_good_seqs"
+        }, 
+        "md5": {
+            "phylo_model": "0540789abc6e3f5fb9c3a6059c05c473", 
+            "taxonomy": "dd4490494119e22b39b6759095654d5b", 
+            "tree": "738fe92f8e00ed97ca99bab26d7ce0d1", 
+            "aln_fasta": "4a6e81a2a1ceaddc35b5fa8ec21d0af5", 
+            "seq_info": "9bbc4efee4e171a3a708d24508fe5172", 
+            "tree_stats": "0066e5715ebdf4e1a4255c6f60e826b3"
+        }
+    }, 
+    "log": [
+        "Rerooted", 
+        "Stripped refpkg (removed 0 files)", 
+        "Loaded initial files into empty refpkg"
+    ], 
+    "metadata": {
+        "create_date": "2015-08-25 01:41:23", 
+        "format_version": "1.1", 
+        "locus": "/tmp/tmpRMSGv5/DNGNGWU00001_mingle_output_good_seqs"
+    }, 
+    "rollforward": null, 
+    "md5": {
+        "phylo_model": "0540789abc6e3f5fb9c3a6059c05c473", 
+        "taxonomy": "dd4490494119e22b39b6759095654d5b", 
+        "tree": "999c96359e6aaa726404b3dfb7ca4718", 
+        "aln_fasta": "4a6e81a2a1ceaddc35b5fa8ec21d0af5", 
+        "seq_info": "9bbc4efee4e171a3a708d24508fe5172", 
+        "tree_stats": "0066e5715ebdf4e1a4255c6f60e826b3"
+    }
+}

@@ -18,6 +18,8 @@ from graftm.getaxnseq import Getaxnseq
 from graftm.sequence_io import SequenceIO
 from graftm.timeit import Timer
 from graftm.clusterer import Clusterer
+from graftm.decorator import Decorator
+
 from biom.util import biom_open
 
 T=Timer()
@@ -528,6 +530,7 @@ class Run:
                           hmm = self.args.hmm,
                           force = self.args.force
                           )
+        
         elif self.args.subparser_name == 'bootstrap':
             args = self.args
             if not args.graftm_package and not args.search_hmm_files:
@@ -547,3 +550,31 @@ class Run:
                 graftm_package = pkg)
             strapper.generate_hmm_from_contigs(args.contigs, args.output_hmm)
 
+        
+        
+        
+        elif self.args.subparser_name == 'decorate':
+            
+            if self.args.rerooted_tree:
+                if self.args.unrooted_tree:
+                    logging.warning("Both a rooted tree and an un-rooted tree were provided, so it's unclear what you are asking graftM to do. \
+If you're unsure how to use GraftM decorate use graftM decorate -h")
+                    exit(1)
+                elif self.args.reference_tree:
+                    logging.warning("Both a rooted tree and reference tree were provided, so it's unclear what you are asking graftM to do. \
+If you're unsure how to use GraftM decorate use graftM decorate -h")
+                    exit(1)
+                
+                dec = Decorator(tree_path = self.args.rerooted_tree)
+            
+            elif self.args.unrooted_tree and self.args.reference_tree:
+                logging.debug("Using provided reference tree %s to reroot %s and decorating with %s" % (self.args.reference_tree, 
+                                                                                                        self.args.unrooted_tree, 
+                                                                                                        self.args.input_taxonomy))
+                dec = Decorator(reference_tree_path = self.args.reference_tree,
+                                tree_path = self.args.unrooted_tree)
+                
+            dec.main(self.args.input_taxonomy, self.args.output_tree, self.args.output_taxonomy) 
+            
+            
+            

@@ -159,9 +159,9 @@ class Create:
                                                stderr,
                                                stdout)
             except (subprocess32.TimeoutExpired, extern.ExternCalledProcessError):
-                nontemp_tax_file = 'graftm_create_taxonomy.csv'
+                nontemp_tax_file = 'graftm_create_taxonomy.%s.csv' % base
                 shutil.copy(tax, nontemp_tax_file)
-                nontemp_aln_file = 'graftm_create_alignment.faa'
+                nontemp_aln_file = 'graftm_create_alignment.%s.faa' % base
                 shutil.copy(aln_file, nontemp_aln_file)
                 
                 logging.error('''

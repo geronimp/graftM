@@ -556,9 +556,9 @@ class Hmmer:
         '''
         
         splits = {}  # Define an output dictionary to be filled
-        
+        spans = []
         for result in search_result:  # Create a table (list of rows contain span, and complement information
-            spans = list(
+            spans += list(
                          result.each(
                                     [SequenceSearchResult.QUERY_ID_FIELD,
                                         SequenceSearchResult.ALIGNMENT_DIRECTION,
@@ -568,57 +568,67 @@ class Hmmer:
                                         SequenceSearchResult.QUERY_TO_FIELD]
                                        )
                          )
-            for hit in spans:  # For each of these rows (i.e. hits)
-                i = hit[0]  # set id to i
-                c = hit[1]  # set complement to c
-                ft = [min(hit[2:4]), max(hit[2:4])]  # set span as ft (i.e. from - to)
-                qs = [min(hit[4:6]), max(hit[4:6])]  # seq the query span to qs
+            
+        
+        for hit in spans:  # For each of these rows (i.e. hits)
+            i = hit[0]  # set id to i
+            c = hit[1]  # set complement to c
+            ft = [min(hit[2:4]), max(hit[2:4])]  # set span as ft (i.e. from - to)
+            qs = [min(hit[4:6]), max(hit[4:6])]  # seq the query span to qs
+            
+            if ft[0] == ft[1]: continue  # if the span covers none of the query, skip that entry (seen this before)
+            
+            if i not in splits:  # If the hit hasnt been seen yet
                 
-                if ft[0] == ft[1]: continue  # if the span covers none of the query, skip that entry (seen this before)
+                splits[i] = {'span'       : [ft],
+                             'strand'     : [c],
+                             'query_span' : [qs]}  # add the span and complement as new entry
+            else:  # otherwise (if it has been seen)      
                 
-                if i not in splits:  # If the hit hasnt been seen yet
-                    splits[i] = {'span'       : [ft],
-                                 'strand'     : [c],
-                                 'query_span' : [qs]}  # add the span and complement as new entry
-                else:  # otherwise (if it has been seen)      
-                    for idx, entry in enumerate(splits[i]['span']):  # for each previously added entry                                  
-                        if splits[i]['strand'][idx] == c:  # If the hit is on the same complement strand
-                            
-                            previous_qs      = splits[i]['query_span'][idx] # Get the query span of the previous hit
-                            previous_q_range = set(range(previous_qs[0], previous_qs[1])) # Get the range of each
-                            current_q_range  = set(range(qs[0], qs[1]))
-                            query_overlap    = set(previous_q_range).intersection(current_q_range) # Find the intersection between the two ranges
-                            
-                            previous_ft_span = set(range(entry[0], entry[1]))
-                            current_ft_span  = set(range(ft[0], ft[1]))
+                for idx, entry in enumerate(splits[i]['span']):  # for each previously added entry      
+                    if splits[i]['strand'][idx] == c:  # If the hit is on the same complement strand
+                        
+                        previous_qs      = splits[i]['query_span'][idx] # Get the query span of the previous hit
 
-                            if any(query_overlap): # If there is an overlap
-                                # if the intersection between the span the current hit is 
-                                # greater than half (0.5) that of a previous span,
-                                # consider it the same hit, and continue.
-                                intersection_fraction = float(len(previous_ft_span.intersection(current_ft_span)))
-                                if intersection_fraction / float(len(previous_ft_span)) >= 0.5: 
-                                    break
-                                elif intersection_fraction / float(len(current_ft_span)) >= 0.5:                                                                                            
-                                    break
-                                else: # else (i.e. if the hit covers less that 50% of the sequence of the previous hit
-                                    if len(query_overlap) > (len(current_q_range)*0.75): # if the overlap on the query HMM does not span over 75% 
-                                        splits[i]['span'].append(ft) # Add from-to as another entry, this is another hit. 
-                                        splits[i]['strand'].append(c) # Add strand info as well
-                                        break # And break
+                        
+                        previous_q_range = set(range(previous_qs[0], previous_qs[1])) # Get the range of each
+                        current_q_range  = set(range(qs[0], qs[1]))
+                        query_overlap    = set(previous_q_range).intersection(current_q_range) # Find the intersection between the two ranges
+
+                        previous_ft_span = set(range(entry[0], entry[1]))
+                        current_ft_span  = set(range(ft[0], ft[1]))
+                        
+                        if any(query_overlap): # If there is an overlap
+                            # if the intersection between the span the current hit is 
+                            # greater than half (0.5) that of a previous span,
+                            # consider it the same hit, and continue.
+                            intersection_fraction = float(len(previous_ft_span.intersection(current_ft_span)))
                             
-                            if min(entry) < min(ft):  # if/else to determine which entry comes first (e.g. 1-5, 6-10 not 6-10, 1-5)
-                                if max(ft) - min(entry) < max_range:  # Check if they lie within range of eachother
-                                    entry[1] = max(ft)  # ammend the entry if they are
-                                    break  # And break the loop
-                            else:
-                                if max(entry) - min(ft) < max_range:  # Check if they lie within range of eachother
-                                    entry[0] = min(ft)  # ammend the entry if they are
-                                    break  # And break the loop
-                    else:  # if no break occured (no overlap)
-                        splits[i]['span'].append(ft)  # Add the new range to be split out in the future
-                        splits[i]['strand'].append(c)  # Add the complement strand as well
-    
+                            if intersection_fraction / float(len(previous_ft_span)) >= 0.5: 
+                                break
+                            elif intersection_fraction / float(len(current_ft_span)) >= 0.5:                                                                                            
+                                break
+                            else: # else (i.e. if the hit covers less that 50% of the sequence of the previous hit
+                                if len(query_overlap) < (len(current_q_range)*0.75): # if the overlap on the query HMM does not span over 75% 
+                                    import IPython ; IPython.embed()
+                                    splits[i]['span'].append(ft) # Add from-to as another entry, this is another hit. 
+                                    splits[i]['strand'].append(c) # Add strand info as well
+                                    break # And break
+                        
+                        if min(entry) < min(ft):  # if/else to determine which entry comes first (e.g. 1-5, 6-10 not 6-10, 1-5)
+                            if max(ft) - min(entry) < max_range:  # Check if they lie within range of eachother
+                                entry[1] = max(ft)  # ammend the entry if they are
+                                break  # And break the loop
+                        else:
+                            if max(entry) - min(ft) < max_range:  # Check if they lie within range of eachother
+                                entry[0] = min(ft)  # ammend the entry if they are
+                                break  # And break the loop
+                    else:
+                        break
+                else:  # if no break occured (no overlap)
+                    splits[i]['span'].append(ft)  # Add the new range to be split out in the future
+                    splits[i]['strand'].append(c)  # Add the complement strand as well
+        
         return {key: entry['span'] for key, entry in splits.iteritems()}  # return the dict, without strand information which isn't required.
     
     def _check_for_slash_endings(self, readnames):

@@ -240,17 +240,20 @@ class TreeDecorator:
                         new_tax_list.append(tax)
                         self.encountered_taxonomies.add(tax)
                     tax_string = '; '.join(new_tax_list)
-                    split_node_name = node.name.split(':')
                     
-                    if len(split_node_name) > 2: 
-                        raise Exception("Malformed tree. Please remove ':' from the read names in the tree")
-                        exit(1)
-                    
-                    if len(split_node_name) <2:
-                        node_name = "%s:%s" % (split_node_name[0], tax_string)
+                    if node.name:
+                        split_node_name = node.name.split(':')
+                        if len(split_node_name) > 2: 
+                            raise Exception("Malformed tree. Please remove ':' from the read names in the tree")
+                            exit(1)
+                        
+                        if len(split_node_name) <2:
+                            node_name = "%s:%s" % (split_node_name[0], tax_string)
+                        else:
+                            bootstrap_value, node_name = split_node_name[0], split_node_name[1]
+                            node_name = "%s:%s" % (bootstrap_value, tax_string)
                     else:
-                        bootstrap_value, node_name = split_node_name[0], split_node_name[1]
-                        node_name = "%s:%s" % (bootstrap_value, tax_string)
+                        node_name = tax_string
                     node.name = node_name
                     logging.debug("Renamed node %s" % node_name)
                     self.encountered_nodes[node]=index

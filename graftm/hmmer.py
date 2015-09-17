@@ -610,7 +610,6 @@ class Hmmer:
                                 break
                             else: # else (i.e. if the hit covers less that 50% of the sequence of the previous hit
                                 if len(query_overlap) < (len(current_q_range)*0.75): # if the overlap on the query HMM does not span over 75% 
-                                    import IPython ; IPython.embed()
                                     splits[i]['span'].append(ft) # Add from-to as another entry, this is another hit. 
                                     splits[i]['strand'].append(c) # Add strand info as well
                                     break # And break

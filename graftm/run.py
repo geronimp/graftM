@@ -549,11 +549,11 @@ class Run:
             
             if self.args.rerooted_tree:
                 if self.args.unrooted_tree:
-                    logging.warning("Both a rooted tree and an un-rooted tree were provided, so it's unclear what you are asking graftM to do. \
+                    logging.error("Both a rooted tree and an un-rooted tree were provided, so it's unclear what you are asking graftM to do. \
 If you're unsure how to use GraftM decorate use graftM decorate -h")
                     exit(1)
                 elif self.args.reference_tree:
-                    logging.warning("Both a rooted tree and reference tree were provided, so it's unclear what you are asking graftM to do. \
+                    logging.error("Both a rooted tree and reference tree were provided, so it's unclear what you are asking graftM to do. \
 If you're unsure how to use GraftM decorate use graftM decorate -h")
                     exit(1)
                 
@@ -565,8 +565,18 @@ If you're unsure how to use GraftM decorate use graftM decorate -h")
                                                                                                         self.args.input_taxonomy))
                 dec = Decorator(reference_tree_path = self.args.reference_tree,
                                 tree_path = self.args.unrooted_tree)
-                
-            dec.main(self.args.input_taxonomy, self.args.output_tree, self.args.output_taxonomy) 
+            
+            if self.args.input_greengenes_taxonomy:
+                if self.args.input_seqinfo or self.args.input_taxtastic_taxonomy:
+                    logging.error("Both taxtastic and greengenes taxonomy were provided, so its unclear what taxonomy you want graftM to decorate with")
+                    exit(1)
+                    dec.main(self.args.input_greengenes_taxonomy, self.args.output_tree, self.args.output_taxonomy) 
+            elif self.args.input_seqinfo and self.args.input_taxtastic_taxonomy:
+                dec.main(self.args.input_taxtastic_taxonomy, self.args.output_tree, self.args.output_taxonomy, self.args.input_seqinfo) 
+            else:
+                logging.error("Only a taxtastic file or a seqinfo file were provided. graftM cannot continue without both.")
+                exit(1)        
+            
             
             
             

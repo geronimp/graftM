@@ -229,8 +229,12 @@ sequence1    k__kingdom1; p__phylum2
                                             epilog=__author__)
     # Main decorate options       
     decorate_options = decorate_parser.add_argument_group('decorate options')                       
-    decorate_options.add_argument('--input_taxonomy', type = str, help='Input taxonomy of sequences used to build tree. This taxonomy \
-must be in GreenGenes format.', required = True)
+    decorate_options.add_argument('--input_greengenes_taxonomy', type = str, help='Input taxonomy of sequences used to build tree. This taxonomy \
+must be in GreenGenes format.', default = None)
+    decorate_options.add_argument('--input_taxtastic_taxonomy', type = str, help='Input taxonomy of sequences used to build tree. This taxonomy \
+must be in taxtastic format.', default = None)
+    decorate_options.add_argument('--input_seqinfo', type = str, help='Seqinfo file to accompany Taxtastic taxonomy, the taxonomy from \
+which will be used to decorate the tree.', default = None)
     decorate_options.add_argument('--unrooted_tree', type = str, help='Path to unrooted tree in newick format. GraftM decorate will attempt to \
 reroot using the tree provided to --reference_tree (required). Once rerooted, GraftM will decorate this tree and write it to the file providede tot he --output_tree flag.', default = None)
     decorate_options.add_argument('--reference_tree', type = str, help='Path to tree that is rooted correctly that will be used to reroot the \

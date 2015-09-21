@@ -52,7 +52,7 @@ class Decorator:
         self.tree = reannotator._reroot_tree_by_old_root(self.reference_tree, 
                                                          self.tree)
         
-    def main(self, taxonomy, output_tree, output_tax):
+    def main(self, taxonomy, output_tree, output_tax, seqinfo = None):
         '''Decorate and if necessary, re-root the tree. If an old reference tree
         is provided it is assumed that re-rooting is desired
         
@@ -74,6 +74,7 @@ class Decorator:
             
         # Decorate
         td =  TreeDecorator(self.tree,
-                            taxonomy)
+                            taxonomy,
+                            seqinfo)
         td.decorate(output_tree, output_tax)
         

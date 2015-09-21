@@ -1,6 +1,9 @@
 ################################################################################
 ################################# - Imports - ##################################
 
+# Local imports
+from graftm.getaxnseq import Getaxnseq
+
 # System imports
 from skbio import TreeNode
 import argparse
@@ -11,11 +14,14 @@ import sys
 ################################################################################
 ################################## - Code - ####################################
 
+class TreeUnrootedException(Exception): pass
+
 class TreeDecorator:
     '''Yet another class that decorates trees, only the way I want it.'''
     def __init__(self, 
                  tree,
-                 taxonomy):
+                 taxonomy,
+                 seqinfo=None):
         '''
         Set up empty lists and open and import tree object, and load the
         taxonomy into a hash
@@ -32,13 +38,21 @@ class TreeDecorator:
         self.tree = tree
          
         # Read in taxonomy
-        logging.info("Importing taxonomy from file: %s" % (taxonomy))
-        self.taxonomy = {}
-        for entry in open(taxonomy, "r"):
-            entry = entry.strip().split('\t')
-            self.taxonomy[entry[0]] = (entry[1].split('; ') if '; ' in entry[1]\
-                                       else entry[1].split(';'))
-        
+        if seqinfo:
+            gtns = Getaxnseq()
+            logging.info("Importing taxtastic taxonomy from files: %s and %s" % (taxonomy, seqinfo))
+            self.taxonomy =  gtns.read_taxtastic_taxonomy_and_seqinfo(open(taxonomy), open(seqinfo))
+            for id, taxonomy_list in self.taxonomy.iteritems():
+                if len(taxonomy_list) != 7:
+                    self.taxonomy[id] = taxonomy_list + self.gg_prefixes[len(taxonomy_list):]
+        else:
+            self.taxonomy = {}
+            logging.info("Importing greengenes taxonomy from file: %s" % (taxonomy))
+            for entry in open(taxonomy, "r"):
+                entry = entry.strip().split('\t')
+                self.taxonomy[entry[0]] = (entry[1].split('; ') if '; ' in entry[1]\
+                                           else entry[1].split(';'))
+            
     def _nodes(self):
         '''
         Iterate through nodes in tree, returning those that are not tips (i.e.
@@ -53,6 +67,7 @@ class TreeDecorator:
         for node in self.tree.preorder():
             if node.is_root():
                 logging.debug("%i reads in tree from root" % (len(list(node.tips()))))
+                yield node
             elif node.is_tip():
                 logging.debug("Tip %s reached" % (node.name))
             else:
@@ -179,8 +194,7 @@ class TreeDecorator:
             parent = node.parent
             children = list(node.tips())
             logging.debug("Current node has %i children" % (len(children)))
-            
-
+                        
             # Gather the children 
             children_taxonomy = []
             for t in children:
@@ -200,18 +214,31 @@ class TreeDecorator:
 
             if len(tax_list) >= 1:
                 logging.debug("Node has consistent taxonomy: %s" % '; '.join(tax_list))
-                if parent.is_root():
+                
+                if not parent:
+                    # Check tree is binary:
+                    if len(node.children) > 2:
+                        raise TreeUnrootedException
                     current_index = len(tax_list)
                     resolution = 1
 
                 else:
-                    current_index, resolution = self._get_tax_index(node.ancestors())
+                    if parent.is_root():
+                        
+                        if parent.name:
+                            print "pass"
+                            current_index = 1
+                            resolution = 2
+                            
+                    else:
+                        current_index, resolution = self._get_tax_index(node.ancestors())
+                        
                     if len(tax_list) <= current_index:
                         logging.debug("No consistent taxonomy found for node! Moving to next node.")
                         self.encountered_nodes[node] = current_index
                         continue
+                    
                     else:
-
                         if len(tax_list) == placement_depth:
 
                             tax_list = tax_list[current_index:]
@@ -225,7 +252,7 @@ class TreeDecorator:
                             current_index = len(tax_list)
 
                 if resolution < 7:
-                    
+                    if tax_list == ["d__Bacteria"]: import IPython ; IPython.embed()
                     new_tax_list = [] 
                     for tax in tax_list:
                         if tax in self.encountered_taxonomies:

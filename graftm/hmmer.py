@@ -31,6 +31,13 @@ class Hmmer:
         self.search_hmm = search_hmm
         self.aln_hmm = aln_hmm
 
+    def _get_sequence_directions(self, search_result):
+        complement_strand = {}
+        for result in search_result:
+            for hit in result.each([SequenceSearchResult.QUERY_ID_FIELD, SequenceSearchResult.ALIGNMENT_DIRECTION]):
+                complement_strand[hit[0]]  ={"strand":[hit[1]], "entry": []} 
+        return complement_strand
+
     def _hmmalign(self, input_path, directions, pipeline):
         '''
         Align reads to the aln_hmm. Receives unaligned sequences and 
@@ -48,12 +55,11 @@ class Hmmer:
         list of two strings, where each string is a path to an aligned FASTA 
         file (forward and reverse files respectively)
         '''
-        
+    
         for_file      = tempfile.NamedTemporaryFile(prefix='for_file', suffix='.fa').name
         rev_file      = tempfile.NamedTemporaryFile(prefix='rev_file', suffix='.fa').name
         for_conv_file = tempfile.NamedTemporaryFile(prefix='for_conv_file', suffix='.fa').name
         rev_conv_file = tempfile.NamedTemporaryFile(prefix='rev_conv_file', suffix='.fa').name
-        
         if pipeline == PIPELINE_AA:
             reverse_complement_reads_present=False            
         else:
@@ -388,18 +394,25 @@ class Hmmer:
         -------
         Nothing, output path is known.
         '''
+        complement_information = {}
         reads = SeqIO.to_dict(SeqIO.parse(reads_path, "fasta"))  # open up reads as dictionary
         with open(output_path, 'w') as out:
-            for read_name, ranges in hits.iteritems():  # For each contig
+            for read_name, entry in hits.iteritems():  # For each contig
+                ranges = entry["entry"]
+                complements = entry["strand"]
                 index = 1 
+                
                 if len(ranges) > 1:  # if there are multiple hits in that contig
-                    for r in ranges:  # for each of those hits
+                    for r, c in zip(ranges, complements):  # for each of those hits
                         new_record = reads[read_name][r[0] - 1:r[1]]  # subset the record by the span of that hit
                         new_record.id = new_record.id + '_split_%i' % index  # give that subset record a new header
                         SeqIO.write(new_record, out, "fasta")  # and write it to output
                         index += 1  # increment the split counter
+                        complement_information[new_record.id]=c
                 else:  # Otherwise, just write the read back to the file
+                    complement_information = {readname:entry["strand"][0] for readname, entry in hits.iteritems()}
                     SeqIO.write(reads[read_name], out, "fasta")
+        return complement_information
 
     def _extract_from_raw_reads(self, output_path, input_path, raw_sequences_path, input_file_format, hits):
         '''
@@ -437,8 +450,8 @@ class Hmmer:
                 raise Exception("Programming error")
             extern.run(cmd)
             
-            self._extract_multiple_hits(hits, tmp.name, output_path)  # split them into multiple reads
-        return output_path
+            complement_information = self._extract_multiple_hits(hits, tmp.name, output_path)  # split them into multiple reads
+        return output_path, complement_information
         
     def alignment_correcter(self, alignment_file_list, output_file_name):
         '''
@@ -569,66 +582,75 @@ class Hmmer:
                                        )
                          )
             
-        
         for hit in spans:  # For each of these rows (i.e. hits)
             i = hit[0]  # set id to i
             c = hit[1]  # set complement to c
-            ft = [min(hit[2:4]), max(hit[2:4])]  # set span as ft (i.e. from - to)
-            qs = [min(hit[4:6]), max(hit[4:6])]  # seq the query span to qs
+            ft = [min(hit[2:4]), max(hit[2:4])]  # set span as ft (i.e. from - to) - This is the amount covering the query
+            qs = [min(hit[4:6]), max(hit[4:6])]  # seq the query span to qs - This is the amount covering the HMM
             
             if ft[0] == ft[1]: continue  # if the span covers none of the query, skip that entry (seen this before)
             
             if i not in splits:  # If the hit hasnt been seen yet
-                
                 splits[i] = {'span'       : [ft],
                              'strand'     : [c],
                              'query_span' : [qs]}  # add the span and complement as new entry
-            else:  # otherwise (if it has been seen)      
-                
+            
+            else:  # otherwise (if it has been seen)          
                 for idx, entry in enumerate(splits[i]['span']):  # for each previously added entry      
-                    if splits[i]['strand'][idx] == c:  # If the hit is on the same complement strand
+                    if splits[i]['strand'][idx] != c:  # If the hit is on the same complement strand
+                        splits[i]['span'].append(ft)  # Add the new range to be split out in the future
+                        splits[i]['strand'].append(c)  # Add the complement strand as well
+                        splits[i]['query_span'].append(qs)
+                        break
                         
-                        previous_qs      = splits[i]['query_span'][idx] # Get the query span of the previous hit
+                    previous_qs      = splits[i]['query_span'][idx] # Get the query span of the previous hit
 
+                    previous_q_range = set(range(previous_qs[0], previous_qs[1])) # Get the range of each
+                    current_q_range  = set(range(qs[0], qs[1]))
+                    query_overlap    = set(previous_q_range).intersection(current_q_range) # Find the intersection between the two ranges
+                    
+                    previous_ft_span = set(range(entry[0], entry[1]))
+                    current_ft_span  = set(range(ft[0], ft[1]))
+                    if any(query_overlap): # If there is an overlap
+                        ####################################################
+                        # if the span over the actual read that hit the HMM
+                        # for each hit overlap by > 25%, they are considered
+                        # the same hit, and ignored
+                        ####################################################
+                        intersection_fraction = float(len(previous_ft_span.intersection(current_ft_span)))
                         
-                        previous_q_range = set(range(previous_qs[0], previous_qs[1])) # Get the range of each
-                        current_q_range  = set(range(qs[0], qs[1]))
-                        query_overlap    = set(previous_q_range).intersection(current_q_range) # Find the intersection between the two ranges
-
-                        previous_ft_span = set(range(entry[0], entry[1]))
-                        current_ft_span  = set(range(ft[0], ft[1]))
-                        
-                        if any(query_overlap): # If there is an overlap
-                            # if the intersection between the span the current hit is 
-                            # greater than half (0.5) that of a previous span,
-                            # consider it the same hit, and continue.
-                            intersection_fraction = float(len(previous_ft_span.intersection(current_ft_span)))
-                            
-                            if intersection_fraction / float(len(previous_ft_span)) >= 0.5: 
-                                break
-                            elif intersection_fraction / float(len(current_ft_span)) >= 0.5:                                                                                            
-                                break
-                            else: # else (i.e. if the hit covers less that 50% of the sequence of the previous hit
-                                if len(query_overlap) < (len(current_q_range)*0.75): # if the overlap on the query HMM does not span over 75% 
+                        if intersection_fraction / float(len(previous_ft_span)) >= 0.25: 
+                            break
+                        elif intersection_fraction / float(len(current_ft_span)) >= 0.25:                                                                        
+                            break
+                        else: # else (i.e. if the hit covers less that 25% of the sequence of the previous hit)
+                            ####################################################
+                            # If they made it this far, it means that the hits do not overlap.
+                            # But one last check must be made to ensure they do not cover the same
+                            # region in the HMM.
+                            ####################################################
+                            if len(query_overlap) > (len(current_q_range)*0.25): # if the overlap on the query HMM does not span over 75% 
+                                if (idx+1) == len(splits[i]['span']):
                                     splits[i]['span'].append(ft) # Add from-to as another entry, this is another hit. 
                                     splits[i]['strand'].append(c) # Add strand info as well
+                                    splits[i]['query_span'].append(qs)
                                     break # And break
-                        
-                        if min(entry) < min(ft):  # if/else to determine which entry comes first (e.g. 1-5, 6-10 not 6-10, 1-5)
-                            if max(ft) - min(entry) < max_range:  # Check if they lie within range of eachother
-                                entry[1] = max(ft)  # ammend the entry if they are
-                                break  # And break the loop
-                        else:
-                            if max(entry) - min(ft) < max_range:  # Check if they lie within range of eachother
-                                entry[0] = min(ft)  # ammend the entry if they are
-                                break  # And break the loop
+                    
+                    if min(entry) < min(ft):  # if/else to determine which entry comes first (e.g. 1-5, 6-10 not 6-10, 1-5)
+                        if max(ft) - min(entry) < max_range:  # Check if they lie within range of eachother
+                            entry[1] = max(ft)  # ammend the entry if they are
+                            break  # And break the loop
                     else:
-                        break
+                        if max(entry) - min(ft) < max_range:  # Check if they lie within range of eachother
+                            entry[0] = min(ft)  # ammend the entry if they are
+                            break  # And break the loop
+
                 else:  # if no break occured (no overlap)
                     splits[i]['span'].append(ft)  # Add the new range to be split out in the future
                     splits[i]['strand'].append(c)  # Add the complement strand as well
+                    splits[i]['query_span'].append(qs)
         
-        return {key: entry['span'] for key, entry in splits.iteritems()}  # return the dict, without strand information which isn't required.
+        return {key: {"entry":entry['span'], 'strand': entry['strand']} for key, entry in splits.iteritems()}  # return the dict, without strand information which isn't required.
     
     def _check_for_slash_endings(self, readnames):
         '''
@@ -703,7 +725,6 @@ class Hmmer:
         -------
         String path to amino acid fasta file of reads that hit
         '''
-        
         # Define outputs
         hmmsearch_output_table = files.hmmsearch_output_path(base)
         hit_reads_fasta = files.fa_output_path(base)
@@ -796,13 +817,11 @@ class Hmmer:
                                             search_result,  # define the span of hits
                                             maximum_range
                                             )
-            else:   
-                hits={}
-                for result in search_result:
-                    for h in result.each([SequenceSearchResult.QUERY_ID_FIELD]):
-                        hits[h[0]]=[]
-            
-            
+                
+            else:
+                   
+                hits = self._get_sequence_directions(search_result)
+                
             orf_hit_readnames = hits.keys() # Orf read hit names
             if unpack.sequence_type() == 'nucleotide':
                 hits={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) else key): item for key, item in hits.iteritems()}
@@ -813,7 +832,7 @@ class Hmmer:
                 readnames.write(read + '\n')
             readnames.flush()
             
-            hit_reads_fasta = self._extract_from_raw_reads(
+            hit_reads_fasta, complement_information = self._extract_from_raw_reads(
                                                            hit_reads_fasta,
                                                            readnames.name,
                                                            unpack.read_file,
@@ -821,18 +840,18 @@ class Hmmer:
                                                            hits
                                                            )
             
-
+        
         if not hit_readnames:
             hit_read_counts = [0, len(hit_readnames)]
             result = DBSearchResult(None,
                                     search_result,
                                     hit_read_counts,
                                     None)
-            return result
+            return result, complement_information
         
         if unpack.sequence_type() == 'nucleotide':
             # Extract the orfs of these reads that hit the original search
-            
+
             self._extract_orfs(
                                hit_reads_fasta,
                                extracting_orfm,
@@ -853,7 +872,7 @@ class Hmmer:
                                 [0, len([itertools.chain(*hits.values())])],  # array of hits [euk hits, true hits]. Euk hits alway 0 unless searching from 16S
                                 slash_endings)  # Any reads that end in /1 or /2     
         logging.info("%s read(s) detected" % len(hits))
-        return result
+        return result, complement_information
     
     @T.timeit
     def nt_db_search(self, files, base, unpack, euk_check,
@@ -946,11 +965,7 @@ class Hmmer:
                                             maximum_range
                                             )
             else:   
-                hits={}
-                for result in search_result:
-                    for h in result.each([SequenceSearchResult.QUERY_ID_FIELD]):
-                        hits[h]=[]
-            
+                hits=self._get_sequence_directions(search_result)
             hit_readnames = hits.keys()
             
             if euk_check:
@@ -965,7 +980,7 @@ class Hmmer:
                 hit_read_count = [0, len(hit_readnames)]
             readnames.flush()
             
-            hit_reads_fasta = self._extract_from_raw_reads(
+            hit_reads_fasta, complement_information = self._extract_from_raw_reads(
                                                            hit_reads_fasta,
                                                            readnames.name,
                                                            unpack.read_file,
@@ -986,7 +1001,7 @@ class Hmmer:
                                     slash_endings)
         
         logging.info("%s read(s) detected" % len(hits))
-        return result
+        return result, complement_information
         
     @T.timeit
     def align(self, input_path, output_path, directions, pipeline):

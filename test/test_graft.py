@@ -918,8 +918,10 @@ CCGACTGCCCTTGAAGACCACTTCG
                                                                                                   reads_2,
                                                                                                   gpkg,
                                                                                                   tmp)
+            
             subprocess.check_output(cmd, shell=True)
             comb_otu_table=os.path.join(tmp, "combined_count_table.txt")
+            
             expected=('\t'.join(('#ID', 'sample_16S_1.1', 'sample_16S_2.1', 'ConsensusLineage')),
                       '\t'.join(('1','1','2','Root; k__Bacteria; p__Cyanobacteria; c__Chloroplast')),
                       '\t'.join(('2','35','42','Root; k__Bacteria; p__Proteobacteria')),
@@ -1000,6 +1002,7 @@ TAGTCTCGGGTCTACTACGAATAGCAAGTCTACCTCAAGG
                 
                 cmd = "%s --bootstrap_contigs %s" % (cmd, 
                                                      os.path.join(path_to_data,'bootstrapper','contigs.fna'))
+        
                 subprocess.check_output(cmd, shell=True)
                 self.assertEqual(testing_read, open(os.path.join(tmp, sample_name, '%s_hits.fa' % sample_name)).read())
 

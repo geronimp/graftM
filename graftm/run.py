@@ -49,16 +49,7 @@ class Run:
             if hasattr(args, 'reference_package'):
                 self.p = Pplacer(self.args.reference_package)
 
-    def _get_sequence_directions(self, search_result):
-        complement_strand = {}
-        for result in search_result:
-            result_directions = dict(
-                                     result.each([SequenceSearchResult.QUERY_ID_FIELD,
-                                                  SequenceSearchResult.ALIGNMENT_DIRECTION])
-                                       )
-            complement_strand.update(result_directions)
 
-        return complement_strand
 
     def summarise(self, base_list, trusted_placements, reverse_pipe, times, hit_read_count_list):
         '''
@@ -297,7 +288,8 @@ class Run:
 
                 if self.args.type == PIPELINE_AA:
                     logging.debug("Running protein pipeline")
-                    search_time, result = self.h.aa_db_search(
+                
+                    search_time, (result, complement_information) = self.h.aa_db_search(
                                                               self.gmf,
                                                               base,
                                                               unpack,
@@ -313,7 +305,7 @@ class Run:
                 # Or the DNA pipeline
                 elif self.args.type == PIPELINE_NT:
                     logging.debug("Running nucleotide pipeline")
-                    search_time, result = self.h.nt_db_search(
+                    search_time, (result, complement_information)  = self.h.nt_db_search(
                                                               self.gmf,
                                                               base,
                                                               unpack,
@@ -323,7 +315,6 @@ class Run:
                                                               self.args.threads,
                                                               self.args.evalue
                                                               )
-
                 if not result.hit_fasta():
                     logging.info('No reads found in %s' % base)
                     continue
@@ -331,10 +322,11 @@ class Run:
                 if self.args.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
                     logging.info('Aligning reads to reference package database')
                     hit_aligned_reads = self.gmf.aligned_fasta_output_path(base)
+                    
                     aln_time = self.h.align(
                                             result.hit_fasta(),
                                             hit_aligned_reads,
-                                            self._get_sequence_directions(result.search_result),
+                                            complement_information,
                                             self.args.type
                                             )
 

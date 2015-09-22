@@ -261,7 +261,7 @@ class GraftMPackageVersion3(GraftMPackageVersion2):
         shutil.copyfile(hmm_path, os.path.join(output_package_path, hmm_file_in_gpkg))
         # Copy unaligned sequence database into graftm package
         unaligned_sequence_database_in_gpkg = os.path.join(output_package_path, os.path.basename(unaligned_sequence_database))
-        shutil.copyfile(hmm_path, unaligned_sequence_database_in_gpkg)
+        shutil.copyfile(unaligned_sequence_database, unaligned_sequence_database_in_gpkg)
         
         if diamond_database_file:
             diamond_database_file_in_gpkg = os.path.basename(diamond_database_file)

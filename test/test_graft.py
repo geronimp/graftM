@@ -36,6 +36,49 @@ path_to_samples = os.path.join(os.path.dirname(os.path.realpath(__file__)),'samp
 
 class Tests(unittest.TestCase):
 
+    def test_euk_check(self):
+        reads = """>euk1
+TCAAATGTCTGCCCTATCAACTATTGATGGTAGTGTAGAGGACTACCATGGTTGCGACGGGTAACGGGGAATCAGGGTTCGATTCCGGAGAGGGAGCCTG
+>euk2
+GTTGCGACGGGTAACGGGGAATCAGGGTTCGATTCCGGAGAGGGAGCCTGAGAAATGGCTACCACATCCAAGGAAGGCAGCAGGCGCGTAAATTACCCAA
+>euk3
+AGAAATGGCTACCACATCCAAGGAAGGCAGCAGGCGCGTAAATTACCCAATCCCGGCACGGGGAGGTAGTGACGAGAAATAACAATATGGACCTCTCTAA
+>euk4
+TCCCGGCACGGGGAGGTAGTGACGAGAAATAACAATATGGACCTCTCTAACGATGGTCCATAATTGGAATGAGTTGAGCATAAATCCTTTTGCAAGGATC
+>bac1
+CGGCTTTCATGATGTAACGGGCGGTGTGTACAAGGCCTGGGAACGTATTCACGGCGCCGTAGCTGATGCGCCATTACTAGCGATTCCAACTTCATGTCGT
+>bac2
+GTTGAAACTCAAAGGAATTGACGGGGGCCCGCACAAGCGGTGGAGCATGTGGTTTAATTCGACGCAACGCGAAGAACCTTACCTGGGCTTGACATGGTAG
+>bac3
+CTTGTGCGGGGACCCGTCAATTCCTTTGAGTTTTAACCTTGCGGCCGTAGTCCCCAGGCGGTGAACTTATCGCGTTAGCTTCGGCACCGACGGCTTTGAA
+>bac4
+CCCCGCCTTCCTCCCCTTTGTCAGAGGCAGTTCTGCTAGAGTGCGCCCCGATTGCTCGGGGGTAGCAACTAACCGTAAGGGTTGCGCTCGTTGCGGGACT"""
+        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+            fasta.write(reads)
+            fasta.flush()
+            data = fasta.name
+            package = os.path.join(path_to_data,'61_otus.gpkg')
+
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --verbosity 2 --forward %s --graftm_package %s --output_directory %s --force --euk_check' % (path_to_script,
+                                                                                                   data,
+                                                                                                   package,
+                                                                                                   tmp)
+                subprocess.check_output(cmd, shell=True)
+                sample_name = os.path.basename(fasta.name[:-3])
+                otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
+                lines = ("\t".join(('#ID',sample_name,'ConsensusLineage')),
+                         "\t".join(('1','1','Root; k__Bacteria')),
+                         "\t".join(('2','1','Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria; o__Rickettsiales')),
+                         "\t".join(('3','1','Root; k__Bacteria; p__Proteobacteria')),
+                         "\t".join(('4','1','Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria')),
+                         )
+
+                count = 0
+                for line in open(otuTableFile):
+                    self.assertEqual(lines[count], line.strip())
+                    count += 1
+
     def test_cluster(self):
         reads = """>HWI-ST1243:121:D1AF9ACXX:8:1101:12684:12444
 GTCAACAACCCCGCAATGCAACAGATGTGGGATGAGATCAGACGTACAGTTATCGTCGGTCTCGACCAGGCCCACGAGACGCTGACCAGAAGACTCGGTAAGGAAGTTACCCCTGAGACCATCAACGGCTATCTTGAGGCGTTGAACCAC

@@ -36,7 +36,7 @@ class TreeDecorator:
         
         # Read in tree
         self.tree = tree
-         
+        
         # Read in taxonomy
         if seqinfo:
             gtns = Getaxnseq()
@@ -252,7 +252,7 @@ class TreeDecorator:
                             current_index = len(tax_list)
 
                 if resolution < 7:
-                    if tax_list == ["d__Bacteria"]: import IPython ; IPython.embed()
+                    
                     new_tax_list = [] 
                     for tax in tax_list:
                         if tax in self.encountered_taxonomies:

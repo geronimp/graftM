@@ -570,7 +570,7 @@ If you're unsure how to use GraftM decorate use graftM decorate -h")
                 if self.args.input_seqinfo or self.args.input_taxtastic_taxonomy:
                     logging.error("Both taxtastic and greengenes taxonomy were provided, so its unclear what taxonomy you want graftM to decorate with")
                     exit(1)
-                    dec.main(self.args.input_greengenes_taxonomy, self.args.output_tree, self.args.output_taxonomy) 
+                dec.main(self.args.input_greengenes_taxonomy, self.args.output_tree, self.args.output_taxonomy) 
             elif self.args.input_seqinfo and self.args.input_taxtastic_taxonomy:
                 dec.main(self.args.input_taxtastic_taxonomy, self.args.output_tree, self.args.output_taxonomy, self.args.input_seqinfo) 
             else:

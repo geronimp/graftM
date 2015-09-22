@@ -75,6 +75,7 @@ class GraftMPackage:
         except KeyError:
             raise InsufficientGraftMPackageException("No version information in graftm package")
         if v != version:
+            import IPython ; IPython.embed()
             raise InsufficientGraftMPackageException("Bad version: %s" % v)
 
     def check_required_keys(self, required_keys):

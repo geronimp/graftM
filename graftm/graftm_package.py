@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import logging
 
 class InsufficientGraftMPackageException(Exception): pass
 
@@ -60,21 +61,29 @@ class GraftMPackage:
         graftm_output_path: str
             path to base directory of graftm
         '''
-        pkg = GraftMPackageVersion3()
-
-
+        
+        contents_hash = json.load(
+                                   open(
+                                        os.path.join(
+                                                     graftm_package_path,
+                                                     GraftMPackage._CONTENTS_FILE_NAME
+                                                     ),
+                                         )
+                                   )
+        
+        
+        v=contents_hash[GraftMPackage.VERSION_KEY]
+        logging.debug("Loading version %i GraftM package: %s" % (v, graftm_package_path))
+        if v == 2:
+            pkg = GraftMPackageVersion2()
+        elif v == 3:
+            pkg = GraftMPackageVersion3()
+        else:
+            raise InsufficientGraftMPackageException("Bad version: %s" % v)
+        
+        pkg._contents_hash = contents_hash
         pkg._base_directory = graftm_package_path
-        pkg._contents_hash = json.load(
-                                       open(
-                                            os.path.join(
-                                                         graftm_package_path,
-                                                         GraftMPackage._CONTENTS_FILE_NAME
-                                                         ),
-                                             )
-                                       )
-
         # check we are at current version otherwise choke
-        v = pkg._contents_hash[pkg.VERSION_KEY]
         pkg.check_universal_keys(v)
         pkg.check_required_keys(GraftMPackage._REQUIRED_KEYS[str(v)])
         return pkg

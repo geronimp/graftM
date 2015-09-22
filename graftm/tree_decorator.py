@@ -12,12 +12,19 @@ import os
 import sys
 
 ################################################################################
+################################ - Statics - ###################################
+MAX_RESOLUTION = 7
+
+################################################################################
 ################################## - Code - ####################################
 
-class TreeUnrootedException(Exception): pass
+class TreeUnrootedException(Exception): 
+    pass
 
 class TreeDecorator:
     '''Yet another class that decorates trees, only the way I want it.'''
+    
+    
     def __init__(self, 
                  tree,
                  taxonomy,
@@ -67,6 +74,11 @@ class TreeDecorator:
         for node in self.tree.preorder():
             if node.is_root():
                 logging.debug("%i reads in tree from root" % (len(list(node.tips()))))
+                
+                # Fail if the root is not binary (unrooted)
+                if len(node.children) > 2:
+                    raise TreeUnrootedException("The root to the tree had more that 2 immediate child nodes, and so cannot be rooted correctly. Please ensure you have provided GraftM decorate with a rooted tree.")
+                
                 yield node
             elif node.is_tip():
                 logging.debug("Tip %s reached" % (node.name))
@@ -102,7 +114,7 @@ class TreeDecorator:
         logging.info("Writing decorated tree to file: %s" % (output))
         self.tree.write(
                     output,
-                    format = "newick"
+                    format = "newick"   
                         )
         
     def _write_consensus_strings(self, output):
@@ -216,20 +228,15 @@ class TreeDecorator:
                 logging.debug("Node has consistent taxonomy: %s" % '; '.join(tax_list))
                 
                 if not parent:
-                    # Check tree is binary:
-                    if len(node.children) > 2:
-                        raise TreeUnrootedException
                     current_index = len(tax_list)
                     resolution = 1
-
                 else:
                     if parent.is_root():
-                        
                         if parent.name:
-                            print "pass"
-                            current_index = 1
-                            resolution = 2
-                            
+                            current_index, resolution = self._get_tax_index(node.ancestors())
+                        else:
+                            current_index = 0
+                            resolution = len(tax_list)   
                     else:
                         current_index, resolution = self._get_tax_index(node.ancestors())
                         
@@ -237,7 +244,6 @@ class TreeDecorator:
                         logging.debug("No consistent taxonomy found for node! Moving to next node.")
                         self.encountered_nodes[node] = current_index
                         continue
-                    
                     else:
                         if len(tax_list) == placement_depth:
 
@@ -250,13 +256,12 @@ class TreeDecorator:
                                 self.encountered_nodes[child] = current_index
                         else:
                             current_index = len(tax_list)
-
-                if resolution < 7:
-                    
+                
+                if resolution < MAX_RESOLUTION:
                     new_tax_list = [] 
                     for tax in tax_list:
                         if tax in self.encountered_taxonomies:
-                            idx=1
+                            idx = 1
                             while tax in self.encountered_taxonomies:
                                 if idx > 1: 
                                     tax = '%s_%i' % ('_'.join(tax.split('_')[:-1]), idx)
@@ -273,8 +278,7 @@ class TreeDecorator:
                         if len(split_node_name) > 2: 
                             raise Exception("Malformed tree. Please remove ':' from the read names in the tree")
                             exit(1)
-                        
-                        if len(split_node_name) <2:
+                        elif len(split_node_name) < 2:
                             node_name = "%s:%s" % (split_node_name[0], tax_string)
                         else:
                             bootstrap_value, node_name = split_node_name[0], split_node_name[1]

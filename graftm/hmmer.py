@@ -333,6 +333,7 @@ class Hmmer:
         euk_reads : array
             list of all read names deemed to be eukaryotic
         '''
+        
         euk_hit_table = HMMreader(hmm_hit_tables.pop(-1))
         other_hit_tables = [HMMreader(x) for x in hmm_hit_tables]
         reads_unique_to_eukaryotes = []   
@@ -360,7 +361,7 @@ class Hmmer:
         
         euk_reads = reads_with_better_euk_hit + reads_unique_to_eukaryotes
         
-        return euk_reads
+        return set(euk_reads)
 
     def _extract_multiple_hits(self, hits, reads_path, output_path): 
         '''
@@ -392,6 +393,7 @@ class Hmmer:
         '''
         reads = SeqIO.to_dict(SeqIO.parse(reads_path, "fasta"))  # open up reads as dictionary
         split_complement_info = {}
+
         
         with open(output_path, 'w') as out:
             for read_name, entry in hits.iteritems():  # For each contig
@@ -992,18 +994,19 @@ class Hmmer:
                         hits[h[0]]={"strand":[h[1]],
                                     "span":[[h[2], h[3]]],
                                     "query_span":[[h[4], h[5]]]}
+
             hit_readnames = hits.keys()
             
             if euk_check:
                 euk_reads = self._check_euk_contamination(table_list)
-                euk_reads = set(euk_reads)
-                prok_reads = set([hit_readnames for read in hit_readnames\
-                                  if read not in euk_reads])
-                for read in prok_reads: readnames.write(read + '\n')
-                hit_read_count = [len(euk_reads), len(prok_reads)]
-            else:
-                [readnames.write(read + '\n') for read in hit_readnames]
-                hit_read_count = [0, len(hit_readnames)]
+                hit_readnames = set([read for read in hit_readnames if read not in euk_reads])
+                for read in hit_readnames: 
+                    readnames.write(read + '\n')
+                hits = {key:item for key, item in  hits.iteritems() if key in hit_readnames}
+                hit_read_count = [len(euk_reads), len(hit_readnames)]
+            for read in hit_readnames: 
+                readnames.write(read + '\n')
+            hit_read_count = [0, len(hit_readnames)]
             readnames.flush()
             
             hit_reads_fasta, complement_information = self._extract_from_raw_reads(

@@ -60,11 +60,11 @@ CCCCGCCTTCCTCCCCTTTGTCAGAGGCAGTTCTGCTAGAGTGCGCCCCGATTGCTCGGGGGTAGCAACTAACCGTAAGG
             package = os.path.join(path_to_data,'61_otus.gpkg')
 
             with tempdir.TempDir() as tmp:
-                cmd = '%s graft --verbosity 2 --forward %s --graftm_package %s --output_directory %s --force --euk_check' % (path_to_script,
+                cmd = '%s graft --verbosity 5 --forward %s --graftm_package %s --output_directory %s --force --euk_check' % (path_to_script,
                                                                                                    data,
                                                                                                    package,
                                                                                                    tmp)
-                subprocess.check_output(cmd, shell=True)
+                extern.run(cmd)
                 sample_name = os.path.basename(fasta.name[:-3])
                 otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
                 lines = ("\t".join(('#ID',sample_name,'ConsensusLineage')),

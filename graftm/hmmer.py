@@ -330,8 +330,8 @@ class Hmmer:
         
         Returns
         -------
-        euk_reads : array
-            list of all read names deemed to be eukaryotic
+        euk_reads : set
+            Non-redundant set of all read names deemed to be eukaryotic
         '''
         
         euk_hit_table = HMMreader(hmm_hit_tables.pop(-1))
@@ -413,7 +413,7 @@ class Hmmer:
         
         return split_complement_info
 
-    def _extract_from_raw_reads(self, output_path, input_path, raw_sequences_path, input_file_format, hits):
+    def _extract_from_raw_reads(self, output_path, input_reads, raw_sequences_path, input_file_format, hits):
         '''
         _extract_from_raw_reads - call fxtract to extract the hit sequences 
         of the hmm/diamond search from the raw sequences file. Output into 
@@ -423,8 +423,8 @@ class Hmmer:
         ----------
         output_path : str
             Path of the desired output file
-        input_path : str
-            Path to a file containing read IDs, one per line.
+        input_reads : list
+            list of read IDS to extract.
         raw_sequences_path : str
             Path to the raw sequences
         input_file_format : var
@@ -441,7 +441,7 @@ class Hmmer:
         
         with tempfile.NamedTemporaryFile(prefix='_raw_extracted_reads.fa') as tmp:
             # Run fxtract to obtain reads form original sequence file
-            fxtract_cmd = "fxtract -H -X -f %s " % input_path
+            fxtract_cmd = "fxtract -H -X -f /dev/stdin " 
             if input_file_format == FORMAT_FASTA:
                 cmd = "%s %s > %s" % (fxtract_cmd, raw_sequences_path, tmp.name)
             elif input_file_format == FORMAT_FASTQ_GZ:
@@ -452,8 +452,10 @@ class Hmmer:
                 cmd = "%s %s | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > %s" % (fxtract_cmd, raw_sequences_path, tmp.name)
             else:
                 raise Exception("Programming error")
-            extern.run(cmd)
-            
+            process = subprocess.Popen(["bash", "-c", cmd], 
+                                       stdin=subprocess.PIPE,
+                                       stdout=subprocess.PIPE)
+            process.communicate('\n'.join(input_reads))
             complement_info = self._extract_multiple_hits(hits, tmp.name, output_path)  # split them into multiple reads
         
         return output_path, complement_info
@@ -809,48 +811,41 @@ class Hmmer:
         else:  # if the search_method isn't recognised
             raise Exception("Programming error: unexpected search_method %s" % search_method)
         
-        with tempfile.NamedTemporaryFile(prefix='graftm_readnames') as readnames:
-            # Write the names of hits to a tmpfile
-            
-            orfm_regex = OrfM.regular_expression()
-            
-            
-            if maximum_range:
-                hits = self._get_read_names(
-                                            search_result,  # define the span of hits
-                                            maximum_range
-                                            )
-            else:   
-                hits={}
-                for result in search_result:
-                    for h in list(result.each([SequenceSearchResult.QUERY_ID_FIELD,
-                                               SequenceSearchResult.ALIGNMENT_DIRECTION,
-                                               SequenceSearchResult.HIT_FROM_FIELD,
-                                               SequenceSearchResult.HIT_TO_FIELD,
-                                               SequenceSearchResult.QUERY_FROM_FIELD,
-                                               SequenceSearchResult.QUERY_TO_FIELD])):
-                        hits[h[0]]={"strand":[h[1]],
-                                    "span":[[h[2], h[3]]],
-                                    "query_span":[[h[4], h[5]]]}
+        orfm_regex = OrfM.regular_expression()
         
-            orf_hit_readnames = hits.keys() # Orf read hit names
-            if unpack.sequence_type() == 'nucleotide':
-                hits={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) else key): item for key, item in hits.iteritems()}
-                hit_readnames = hits.keys() # Store raw read hit names 
-            else:
-                hit_readnames=orf_hit_readnames
-            for read in hit_readnames:
-                readnames.write(read + '\n')
-            readnames.flush()
-            
-            hit_reads_fasta, complement_information = self._extract_from_raw_reads(
-                                                           hit_reads_fasta,
-                                                           readnames.name,
-                                                           unpack.read_file,
-                                                           unpack.format(),
-                                                           hits
-                                                           )
-            
+        if maximum_range:
+            hits = self._get_read_names(
+                                        search_result,  # define the span of hits
+                                        maximum_range
+                                        )
+        else:   
+            hits={}
+            for result in search_result:
+                for h in list(result.each([SequenceSearchResult.QUERY_ID_FIELD,
+                                           SequenceSearchResult.ALIGNMENT_DIRECTION,
+                                           SequenceSearchResult.HIT_FROM_FIELD,
+                                           SequenceSearchResult.HIT_TO_FIELD,
+                                           SequenceSearchResult.QUERY_FROM_FIELD,
+                                           SequenceSearchResult.QUERY_TO_FIELD])):
+                    hits[h[0]]={"strand":[h[1]],
+                                "span":[[h[2], h[3]]],
+                                "query_span":[[h[4], h[5]]]}
+    
+        orf_hit_readnames = hits.keys() # Orf read hit names
+        if unpack.sequence_type() == 'nucleotide':
+            hits={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) else key): item for key, item in hits.iteritems()}
+            hit_readnames = hits.keys() # Store raw read hit names 
+        else:
+            hit_readnames=orf_hit_readnames
+        
+        hit_reads_fasta, complement_information = self._extract_from_raw_reads(
+                                                       hit_reads_fasta,
+                                                       hit_readnames,
+                                                       unpack.read_file,
+                                                       unpack.format(),
+                                                       hits
+                                                       )
+        
 
         if not hit_readnames:
             hit_read_counts = [0, len(hit_readnames)]
@@ -975,47 +970,43 @@ class Hmmer:
                 
         elif search_method == 'diamond':
             raise Exception("Diamond searches not supported for nucelotide databases yet")
-        with tempfile.NamedTemporaryFile(prefix='graftm_readnames') as readnames:
-            if maximum_range:  
-                
-                hits = self._get_read_names(
-                                            search_result,  # define the span of hits
-                                            maximum_range
-                                            )
-            else:   
-                hits={}
-                for result in search_result:
-                    for h in list(result.each([SequenceSearchResult.QUERY_ID_FIELD,
-                                               SequenceSearchResult.ALIGNMENT_DIRECTION,
-                                               SequenceSearchResult.HIT_FROM_FIELD,
-                                               SequenceSearchResult.HIT_TO_FIELD,
-                                               SequenceSearchResult.QUERY_FROM_FIELD,
-                                               SequenceSearchResult.QUERY_TO_FIELD])):
-                        hits[h[0]]={"strand":[h[1]],
-                                    "span":[[h[2], h[3]]],
-                                    "query_span":[[h[4], h[5]]]}
+        
+        if maximum_range:  
+            
+            hits = self._get_read_names(
+                                        search_result,  # define the span of hits
+                                        maximum_range
+                                        )
+        else:   
+            hits={}
+            for result in search_result:
+                for h in list(result.each([SequenceSearchResult.QUERY_ID_FIELD,
+                                           SequenceSearchResult.ALIGNMENT_DIRECTION,
+                                           SequenceSearchResult.HIT_FROM_FIELD,
+                                           SequenceSearchResult.HIT_TO_FIELD,
+                                           SequenceSearchResult.QUERY_FROM_FIELD,
+                                           SequenceSearchResult.QUERY_TO_FIELD])):
+                    hits[h[0]]={"strand":[h[1]],
+                                "span":[[h[2], h[3]]],
+                                "query_span":[[h[4], h[5]]]}
 
-            hit_readnames = hits.keys()
-            
-            if euk_check:
-                euk_reads = self._check_euk_contamination(table_list)
-                hit_readnames = set([read for read in hit_readnames if read not in euk_reads])
-                for read in hit_readnames: 
-                    readnames.write(read + '\n')
-                hits = {key:item for key, item in  hits.iteritems() if key in hit_readnames}
-                hit_read_count = [len(euk_reads), len(hit_readnames)]
-            for read in hit_readnames: 
-                readnames.write(read + '\n')
+        hit_readnames = hits.keys()
+        
+        if euk_check:
+            euk_reads = self._check_euk_contamination(table_list)
+            hit_readnames = set([read for read in hit_readnames if read not in euk_reads])
+            hits = {key:item for key, item in  hits.iteritems() if key in hit_readnames}
+            hit_read_count = [len(euk_reads), len(hit_readnames)]
+        else:
             hit_read_count = [0, len(hit_readnames)]
-            readnames.flush()
-            
-            hit_reads_fasta, complement_information = self._extract_from_raw_reads(
-                                                           hit_reads_fasta,
-                                                           readnames.name,
-                                                           unpack.read_file,
-                                                           unpack.format(),
-                                                           hits
-                                                           )
+        
+        hit_reads_fasta, complement_information = self._extract_from_raw_reads(
+                                                       hit_reads_fasta,
+                                                       hit_readnames,
+                                                       unpack.read_file,
+                                                       unpack.format(),
+                                                       hits
+                                                       )
         
         if not hit_readnames:
             result = DBSearchResult(None,

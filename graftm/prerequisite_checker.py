@@ -37,12 +37,12 @@ class PrerequisiteChecker:
             msg = "The following programs appear to be missing, and need to be installed before GraftM can continue:"
             logging.error(msg)
             for program in sorted(uninstalled_programs):
-                try:
+                try:                    
                     package_name = PrerequisiteChecker.programs_to_packages[program]
                     print_name = '/'.join((program, package_name))
                 except KeyError:
                     package_name = program
                     print_name = program
-                    
+                import IPython ; IPython.embed()
                 logging.error('\t%25s\t%s' % (print_name, PrerequisiteChecker.package_urls[package_name]))
             exit(1)

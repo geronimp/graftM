@@ -35,8 +35,10 @@ class HouseKeeping:
         for item in hmm_read:
             if item.startswith('ALPH'):
                 if item.split()[1] == 'DNA' or item.split()[1] == 'RNA':
+                    PrerequisiteChecker.check_prerequisites(('nhmmer','hmmsearch'))
                     hmm_type = 'D'
                 elif item.split()[1] == 'amino':
+                    PrerequisiteChecker.check_prerequisites(['hmmsearch'])
                     hmm_type = 'P'
             elif item.startswith('TC'):
                 hmm_tc = item.split()[1]
@@ -119,7 +121,7 @@ class HouseKeeping:
         return max_length
 
     def set_attributes(self, args):
-        PrerequisiteChecker.check_prerequisites(('orfm','nhmmer','hmmsearch','fxtract','pplacer','seqmagick','ktImportText','diamond'))
+        PrerequisiteChecker.check_prerequisites(('orfm', 'fxtract','pplacer','seqmagick','ktImportText','diamond'))
         
         # Read graftM package and assign HMM and refpkg file
         if args.graftm_package:

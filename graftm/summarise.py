@@ -39,26 +39,23 @@ class Stats_And_Summary:
                 out.write("%s\t%s\n" % (read, '; '.join(tax)))
 
     def build_basic_statistics(self, times, hit_read_count_list, placed_reads, base_list, output):
-        files   = '\t'.join(base_list)
-        SSU_18S = '\t'.join([str(x[0]) for x in hit_read_count_list])
-        SSU_16S = '\t'.join([str(x[1]) for x in hit_read_count_list])
-        placed  = '\t'.join([str(x) for x in placed_reads])        
         
-        stats = """Basic run statistics (count):
-Files:                %s
-# reads detected:     %s
-# 18S reads detected: %s
-reads placed in tree: %s
+        output_lines = ["Basic run statistics (count):"]
+        output_lines.append("Files:\t%s" % '\t'.join(base_list))
+        if any([x[0] for x in hit_read_count_list if x[0] > 0]):
+            output_lines.append("18S reads filtered:\t%s" % '\t'.join([str(x[0]) for x in hit_read_count_list]))
+        output_lines.append("reads detected:\t%s" % '\t'.join([str(x[1]) for x in hit_read_count_list]))
+        output_lines.append("reads placed in tree:\t%s" % '\t'.join([str(x) for x in placed_reads]))   
+        output_lines.append("Runtime (seconds):")
+        import IPython ; IPython.embed()
+        output_lines.append("Search step:\t%s" % times[0])
+        output_lines.append("Alignment step:\t%s" % times[1])
+        output_lines.append("Tree insertion step:\t%s" % times[2])
 
-
-Runtime (seconds):
-Search step:          %s
-Alignment step:       %s
-Tree insertion step:  %s
-    """ % (files, SSU_16S, SSU_18S, placed, times[0], times[1], times[2])
         
         with open(output, 'w') as stats_file:
-            stats_file.write(stats)
+            for line in output_lines:
+                stats_file.write(line + '\n')
 
     def _iterate_otu_table_rows(self, read_taxonomies):
         '''yield that which is required for an OTU table: taxonomy, and

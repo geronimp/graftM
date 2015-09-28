@@ -329,7 +329,7 @@ class Run:
                                             complement_information,
                                             self.args.type
                                             )
-
+                    aln_time = aln_time[0]
                     seqs_list.append(hit_aligned_reads)
 
                 db_search_results.append(result)

@@ -999,9 +999,11 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                     readnames.write(read + '\n')
                 hits = {key:item for key, item in  hits.iteritems() if key in hit_readnames}
                 hit_read_count = [len(euk_reads), len(hit_readnames)]
+            else:
+                hit_read_count = [0, len(hit_readnames)]
+            
             for read in hit_readnames:
                 readnames.write(read + '\n')
-            hit_read_count = [0, len(hit_readnames)]
             readnames.flush()
 
             hit_reads_fasta, complement_information = self._extract_from_raw_reads(

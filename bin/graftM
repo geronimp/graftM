@@ -151,7 +151,7 @@ if __name__ == '__main__':
     
     logging_options = graft_parser.add_argument_group('logging options')
     logging_options.add_argument('--verbosity', metavar='verbosity', help='1 - 5, 1 being silent, 5 being noisy indeed. Default = 4', type=int, default=4)
-    logging_options.add_argument('--log', metavar='logfile', help='Output logging information to file', type=str, default=False)
+    logging_options.add_argument('--log', metavar='logfile', help='Output logging information to file', default=False)
     
     output_options = graft_parser.add_argument_group('output options')
     output_options.add_argument('--output_directory', metavar='reference_package', help='Output directory name (default=\"GraftM_output\")', default="GraftM_output")
@@ -199,7 +199,7 @@ sequence1    k__kingdom1; p__phylum2
     
     create_logging_options=create_parser.add_argument_group('Logging options')
     create_logging_options.add_argument('--verbosity', metavar='verbosity', help='1 - 5, 1 being silent, 5 being noisy indeed', type=int, default=4)
-    create_logging_options.add_argument('--log', metavar='logfile', help='output logging information to file', type=str, default=False)
+    create_logging_options.add_argument('--log', metavar='logfile', help='output logging information to file', default=False)
 
     
     #########################################################################
@@ -219,7 +219,7 @@ sequence1    k__kingdom1; p__phylum2
     
     logging_options = bootstrap_parser.add_argument_group('logging options')
     logging_options.add_argument('--verbosity', metavar='verbosity', help='1 - 5, 1 being silent, 5 being noisy indeed. Default = 4', type=int, default=4)
-    logging_options.add_argument('--log', metavar='logfile', help='Output logging information to file', type=str, default=False)    
+    logging_options.add_argument('--log', metavar='logfile', help='Output logging information to file', default=False)    
     
     #########################################################################
     # argparser for "decorate" - Reroot, and decorate a gene tree                           
@@ -229,25 +229,25 @@ sequence1    k__kingdom1; p__phylum2
                                             epilog=__author__)
     # Main decorate options       
     decorate_options = decorate_parser.add_argument_group('decorate options')                       
-    decorate_options.add_argument('--input_greengenes_taxonomy', type = str, help='Input taxonomy of sequences used to build tree. This taxonomy \
+    decorate_options.add_argument('--input_greengenes_taxonomy', help='Input taxonomy of sequences used to build tree. This taxonomy \
 must be in GreenGenes format.', default = None)
-    decorate_options.add_argument('--input_taxtastic_taxonomy', type = str, help='Input taxonomy of sequences used to build tree. This taxonomy \
+    decorate_options.add_argument('--input_taxtastic_taxonomy', help='Input taxonomy of sequences used to build tree. This taxonomy \
 must be in taxtastic format.', default = None)
-    decorate_options.add_argument('--input_seqinfo', type = str, help='Seqinfo file to accompany Taxtastic taxonomy, the taxonomy from \
+    decorate_options.add_argument('--input_taxtastic_seqinfo', help='Seqinfo file to accompany Taxtastic taxonomy, the taxonomy from \
 which will be used to decorate the tree.', default = None)
-    decorate_options.add_argument('--unrooted_tree', type = str, help='Path to unrooted tree in newick format. GraftM decorate will attempt to \
+    decorate_options.add_argument('--unrooted_tree', help='Path to unrooted tree in newick format. GraftM decorate will attempt to \
 reroot using the tree provided to --reference_tree (required). Once rerooted, GraftM will decorate this tree and write it to the file providede tot he --output_tree flag.', default = None)
-    decorate_options.add_argument('--reference_tree', type = str, help='Path to tree that is rooted correctly that will be used to reroot the \
+    decorate_options.add_argument('--reference_tree', help='Path to tree that is rooted correctly that will be used to reroot the \
 tree provided to the --unrooted_tree flag (required). ', default = None)
-    decorate_options.add_argument('--rerooted_tree', type = str, help='Rerooted tree. GraftM will decorate this tree and write to file provided to the --output_tree flag.', required=False)    
-    decorate_options.add_argument('--output_tree', type = str, help='File path to output decorated and re-rooted (if needed) tree to.', required=True)
-    decorate_options.add_argument('--output_taxonomy',type = str, help='File path to output decorated taxonomy strings in GreenGenes format \
+    decorate_options.add_argument('--rerooted_tree', help='Rerooted tree. GraftM will decorate this tree and write to file provided to the --output_tree flag.', required=False)    
+    decorate_options.add_argument('--output_tree', help='File path to output decorated and re-rooted (if needed) tree to.', required=True)
+    decorate_options.add_argument('--output_taxonomy', help='File path to output decorated taxonomy strings in GreenGenes format \
 corresponding to each leaf in the tree.', required=True)
                             
     # Logging options                                        
     logging_options = decorate_parser.add_argument_group('logging options')
     logging_options.add_argument('--verbosity', metavar='verbosity', help='1 - 5, 1 being silent, 5 being noisy indeed. Default = 4', type=int, default=4)
-    logging_options.add_argument('--log', metavar='logfile', help='Output logging information to file', type=str, default=False) 
+    logging_options.add_argument('--log', metavar='logfile', help='Output logging information to file', default=False) 
     #########################################################################    
                      
     if(len(sys.argv) == 1 or sys.argv[1] == '-h' or sys.argv[1] == '--help'):

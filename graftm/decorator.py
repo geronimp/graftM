@@ -20,7 +20,7 @@ class Decorator:
         ----------
         reference_tree_path: str
             Path to the file containing the reference tree, which is used to
-            retroot the tree tree provided to old_tree
+            retroot the tree tree provided to tree
         old_tree_path: str
             Path to the file containing the tree to be re-rooted. This tree will
             be rerooted at the same position as the tree porovided to the 
@@ -59,14 +59,17 @@ class Decorator:
         Parameters
         ----------
         taxonomy: str
-            Path to a GreenGenes formatted taxonomy file, containing the 
-            taxonomy of all or some if the sequences used to construct the tree.
-            This taxonomy will be used by the tree_decorator.TreeDecorator class
-            to decorate self.tree
+            Path to a GreenGenes formatted, or taxtastic formatted taxonomy 
+            file, containing the taxonomy of all or some if the sequences used 
+            to construct the tree. This taxonomy will be used by the 
+            tree_decorator.TreeDecorator class to decorate self.tree
         output_tree: str
             Path to file to which the decorated tree will be written to.
         output_tax: str
-            Path to file to which the decorated taxonomy will be written to.'''        
+            Path to file to which the decorated taxonomy will be written to.
+        seqinfo: str
+            path to taxtastic seqinfo file to be used with taxonomy to annotate
+            the tree.'''        
         
         # Reroot
         if self.reference_tree:

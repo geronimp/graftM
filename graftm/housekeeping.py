@@ -9,6 +9,7 @@ PIPELINE_NT = "D"
 
 class InvalidFileExtensionError(Exception):
     pass
+
 class UninstalledProgramError(Exception):
     pass
     
@@ -34,7 +35,7 @@ class HouseKeeping:
             logging.error("Invalid file extension found on file: %s" % file)
             logging.error("For trees, please provide a file with one of the \
 following extensions: %s" % ' '.join(valid_extensions.keys()))
-            exit(1)
+            raise InvalidFileExtensionError
             
             
     def set_euk_hmm(self, args):

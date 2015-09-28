@@ -25,6 +25,9 @@ PIPELINE_AA = "P"
 PIPELINE_NT = "D"
 T = Timer()
 
+class InterleavedFileError(Exception):
+    pass
+
 class Hmmer:
 
     def __init__(self, search_hmm, aln_hmm=None):
@@ -396,8 +399,14 @@ class Hmmer:
         Nothing, output path is known.
         '''
         complement_information = {}
-        reads = SeqIO.to_dict(SeqIO.parse(reads_path, "fasta"))  # open up reads as dictionary
-
+        try:
+            reads = SeqIO.to_dict(SeqIO.parse(reads_path, "fasta"))  # open up reads as dictionary
+        except:
+            logging.error("Multiple sequences found with the same ID. The input sequences are either ill formated or are interleaved.\
+If you provided GraftM with an interleaved sequence file, please split them into forward and reverse reads, and provide to the the appropriate \
+flags (--forward, --reverse). Otherwise, it appears that you have provided sequences with redundant IDs. GraftM doesn't know how to\
+deal with these, so please remove/rename sequences with duplicate keys.")
+            raise InterleavedFileError()
         with open(output_path, 'w') as out:
             for read_name, entry in hits.iteritems():  # For each contig
                 ranges = entry["entry"]

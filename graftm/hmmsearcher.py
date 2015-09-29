@@ -49,14 +49,15 @@ class HmmSearcher:
         
         # While there are more things left in the queue
         while len(queue) > 0:
-            pairs_to_run = self.__munch_off_batch(queue)
+            pairs_to_run = self._munch_off_batch(queue)
             
             # Run hmmsearches with each of the pairs
-            cmd = self.__hmm_command(input_pipe, pairs_to_run)
+            cmd = self._hmm_command(input_pipe, pairs_to_run)
             logging.debug("Running command: %s" % cmd)
+
             extern.run(cmd)
             
-    def __munch_off_batch(self, queue):
+    def _munch_off_batch(self, queue):
         r"""Take a batch of sequences off the queue, and return pairs_to_run.
         The queue given as a parameter is affected
         """
@@ -82,7 +83,7 @@ class HmmSearcher:
             
 
             
-    def __hmm_command(self, input_pipe, pairs_to_run):
+    def _hmm_command(self, input_pipe, pairs_to_run):
         r"""INTERNAL method for getting cmdline for running a batch of HMMs.
         
         Parameters
@@ -106,7 +107,7 @@ class HmmSearcher:
                                                                               element[0][1],
                                                                               element[1]),
                                                 hmmsearch_cmd)
-            
+        
         # Run the actual command
         hmmsearch_cmd = "%s | %s" % (input_pipe, hmmsearch_cmd)
         return hmmsearch_cmd

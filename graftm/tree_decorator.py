@@ -34,7 +34,7 @@ class TreeDecorator:
         taxonomy into a hash
         '''
         
-        self.gg_prefixes = ["k__", 'p__', 'c__', 'o__', 'f__', 'g__', 's__']
+        self.gg_prefixes = ["k__", "d__", 'p__', 'c__', 'o__', 'f__', 'g__', 's__']
         
         # Set empty list to record nodes that have already been assigned
         # taxonomy.
@@ -50,8 +50,8 @@ class TreeDecorator:
             logging.info("Importing taxtastic taxonomy from files: %s and %s" % (taxonomy, seqinfo))
             self.taxonomy =  gtns.read_taxtastic_taxonomy_and_seqinfo(open(taxonomy), open(seqinfo))
             for id, taxonomy_list in self.taxonomy.iteritems():
-                if len(taxonomy_list) != 7:
-                    self.taxonomy[id] = taxonomy_list + self.gg_prefixes[len(taxonomy_list):]
+                if len(taxonomy_list) != MAX_RESOLUTION:
+                    self.taxonomy[id] = taxonomy_list + self.gg_prefixes[1:][len(taxonomy_list):]
         else:
             self.taxonomy = {}
             logging.info("Importing greengenes taxonomy from file: %s" % (taxonomy))

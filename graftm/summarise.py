@@ -47,7 +47,6 @@ class Stats_And_Summary:
         output_lines.append("reads detected:\t%s" % '\t'.join([str(x[1]) for x in hit_read_count_list]))
         output_lines.append("reads placed in tree:\t%s" % '\t'.join([str(x) for x in placed_reads]))   
         output_lines.append("Runtime (seconds):")
-        import IPython ; IPython.embed()
         output_lines.append("Search step:\t%s" % times[0])
         output_lines.append("Alignment step:\t%s" % times[1])
         output_lines.append("Tree insertion step:\t%s" % times[2])

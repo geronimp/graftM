@@ -23,6 +23,7 @@ FORMAT_FASTQ_GZ = "FORMAT_FASTQ_GZ"
 FORMAT_FASTA_GZ = "FORMAT_FASTA_GZ"
 PIPELINE_AA = "P"
 PIPELINE_NT = "D"
+PREVIOUS_SPAN_CUTOFF = 0.25
 T = Timer()
 
 class InterleavedFileError(Exception):
@@ -143,7 +144,7 @@ class Hmmer:
         cmd = 'makehmmerdb %s %s' % (sequences, fm)
         extern.run(cmd)
 
-    def hmmsearch(self, output_path, input_path, unpack, seq_type, threads, evalue, orfm):
+    def hmmsearch(self, output_path, input_path, unpack, seq_type, threads, cutoff, orfm):
         '''
         hmmsearch - Search raw reads for hits using search_hmm list
 
@@ -163,8 +164,10 @@ class Hmmer:
             If sequence is 'nucleotide', ORFs are called. If not, no ORFs.
         threads : Integer
             Number of threads to use. Passed to HMMsearch command.
-        evalue : str
-            evalue cutoff for HMMsearch to use. Passed to HMMsearch command.
+        cutoff : str
+            cutoff for HMMsearch to use, either an evalue or --cut_tc, meaning
+            use the TC score cutoff specified within the HMM. Passed to 
+            HMMsearch command.
         orfm : OrfM
             Object that builds the command chunk for calling ORFs on sequences
             coming through as stdin. Outputs to stdout. Calls command_line
@@ -195,9 +198,12 @@ class Hmmer:
             input_cmd = unpack.command_line()
         else:
             raise Exception('Programming Error: error guessing input sequence type')
-
+        
         # Run the HMMsearches
-        searcher = HmmSearcher(threads) #, '--domE %s' % evalue) - This is temporary ########  MUST REMOVE
+        if cutoff == "--cut_tc":
+            searcher = HmmSearcher(threads, cutoff) 
+        else:
+            searcher = HmmSearcher(threads, '--domE %s' % cutoff) 
         searcher.hmmsearch(input_cmd, self.search_hmm, output_table_list)
         hmmtables = [HMMSearchResult.import_from_hmmsearch_table(x) for x in output_table_list]
         return hmmtables
@@ -643,9 +649,9 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                         ####################################################
                         intersection_fraction = float(len(previous_ft_span.intersection(current_ft_span)))
 
-                        if intersection_fraction / float(len(previous_ft_span)) >= 0.25:
+                        if intersection_fraction / float(len(previous_ft_span)) >= PREVIOUS_SPAN_CUTOFF:
                             break
-                        elif intersection_fraction / float(len(current_ft_span)) >= 0.25:
+                        elif intersection_fraction / float(len(current_ft_span)) >= PREVIOUS_SPAN_CUTOFF:
                             break
                         else: # else (i.e. if the hit covers less that 25% of the sequence of the previous hit)
                             ####################################################
@@ -653,7 +659,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                             # But one last check must be made to ensure they do not cover the same
                             # region in the HMM.
                             ####################################################
-                            if len(query_overlap) > (len(current_q_range)*0.25): # if the overlap on the query HMM does not span over 75%
+                            if len(query_overlap) > (len(current_q_range)*PREVIOUS_SPAN_CUTOFF): # if the overlap on the query HMM does not span over 25%
                                 if (idx+1) == len(splits[i]['span']):
                                     splits[i]['span'].append(ft) # Add from-to as another entry, this is another hit.
                                     splits[i]['strand'].append(c) # Add strand info as well
@@ -791,6 +797,21 @@ deal with these, so please remove/rename sequences with duplicate keys.")
             path to nucleotide sequences containing hit proteins
         hit_reads_orfs_fasta: str
             path to hit proteins, unaligned
+            
+        Returns
+        -------
+        direction_information: dict
+                    
+            {read_1: False
+             ...
+             read n: True}
+            
+            where True = Forward direction
+            and False = Reverse direction
+        
+        result: DBSearchResult object containing file locations and hit 
+        information
+        
         '''
 
         # Define method of opening sequence files to stdout
@@ -856,7 +877,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                 readnames.write(read + '\n')
             readnames.flush()
 
-            hit_reads_fasta, complement_information = self._extract_from_raw_reads(
+            hit_reads_fasta, direction_information = self._extract_from_raw_reads(
                                                            hit_reads_fasta,
                                                            readnames.name,
                                                            unpack.read_file,
@@ -871,7 +892,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                     search_result,
                                     hit_read_counts,
                                     None)
-            return result, complement_information
+            return result, direction_information
 
         if unpack.sequence_type() == 'nucleotide':
             # Extract the orfs of these reads that hit the original search
@@ -896,7 +917,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                 [0, len([itertools.chain(*hits.values())])],  # array of hits [euk hits, true hits]. Euk hits alway 0 unless searching from 16S
                                 slash_endings)  # Any reads that end in /1 or /2
         logging.info("%s read(s) detected" % len(hits))
-        return result, complement_information
+        return result, direction_information
 
     @T.timeit
     def nt_db_search(self, files, base, unpack, euk_check,
@@ -968,6 +989,20 @@ deal with these, so please remove/rename sequences with duplicate keys.")
             path to hmmsearch output table
         hit_reads_fasta: str
             path to hit nucleotide sequences
+        
+        Returns
+        -------
+        direction_information: dict
+                    
+            {read_1: False
+             ...
+             read n: True}
+            
+            where True = Forward direction
+            and False = Reverse direction
+        
+        result: DBSearchResult object containing file locations and hit 
+        information
         '''
 
         if search_method == "hmmsearch":
@@ -1006,7 +1041,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                 readnames.write(read + '\n')
             readnames.flush()
 
-            hit_reads_fasta, complement_information = self._extract_from_raw_reads(
+            hit_reads_fasta, direction_information = self._extract_from_raw_reads(
                                                            hit_reads_fasta,
                                                            readnames.name,
                                                            unpack.read_file,
@@ -1027,7 +1062,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                     slash_endings)
 
         logging.info("%s read(s) detected" % len(hits))
-        return result, complement_information
+        return result, direction_information
 
     @T.timeit
     def align(self, input_path, output_path, directions, pipeline):

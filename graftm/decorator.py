@@ -27,22 +27,18 @@ class Decorator:
             reference_tree
         '''
         reference_tree_path = kwargs.pop('reference_tree_path', None)
-        tree_path = kwargs.pop('tree_path', None)
+        tree_path = kwargs.pop('tree_path')
         
-        if tree_path == None:
-            logging.error("No tree for provided for Decorator class to modify")
-            exit(1)
-        else:
-            logging.debug("Importing old tree from file: %s" 
-                            % tree_path)
-            self.tree = TreeNode.read(open(tree_path, "r"))  
+        logging.debug("Importing old tree from file: %s" 
+                        % tree_path)
+        self.tree = TreeNode.read(open(tree_path, "r"))  
         
         if reference_tree_path:
             logging.debug("Importing reference tree from file: %s" 
                             % reference_tree_path)
             self.reference_tree = TreeNode.read(open(reference_tree_path, "r"))   
         else:
-            self.reference_tree = None
+            self.reference_tree = reference_tree_path
         if len(kwargs) > 0:
             raise Exception("Unexpected arguments provided to Decorator class: %s" % kwargs)
         

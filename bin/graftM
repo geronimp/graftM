@@ -59,7 +59,7 @@ def phelp():
     print """
                                        GraftM  %s
 
-             A suite of tools for the rapid analysis of large sequence datasets.
+             A suite of tools for the rapid analysis of metagenome sequence datasets.
 
                                 Joel Boyd, Ben Woodcroft
 
@@ -227,28 +227,36 @@ sequence1    k__kingdom1; p__phylum2
   
     decorate_parser = subparsers.add_parser('decorate',
                                             description='Reroot, and decorate a gene tree',
-                                            epilog=__author__)
-    # Main decorate options       
-    decorate_options = decorate_parser.add_argument_group('decorate options')                       
+                                            formatter_class=CustomHelpFormatter,
+                                            epilog='''Example usage:
+
+Decorate input.tre with my.taxonomy, and output the decorated tree to output.tre and taxonomy to output.taxonomy:
+
+$ graftM decorate --rooted_tree input.tre --taxonomy my.taxonomy --output_tree output.tre --output_taxonomy output.taxonomy
+
+'''+__author__)    
+    tree_options = decorate_parser.add_argument_group('tree options')
+    tree_options.add_argument('--rooted_tree', help='Path to rooted tree in newick format. GraftM will decorate this tree under the \
+assumption it is correctly rooted.')
+    tree_options.add_argument('--unrooted_tree', help='Path to unrooted tree in newick format. GraftM decorate will first attempt to \
+reroot using the --reference_tree. Once rerooted, GraftM will decorate this tree.')
+    tree_options.add_argument('--reference_tree', help='Path to tree that is rooted correctly that will be used to reroot the \
+tree provided to the --unrooted_tree flag (required).')
+    tree_options.add_argument('--output_tree', help='Output decorated tree', required=True)
+    
+    decorate_options = decorate_parser.add_argument_group('taxonomy options')
     decorate_options.add_argument('--input_greengenes_taxonomy', help='Input taxonomy of sequences used to build tree. This taxonomy \
-must be in GreenGenes format.', default = None)
+must be in GreenGenes format (2 column tab separated, ID then taxonomy with taxonomy separated by \'; \'. Prefixes such as \'p__\' are not required')
     decorate_options.add_argument('--input_taxtastic_taxonomy', help='Input taxonomy of sequences used to build tree. This taxonomy \
-must be in taxtastic format.', default = None)
-    decorate_options.add_argument('--input_taxtastic_seqinfo', help='Seqinfo file to accompany Taxtastic taxonomy, the taxonomy from \
-which will be used to decorate the tree.', default = None)
-    decorate_options.add_argument('--unrooted_tree', help='Path to unrooted tree in newick format. GraftM decorate will attempt to \
-reroot using the tree provided to --reference_tree (required). Once rerooted, GraftM will decorate this tree and write it to the file providede tot he --output_tree flag.', default = None)
-    decorate_options.add_argument('--reference_tree', help='Path to tree that is rooted correctly that will be used to reroot the \
-tree provided to the --unrooted_tree flag (required). ', default = None)
-    decorate_options.add_argument('--rerooted_tree', help='Rerooted tree. GraftM will decorate this tree and write to file provided to the --output_tree flag.', required=False)    
-    decorate_options.add_argument('--output_tree', help='File path to output decorated and re-rooted (if needed) tree to.', required=True)
+must be in taxtastic format.')
+    decorate_options.add_argument('--input_taxtastic_seqinfo', help='Seqinfo file to accompany Taxtastic taxonomy file')
     decorate_options.add_argument('--output_taxonomy', help='File path to output decorated taxonomy strings in GreenGenes format \
 corresponding to each leaf in the tree.', required=True)
-                            
+
     # Logging options                                        
     logging_options = decorate_parser.add_argument_group('logging options')
     logging_options.add_argument('--verbosity', metavar='verbosity', help='1 - 5, 1 being silent, 5 being noisy indeed. Default = 4', type=int, default=4)
-    logging_options.add_argument('--log', metavar='logfile', help='Output logging information to file', default=False) 
+    logging_options.add_argument('--log', metavar='logfile', help='Output logging information to file', default=False)
     #########################################################################    
                      
     if(len(sys.argv) == 1 or sys.argv[1] == '-h' or sys.argv[1] == '--help'):

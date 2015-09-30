@@ -1,13 +1,24 @@
 #!/usr/bin/env python
-
-##### ##### ##### ##### ##### ##### #####
-#                                       #
-#                 graftM                #
-#                                       #
-#  A pipeline for gene centric analyses #
-#          of metagenome datasets       #
-#                                       #
-##### ##### ##### ##### ##### ##### #####
+###############################################################################
+#                                                                             #
+#    This program is free software: you can redistribute it and/or modify     #
+#    it under the terms of the GNU General Public License as published by     #
+#    the Free Software Foundation, either version 3 of the License, or        #
+#    (at your option) any later version.                                      #
+#                                                                             #
+#    This program is distributed in the hope that it will be useful,          #
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of           #
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            #
+#    GNU General Public License for more details.                             #
+#                                                                             #
+#    You should have received a copy of the GNU General Public License        #
+#    along with this program. If not, see <http://www.gnu.org/licenses/>.     #
+#                                                                             #
+###############################################################################
+#                              
+# graftM - A pipeline for gene centric analyses of metagenome datasets       
+#
+###############################################################################
 
 __author__ = "Joel Boyd, Ben Woodcroft"
 __copyright__ = "Copyright 2014"
@@ -23,6 +34,7 @@ import os
 import logging
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
+
 import graftm
 from graftm.run import Run
 
@@ -123,6 +135,7 @@ if __name__ == '__main__':
     searching_options = graft_parser.add_argument_group('searching options')
     searching_options.add_argument('--evalue', metavar='evalue', help='evalue cutoff for the hmmsearch (default = 1e-5)', default= '1e-5')
     searching_options.add_argument('--search_and_align_only', action="store_true", help='Stop after reads have been identified (default=False)', default=False)
+    searching_options.add_argument('--search_only', action="store_true", help='Stop after reads searched (default=False)', default=False)
     searching_options.add_argument('--euk_check', action="store_true", help='Search whole sample for 18S (default=False)', default=False)
     searching_options.add_argument('--search_method', choices=('hmmsearch','diamond'), help='Search method (default=hmmsearch)', default='hmmsearch')
     searching_options.add_argument('--maximum_range', type=int, help='maximum range to use when searching for potentially linked reads (when searching contigs)', default=None)
@@ -202,7 +215,6 @@ sequence1    k__kingdom1; p__phylum2
     create_logging_options.add_argument('--verbosity', metavar='verbosity', help='1 - 5, 1 being silent, 5 being noisy indeed', type=int, default=4)
     create_logging_options.add_argument('--log', metavar='logfile', help='output logging information to file', default=False)
 
-    
     #########################################################################
     # Bootstrap                                                             #
     #########################################################################    

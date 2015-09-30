@@ -5,6 +5,7 @@ import logging
 
 from graftm.sequence_search_results import SequenceSearchResult
 from graftm.graftm_output_paths import GraftMFiles
+from graftm.search_table import SearchTableWriter
 from graftm.hmmer import Hmmer
 from graftm.housekeeping import HouseKeeping
 from graftm.summarise import Stats_And_Summary
@@ -43,7 +44,10 @@ class Run:
             self.hk.set_attributes(self.args)
             self.hk.set_euk_hmm(self.args)
             if args.euk_check:self.args.search_hmm_files.append(self.args.euk_hmm_file)
-            self.h = Hmmer(self.args.search_hmm_files, self.args.aln_hmm_file)
+            self.h = Hmmer(
+                           self.args.search_hmm_files, 
+                           (None if self.args.search_only else self.args.aln_hmm_file)
+                           )
             self.sequence_pair_list = self.hk.parameter_checks(args)
             if hasattr(args, 'reference_package'):
                 self.p = Pplacer(self.args.reference_package)
@@ -187,7 +191,11 @@ class Run:
                 maximum_range = self.args.maximum_range
             else:
                 if self.args.search_method=='hmmsearch':
-                    maximum_range = self.hk.get_maximum_range(self.args.aln_hmm_file)
+                    if not self.args.search_only:
+                        maximum_range = self.hk.get_maximum_range(self.args.aln_hmm_file)
+                    else:
+                        logging.debug("Running search only pipeline. maximum_range not configured.")
+                        maximum_range = None
                 else:
                     logging.warning('Cannot determine maximum range when using %s pipeline and with no GraftM package specified' % self.args.search_method)
                     logging.warning('Setting maximum_range to None (linked hits will not be detected)')
@@ -217,11 +225,16 @@ class Run:
                                        self.args.force)
 
         # Set pipeline and evalue by checking HMM format
-        hmm_type, hmm_tc = self.hk.setpipe(self.args.aln_hmm_file)
-        logging.debug("HMM type: %s Trusted Cutoff: %s" % (hmm_type, hmm_tc))
+        if self.args.search_only:
+            hmm_type, hmm_tc = self.hk.setpipe(self.args.search_hmm_files[0])
+            logging.debug("HMM type: %s Trusted Cutoff: %s" % (hmm_type, hmm_tc))
+        else:
+            hmm_type, hmm_tc = self.hk.setpipe(self.args.aln_hmm_file)
+            logging.debug("HMM type: %s Trusted Cutoff: %s" % (hmm_type, hmm_tc))
         setattr(self.args, 'type', hmm_type)
         if hmm_tc:
-            setattr(self.args, 'evalue', '--cut_tc')
+            pass
+            #setattr(self.args, 'evalue', '--cut_tc')
             
         # Generate bootstrap database if required
         if self.args.bootstrap_contigs:
@@ -237,7 +250,7 @@ class Run:
                 min_orf_length = self.args.min_orf_length,
                 graftm_package = pkg)
             
-            #this is a hack, it should really use GraftMFiles but that class isn't currently flexible enough
+            # this is a hack, it should really use GraftMFiles but that class isn't currently flexible enough
             new_database = (os.path.join(self.args.output_directory, "bootstrap.hmm") \
                             if self.args.search_method == "hmmsearch" \
                             else os.path.join(self.args.output_directory, "bootstrap")
@@ -327,7 +340,12 @@ class Run:
                 if not result.hit_fasta():
                     logging.info('No reads found in %s' % base)
                     continue
+                elif self.args.search_only:
+                    db_search_results.append(result)
+                    base_list.append(base)
 
+                    continue
+                
                 if self.args.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
                     logging.info('Aligning reads to reference package database')
                     hit_aligned_reads = self.gmf.aligned_fasta_output_path(base)
@@ -348,7 +366,19 @@ class Run:
                 base_list.append(base)
                 search_results.append(result.search_result)
                 hit_read_count_list.append(result.hit_count)
-
+        
+        # Write summary table
+        
+        srchtw = SearchTableWriter()
+        srchtw.build_search_otu_table([x.search_objects for x in db_search_results],
+                                      base_list,
+                                      self.gmf.search_otu_table())
+        
+        if self.args.search_only:
+            logging.info('Stopping before alignment and taxonomic assignment phase\n')
+            exit(0)
+        
+        
         if self.args.merge_reads: # not run when diamond is the assignment mode- enforced by argparse grokking
             base_list=base_list[0::2]
             merged_output=[GraftMFiles(base, self.args.output_directory, False).aligned_fasta_output_path(base) \

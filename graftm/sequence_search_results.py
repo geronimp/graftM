@@ -13,6 +13,7 @@ class SequenceSearchResult:
     HIT_ID_FIELD = 'hit_id'
     QUERY_ID_FIELD = 'query_id'
     HMM_NAME_FIELD = 'hmm_name'
+    ACCESSION_ID_FIELD = 'accession_id'
     
     
     def __init__(self):
@@ -142,6 +143,7 @@ class HMMSearchResult(SequenceSearchResult):
         res.fields = [
                        SequenceSearchResult.QUERY_ID_FIELD,
                        SequenceSearchResult.HMM_NAME_FIELD,
+                       SequenceSearchResult.ACCESSION_ID_FIELD,
                        SequenceSearchResult.ALIGNMENT_LENGTH_FIELD,
                        SequenceSearchResult.QUERY_FROM_FIELD,
                        SequenceSearchResult.QUERY_TO_FIELD,
@@ -158,6 +160,7 @@ class HMMSearchResult(SequenceSearchResult):
             if alito != alifrom: #this actually happens..
                 res.results.append([row[0],
                                     row[3],
+                                    row[4],
                                     aln_length,
                                     int(row[15]),
                                     int(row[16]),

@@ -172,7 +172,8 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
             if args.search_method == 'hmmsearch':
                 if not hasattr(args, 'aln_hmm_file'):
                     if len(args.search_hmm_files) == 1:
-                        setattr(args, 'aln_hmm_file', args.search_hmm_files[0])
+                        if not args.search_only:
+                            setattr(args, 'aln_hmm_file', args.search_hmm_files[0])
                     else:
                         raise Exception("Multiple search HMMs specified, but aln_hmm_file not specified")
 
@@ -183,7 +184,8 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
             if args.search_method == 'hmmsearch':
                 setattr(args, 'search_hmm_files', [x.rstrip() for x in open(args.search_hmm_list_file).readlines()])
                 if not hasattr(args, 'aln_hmm_file'):
-                    raise Exception("Multiple search HMMs specified, but aln_hmm_file not specified")
+                    if not args.search_only:
+                        raise Exception("Multiple search HMMs specified, but aln_hmm_file not specified")
             else:
                 raise Exception("Specified HMM search_hmm_files when not using the hmmsearch pipeline. Using: %s" % (args.search_method))
         

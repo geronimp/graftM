@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import logging
 
 class InsufficientGraftMPackageException(Exception): pass
 
@@ -26,19 +27,29 @@ class GraftMPackage:
     REFERENCE_PACKAGE_KEY = "refpkg"
     HMM_TRUSTED_CUTOFF_KEY = "trusted_cutoff"
     RANGE_KEY = "range"
+    UNALIGNED_SEQUENCE_DATABASE_KEY = "unaligned_sequence_database"
     _CONTENTS_FILE_NAME = 'CONTENTS.json'
 
-    _CURRENT_VERSION = 2
+    _CURRENT_VERSION = 3
 
     _REQUIRED_KEYS = {'2': [
-                     DIAMOND_DATABASE_KEY,
-                     VERSION_KEY,
-                     ALIGNMENT_HMM_KEY,
-                     SEARCH_HMM_KEY,
-                     REFERENCE_PACKAGE_KEY,
-                     HMM_TRUSTED_CUTOFF_KEY,
-                     RANGE_KEY
-                     ]}
+                             VERSION_KEY,
+                             ALIGNMENT_HMM_KEY,
+                             SEARCH_HMM_KEY,
+                             REFERENCE_PACKAGE_KEY,
+                             HMM_TRUSTED_CUTOFF_KEY,
+                             RANGE_KEY
+                             ],
+                      '3': [
+                             VERSION_KEY,
+                             ALIGNMENT_HMM_KEY,
+                             SEARCH_HMM_KEY,
+                             REFERENCE_PACKAGE_KEY,
+                             HMM_TRUSTED_CUTOFF_KEY,
+                             RANGE_KEY,
+                             UNALIGNED_SEQUENCE_DATABASE_KEY
+                             ]
+                      }
 
 
     @staticmethod
@@ -50,22 +61,31 @@ class GraftMPackage:
         graftm_output_path: str
             path to base directory of graftm
         '''
-        pkg = GraftMPackageVersion2()
-
-
+        
+        contents_hash = json.load(
+                                   open(
+                                        os.path.join(
+                                                     graftm_package_path,
+                                                     GraftMPackage._CONTENTS_FILE_NAME
+                                                     ),
+                                         )
+                                   )
+        
+        
+        v=contents_hash[GraftMPackage.VERSION_KEY]
+        logging.debug("Loading version %i GraftM package: %s" % (v, graftm_package_path))
+        if v == 2:
+            pkg = GraftMPackageVersion2()
+        elif v == 3:
+            pkg = GraftMPackageVersion3()
+        else:
+            raise InsufficientGraftMPackageException("Bad version: %s" % v)
+        
+        pkg._contents_hash = contents_hash
         pkg._base_directory = graftm_package_path
-        pkg._contents_hash = json.load(
-                                       open(
-                                            os.path.join(
-                                                         graftm_package_path,
-                                                         GraftMPackage._CONTENTS_FILE_NAME
-                                                         ),
-                                             )
-                                       )
-
         # check we are at current version otherwise choke
-        pkg.check_universal_keys(2)
-        pkg.check_required_keys(GraftMPackageVersion2._REQUIRED_KEYS)
+        pkg.check_universal_keys(v)
+        pkg.check_required_keys(GraftMPackage._REQUIRED_KEYS[str(v)])
         return pkg
 
     def check_universal_keys(self, version):
@@ -83,7 +103,7 @@ class GraftMPackage:
         h = self._contents_hash
         for key in required_keys:
             if key not in h:
-                raise InsufficientGraftMPackageException("package missing key %s" % key)
+                raise InsufficientGraftMPackageException("Package missing key %s" % key)
 
     def __getitem__(self, key):
         '''Return the value of the given key from the contents file'''
@@ -92,23 +112,13 @@ class GraftMPackage:
 class GraftMPackageVersion2(GraftMPackage):
     version = 2
 
-    _REQUIRED_KEYS = [
-                     #GraftMPackage.DIAMOND_DATABASE_KEY, #not required for nucleotide packages
-                     GraftMPackage.VERSION_KEY,
-                     GraftMPackage.ALIGNMENT_HMM_KEY,
-                     GraftMPackage.SEARCH_HMM_KEY,
-                     GraftMPackage.REFERENCE_PACKAGE_KEY,
-                     GraftMPackage.HMM_TRUSTED_CUTOFF_KEY
-                     ]
-
     def diamond_database_path(self):
         if self._contents_hash[GraftMPackage.DIAMOND_DATABASE_KEY]:
             return os.path.join(self._base_directory,
                                 self._contents_hash[GraftMPackage.DIAMOND_DATABASE_KEY])
         else:
             return None
-
-
+        
     def search_hmm_paths(self):
         return [os.path.join(self._base_directory, x) for x in
                 self._contents_hash[GraftMPackage.SEARCH_HMM_KEY]]
@@ -139,7 +149,8 @@ class GraftMPackageVersion2(GraftMPackage):
                             self._refpkg_contents()['files']['taxonomy'])
 
     @staticmethod
-    def compile(output_package_path, refpkg_path, hmm_path, diamond_database_file, max_range, trusted_cutoff=False):
+    def compile(output_package_path, refpkg_path, hmm_path, diamond_database_file, max_range, 
+                trusted_cutoff=False, search_hmm_files=None):
         '''Create a new GraftM package with the given inputs. Any files
         specified as parameters are copied into the final package so can
         be removed after calling this function.
@@ -151,7 +162,8 @@ class GraftMPackageVersion2(GraftMPackage):
         refpkg_path: str
             path to pplacer reference package
         hmm_path: str
-            path to the search and align HMM
+            path to the align HMM. Used as the search HMM if search_hmm_files
+            is None
         diamond_database_file: str
             path to diamond DB file, or None for nucleotide packages
         max_rage: str
@@ -159,6 +171,11 @@ class GraftMPackageVersion2(GraftMPackage):
         trusted_cutoff: boolean
             set TC in search HMM
 
+        search_hmm_files: list of str or None
+            use these HMMs for search instead of the hmm_path. All
+            basenames of these paths must be unique, and not the same as
+            hmm_path.
+            
         Returns
         -------
         Nothing
@@ -178,9 +195,22 @@ class GraftMPackageVersion2(GraftMPackage):
         refpkg_in_gpkg = os.path.basename(refpkg_path)
         shutil.copytree(refpkg_path, os.path.join(output_package_path, refpkg_in_gpkg))
 
+        
+        if search_hmm_files:
+            search_hmm_files_in_gpkg_names =\
+                [os.path.basename(path) for path in search_hmm_files]
+            if hmm_file_in_gpkg in search_hmm_files_in_gpkg_names:
+                raise Exception("Search and align HMMs must all have different basenames to create a new gpkg")
+            if len(set(search_hmm_files_in_gpkg_names)) != len(search_hmm_files_in_gpkg_names):
+                raise Exception("Search HMMs must have different basenames to create a new gpkg")
+            for i, search_hmm in enumerate(search_hmm_files):
+                shutil.copyfile(search_hmm, os.path.join(output_package_path, search_hmm_files_in_gpkg_names[i]))
+        else:
+            search_hmm_files_in_gpkg_names = [hmm_file_in_gpkg]
+        
         contents = {GraftMPackage.VERSION_KEY: GraftMPackageVersion2.version,
                     GraftMPackage.ALIGNMENT_HMM_KEY: hmm_file_in_gpkg,
-                    GraftMPackage.SEARCH_HMM_KEY: [hmm_file_in_gpkg],
+                    GraftMPackage.SEARCH_HMM_KEY: search_hmm_files_in_gpkg_names,
                     GraftMPackage.REFERENCE_PACKAGE_KEY: refpkg_in_gpkg,
                     GraftMPackage.HMM_TRUSTED_CUTOFF_KEY: trusted_cutoff,
                     GraftMPackage.RANGE_KEY: max_range}
@@ -189,5 +219,89 @@ class GraftMPackageVersion2(GraftMPackage):
 
         json.dump(contents, open(os.path.join(output_package_path, GraftMPackage._CONTENTS_FILE_NAME), 'w'))
 
-
-
+    
+class GraftMPackageVersion3(GraftMPackageVersion2):
+    
+    version = 3
+    
+    def unaligned_sequence_database_path(self):
+        if self._contents_hash[GraftMPackage.UNALIGNED_SEQUENCE_DATABASE_KEY]:
+            return os.path.join(self._base_directory,
+                                self._contents_hash[GraftMPackage.UNALIGNED_SEQUENCE_DATABASE_KEY])
+        else:
+            return None
+        
+    @staticmethod
+    def compile(output_package_path, refpkg_path, hmm_path, diamond_database_file, 
+                max_range, unaligned_sequence_database, trusted_cutoff=False,
+                search_hmm_files=None):
+        '''Create a new GraftM package with the given inputs. Any files
+        specified as parameters are copied into the final package so can
+        be removed after calling this function.
+        
+        Parameters
+        ----------
+        output_package_path: str
+            path to the package being created (must not exist)
+        refpkg_path: str
+            path to pplacer reference package
+        hmm_path: str
+            path to the search and align HMM
+        diamond_database_file: str
+            path to diamond DB file, or None for nucleotide packages
+        max_rage: str
+            as per maximum_range()
+        unaligned_sequence_database: str
+            path to unaligned sequence database
+        trusted_cutoff: boolean
+            set TC in search HMM
+        search_hmm_files: list of str or None
+            use these HMMs for search instead of the hmm_path. All
+            basenames of these paths must be unique, and not the same as
+            hmm_path.
+            
+        Returns
+        -------
+        Nothing
+        '''
+        
+        if os.path.exists(output_package_path): 
+            raise Exception("Not writing new GraftM package to already existing file/directory with name %s" % output_package_path)
+        os.mkdir(output_package_path)
+        
+        hmm_file_in_gpkg = os.path.basename(hmm_path)
+        shutil.copyfile(hmm_path, os.path.join(output_package_path, hmm_file_in_gpkg))
+        # Copy unaligned sequence database into graftm package
+        unaligned_sequence_database_in_gpkg = os.path.join(output_package_path, os.path.basename(unaligned_sequence_database))
+        shutil.copyfile(unaligned_sequence_database, unaligned_sequence_database_in_gpkg)
+        
+        if diamond_database_file:
+            diamond_database_file_in_gpkg = os.path.basename(diamond_database_file)
+            shutil.copyfile(diamond_database_file, os.path.join(output_package_path, diamond_database_file_in_gpkg))
+        
+        refpkg_in_gpkg = os.path.basename(refpkg_path)
+        shutil.copytree(refpkg_path, os.path.join(output_package_path, refpkg_in_gpkg))
+        
+        if search_hmm_files:
+            search_hmm_files_in_gpkg_names =\
+                [os.path.basename(path) for path in search_hmm_files]
+            if hmm_file_in_gpkg in search_hmm_files_in_gpkg_names:
+                raise Exception("Search and align HMMs must all have different basenames to create a new gpkg")
+            if len(set(search_hmm_files_in_gpkg_names)) != len(search_hmm_files_in_gpkg_names):
+                raise Exception("Search HMMs must have different basenames to create a new gpkg")
+            for i, search_hmm in enumerate(search_hmm_files):
+                shutil.copyfile(search_hmm, os.path.join(output_package_path, search_hmm_files_in_gpkg_names[i]))
+        else:
+            search_hmm_files_in_gpkg_names = [hmm_file_in_gpkg]
+        
+        contents = {GraftMPackage.VERSION_KEY: GraftMPackageVersion3.version,
+                    GraftMPackage.ALIGNMENT_HMM_KEY: hmm_file_in_gpkg,
+                    GraftMPackage.SEARCH_HMM_KEY: search_hmm_files_in_gpkg_names,
+                    GraftMPackage.REFERENCE_PACKAGE_KEY: refpkg_in_gpkg,
+                    GraftMPackage.HMM_TRUSTED_CUTOFF_KEY: trusted_cutoff,
+                    GraftMPackage.RANGE_KEY: max_range,
+                    GraftMPackage.UNALIGNED_SEQUENCE_DATABASE_KEY: unaligned_sequence_database_in_gpkg}
+        if diamond_database_file:
+            contents[GraftMPackage.DIAMOND_DATABASE_KEY] = diamond_database_file_in_gpkg
+        
+        json.dump(contents, open(os.path.join(output_package_path, GraftMPackage._CONTENTS_FILE_NAME), 'w'))

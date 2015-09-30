@@ -1,3 +1,4 @@
+
 import extern
 import os
 import itertools
@@ -41,6 +42,7 @@ class Hmmer:
             for hit in result.each([SequenceSearchResult.QUERY_ID_FIELD, SequenceSearchResult.ALIGNMENT_DIRECTION]):
                 sequence_directions[hit[0]]  ={"strand":[hit[1]], "entry": []}
         return sequence_directions
+
 
     def _hmmalign(self, input_path, directions, pipeline):
         '''
@@ -345,9 +347,9 @@ class Hmmer:
         Returns
         -------
         euk_reads : set
-            non-redundant list of all read names deemed to be eukaryotic
+            Non-redundant set of all read names deemed to be eukaryotic
         '''
-
+        
         euk_hit_table = HMMreader(hmm_hit_tables.pop(-1))
         other_hit_tables = [HMMreader(x) for x in hmm_hit_tables]
         reads_unique_to_eukaryotes = []
@@ -377,6 +379,7 @@ class Hmmer:
 
         return euk_reads
 
+
     def _extract_multiple_hits(self, hits, reads_path, output_path):
         '''
         splits out regions of a read that hit the HMM. For example when two of
@@ -405,6 +408,7 @@ class Hmmer:
         -------
         Nothing, output path is known.
         '''
+
         complement_information = {}
         try:
             reads = SeqIO.to_dict(SeqIO.parse(reads_path, "fasta"))  # open up reads as dictionary
@@ -419,19 +423,22 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                 ranges = entry["entry"]
                 complements = entry["strand"]
                 index = 1
-
                 if len(ranges) > 1:  # if there are multiple hits in that contig
                     for r, c in zip(ranges, complements):  # for each of those hits
+
                         new_record = reads[read_name][r[0] - 1:r[1]]  # subset the record by the span of that hit
                         new_record.id = new_record.id + '_split_%i' % index  # give that subset record a new header
                         SeqIO.write(new_record, out, "fasta")  # and write it to output
                         index += 1  # increment the split counter
                         complement_information[new_record.id]=c
+
                 else:  # Otherwise, just write the read back to the file
                     complement_information[read_name] = entry["strand"][0] 
                     SeqIO.write(reads[read_name], out, "fasta")
+        
+        return complement_information
 
-    def _extract_from_raw_reads(self, output_path, input_path, raw_sequences_path, input_file_format, hits):
+    def _extract_from_raw_reads(self, output_path, input_reads, raw_sequences_path, input_file_format, hits):
         '''
         _extract_from_raw_reads - call fxtract to extract the hit sequences
         of the hmm/diamond search from the raw sequences file. Output into
@@ -441,8 +448,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         ----------
         output_path : str
             Path of the desired output file
-        input_path : str
-            Path to a file containing read IDs, one per line.
+        input_reads : list
+            list of read IDS to extract.
         raw_sequences_path : str
             Path to the raw sequences
         input_file_format : var
@@ -450,6 +457,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
             FORMAT_FASTA, denoting the format of the input sequence
         hits : dict
             A hash with the readnames as the keys and the spans as the values
+
         Returns
         -------
         output_path: str
@@ -467,7 +475,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
 
         with tempfile.NamedTemporaryFile(prefix='_raw_extracted_reads.fa') as tmp:
             # Run fxtract to obtain reads form original sequence file
-            fxtract_cmd = "fxtract -H -X -f %s " % input_path
+            fxtract_cmd = "fxtract -H -X -f /dev/stdin " 
             if input_file_format == FORMAT_FASTA:
                 cmd = "%s %s > %s" % (fxtract_cmd, raw_sequences_path, tmp.name)
             elif input_file_format == FORMAT_FASTQ_GZ:
@@ -478,10 +486,15 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                 cmd = "%s %s | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > %s" % (fxtract_cmd, raw_sequences_path, tmp.name)
             else:
                 raise Exception("Programming error")
-            extern.run(cmd)
 
-            direction_information = self._extract_multiple_hits(hits, tmp.name, output_path)  # split them into multiple reads
-        return output_path, direction_information
+            process = subprocess.Popen(["bash", "-c", cmd], 
+                                       stdin=subprocess.PIPE,
+                                       stdout=subprocess.PIPE)
+            process.communicate('\n'.join(input_reads))
+            complement_info = self._extract_multiple_hits(hits, tmp.name, output_path)  # split them into multiple reads
+        
+        return output_path, complement_info
+        
 
     def alignment_correcter(self, alignment_file_list, output_file_name):
         '''
@@ -497,6 +510,10 @@ deal with these, so please remove/rename sequences with duplicate keys.")
             inputs provided to GraftM
         output_file_name : str
             The path and filename of the output file desired.
+            
+        Returns
+        -------
+        True or False, depending if reads were written to file
 
         '''
 
@@ -514,11 +531,26 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                 for position in insert_list:  # For each position in the removal list
                     del new_seq[position]  # Delete that inserted position in every sequence
                 corrected_sequences['>' + sequence.id + '\n'] = (''.join(new_seq) + '\n').replace('~', '-')
-        with open(output_file_name, 'w') as output_file:  # Create an open file to write the new sequences to
-            for fasta_id, fasta_seq in corrected_sequences.iteritems():
-                if any(c.isalpha() for c in fasta_seq):
-                    output_file.write(fasta_id)
-                    output_file.write(fasta_seq)
+        
+        pre_filter_count=len(corrected_sequences)
+        corrected_sequences={key:item for key, item in corrected_sequences.iteritems() if len(item.replace('-', '')) >10}
+        
+        post_filter_count=len(corrected_sequences)
+        logging.info("Filtered %i short sequences from the alignment" % \
+                        (pre_filter_count-post_filter_count)
+                    )
+        logging.info("%i sequences remaining" % post_filter_count)
+        
+        if len(corrected_sequences) >= 1:
+            with open(output_file_name, 'w') as output_file:  # Create an open file to write the new sequences to
+                for fasta_id, fasta_seq in corrected_sequences.iteritems():
+                    if len(fasta_seq.strip().replace('-','')) > 10:
+                        if any(c.isalpha() for c in fasta_seq):
+                            output_file.write(fasta_id)
+                            output_file.write(fasta_seq)
+            return True
+        else:
+            return False
 
 
     def _extract_orfs(self, input_path, orfm, hit_readnames, output_path, search_method, sequence_frame_info_list=None):
@@ -551,6 +583,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                        stdin=subprocess.PIPE,
                                        stdout=subprocess.PIPE)
             process.communicate('\n'.join(hit_readnames))
+
         elif search_method == "diamond":
             sequence_frame_info_dict = {x[0]:[x[1], x[2], x[3]] for x in sequence_frame_info_list}
             records = SeqIO.parse(input_path, "fasta")
@@ -569,8 +602,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
 
     def _get_read_names(self, search_result, max_range):
         '''
-        _get_read_names - loops through hmm hits and their alingment spans to
-        determine if they are potentially linked (for example, if one gene in a
+        _get_read_names - loops through hmm hits and their alignment spans to
+        determine if they are potentially linked (for example, if one gene in a 
         contig hits a hmm more than once, in two different conserved regions
         of that gene) and combines them into one 'hit' because they are
         technically the same. The total span of the hits deemed to be linked is
@@ -847,40 +880,31 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         else:  # if the search_method isn't recognised
             raise Exception("Programming error: unexpected search_method %s" % search_method)
 
-        with tempfile.NamedTemporaryFile(prefix='graftm_readnames') as readnames:
-            # Write the names of hits to a tmpfile
-
-            orfm_regex = OrfM.regular_expression()
-
-
-            if maximum_range:
-                hits = self._get_read_names(
-                                            search_result,  # define the span of hits
-                                            maximum_range
-                                            )
-
-            else:
-
-                hits = self._get_sequence_directions(search_result)
-
-            orf_hit_readnames = hits.keys() # Orf read hit names
-            if unpack.sequence_type() == 'nucleotide':
-                hits={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) else key): item for key, item in hits.iteritems()}
-                hit_readnames = hits.keys() # Store raw read hit names
-            else:
-                hit_readnames=orf_hit_readnames
-            for read in hit_readnames:
-                readnames.write(read + '\n')
-            readnames.flush()
-
-            hit_reads_fasta, direction_information = self._extract_from_raw_reads(
-                                                           hit_reads_fasta,
-                                                           readnames.name,
-                                                           unpack.read_file,
-                                                           unpack.format(),
-                                                           hits
-                                                           )
-
+        orfm_regex = OrfM.regular_expression()
+        
+        if maximum_range:
+            hits = self._get_read_names(
+                                        search_result,  # define the span of hits
+                                        maximum_range
+                                        )
+        else:   
+            hits = self._get_sequence_directions(search_result)
+    
+        orf_hit_readnames = hits.keys() # Orf read hit names
+        if unpack.sequence_type() == 'nucleotide':
+            hits={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) else key): item for key, item in hits.iteritems()}
+            hit_readnames = hits.keys() # Store raw read hit names 
+        else:
+            hit_readnames=orf_hit_readnames
+        
+        hit_reads_fasta, direction_information = self._extract_from_raw_reads(
+                                                       hit_reads_fasta,
+                                                       hit_readnames,
+                                                       unpack.read_file,
+                                                       unpack.format(),
+                                                       hits
+                                                       )
+        
 
         if not hit_readnames:
             hit_read_counts = [0, len(hit_readnames)]
@@ -888,7 +912,9 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                     search_result,
                                     hit_read_counts,
                                     None)
+
             return result, direction_information
+
 
         if unpack.sequence_type() == 'nucleotide':
             # Extract the orfs of these reads that hit the original search
@@ -911,9 +937,16 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         result = DBSearchResult(hit_reads_fasta,
                                 search_result,
                                 [0, len([itertools.chain(*hits.values())])],  # array of hits [euk hits, true hits]. Euk hits alway 0 unless searching from 16S
-                                slash_endings)  # Any reads that end in /1 or /2
-        logging.info("%s read(s) detected" % len(hits))
+                                slash_endings)  # Any reads that end in /1 or /2     
+
+        if maximum_range:
+            n_hits = sum([len(x["strand"]) for x in hits.values()])
+        else:
+            n_hits = len(hits.keys())
+        logging.info("%s read(s) detected" % n_hits)
+                
         return result, direction_information
+    
 
     @T.timeit
     def nt_db_search(self, files, base, unpack, euk_check,
@@ -1013,38 +1046,35 @@ deal with these, so please remove/rename sequences with duplicate keys.")
 
         elif search_method == 'diamond':
             raise Exception("Diamond searches not supported for nucelotide databases yet")
-        with tempfile.NamedTemporaryFile(prefix='graftm_readnames') as readnames:
-            if maximum_range:
-                hits = self._get_read_names(
-                                            search_result,  # define the span of hits
-                                            maximum_range
-                                            )
-            else:
-                hits = self._get_sequence_directions(search_result)
-            hit_readnames = hits.keys()
 
-            if euk_check:
-                euk_reads = self._check_euk_contamination(table_list)
-                hit_readnames = set([read for read in hit_readnames if read not in euk_reads])
-                for read in hit_readnames:
-                    readnames.write(read + '\n')
-                hits = {key:item for key, item in  hits.iteritems() if key in hit_readnames}
-                hit_read_count = [len(euk_reads), len(hit_readnames)]
-            else:
-                hit_read_count = [0, len(hit_readnames)]
+        
+        if maximum_range:  
             
-            for read in hit_readnames:
-                readnames.write(read + '\n')
-            readnames.flush()
+            hits = self._get_read_names(
+                                        search_result,  # define the span of hits
+                                        maximum_range
+                                        )
+        else:   
+            hits = self._get_sequence_directions(search_result)
 
-            hit_reads_fasta, direction_information = self._extract_from_raw_reads(
-                                                           hit_reads_fasta,
-                                                           readnames.name,
-                                                           unpack.read_file,
-                                                           unpack.format(),
-                                                           hits
-                                                           )
-
+        hit_readnames = hits.keys()
+        
+        if euk_check:
+            euk_reads = self._check_euk_contamination(table_list)
+            hit_readnames = set([read for read in hit_readnames if read not in euk_reads])
+            hits = {key:item for key, item in  hits.iteritems() if key in hit_readnames}
+            hit_read_count = [len(euk_reads), len(hit_readnames)]
+        else:
+            hit_read_count = [0, len(hit_readnames)]
+        
+        hit_reads_fasta, direction_information = self._extract_from_raw_reads(
+                                                       hit_reads_fasta,
+                                                       hit_readnames,
+                                                       unpack.read_file,
+                                                       unpack.format(),
+                                                       hits
+                                                       )
+        
         if not hit_readnames:
             result = DBSearchResult(None,
                                   search_result,
@@ -1057,9 +1087,14 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                     hit_read_count,
                                     slash_endings)
 
-        logging.info("%s read(s) detected" % len(hits))
+        if maximum_range:
+            n_hits = sum([len(x["strand"]) for x in hits.values()])
+        else:
+            n_hits = len(hits)
+        logging.info("%s read(s) detected" % n_hits)
+        
         return result, direction_information
-
+        
     @T.timeit
     def align(self, input_path, output_path, directions, pipeline):
         '''align - Takes input path to fasta of unaligned reads, aligns them to
@@ -1075,6 +1110,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         pipeline : str
             Either "P" or "D" corresponding to the protein and nucleotide (DNA)
             pipelines, respectively.
+
+
         Returns
         -------
         N/A - output alignment path known.
@@ -1084,8 +1121,10 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         alignments = self._hmmalign(input_path,
                                     directions,
                                     pipeline)
-        self.alignment_correcter(alignments,
-                                 output_path)
+        alignment_result = self.alignment_correcter(alignments,
+                                                    output_path)
+        return alignment_result
+        
 
 
 

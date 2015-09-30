@@ -49,6 +49,7 @@ class Diamond:
             if self._evalue:
                 cmd_list.append("--evalue")
                 cmd_list.append(str(self._evalue))
+            
             cmd = ' '.join(cmd_list)
             extern.run(cmd)
             

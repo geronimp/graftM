@@ -155,7 +155,7 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
                 else:
                     setattr(args, 'search_hmm_files', [])
                     for hmm in gpkg.search_hmm_paths():
-                        args.search_hmm_files.append(os.path.join(args.graftm_package, hmm))
+                        args.search_hmm_files.append(hmm)
                     setattr(args, 'aln_hmm_file', gpkg.alignment_hmm_path())
                     setattr(args, 'reference_package', gpkg.reference_package_path())
 

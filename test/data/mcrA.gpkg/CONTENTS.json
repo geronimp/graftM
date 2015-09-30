@@ -1,1 +1,1 @@
-{"refpkg": "mcrA.refpkg", "graftm_package_version": 2, "diamond_database": "mcra.faa.dmnd", "trusted_cutoff": false, "align_hmm": "mcrA.hmm", "search_hmms": ["mcrA.hmm"], "range":804}
+{"refpkg": "mcrA.refpkg", "graftm_package_version": 3, "diamond_database": "mcra.faa.dmnd", "trusted_cutoff": false, "align_hmm": "mcrA.hmm", "search_hmms": ["mcrA.hmm"], "range":804, "unaligned_sequence_database": false}

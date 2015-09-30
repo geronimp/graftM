@@ -16,7 +16,7 @@ from graftm.deduplicator import Deduplicator
 from skbio.tree import TreeNode
 from graftm.sequence_io import SequenceIO
 import tempdir
-from graftm.graftm_package import GraftMPackageVersion2
+from graftm.graftm_package import GraftMPackageVersion3
 
 class Create:
     _PROTEIN_PACKAGE_TYPE = 'protein_package_type'
@@ -45,6 +45,23 @@ class Create:
             if num_aligned <= min_length:
                 to_return.append(s.name)
         return to_return
+    
+    def _align_sequences(self, input_sequences_path, output_alignment_path):
+        '''Align sequences into alignment_file
+        
+        Parameters
+        ----------
+        input_sequences_path: str
+            path to input sequences in fasta format
+        output_alignment_path: str
+            path to output alignment path
+            
+        Returns
+        -------
+        Nothing
+        '''
+        cmd = "mafft --auto '%s' >%s" % (input_sequences_path, output_alignment_path)
+        extern.run(cmd)
         
     def _get_hmm_from_alignment(self, alignment, hmm_filename, output_alignment_filename):
         '''Return a HMM file and alignment of sequences to that HMM
@@ -159,9 +176,9 @@ class Create:
                                                stderr,
                                                stdout)
             except (subprocess32.TimeoutExpired, extern.ExternCalledProcessError):
-                nontemp_tax_file = 'graftm_create_taxonomy.csv'
+                nontemp_tax_file = 'graftm_create_taxonomy.%s.csv' % base
                 shutil.copy(tax, nontemp_tax_file)
-                nontemp_aln_file = 'graftm_create_alignment.faa'
+                nontemp_aln_file = 'graftm_create_alignment.%s.faa' % base
                 shutil.copy(aln_file, nontemp_aln_file)
                 
                 logging.error('''
@@ -276,6 +293,7 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         prefix = kwargs.pop('prefix', None)
         rerooted_annotated_tree = kwargs.pop('rerooted_annotated_tree', None)
         user_hmm = kwargs.pop('hmm', None)
+        search_hmm_files = kwargs.pop('search_hmm_files',None)
         min_aligned_percent = kwargs.pop('min_aligned_percent',0.01)
         taxtastic_taxonomy = kwargs.pop('taxtastic_taxonomy', None)
         taxtastic_seqinfo = kwargs.pop('taxtastic_seqinfo', None)
@@ -307,6 +325,11 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
             hmm = user_hmm
             self._align_sequences_to_hmm(hmm, sequences, output_alignment)
         else:
+            if not alignment:
+                alignment_tempfile = tempfile.NamedTemporaryFile(prefix='graftm_create', suffix='.aln.fasta')
+                alignment = alignment_tempfile.name 
+                self._align_sequences(sequences, alignment)
+                
             hmm_f = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.hmm')
             hmm = hmm_f.name
             self._get_hmm_from_alignment(alignment, hmm, output_alignment)
@@ -472,7 +495,9 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         
         # Compile the gpkg
         logging.info("Compiling gpkg")
-        GraftMPackageVersion2.compile(output_gpkg_path, refpkg, hmm, diamondb, max_range)
+
+        GraftMPackageVersion3.compile(output_gpkg_path, refpkg, hmm, diamondb, 
+                                      max_range, sequences, search_hmm_files=search_hmm_files)
 
         logging.info("Cleaning up")
         self._cleanup(self.the_trash)

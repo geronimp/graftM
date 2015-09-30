@@ -78,6 +78,7 @@ class Hmmer:
             # Split the reads into reverse and forward lists
             for record in records:
                 read_id = record.id
+
                 if directions[read_id] == True:
                     forward.append(record)
                 elif directions[read_id] == False:
@@ -408,9 +409,9 @@ class Hmmer:
         try:
             reads = SeqIO.to_dict(SeqIO.parse(reads_path, "fasta"))  # open up reads as dictionary
         except:
-            logging.error("Multiple sequences found with the same ID. The input sequences are either ill formated or are interleaved.\
+            logging.error("Multiple sequences found with the same ID. The input sequences are either ill formated or are interleaved. \
 If you provided GraftM with an interleaved sequence file, please split them into forward and reverse reads, and provide to the the appropriate \
-flags (--forward, --reverse). Otherwise, it appears that you have provided sequences with redundant IDs. GraftM doesn't know how to\
+flags (--forward, --reverse). Otherwise, it appears that you have provided sequences with redundant IDs. GraftM doesn't know how to \
 deal with these, so please remove/rename sequences with duplicate keys.")
             raise InterleavedFileError()
         with open(output_path, 'w') as out:
@@ -427,9 +428,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                         index += 1  # increment the split counter
                         complement_information[new_record.id]=c
                 else:  # Otherwise, just write the read back to the file
-                    complement_information = {readname:entry["strand"][0] for readname, entry in hits.iteritems()}
+                    complement_information[read_name] = entry["strand"][0] 
                     SeqIO.write(reads[read_name], out, "fasta")
-        return complement_information
 
     def _extract_from_raw_reads(self, output_path, input_path, raw_sequences_path, input_file_format, hits):
         '''
@@ -498,9 +498,6 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         output_file_name : str
             The path and filename of the output file desired.
 
-        Returns
-        -------
-        nothing
         '''
 
         corrected_sequences = {}
@@ -679,7 +676,6 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                     splits[i]['span'].append(ft)  # Add the new range to be split out in the future
                     splits[i]['strand'].append(c)  # Add the complement strand as well
                     splits[i]['query_span'].append(qs)
-
         return {key: {"entry":entry['span'], 'strand': entry['strand']} for key, entry in splits.iteritems()}  # return the dict, without strand information which isn't required.
 
     def _check_for_slash_endings(self, readnames):

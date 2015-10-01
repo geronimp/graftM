@@ -587,7 +587,7 @@ class Run:
         
         elif self.args.subparser_name == 'decorate':
             
-            if self.args.rerooted_tree:
+            if self.args.rooted_tree:
                 if self.args.unrooted_tree:
                     logging.error("Both a rooted tree and an un-rooted tree were provided, so it's unclear what you are asking graftM to do. \
 If you're unsure how to use GraftM decorate use graftM decorate -h")

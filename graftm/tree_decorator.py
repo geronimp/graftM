@@ -164,6 +164,7 @@ class TreeDecorator:
                 
         '''
         current_index = 0
+        ancetor_rank_number = 0
         ancestry = [x for x in ancestry if not x.is_root()]
         if any(ancestry):
             ancestor_tax_list = []
@@ -186,7 +187,8 @@ class TreeDecorator:
             ancetor_rank_number = len(ancestor_tax.split('; ')) #
             return current_index, ancetor_rank_number
         else:       
-            raise Exception("Programming error in _get_tax_index. Failed to find ancestors for current node.")
+            return current_index, ancetor_rank_number
+            #raise Exception("Programming error in _get_tax_index. Failed to find ancestors for current node.")
     
     def extract(self, output_tax):
         self._write_consensus_strings(output_tax)
@@ -196,9 +198,7 @@ class TreeDecorator:
         Main function for TreeDecorator class. Accepts the output directory, 
         iterates through nodes, classifying them according to provided taxonomy. 
         '''
-        # Define list of prefixes
-        
-        
+        # Define list of prefixes        
         logging.info("Decorating tree")
         for node in self._nodes():
             placement_depth = 0 

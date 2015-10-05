@@ -31,7 +31,6 @@ class InterleavedFileError(Exception):
     pass
 
 class Hmmer:
-
     def __init__(self, search_hmm, aln_hmm=None):
         self.search_hmm = search_hmm
         self.aln_hmm = aln_hmm
@@ -147,7 +146,8 @@ class Hmmer:
         cmd = 'makehmmerdb %s %s' % (sequences, fm)
         extern.run(cmd)
 
-    def hmmsearch(self, output_path, input_path, unpack, seq_type, threads, cutoff, orfm):
+    def hmmsearch(self, output_path, input_path, unpack, seq_type, threads, 
+                  cutoff, orfm, write_orfs):
         '''
         hmmsearch - Search raw reads for hits using search_hmm list
 
@@ -175,25 +175,37 @@ class Hmmer:
             Object that builds the command chunk for calling ORFs on sequences
             coming through as stdin. Outputs to stdout. Calls command_line
             to construct final command line string.
+        write_orfs : bool
+            True/False indicating whether to write the orfs called by orfM to
+            disk. This is used in the case where a concatenated HMM is used. 
+            The usual piping technique doesn't apply when you ahve multiple 
+            modules in a single file, because piped sequences are non-rewindable
+            (i.e. cannot be iteratively searched by hmmer). Orfs must therefore
+            be written to file, so that they may be read by multiple HMMs.  
 
         Returns
         -------
         output_table_list : array of HMMSearchResult
             Includes the name of the output domtblout table given by hmmer
         '''
+        
 
         # Define the base hmmsearch command.
-        logging.debug("Using %i HMMs to search" % (len(self.search_hmm)))
+        if write_orfs:
+            logging.debug("Using a concatenated HMM file to search")
+        else:
+            logging.debug("Using %i HMMs to search" % (len(self.search_hmm)))
         output_table_list = []
         if len(self.search_hmm) > 1:
             for hmm in self.search_hmm:
                 out = os.path.join(os.path.split(output_path)[0], os.path.basename(hmm).split('.')[0] + '_' + os.path.split(output_path)[1])
+                
                 output_table_list.append(out)
         elif len(self.search_hmm) == 1:
             output_table_list.append(output_path)
         else:
             raise Exception("Programming error: expected 1 or more HMMs")
-
+        
         # Choose an input to this base command based off the file format found.
         if seq_type == 'nucleotide':  # If the input is nucleotide sequence
             input_cmd = orfm.command_line(input_path)
@@ -207,7 +219,7 @@ class Hmmer:
             searcher = HmmSearcher(threads, cutoff) 
         else:
             searcher = HmmSearcher(threads, '--domE %s' % cutoff) 
-        searcher.hmmsearch(input_cmd, self.search_hmm, output_table_list)
+        searcher.hmmsearch(input_cmd, self.search_hmm, output_table_list, write_orfs)
         hmmtables = [HMMSearchResult.import_from_hmmsearch_table(x) for x in output_table_list]
         return hmmtables
 
@@ -744,7 +756,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
     @T.timeit
     def aa_db_search(self, files, base, unpack, search_method,
                      maximum_range, threads, evalue, min_orf_length,
-                     restrict_read_length, diamond_database):
+                     restrict_read_length, diamond_database, write_orfs):
         '''
         Amino acid database search pipeline - pipeline where reads are searched
         as amino acids, and hits are identified using hmmsearch or diamond
@@ -780,6 +792,13 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         diamond_database : str
             Path to diamond database to use when searching. Set to 'None' if not
             using diamond pipeline
+        write_orfs : bool
+            True/False indicating whether to write the orfs called by orfM to
+            disk. This is used in the case where a concatenated HMM is used. 
+            The usual piping technique doesn't apply when you ahve multiple 
+            modules in a single file, because piped sequences are non-rewindable
+            (i.e. cannot be iteratively searched by hmmer). Orfs must therefore
+            be written to file, so that they may be read by multiple HMMs.  
         Returns
         -------
         String path to amino acid fasta file of reads that hit
@@ -800,7 +819,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                                     diamond_database,
                                                     hmmsearch_output_table,
                                                     hit_reads_fasta,
-                                                    hit_reads_orfs_fasta)
+                                                    hit_reads_orfs_fasta,
+                                                    write_orfs)
 
     def search_and_extract_orfs_matching_protein_database(self,
                                                       unpack,
@@ -813,7 +833,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                                       diamond_database,
                                                       hmmsearch_output_table,
                                                       hit_reads_fasta,
-                                                      hit_reads_orfs_fasta):
+                                                      hit_reads_orfs_fasta,
+                                                      write_orfs):
         '''As per aa_db_search() except slightly lower level. Search an
         input read set (unpack) and then extract the proteins that hit together
         with their containing nucleotide sequences.
@@ -862,7 +883,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                            unpack.sequence_type(),
                                            threads,
                                            evalue,
-                                           orfm
+                                           orfm,
+                                           write_orfs
                                            )
 
         elif search_method == 'diamond':

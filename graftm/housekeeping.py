@@ -12,7 +12,10 @@ class InvalidFileExtensionError(Exception):
 
 class UninstalledProgramError(Exception):
     pass
-    
+
+class MalformedHMMError(Exception):
+    pass
+
 class HouseKeeping:
     ### Functions for setting up the graftM pipeline to run correctly, and 
     ### general housekeeping things like adding and removing directories and 
@@ -48,24 +51,38 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
             raise Exception('Programming Error: setting the euk HMM')    
     
     def setpipe(self, hmm):
-        ## Read in the hmm file and return the evalue trusted cutoff and the
-        ## type of HMM
-        hmm_tc = None
-        hmm_read = [x.rstrip() for x in open(hmm, 'r').readlines() if x.startswith('ALPH') or x.startswith('TC')]
-        if len(hmm_read) > 2:
-            raise Exception('Possibly Programming Error: Misread HMM library.')
-        for item in hmm_read:
-            if item.startswith('ALPH'):
-                if item.split()[1] == 'DNA' or item.split()[1] == 'RNA':
-                    hmm_type = 'D'
-                elif item.split()[1] == 'amino':
-                    hmm_type = 'P'
-            elif item.startswith('TC'):
-                hmm_tc = item.split()[1]
-            else:
-                raise Exception('Possibly Programming Error: Misread HMM library.')
-        return hmm_type, hmm_tc
+        '''
+        Reads in search HMM and determines if a TC is present, and what type of
+        HMM it is (i.e. DNA/RNA or amino)
         
+        Parameters
+        ----------
+        hmm: str
+            Path to a HMM file.
+        '''
+        logging.debug("Reading in HMM")
+        
+        hmm_tc = None
+        hmm_type = None
+        for line in open(hmm):
+            if line.startswith('ALPH'):
+                if line.split()[1] == 'DNA' or line.split()[1] == 'RNA':
+                    hmm_type = 'D'
+                elif line.split()[1] == 'amino':
+                    hmm_type = 'P'
+                else:
+                    raise MalformedHMMError("Possibly misformatted HMM. Unrecognised HMM alphabet: %s" % item.split()[1]) 
+            elif line.startswith('TC'):
+                hmm_tc = True
+            elif line.startswith("HMMER"):
+                continue
+            elif line.startswith("HMM"):
+                break
+        if hmm_type:
+            return hmm_type, hmm_tc
+        else:
+            raise MalformedHMMError("Possibly misformatted HMM. No HMM alphabet present") 
+    
     def delete(self, delete_list):
         for item in delete_list:
             try:
@@ -81,8 +98,8 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
             try:
                 os.mkdir(directory_path)
             except:
-                logging.error('Directory %s already exists. Exiting to prevent over-writing' % directory_path)
-                raise Exception('Directory %s already exists. Exiting to prevent over-writing'% directory_path)
+                logging.error('Directory %s already exists. Exiting to prevent over-writing. Use --force to overwrite.' % directory_path)
+                raise Exception('Directory %s already exists. Exiting to prevent over-writing. Use --force to overwrite.'% directory_path)
     
     def parameter_checks(self, args):
         ## Check that the necessary files are in place
@@ -183,6 +200,15 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
         elif hasattr(args, 'search_hmm_list_file'):
             if args.search_method == 'hmmsearch':
                 setattr(args, 'search_hmm_files', [x.rstrip() for x in open(args.search_hmm_list_file).readlines()])
+                if not hasattr(args, 'aln_hmm_file'):
+                    if not args.search_only:
+                        raise Exception("Multiple search HMMs specified, but aln_hmm_file not specified")
+            else:
+                raise Exception("Specified HMM search_hmm_files when not using the hmmsearch pipeline. Using: %s" % (args.search_method))
+        
+        elif hasattr(args, 'concatenated_search_hmm'):
+            if args.search_method == 'hmmsearch':
+                setattr(args, 'search_hmm_files', [args.concatenated_search_hmm])
                 if not hasattr(args, 'aln_hmm_file'):
                     if not args.search_only:
                         raise Exception("Multiple search HMMs specified, but aln_hmm_file not specified")

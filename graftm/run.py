@@ -165,7 +165,8 @@ class Run:
             gpkg = GraftMPackage.acquire(self.args.graftm_package)
         else:
             gpkg = None
-      
+        
+        write_orfs          = (True if self.args.concatenated_search_hmm else False)
         REVERSE_PIPE        = (True if self.args.reverse else False)
         base_list           = []
         seqs_list           = []
@@ -213,7 +214,7 @@ class Run:
                 logging.warn("--reverse reads specified with --assignment_method diamond. Reverse reads will be ignored.")
                 self.args.reverse = None
 
-       
+        
         # If merge reads is specified, check that there are reverse reads to merge with
         if self.args.merge_reads and not hasattr(self.args, 'reverse'):
             logging.error("--merge requires --reverse to be specified")
@@ -233,9 +234,8 @@ class Run:
             logging.debug("HMM type: %s Trusted Cutoff: %s" % (hmm_type, hmm_tc))
         setattr(self.args, 'type', hmm_type)
         if hmm_tc:
-            pass
-            #setattr(self.args, 'evalue', '--cut_tc')
-            
+            setattr(self.args, 'evalue', '--cut_tc')
+        
         # Generate bootstrap database if required
         if self.args.bootstrap_contigs:
             if self.args.graftm_package:
@@ -319,7 +319,8 @@ class Run:
                                                               self.args.evalue,
                                                               self.args.min_orf_length,
                                                               self.args.restrict_read_length,
-                                                              diamond_db
+                                                              diamond_db,
+                                                              write_orfs
                                                               )
 
 

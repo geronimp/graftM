@@ -60,7 +60,7 @@ class SearchTableWriter:
                 search_list = list(
                                    search.each([SequenceSearchResult.QUERY_ID_FIELD,
                                                 SequenceSearchResult.ALIGNMENT_BIT_SCORE,
-                                                SequenceSearchResult.ACCESSION_ID_FIELD])
+                                                SequenceSearchResult.HMM_NAME_FIELD])
                                    )
                 for hit in search_list:
                     if hit[0] in search_results:

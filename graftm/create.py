@@ -298,6 +298,7 @@ graftM create --taxonomy '%s' --alignment '%s' aln_file
         taxtastic_taxonomy = kwargs.pop('taxtastic_taxonomy', None)
         taxtastic_seqinfo = kwargs.pop('taxtastic_seqinfo', None)
         force_overwrite = kwargs.pop('force',False)
+        graftm_package = kwargs.pop('graftm_package',False)
         if len(kwargs) > 0:
             raise Exception("Unexpected arguments detected: %s" % kwargs)
         

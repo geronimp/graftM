@@ -523,7 +523,7 @@ class Run:
               >c                        |________|
               ----------
 '''
-
+            import IPython ; IPython.embed()
             if self.args.taxonomy:
                 if self.args.rerooted_annotated_tree:
                     logging.error("--taxonomy is incompatible with --rerooted_annotated_tree")
@@ -549,18 +549,19 @@ class Run:
 
             Create().main(
                           sequences = self.args.sequences,
-                          alignment=self.args.alignment,
-                          taxonomy=self.args.taxonomy,
-                          rerooted_tree=self.args.rerooted_tree,
-                          tree_log=self.args.tree_log,
-                          prefix=self.args.output,
-                          rerooted_annotated_tree=self.args.rerooted_annotated_tree,
-                          min_aligned_percent=float(self.args.min_aligned_percent)/100,
+                          alignment = self.args.alignment,
+                          taxonomy = self.args.taxonomy,
+                          rerooted_tree = self.args.rerooted_tree,
+                          tree_log = self.args.tree_log,
+                          prefix = self.args.output,
+                          rerooted_annotated_tree = self.args.rerooted_annotated_tree,
+                          min_aligned_percent = float(self.args.min_aligned_percent)/100,
                           taxtastic_taxonomy = self.args.taxtastic_taxonomy,
                           taxtastic_seqinfo = self.args.taxtastic_seqinfo,
                           hmm = self.args.hmm,
                           search_hmm_files = self.args.search_hmm_files,
-                          force = self.args.force
+                          force = self.args.force,
+                          graftm_package = self.args.graftm_package
                           )
         
         elif self.args.subparser_name == 'bootstrap':

@@ -35,17 +35,17 @@
   <!-- Headings & Paragraph Copy -->
   <hr>
   <h1>Overview</h1>
-  <p>GraftM is a meta-omic tool that identifies and classifies marker genes in short read datasets (metagenomes and metatranscriptomes), as well as assembled contigs, whole genomes and protein sequences. It produces outputs including the sequences identified, a taxonomic/functional summary table, and <a href="http://sourceforge.net/p/krona/home/krona/">krona</a> plot.
+  <p>GraftM is a meta-omic tool that identifies and classifies marker genes in short read datasets (metagenomes and metatranscriptomes), as well as assembled contigs, whole genomes and protein sequences. GraftM outputs a taxonomic/functional summary table, a <a href="http://sourceforge.net/p/krona/home/krona/">krona</a> plot, as well as various other run statistics. Both unaligned and aligned "hit" sequences are provided.
   <p>GraftM is designed for speed and accuracy. It is able to find marker genes in a 200Mb of assembled metagenome in &lt;20 sec, and compares favourably with similar tools in accuracy benchmarking.</p>
   <hr>
   <h1>News + Updates</h1>
-  <p>31/03/2015 - Please submit any requests for features in graftM to the GitHub page!</p>
+  <p>31/03/2015 - Please submit any requests for features in GraftM to the GitHub page!</p>
   <hr>
   <div class="row">
     <div class="span4">
         <h1>Getting GraftM</h1>
-        <p>Currently, GraftM has a few dependencies, and so simply using pip isn't really an option. Unfortunately that means that for the time being installation will have to be manual, although we're working on making the installation a little smoother so watch this space. The <a href="https://github.com/geronimp/graftM/wiki">manual</a> has more detailed instructions on how to install GraftM and a detailed description of command line options.</p>
-        <p>The source code for GraftM is also available on <a href="https://github.com/geronimp/graftM.git">Github</a>.</p>
+        <p>GraftM has a few dependencies, which are needed to use all the features of GraftM. The <a href="https://github.com/geronimp/graftM/wiki">manual</a> has more detailed instructions on how to install GraftM, its dependencies, and a description of command line options.</p>
+        <p>The source code for GraftM is also available on <a href="https://github.com/geronimp/graftM.git">GitHub</a>.</p>
         <hr>
         <h1>Licensing</h1>
         <p>Written by <a href="http://ecogenomic.org/users/joel-boyd">Joel Boyd</a>, <a href="http://ecogenomic.org/users/ben-woodcroft">Ben Woodcroft</a> and <a href="http://ecogenomic.org/users/gene-tyson">Gene Tyson</a>, GraftM is licensed using the Lesser GNU General Public License version 3 as published by the Free Software Foundation.</p>
@@ -53,20 +53,19 @@
     </div>
     <div class="span4">
         <h1>Using GraftM</h1>
-        <p>GraftM was developed as a tool for the rapid analysis of short read metagenomic data. The idea was to develop a tool that could search and classify marker gene reads without depending on pairwise sequence comparisons, such as BLAST. The result is an easy-to-use tool which can be run on any marker gene of choice, in a fraction of time taken for other methods.</p>
-        <p>Currently, graftM can be used on 32 trusted marker genes, along with numerous metabolic genes that are phylogenetically consistent with 16S, such as McrA. In addition, GraftM can be used with other, functional genes to classify your sample based on functionality (e.g. PmoA)</p>
+        <p>GraftM was developed as a tool for the rapid analysis of short read metagenomic data. It was developed as a tool that could search and classify marker gene reads, without using pairwise sequence comparisons such as BLAST. The result is a flexible, easy-to-use tool that can be run on any gene: all in a fraction of the time required by other methods.</p>
+        <p>We provide some GraftM packages, such as 16S rRNA, mcrA and pmoA, but for detailed instructions on how to create your own GraftM package, please visit the manual page.</p>
         <hr>
         <h1>Example Usage</h1>
-        <p>Here is just a quick example of how to run GraftM, for impatient peoples. You can find some example data to use GraftM with <a href="https://github.com/geronimp/graftM/tree/master/example_data">here</a>.</p>
-        <p>If you'd like to run GraftM with only a single file of reads, you'll use the <code>--forward</code> flag. Your run should something akin to this:
+        <p>Here is just a quick example of how to run GraftM. You can find some example data to use GraftM with <a href="https://github.com/geronimp/graftM/tree/master/example_data">here</a>.</p>
         <p><code class="codeblock">$ graftM graft --forward reads_f.fa --graftm_package mcrA_gpkg</code></p>
     </div>
     <div class="span4">
         <h1>Citing GraftM</h1>
-        <p>If you use GraftM then please cite us. Problem is that isn't possible just yet, but a publication is just up the road.</p>
+        <p>If you use GraftM then please cite us. As of yet we have no publication, but please cite the GitHub page.</p>
         <hr>
         <h1>Contact</h1>
-        <p>Of course, you can always contact <a href="https://github.com/geronimp">Joel</a> or <a href="https://github.com/wwood">Ben</a> on the <a href="https://github.com/geronimp/graftM/issues">issues page</a> for any queries, complaints or reccomendations you have about GraftM, or just throw us an email. We're happy to help.</p>
+        <p>Of course, you can always contact <a href="https://github.com/geronimp">Joel</a> or <a href="https://github.com/wwood">Ben</a> on the <a href="https://github.com/geronimp/graftM/issues">issues page</a> for any issues that you encounter with GraftM. Alternatively you could just send us an email through supportm@googlegroups.com. We're more than happy to help.</p>
         <hr>
         <h1>The M suite</h1>
         <p>GraftM is part of the M(etagenomics) suite of tools being developed at the Australian Centre for Ecogenomics (<a href="http://ecogenomic.org/">ACE</a>). We'd love for you to check out our tools:</p>

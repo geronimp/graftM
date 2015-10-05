@@ -165,8 +165,9 @@ class Run:
             gpkg = GraftMPackage.acquire(self.args.graftm_package)
         else:
             gpkg = None
-        
-        write_orfs          = (True if self.args.concatenated_search_hmm else False)
+
+        write_orfs          = (True if self.args.threads < len(self.args.search_hmm_files) else False)
+        concat_hmm          = (True if hasattr(self.args, 'concatenated_search_hmm') else False)
         REVERSE_PIPE        = (True if self.args.reverse else False)
         base_list           = []
         seqs_list           = []
@@ -320,7 +321,8 @@ class Run:
                                                               self.args.min_orf_length,
                                                               self.args.restrict_read_length,
                                                               diamond_db,
-                                                              write_orfs
+                                                              write_orfs,
+                                                              concat_hmm
                                                               )
 
 

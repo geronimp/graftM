@@ -15,6 +15,9 @@ class GraftMFiles:
     def search_otu_table(self):
         return os.path.join(self.outdir, "search_otu_table.txt")
     
+    def written_orfs_path(self, out_path):
+        return os.path.join(self.outdir, "%s_written_orfs.faa" % self.basename)
+    
     def hmmsearch_output_path(self, out_path):
         return os.path.join(self.outdir, out_path, "%s.hmmout.csv" % self.basename)
     

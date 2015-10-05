@@ -147,7 +147,7 @@ class Hmmer:
         extern.run(cmd)
 
     def hmmsearch(self, output_path, input_path, unpack, seq_type, threads, 
-                  cutoff, orfm, write_orfs):
+                  cutoff, orfm, write_orfs, concat_hmm, written_orf_path):
         '''
         hmmsearch - Search raw reads for hits using search_hmm list
 
@@ -219,8 +219,19 @@ class Hmmer:
             searcher = HmmSearcher(threads, cutoff) 
         else:
             searcher = HmmSearcher(threads, '--domE %s' % cutoff) 
-        searcher.hmmsearch(input_cmd, self.search_hmm, output_table_list, write_orfs)
+        
+        if write_orfs or concat_hmm:
+            cmd = "%s > %s " % (input_cmd, 
+                                written_orf_path)
+            extern.run(cmd)
+            input_cmd = (written_orf_path if concat_hmm 
+                          else "cat %s " % written_orf_path)        
+        searcher.hmmsearch(input_cmd, self.search_hmm, output_table_list, 
+                           concat_hmm)
+        if write_orfs or concat_hmm: 
+            extern.run("rm %s" % written_orf_path)
         hmmtables = [HMMSearchResult.import_from_hmmsearch_table(x) for x in output_table_list]
+        
         return hmmtables
 
     def merge_forev_aln(self, forward_aln_list, reverse_aln_list, outputs):
@@ -756,7 +767,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
     @T.timeit
     def aa_db_search(self, files, base, unpack, search_method,
                      maximum_range, threads, evalue, min_orf_length,
-                     restrict_read_length, diamond_database, write_orfs):
+                     restrict_read_length, diamond_database, write_orfs, 
+                     concat_hmm):
         '''
         Amino acid database search pipeline - pipeline where reads are searched
         as amino acids, and hits are identified using hmmsearch or diamond
@@ -807,6 +819,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         hmmsearch_output_table = files.hmmsearch_output_path(base)
         hit_reads_fasta = files.fa_output_path(base)
         hit_reads_orfs_fasta = files.orf_fasta_output_path(base)
+        written_orf_path = files.written_orfs_path(base)
 
         return self.search_and_extract_orfs_matching_protein_database(\
                                                     unpack,
@@ -820,7 +833,9 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                                     hmmsearch_output_table,
                                                     hit_reads_fasta,
                                                     hit_reads_orfs_fasta,
-                                                    write_orfs)
+                                                    write_orfs,
+                                                    concat_hmm,
+                                                    written_orf_path)
 
     def search_and_extract_orfs_matching_protein_database(self,
                                                       unpack,
@@ -834,7 +849,9 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                                       hmmsearch_output_table,
                                                       hit_reads_fasta,
                                                       hit_reads_orfs_fasta,
-                                                      write_orfs):
+                                                      write_orfs,
+                                                      concat_hmm,
+                                                      written_orf_path):
         '''As per aa_db_search() except slightly lower level. Search an
         input read set (unpack) and then extract the proteins that hit together
         with their containing nucleotide sequences.
@@ -884,7 +901,9 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                            threads,
                                            evalue,
                                            orfm,
-                                           write_orfs
+                                           write_orfs,
+                                           concat_hmm,
+                                           written_orf_path
                                            )
 
         elif search_method == 'diamond':

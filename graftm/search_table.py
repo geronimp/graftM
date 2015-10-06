@@ -58,7 +58,7 @@ class SearchTableWriter:
             search_results = {}
             for search in results():
                 search_list = list(
-                                   search.each([SequenceSearchResult.QUERY_ID_FIELD,
+                                   search.each([SequenceSearchResult.HMM_NAME_FIELD,
                                                 SequenceSearchResult.ALIGNMENT_BIT_SCORE,
                                                 SequenceSearchResult.ACCESSION_ID_FIELD])
                                    )

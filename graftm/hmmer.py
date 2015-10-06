@@ -624,7 +624,10 @@ class Hmmer:
                         if old_hit['strand'][idx] == complement:  # If the hit is on the same complement strand       
                             
                             ###### Check if they hit the same region in the HMM ######
-                            old_database_ft = old_hit["query_span"][idx]
+                            try:
+                                old_database_ft = old_hit["query_span"][idx]
+                            except:
+                                import IPython ; IPython.embed()
                             old_database_ft_range = range(min(old_database_ft), max(old_database_ft))
                             database_ft_range = range(min(database_ft), max(database_ft))
                             intersection_length = float(len(set(old_database_ft_range).intersection(database_ft_range)))

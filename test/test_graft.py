@@ -1140,11 +1140,11 @@ ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGAC
             fasta.write(testing_read)
             fasta.flush()
             with tempdir.TempDir() as tmp:
-                cmd = '%s graft --verbosity 2 --search_method diamond --forward %s --output_directory %s --force --assignment_method diamond --graftm_package %s' % (path_to_script,
+                cmd = '%s graft --verbosity 5 --search_method diamond --forward %s --output_directory %s --force --assignment_method diamond --graftm_package %s' % (path_to_script,
                                                                                                                  fasta.name,
                                                                                                                  tmp,
                                                                                                                  os.path.join(path_to_data,'mcrA.gpkg'))
-                subprocess.check_output(cmd, shell=True)
+                extern.run(cmd)
                 expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
                             ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales; Methanoflorentaceae; Methanoflorens']]
                 expected = ['\t'.join(l) + '\n' for l in expected]

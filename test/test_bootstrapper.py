@@ -30,10 +30,12 @@ import sys
 import tempfile
 import subprocess
 import logging
+import extern
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 from graftm.bootstrapper import Bootstrapper
 
+path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
 
 class Tests(unittest.TestCase):
@@ -83,7 +85,18 @@ class Tests(unittest.TestCase):
                                 [contigs.name],
                                 tf.name,
                                 "hmmsearch"))
-
+                
+    def test_bootstrap_executable(self):
+        with tempfile.NamedTemporaryFile() as tf:
+            cmd = '%s bootstrap --verbosity 5 --contigs %s --output_hmm %s --search_hmm_files %s' % (path_to_script,
+                                                                                              os.path.join(path_to_data,'bootstrapper','contigs.fna'),
+                                                                                              tf.name,
+                                                                                              os.path.join(path_to_data,'bootstrapper','DNGNGWU00001.hmm'))
+            extern.run(cmd)
+            self.assertEqual("HMMER3/f [3.1b2 | February 2015]\n",
+                             subprocess.check_output("head -n1 %s" % tf.name,
+                                                     shell=True))
+            self.assertEqual('NSEQ  2\n', open(tf.name).readlines()[10])
 
 
 if __name__ == "__main__":

@@ -731,7 +731,10 @@ class Hmmer:
         '''
         
         # Define outputs
-        hmmsearch_output_table = files.hmmsearch_output_path(base)
+        if search_method == 'hmmsearch':
+            output_search_file = files.hmmsearch_output_path(base)
+        elif search_method == 'diamond':
+            output_search_file = files.diamond_search_output_basename(base)
         hit_reads_fasta = files.fa_output_path(base)
         hit_reads_orfs_fasta = files.orf_fasta_output_path(base)
         
@@ -744,7 +747,7 @@ class Hmmer:
                                                     min_orf_length,
                                                     restrict_read_length,
                                                     diamond_database,
-                                                    hmmsearch_output_table,
+                                                    output_search_file,
                                                     hit_reads_fasta,
                                                     hit_reads_orfs_fasta)
         
@@ -757,7 +760,7 @@ class Hmmer:
                                                       min_orf_length,
                                                       restrict_read_length,
                                                       diamond_database,
-                                                      hmmsearch_output_table,
+                                                      output_search_file,
                                                       hit_reads_fasta,
                                                       hit_reads_orfs_fasta):
         '''As per aa_db_search() except slightly lower level. Search an
@@ -766,8 +769,8 @@ class Hmmer:
         
         Parameters
         ----------
-        hmmsearch_output_table: str
-            path to hmmsearch output table
+        output_search_file: str
+            path to hmmsearch output table or diamond basename
         hit_reads_fasta: str
             path to nucleotide sequences containing hit proteins
         hit_reads_orfs_fasta: str
@@ -787,7 +790,7 @@ class Hmmer:
         if search_method == 'hmmsearch': 
             # run hmmsearch
             search_result = self.hmmsearch(
-                                           hmmsearch_output_table,
+                                           output_search_file,
                                            unpack.read_file,
                                            unpack,
                                            unpack.sequence_type(),
@@ -804,7 +807,8 @@ class Hmmer:
                                      evalue=evalue,
                                      ).run(
                                            unpack.read_file,
-                                           unpack.sequence_type()
+                                           unpack.sequence_type(),
+                                           daa_file_basename=output_search_file
                                            )
             search_result = [search_result]
         

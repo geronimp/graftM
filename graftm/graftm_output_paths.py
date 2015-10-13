@@ -15,6 +15,10 @@ class GraftMFiles:
     def hmmsearch_output_path(self, out_path):
         return os.path.join(self.outdir, out_path, "%s.hmmout.csv" % self.basename)
     
+    def diamond_search_output_basename(self, out_path):
+        '''Does not include the .daa part that diamond creates'''
+        return os.path.join(self.outdir, out_path, "%s.diamond" % self.basename)
+    
     def read_tax_output_path(self, out_path):
         return os.path.join(self.outdir, out_path, "%s_read_tax.tsv" % self.basename)
 

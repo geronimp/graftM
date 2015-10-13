@@ -69,9 +69,6 @@ class GraftMFiles:
     def sto_output_path(self, out_path):
         return os.path.join(self.outdir, out_path, "%s.sto" % self.basename)
 
-    def orf_hmmsearch_output_path(self, out_path):
-        return os.path.join(self.outdir, out_path, "%s_orf.hmmout.csv" % self.basename)
-    
     def basic_stats_path(self):
         return os.path.join(self.outdir, "basic_stats.txt")
 

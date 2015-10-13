@@ -135,8 +135,6 @@ class Run:
                                     self.gmf.readnames_output_path(base),
                                     self.gmf.sto_output_path(base),
                                     self.gmf.orf_titles_output_path(base),
-                                    self.gmf.orf_hmmsearch_output_path(base),
-                                    self.gmf.hmmsearch_output_path(base),
                                     self.gmf.orf_output_path(base),
                                     self.gmf.output_for_path(base),
                                     self.gmf.output_rev_path(base)])
@@ -151,8 +149,6 @@ class Run:
                                 self.gmf.readnames_output_path(base),
                                 self.gmf.sto_output_path(base),
                                 self.gmf.orf_titles_output_path(base),
-                                self.gmf.hmmsearch_output_path(base),
-                                self.gmf.orf_hmmsearch_output_path(base),
                                 self.gmf.orf_output_path(base),
                                 self.gmf.output_for_path(base),
                                 self.gmf.output_rev_path(base)])

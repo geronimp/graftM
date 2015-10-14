@@ -81,9 +81,7 @@ COMMUNITY PROFILING
     graft       -       Search for and phylogenetically classify reads associated with a single
                         marker gene, and construct a community profile
                         See graftM graft -h
-                        
-                        Example usage:
-                            $ graftM graft --forward <READS> --graftm_package <GRAFTM_PACKAGE>
+
 
 =====================================================================================================
 UTILITIES
@@ -122,7 +120,29 @@ if __name__ == '__main__':
     ########################################################################
     graft_parser = subparsers.add_parser('graft',
                                         description='Search and classify marker genes to construct community profiles',
-                                        epilog=__author__)
+                                        formatter_class=CustomHelpFormatter,
+                                        epilog='''            
+ ##################################################################################################################################
+                                                       ~~ GraftM "graft" ~~
+ ##################################################################################################################################
+
+ Use GraftM "graft" to search, align and classify reads using the following pipeline:
+    
+    Detect reads with HMM/Diamond --> Align to HMM --> Place in pre-built phylogenetic tree using Maximum Likelihood
+    
+ Example usage:
+     For a single file of reads:
+        $ graftM graft --forward my_reads.fa --graftm_package my_graftm_package.gpkg
+     
+     For paired reads:
+        $ graftM graft --forward my_forward_reads.fa --reverse my_reverse_reads.fa --graftm_package my_graftm_package.gpkg
+        
+     Using an assembly to create a "bootstrap" database:
+        $ graftM graft --forward my_reads.fa --bootstrap_contigs my_assembly_of_my_reads.fa --graftm_package my_graftm_package.gpkg
+
+
+        
+''')
     input_options = graft_parser.add_argument_group('input options')
     input_options.add_argument('--forward', nargs='+', metavar='forward_read', help='Forward read (or single read file), space separated in .fa, or .fq.gz format.', required=True)
     input_options.add_argument('--reverse', nargs='+',metavar='reverse read', help='[do NOT use unless you understand the difficulties with this] Optional reverse raw sequence file(s) in .fa, or .fq.gz format', default=None)
@@ -177,21 +197,32 @@ if __name__ == '__main__':
     create_parser = subparsers.add_parser('create',
                                             description='Create a graftM packages from sequence alignments and classifications',
                                             formatter_class=CustomHelpFormatter,
-                                            epilog='''Example usage:
-
- With an alignment of sequences, and a taxonomy file specifying the taxonomy of
- each:
-  $ graftM create --alignment my_alignment.fasta --taxonomy my_taxonomy.tsv --sequences my_sequences.fasta
-  
- The taxonomy file is a 2 column tab separated file, where the first column
- is the sequence identifier and the second a taxonomy string describing that
- sequence e.g.
+                                            epilog='''
+ ##################################################################################################################################
+                                                       ~~ GraftM "create" ~~
+ ##################################################################################################################################
  
-sequence1    k__kingdom1; p__phylum2
+ Example usage:
 
- Internally, the taxonomic levels separated by '; ' are assumed to be kingdom,
- phylum, class, order, family, genus, species. However, this may not matter
- for the purposes of using graftM. The prefixes e.g. 'k__' are not required.
+ With an alignment of sequences, and a taxonomy file specifying the taxonomy of each:   
+    $ graftM create --alignment my_alignment.fasta --taxonomy my_taxonomy.tsv --sequences my_sequences.fasta
+  
+ To update a GraftM package with new sequences, you just need to provide the same arguments as above, but also pass a graftM 
+ package to the --graftm_package flag. Giving a package to graftM create will automatically execute the update pipeline. If no
+ output name is provided, a default suffix of "-updated.gpkg" will be appended to the current name. If no taxonomy for the 
+ new sequences is provided, GraftM will attempt to decorate using the surrounding sequences, but this is an imprfect method, 
+ so the --taxonomy flag should be used where possible. 
+    $ graftM create --graftm_package my_old_graftm_package.gpkg --sequences my_new_sequences.fasta --taxonomy my_new_taxonomy.tsv 
+      --output my_new_graftm_package.gpkg
+     
+ The taxonomy file is a 2 column tab separated file, where the first column is the sequence identifier and the second a taxonomy 
+ string describing that sequence e.g.
+ 
+    sequence1    k__kingdom1; p__phylum2
+
+ Internally, the taxonomic levels separated by '; ' are assumed to be kingdom, phylum, class, order, family, genus, species. 
+ However, this may not matter for the purposes of using graftM. The prefixes e.g. 'k__' are not required.
+ 
 ''')
 
     create = create_parser.add_argument_group('Common options')
@@ -203,6 +234,9 @@ sequence1    k__kingdom1; p__phylum2
     create_lesser_options=create_parser.add_argument_group('Lesser used options')
     create_lesser_options.add_argument('--rerooted_annotated_tree', metavar='newick_tree', help='Define taxonomy through this annotated newick file. (default: use taxonomy from --taxonomy)')
     create_lesser_options.add_argument('--hmm', metavar='.hmm file', help='Use this HMM for alignment, and search unless --search_hmm_files is specified. (default: use HMM built automatically from alignment)')
+    create_lesser_options.add_argument('--dereplication_level', metavar='.hmm file', type = int, help='taxonomic rank at which \
+to dereplicate the sequences to create the HMM. 0: No dereplication, 1: Domain level dereplication, 2: Phylum level dereplication, 3: Class level dereplication \
+4: Order level dereplication, 5: Family level dereplication, 6: Genus level dereplication (Default = 6, i.e. Genus level dereplication)', default = 6)
     create_lesser_options.add_argument('--search_hmm_files', metavar='.hmm files', nargs='+', help='Use these HMM(s) for search. (default: use --hmm or build automatically from alignment)')
     create_lesser_options.add_argument('--min_aligned_percent', type=int, metavar='percent', help='Remove sequences from the alignment which do not cover at least this percentage of the HMM', default=50)
     create_lesser_options.add_argument('--output', metavar='PATH', help='Name of output GraftM package (default: use name derived from alignment)')
@@ -211,6 +245,8 @@ sequence1    k__kingdom1; p__phylum2
     create_lesser_options.add_argument('--taxtastic_seqinfo', help='A taxtastic format seqinfo file. (default: use taxonomy from --taxonomy)')
     create_lesser_options.add_argument('--force', action="store_true", help='Overwrite output gpkg directory if it exists. (default: be cowardly and don\'t)', default=False)
     create_lesser_options.add_argument('--graftm_package', help='GraftM package to update')
+    
+    create_update_options=create_parser.add_argument_group('Update options')
 
     create_logging_options=create_parser.add_argument_group('Logging options')
     create_logging_options.add_argument('--verbosity', metavar='verbosity', help='1 - 5, 1 being silent, 5 being noisy indeed', type=int, default=4)
@@ -241,11 +277,16 @@ sequence1    k__kingdom1; p__phylum2
     decorate_parser = subparsers.add_parser('decorate',
                                             description='Reroot, and decorate a gene tree',
                                             formatter_class=CustomHelpFormatter,
-                                            epilog='''Example usage:
+                                            epilog='''
+ ##################################################################################################################################
+                                                       ~~ GraftM "decorate" ~~
+ ##################################################################################################################################
 
-Decorate input.tre with my.taxonomy, and output the decorated tree to output.tre and taxonomy to output.taxonomy:
+ Example usage:
 
-$ graftM decorate --rooted_tree input.tre --taxonomy my.taxonomy --output_tree output.tre --output_taxonomy output.taxonomy
+ Decorate input.tre with my.taxonomy, and output the decorated tree to output.tre and taxonomy to output.taxonomy:
+
+    $ graftM decorate --rooted_tree input.tre --taxonomy my.taxonomy --output_tree output.tre --output_taxonomy output.taxonomy
 
 '''+__author__)    
     tree_options = decorate_parser.add_argument_group('tree options')
@@ -263,6 +304,8 @@ must be in GreenGenes format (2 column tab separated, ID then taxonomy with taxo
     decorate_options.add_argument('--input_taxtastic_taxonomy', help='Input taxonomy of sequences used to build tree. This taxonomy \
 must be in taxtastic format.')
     decorate_options.add_argument('--input_taxtastic_seqinfo', help='Seqinfo file to accompany Taxtastic taxonomy file')
+    decorate_options.add_argument('--no_unique_tax', action = "store_true", help='Do not append unique numbers on the end of clades that appear twice', default = False)
+
     decorate_options.add_argument('--output_taxonomy', help='File path to output decorated taxonomy strings in GreenGenes format \
 corresponding to each leaf in the tree.', required=True)
 

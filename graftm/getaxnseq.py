@@ -25,16 +25,10 @@ class Getaxnseq:
             raise Exception("Programming error, found too many levels!")
         
     def read_taxonomy_file(self, taxonomy_file):
-        taxonomies = {}
-        for entry in open(taxonomy_file):
-            # split the entire line including the  on '; '
-            split = entry.rstrip().split(';')
-
-            # split out the taxon ID from the first split of above
-            taxon_id, first_taxon = [s.strip() for s in split[0].split()[:2]]
-            tax_split = [first_taxon] + split[1:]
-            
-            taxonomies[taxon_id] = tax_split
+        taxonomies = \
+            {x.split('\t')[0]:(x.split('\t')[1].strip().split('; ') if '; ' in x 
+                               else x.split('\t')[1].strip().split(';'))
+             for x in open(taxonomy_file)}
         return taxonomies
     
     def read_taxtastic_taxonomy_and_seqinfo(self, taxonomy_io, seqinfo_io):

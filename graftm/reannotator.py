@@ -1,4 +1,7 @@
+import logging
+
 from skbio.tree._tree import TreeNode
+from graftm.rerooter import Rerooter
 
 class TreeParaphyleticException(Exception): pass
 
@@ -30,7 +33,10 @@ class Reannotator:
         '''
         
         # make a list of the left and right leaf names that are in the new tree
-        if len(old_tree.children) != 2: raise Exception("Expected a binary tree, root node has number of children != 2")
+        if len(old_tree.children) != 2: 
+            logging.debug("Tree is not binary (root does not have exactly 2 children). Rerooting tree such that it is binary")
+            old_tree=Rerooter().reroot(old_tree)
+            print old_tree.ascii_art()
         new_tip_names = set([tip.name for tip in new_tree.tips(include_self=False)])
         old_left_tip_names = [tip.name for tip in old_tree.children[0].tips(include_self=False) if tip.name in new_tip_names]
         old_right_tip_names = [tip.name for tip in old_tree.children[1].tips(include_self=False) if tip.name in new_tip_names]
@@ -118,6 +124,7 @@ class Reannotator:
         else:
             # regular case, new root is down the tree somewhere
             an_old_child = tree.children[0]
+            import IPython ; IPython.embed()
             OLD_CHILD_NAME = 'ochild'
             an_old_child.name = OLD_CHILD_NAME
             
@@ -125,7 +132,7 @@ class Reannotator:
             new_root = TreeNode(length=0.0, children=[node], parent=node.parent)
             new_root.parent.children = [n for n in new_root.parent.children if n != node]+[new_root]
             new_root = tree.root_at(new_root)
-            
+            import IPython ; IPython.embed()
             # remove leftover dummy root
             old_child_node = new_root.find(OLD_CHILD_NAME)
             nodes_to_remove = [n for n in [old_child_node,old_child_node.parent] if len(n.children) == 1]

@@ -68,6 +68,7 @@ class DiamondSearchResult(SequenceSearchResult):
                        SequenceSearchResult.ALIGNMENT_BIT_SCORE,
                        # extras
                        SequenceSearchResult.ALIGNMENT_DIRECTION,
+                       SequenceSearchResult.HMM_NAME_FIELD
                        ]
         
         cmd = "diamond view -a '%s'" % daa_filename
@@ -95,6 +96,7 @@ class DiamondSearchResult(SequenceSearchResult):
                                  int(row[9]),
                                  row[11],
                                  query_start < query_end,
+                                 None,
                                  ])
         return res
 

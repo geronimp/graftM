@@ -28,6 +28,9 @@ T=Timer()
 PIPELINE_AA = "P"
 PIPELINE_NT = "D"
 
+class UnrecognisedSuffixError(Exception): 
+    pass
+
 class Run:
     _MIN_VERBOSITY_FOR_ART = 3 # with 2 then, only errors are printed
     PPLACER_TAXONOMIC_ASSIGNMENT = 'pplacer'
@@ -523,46 +526,65 @@ class Run:
               >c                        |________|
               ----------
 '''
-            import IPython ; IPython.embed()
-            if self.args.taxonomy:
-                if self.args.rerooted_annotated_tree:
-                    logging.error("--taxonomy is incompatible with --rerooted_annotated_tree")
-                    exit(1)
-                if self.args.taxtastic_taxonomy or self.args.taxtastic_seqinfo:
-                    logging.error("--taxtastic_taxonomy and --taxtastic_seqinfo are incompatible with --taxonomy")
-                    exit(1)
-            elif self.args.rerooted_annotated_tree:
-                if self.args.taxtastic_taxonomy or self.args.taxtastic_seqinfo:
-                    logging.error("--taxtastic_taxonomy and --taxtastic_seqinfo are incompatible with --rerooted_annotated_tree")
-                    exit(1)
-            else:
-                if not self.args.taxtastic_taxonomy or not self.args.taxtastic_seqinfo:
-                    logging.error("--taxonomy, --rerooted_annotated_tree or --taxtastic_taxonomy/--taxtastic_seqinfo is required")
-                    exit(1)
-            if bool(self.args.taxtastic_taxonomy) ^  bool(self.args.taxtastic_seqinfo):
-                logging.error("Both or neither of --taxtastic_taxonomy and --taxtastic_seqinfo must be defined")
-                exit(1)
-            if self.args.alignment and self.args.hmm:
-                logging.error("--alignment and --hmm cannot both be set")
-                exit(1)
-            self.hk.checkCreatePrerequisites()
+            if self.args.graftm_package:
+                if self.args.taxonomy and self.args.sequences:
+                    logging.info("GraftM package %s specified to update with sequences in %s" % (self.args.graftm_package, self.args.sequences))
+                    if not self.args.output:
+                        if self.args.graftm_package.endswith(".gpkg"):
+                            self.args.output = self.args.graftm_package.replace(".gpkg", "-updated.gpkg")
+                        else:
+                            raise UnrecognisedSuffixError("Unrecognised suffix on GraftM package %s. Please provide a graftM package with the correct suffix (.gpkg)" % (self.args.graftm_package))
+                    Create().update(self.args.sequences, self.args.taxonomy, self.args.graftm_package,
+                                    self.args.output)
 
-            Create().main(
-                          sequences = self.args.sequences,
-                          alignment = self.args.alignment,
-                          taxonomy = self.args.taxonomy,
-                          rerooted_tree = self.args.rerooted_tree,
-                          tree_log = self.args.tree_log,
-                          prefix = self.args.output,
-                          rerooted_annotated_tree = self.args.rerooted_annotated_tree,
-                          min_aligned_percent = float(self.args.min_aligned_percent)/100,
-                          taxtastic_taxonomy = self.args.taxtastic_taxonomy,
-                          taxtastic_seqinfo = self.args.taxtastic_seqinfo,
-                          hmm = self.args.hmm,
-                          search_hmm_files = self.args.search_hmm_files,
-                          force = self.args.force,
-                          graftm_package = self.args.graftm_package
-                          )
+                else:
+                    if self.args.taxonomy:
+                        logging.error("--sequences must be specified to update a GraftM package")
+                        exit(1)
+                    elif self.args.sequences:
+                        logging.error("--taxonomy must be specified to update a GraftM package")
+                        exit(1)
+            else:
+                if self.args.taxonomy:
+                    if self.args.rerooted_annotated_tree:
+                        logging.error("--taxonomy is incompatible with --rerooted_annotated_tree")
+                        exit(1)
+                    if self.args.taxtastic_taxonomy or self.args.taxtastic_seqinfo:
+                        logging.error("--taxtastic_taxonomy and --taxtastic_seqinfo are incompatible with --taxonomy")
+                        exit(1)
+                elif self.args.rerooted_annotated_tree:
+                    if self.args.taxtastic_taxonomy or self.args.taxtastic_seqinfo:
+                        logging.error("--taxtastic_taxonomy and --taxtastic_seqinfo are incompatible with --rerooted_annotated_tree")
+                        exit(1)
+                else:
+                    if not self.args.taxtastic_taxonomy or not self.args.taxtastic_seqinfo:
+                        logging.error("--taxonomy, --rerooted_annotated_tree or --taxtastic_taxonomy/--taxtastic_seqinfo is required")
+                        exit(1)
+                if bool(self.args.taxtastic_taxonomy) ^  bool(self.args.taxtastic_seqinfo):
+                    logging.error("Both or neither of --taxtastic_taxonomy and --taxtastic_seqinfo must be defined")
+                    exit(1)
+                if self.args.alignment and self.args.hmm:
+                    logging.error("--alignment and --hmm cannot both be set")
+                    exit(1)
+                self.hk.checkCreatePrerequisites()
+    
+                Create().main(
+                              dereplication_level = self.args.dereplication_level,
+                              sequences = self.args.sequences,
+                              alignment = self.args.alignment,
+                              taxonomy = self.args.taxonomy,
+                              rerooted_tree = self.args.rerooted_tree,
+                              tree_log = self.args.tree_log,
+                              prefix = self.args.output,
+                              rerooted_annotated_tree = self.args.rerooted_annotated_tree,
+                              min_aligned_percent = float(self.args.min_aligned_percent)/100,
+                              taxtastic_taxonomy = self.args.taxtastic_taxonomy,
+                              taxtastic_seqinfo = self.args.taxtastic_seqinfo,
+                              hmm = self.args.hmm,
+                              search_hmm_files = self.args.search_hmm_files,
+                              force = self.args.force,
+                              graftm_package = self.args.graftm_package
+                              )
         
         elif self.args.subparser_name == 'bootstrap':
             args = self.args
@@ -611,9 +633,10 @@ If you're unsure how to use GraftM decorate use graftM decorate -h")
                 if self.args.input_taxtastic_seqinfo or self.args.input_taxtastic_taxonomy:
                     logging.error("Both taxtastic and greengenes taxonomy were provided, so its unclear what taxonomy you want graftM to decorate with")
                     exit(1)
-                dec.main(self.args.input_greengenes_taxonomy, self.args.output_tree, self.args.output_taxonomy) 
+                dec.main(self.args.input_greengenes_taxonomy, self.args.output_tree, self.args.output_taxonomy, self.args.no_unique_tax) 
             elif self.args.input_taxtastic_seqinfo and self.args.input_taxtastic_taxonomy:
-                dec.main(self.args.input_taxtastic_taxonomy, self.args.output_tree, self.args.output_taxonomy, self.args.input_taxtastic_seqinfo) 
+                dec.main(self.args.input_taxtastic_taxonomy, self.args.output_tree, 
+                         self.args.output_taxonomy, self.args.no_unique_tax, self.args.input_taxtastic_seqinfo) 
             else:
                 logging.error("Only a taxtastic file or a seqinfo file were provided. graftM cannot continue without both.")
                 exit(1)        

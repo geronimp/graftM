@@ -278,7 +278,8 @@ class GraftMPackageVersion3(GraftMPackageVersion2):
         if diamond_database_file:
             diamond_database_file_in_gpkg = os.path.basename(diamond_database_file)
             shutil.copyfile(diamond_database_file, os.path.join(output_package_path, diamond_database_file_in_gpkg))
-        
+        else:
+            diamond_database_file_in_gpkg = diamond_database_file
         refpkg_in_gpkg = os.path.basename(refpkg_path)
         shutil.copytree(refpkg_path, os.path.join(output_package_path, refpkg_in_gpkg))
         
@@ -300,8 +301,7 @@ class GraftMPackageVersion3(GraftMPackageVersion2):
                     GraftMPackage.REFERENCE_PACKAGE_KEY: refpkg_in_gpkg,
                     GraftMPackage.HMM_TRUSTED_CUTOFF_KEY: trusted_cutoff,
                     GraftMPackage.RANGE_KEY: max_range,
-                    GraftMPackage.UNALIGNED_SEQUENCE_DATABASE_KEY: unaligned_sequence_database_in_gpkg}
-        if diamond_database_file:
-            contents[GraftMPackage.DIAMOND_DATABASE_KEY] = diamond_database_file_in_gpkg
+                    GraftMPackage.UNALIGNED_SEQUENCE_DATABASE_KEY: os.path.basename(unaligned_sequence_database),
+                    GraftMPackage.DIAMOND_DATABASE_KEY: diamond_database_file_in_gpkg}
         
         json.dump(contents, open(os.path.join(output_package_path, GraftMPackage._CONTENTS_FILE_NAME), 'w'))

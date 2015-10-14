@@ -3,7 +3,7 @@
 
 # Local imports
 from graftm.getaxnseq import Getaxnseq
-
+from graftm.rerooter import Rerooter
 # System imports
 from skbio import TreeNode
 import argparse
@@ -70,15 +70,15 @@ class TreeDecorator:
         Yields:
             Node object, if it is not a tip
         '''
-        logging.debug("Iterating through nodes")
+        logging.debug("Iterating through nodes")       
+        if len(self.tree.children) > 2:
+            logging.warning("There are > 2 descendants from the root of the \
+tree provided. Tree is being rerooted to the branch of the node that is the \
+greatest distance to the root.")
+            self.tree = Rerooter().reroot(self.tree)
         for node in self.tree.preorder():
             if node.is_root():
-                logging.debug("%i reads in tree from root" % (len(list(node.tips()))))
-                
-                # Fail if the root is not binary (unrooted)
-                if len(node.children) > 2:
-                    raise TreeUnrootedException("The root to the tree had more that 2 immediate child nodes, and so cannot be rooted correctly. Please ensure you have provided GraftM decorate with a rooted tree.")
-                
+                logging.debug("%i reads in tree from root" % (len(list(node.tips()))))                   
                 yield node
             elif node.is_tip():
                 logging.debug("Tip %s reached" % (node.name))
@@ -193,7 +193,7 @@ class TreeDecorator:
     def extract(self, output_tax):
         self._write_consensus_strings(output_tax)
     
-    def decorate(self, output_tree, output_tax):
+    def decorate(self, output_tree, output_tax, no_unique_names):
         '''
         Main function for TreeDecorator class. Accepts the output directory, 
         iterates through nodes, classifying them according to provided taxonomy. 
@@ -259,15 +259,18 @@ class TreeDecorator:
                 
                 if resolution < MAX_RESOLUTION:
                     new_tax_list = [] 
+                    
+                        
                     for tax in tax_list:
-                        if tax in self.encountered_taxonomies:
-                            idx = 1
-                            while tax in self.encountered_taxonomies:
-                                if idx > 1: 
-                                    tax = '%s_%i' % ('_'.join(tax.split('_')[:-1]), idx)
-                                else:
-                                    tax = tax + '_%i' % idx
-                                idx += 1
+                        if not no_unique_names:
+                            if tax in self.encountered_taxonomies:
+                                idx = 1
+                                while tax in self.encountered_taxonomies:
+                                    if idx > 1: 
+                                        tax = '%s_%i' % ('_'.join(tax.split('_')[:-1]), idx)
+                                    else:
+                                        tax = tax + '_%i' % idx
+                                    idx += 1
 
                         new_tax_list.append(tax)
                         self.encountered_taxonomies.add(tax)

@@ -368,7 +368,7 @@ graftM create --hmm %s --search_hmm_files %s --taxtastic_taxonomy %s --taxtastic
                 if genus == "" or genus == "g__":
                     continue
                 elif genus in seen_genera:
-                    logging.debug("Sequence %s redundant at %s level" % (id, Create._RANK_DICT[dereplication_level]))
+                    logging.debug("Sequence %s redundant at %s level: %s" % (id, Create._RANK_DICT[dereplication_level], genus) )
                     genus_dereplicated_sequences.append(id)
                 else:
                     seen_genera.add(genus)

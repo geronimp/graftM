@@ -29,6 +29,13 @@ class UpdatedGraftMPackage:
 class Create:
     _PROTEIN_PACKAGE_TYPE = 'protein_package_type'
     _NUCLEOTIDE_PACKAGE_TYPE = 'nucleotide_package_type'
+    _PREFIX_LIST = ["d__",
+                    "p__",
+                    "c__",
+                    "o__",
+                    "f__",
+                    "g__",
+                    "s__"]
     _RANK_DICT={0:None,
                 1:"domain",
                 2:"phylum",
@@ -188,7 +195,7 @@ class Create:
         return log_file, tre_file
 
     def _taxit_create(self, base, aln_file, tre, tre_log, tax, seq, 
-                      refpkg, no_reroot, sequences, hmm, search_hmms):
+                      refpkg, no_reroot):
         cmd = "taxit create -f %s -P %s -t %s -s %s -c -l  %s -T %s -i %s"\
             % (aln_file, refpkg, tre, tre_log, base, tax, seq)
             
@@ -212,10 +219,10 @@ class Create:
                                                           stdout)
             except (subprocess32.TimeoutExpired, extern.ExternCalledProcessError):
                 local_base = os.path.basename(base)
-                nontemp_search_hmm_file = 'graftm_create_search_hmm.%s.hmm' % local_base
-                shutil.copy(search_hmms, nontemp_search_hmm_file)
-                nontemp_align_hmm_file = 'graftm_create_align_hmm.%s.hmm' % local_base
-                shutil.copy(hmm, nontemp_align_hmm_file)
+                #nontemp_search_hmm_file = 'graftm_create_search_hmm.%s.hmm' % local_base
+                #shutil.copy(search_hmms, nontemp_search_hmm_file)
+                #nontemp_align_hmm_file = 'graftm_create_align_hmm.%s.hmm' % local_base
+                #shutil.copy(hmm, nontemp_align_hmm_file)
                 nontemp_tax_file = 'graftm_create_taxonomy.%s.csv' % local_base
                 shutil.copy(tax, nontemp_tax_file)
                 nontemp_seqinfo_file = 'graftm_create_seqinfo.%s.csv' % local_base
@@ -224,8 +231,8 @@ class Create:
                 shutil.copy(aln_file, nontemp_aln_file)
                 nontemp_tre_file = 'graftm_create_tree.%s.tree' % local_base
                 shutil.copy(tre, nontemp_tre_file)
-                nontemp_seq_file = 'graftm_create_sequences.%s.faa' % local_base
-                shutil.copy(sequences, nontemp_seq_file)
+                #nontemp_seq_file = 'graftm_create_sequences.%s.faa' % local_base
+                #shutil.copy(sequences, nontemp_seq_file)
                 logging.error('''
 taxit create failed to run in a small amount of time suggesting that
 rerooting was unsuccessful. Unfortunately this tree will need to be rerooted 
@@ -247,6 +254,7 @@ graftM create --hmm %s --search_hmm_files %s --taxtastic_taxonomy %s --taxtastic
        nontemp_seqinfo_file,
        nontemp_aln_file, 
        nontemp_seq_file))
+                import IPython ; IPython.embed()
                 exit(2)
         return refpkg
     
@@ -596,15 +604,18 @@ graftM create --hmm %s --search_hmm_files %s --taxtastic_taxonomy %s --taxtastic
                                             tre_file, log_file, ptype)
             
         # Create tax and seqinfo .csv files
+        taxonomy_to_keep=[
+                          seq.name for seq in 
+                                [x for x in [x[0] for x in deduplicated_arrays] 
+                                 if x]
+                          ]
         refpkg = "%s.refpkg" % output_gpkg_path
         self.the_trash.append(refpkg)
         if taxtastic_taxonomy and taxtastic_seqinfo:
             logging.info("Creating reference package")
             refpkg = self._taxit_create(base, deduplicated_alignment_file, 
                                         tre_file, log_file, taxtastic_taxonomy,
-                                        taxtastic_seqinfo, refpkg, no_reroot,
-                                        tree_sequences, align_hmm,
-                                        search_hmm_files[0])
+                                        taxtastic_seqinfo, refpkg, no_reroot)
         else:
             gtns = Getaxnseq()
             seq = base+"_seqinfo.csv"
@@ -617,9 +628,12 @@ graftM create --hmm %s --search_hmm_files %s --taxtastic_taxonomy %s --taxtastic
             elif taxonomy:
                 logging.info("Building seqinfo and taxonomy file from input taxonomy")
                 taxonomy_definition = gtns.read_taxonomy_file(taxonomy)
-                
             else:
                 raise Exception("Programming error: Taxonomy is required somehow e.g. by --taxonomy or --rerooted_annotated_tree")
+            taxonomy_definition = {x:taxonomy_definition[x] 
+                                   for x in taxonomy_definition 
+                                   if x in taxonomy_to_keep}
+
             gtns.write_taxonomy_and_seqinfo_files(taxonomy_definition,
                                                   tax,
                                                   seq)
@@ -628,8 +642,7 @@ graftM create --hmm %s --search_hmm_files %s --taxtastic_taxonomy %s --taxtastic
             logging.info("Creating reference package")
             refpkg = self._taxit_create(base, deduplicated_alignment_file, 
                                         tre_file, log_file, tax, seq, refpkg, 
-                                        no_reroot, tree_sequences, align_hmm,
-                                        search_hmm_files[0])
+                                        no_reroot)
         
         # Run diamond makedb
         logging.info("Creating diamond database")
@@ -675,6 +688,7 @@ graftM create --hmm %s --search_hmm_files %s --taxtastic_taxonomy %s --taxtastic
             Path to the directory to which the new GraftM package will be 
             written to
         '''
+        gtns = Getaxnseq()
         old_gpkg = GraftMPackage.acquire(input_graftm_package_path)
         new_gpkg = UpdatedGraftMPackage
         
@@ -724,15 +738,19 @@ alignment/HMM/Tree can be created""")
         ### Re-root and decorate tree ###
         new_gpkg.rooted_tree = "%s_rooted.tre" % (new_gpkg.name)
         new_gpkg.decorate_tax = "%s_decorate_tax.tsv" % (new_gpkg.name)
+        new_gpkg.gg_taxonomy = "%s_greengenes_taxonomy.tsv" % (new_gpkg.name)
         old_contents = self._parse_contents(os.path.join(old_gpkg.reference_package_path(), "CONTENTS.json"))
-        reference_tree = os.path.join(old_gpkg.reference_package_path(), old_contents['files']['tree'])
+        reference_tree = os.path.join(old_gpkg.reference_package_path(), 
+                                      old_contents['files']['tree'])
         
         if input_taxonomy_path:
             old_tax = Getaxnseq().read_taxtastic_taxonomy_and_seqinfo(open(old_gpkg.taxtastic_taxonomy_path()), 
                                                                       open(old_gpkg.taxtastic_seqinfo_path()))
             with tempfile.NamedTemporaryFile(suffix='.tsv') as old_taxonomy_path:
-                with tempfile.NamedTemporaryFile(suffix='.tsv') as decoration_taxonomy:
-                    for line in ["%s\t%s\n" % (id, tax) \
+                with open(new_gpkg.gg_taxonomy, "w") as decoration_taxonomy:
+                    for line in ["%s\t%s\n" % \
+                                 (id, 
+                                  '; '.join(tax + self._PREFIX_LIST[len(tax):])) \
                                  for id, tax in old_tax.iteritems()]:
                         old_taxonomy_path.write(line)
                     old_taxonomy_path.flush()
@@ -740,12 +758,13 @@ alignment/HMM/Tree can be created""")
                     self._concatenate_file( [old_taxonomy_path.name,
                                              input_taxonomy_path],
                                              decoration_taxonomy.name )
-                    
+
                     Decorator(reference_tree_path = reference_tree,
                               tree_path = new_gpkg.unrooted_tree).\
                                 main(decoration_taxonomy.name, 
                                      new_gpkg.rooted_tree, 
                                      new_gpkg.decorate_tax, 
+                                     False,
                                      False)
         else:
             Decorator(reference_tree_path = reference_tree,
@@ -753,14 +772,51 @@ alignment/HMM/Tree can be created""")
                         main(old_gpkg.taxtastic_taxonomy_path, 
                              new_gpkg.rooted_tree, 
                              new_gpkg.decorate_tax, 
+                             False,
                              False, 
                              old_gpkg.taxtastic_seqinfo_path)
-            
-        import IPython ; IPython.embed()
+        
+        ################################
+        ### Generating tree log file ###
+        new_gpkg.gpkg_tree = "%s_gpkg.tree" % new_gpkg.name
+        new_gpkg.gpkg_tree_log = "%s_gpkg.tree.log" % new_gpkg.name
+
+        self._generate_tree_log_file(new_gpkg.rooted_tree, 
+                                     new_gpkg.hmm_alignment, 
+                                     new_gpkg.gpkg_tree,
+                                     new_gpkg.gpkg_tree_log, 
+                                     new_gpkg.ptype)
+        
+        ################################
+        ### Creating taxtastic files ###
+        new_gpkg.tt_seqinfo = "%s_seqinfo.csv" % new_gpkg.name 
+        new_gpkg.tt_taxonomy = "%s_taxonomy.csv" % new_gpkg.name 
+        gtns.write_taxonomy_and_seqinfo_files(gtns.read_taxonomy_file(new_gpkg.gg_taxonomy),
+                                              new_gpkg.tt_taxonomy,
+                                              new_gpkg.tt_seqinfo)
+        ######################
+        ### Compile refpkg ###
+        new_gpkg.refpkg = "%s.refpkg" % (new_gpkg.name)
+        refpkg = self._taxit_create(new_gpkg.name, 
+                                    new_gpkg.hmm_alignment, 
+                                    new_gpkg.gpkg_tree, 
+                                    new_gpkg.gpkg_tree_log, 
+                                    new_gpkg.tt_taxonomy, 
+                                    new_gpkg.tt_seqinfo,
+                                    new_gpkg.refpkg, 
+                                    True)
+        
+        ####################
+        ### Compile gpkg ###
+        new_gpkg.name = "%s.gpkg" % new_gpkg.name 
+        GraftMPackageVersion3.compile(new_gpkg.name, new_gpkg.refpkg, 
+                                      new_gpkg.hmm, new_gpkg.diamond_database, 
+                                      self._define_range(new_gpkg.unaligned_sequences), 
+                                      new_gpkg.unaligned_sequences, 
+                                      search_hmm_files=old_gpkg.search_hmm_paths())
+    
         
         
-        #####################
-        ### Decorate tree ###
         
         
         

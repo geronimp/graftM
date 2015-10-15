@@ -104,6 +104,7 @@ is the greatest distance to the root.")
         '''
         transposed_taxonomy = []
         for index in range(0, 7):
+
             rank_taxonomy_list = [taxonomy_entry[index] 
                                     for taxonomy_entry in taxonomy_list]
             transposed_taxonomy.append(set(rank_taxonomy_list))

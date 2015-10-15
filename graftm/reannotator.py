@@ -36,7 +36,6 @@ class Reannotator:
         if len(old_tree.children) != 2: 
             logging.debug("Tree is not binary (root does not have exactly 2 children). Rerooting tree such that it is binary")
             old_tree=Rerooter().reroot(old_tree)
-            print old_tree.ascii_art()
         new_tip_names = set([tip.name for tip in new_tree.tips(include_self=False)])
         old_left_tip_names = [tip.name for tip in old_tree.children[0].tips(include_self=False) if tip.name in new_tip_names]
         old_right_tip_names = [tip.name for tip in old_tree.children[1].tips(include_self=False) if tip.name in new_tip_names]

@@ -48,7 +48,8 @@ class Decorator:
         self.tree = reannotator._reroot_tree_by_old_root(self.reference_tree, 
                                                          self.tree)
         
-    def main(self, taxonomy, output_tree, output_tax, no_unique_tax, seqinfo = None):
+    def main(self, taxonomy, output_tree, output_tax, no_unique_tax,
+             decorate, seqinfo = None):
         '''Decorate and if necessary, re-root the tree. If an old reference tree
         is provided it is assumed that re-rooting is desired
         
@@ -66,14 +67,19 @@ class Decorator:
         seqinfo: str
             path to taxtastic seqinfo file to be used with taxonomy to annotate
             the tree.'''        
-        
+
         # Reroot
         if self.reference_tree:
             self._reroot()
-            
         # Decorate
         td =  TreeDecorator(self.tree,
                             taxonomy,
                             seqinfo)
-        td.decorate(output_tree, output_tax, no_unique_tax)
-        
+        if decorate:
+            td.decorate(output_tree, output_tax, no_unique_tax)
+        else:
+            logging.info("Writing tree to file: %s" % (output_tree))
+            self.tree.write(
+                            output_tree,
+                            format = "newick"   
+                            )

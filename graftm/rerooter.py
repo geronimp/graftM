@@ -34,6 +34,9 @@ from skbio import TreeNode
 class BinaryTreeError(Exception):
     pass
 
+class NoGoodRootError(Exception):
+    pass
+
 ################################# - Code - ####################################
 
 class Rerooter:
@@ -42,12 +45,12 @@ class Rerooter:
     def reroot(self, tree):
         '''
         Reroot a tree: This small piece of code is intended to take a rooted 
-        tree that is NOT binary, that is to say, the root node has more than
-        or less than 3 child nodes. To create a binary tree, this function 
-        will find the two longest distances between the child nodes, find 
-        which child node is common to them both, and reroot at the branch 
-        connecting that node to root. For example, the new root will be placed
-        where the "x" is in the following example tree:
+        tree that is NOT binary, that is to say, the root node has 3 or more
+        child nodes. To create a binary tree, this function will find the two 
+        longest distances between the child nodes, find which child node is 
+        common to them both, and reroot at the branch connecting that node 
+        to root. For example, the new root will be placed where the "x" is in 
+        the following example tree:
                                       _
                                    __|_     _
                                   |_____x__|
@@ -60,8 +63,9 @@ class Rerooter:
             TreeNode object (tree opened with skbio)
         '''   
         children = tree.children
-        
-        if len(children) != 2:
+        no_found_root = True
+        branches_to_combine = 2
+        if len(children) > 2:
             node_combinations = list(itertools\
                                    .combinations([x for x in children], 
                                                  2))
@@ -69,10 +73,16 @@ class Rerooter:
                                    .combinations([x.length for x in children], 
                                                  2))
             sums = [x[0] + x[1] for x in length_combination]
-            nodes = [node_combinations[sums.index(x)]\
-                     for x in heapq.nlargest(2, sums)]
-            most_distant_node = [node for node in nodes[0] 
-                                 if node in nodes[1]][0]
+            
+            while no_found_root:
+                nodes = [node_combinations[sums.index(x)]
+                         for x in heapq.nlargest(2, sums)]
+                most_distant_node = [node for node in nodes[0] 
+                                     if node in nodes[1]]
+                if any(most_distant_node):
+                    most_distant_node = most_distant_node[0]
+                    no_found_root = False
+                
             other_nodes = [node for node in children 
                            if node != most_distant_node]
             link_root = TreeNode(children=other_nodes)

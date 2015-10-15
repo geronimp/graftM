@@ -135,17 +135,24 @@ class Reannotator:
             # remove leftover dummy root
             old_child_node = new_root.find(OLD_CHILD_NAME)
             nodes_to_remove = [n for n in [old_child_node,old_child_node.parent] if len(n.children) == 1]
-            if len(nodes_to_remove) != 1: raise Exception("Unexpected number of 1 child nodes")
-            n = nodes_to_remove[0]
-            child = n.children[0]
-            grandchildren = child.children
-            if len(grandchildren) != 2:
-                raise Exception("Unexpectedly found num grandchildren of dummy not != 2")
-            for g in grandchildren:
-                g.parent = n
-            n.length = n.length + child.length
-            n.children = grandchildren
-            n.name = None
+            if len(nodes_to_remove) == 0:
+                # sometimes trees do not have a separate root node,
+                # I suppose.
+                pass                
+            elif len(nodes_to_remove) == 1:
+                n = nodes_to_remove[0]
+                child = n.children[0]
+                grandchildren = child.children
+                if len(grandchildren) != 2:
+                    raise Exception("Unexpectedly found num grandchildren of dummy not != 2")
+                for g in grandchildren:
+                    g.parent = n
+                n.length = n.length + child.length
+                n.children = grandchildren                
+            else:
+                raise Exception("Unexpectedly found >1 child nodes")
+
+            old_child_node.name = None
     
             return new_root
         

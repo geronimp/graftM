@@ -73,8 +73,8 @@ class TreeDecorator:
         logging.debug("Iterating through nodes")       
         if len(self.tree.children) > 2:
             logging.warning("There are > 2 descendants from the root of the \
-tree provided. Tree is being rerooted to the branch of the node that is the \
-greatest distance to the root.")
+tree that was  provided. Tree is being rerooted to the branch of the node that \
+is the greatest distance to the root.")
             self.tree = Rerooter().reroot(self.tree)
         for node in self.tree.preorder():
             if node.is_root():

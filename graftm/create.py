@@ -94,7 +94,7 @@ class Create:
         Nothing
         '''
         logging.debug("Aligning sequences using mafft")
-        cmd = "mafft --thread 5 --auto '%s' > %s" % (input_sequences_path, output_alignment_path)
+        cmd = "mafft --anysymbol --thread 5 --auto '%s' > %s" % (input_sequences_path, output_alignment_path)
         extern.run(cmd)
         
     def _get_hmm_from_alignment(self, alignment, hmm_filename, output_alignment_filename):
@@ -203,7 +203,7 @@ class Create:
                 process = subprocess32.Popen(['bash','-c',cmd],
                                            stdout=subprocess32.PIPE,
                                            stderr=subprocess32.PIPE)
-                stdout, stderr = process.communicate(timeout=20)
+                stdout, stderr = process.communicate(timeout=60)
                     
                 if process.returncode != 0:
                     raise extern.ExternCalledProcessError(cmd,
@@ -357,10 +357,10 @@ graftM create --hmm %s --search_hmm_files %s --taxtastic_taxonomy %s --taxtastic
         temporary_dereplicated = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.faa').name
         if dereplication_level > 0:
             dereplication_index = dereplication_level - 1
+            
             #################################
             ### Genus level dereplication ###
-            
-            logging.debug("Dereplicating sequences at the %s level" % (Create._RANK_DICT[dereplication_level]))
+            logging.debug("Dereplicating sequences at the %s level" % (Create._RANK_DICT[dereplication_level + 1]  ))
             genus_dereplicated_sequences = []
             seen_genera = set()
             for id, taxonomy in taxonomy_definition.iteritems():
@@ -368,12 +368,12 @@ graftM create --hmm %s --search_hmm_files %s --taxtastic_taxonomy %s --taxtastic
                 if genus == "" or genus == "g__":
                     continue
                 elif genus in seen_genera:
-                    logging.debug("Sequence %s redundant at %s level: %s" % (id, Create._RANK_DICT[dereplication_level], genus) )
+                    logging.debug("Sequence %s redundant at %s level: %s" % (id, Create._RANK_DICT[dereplication_level + 1], genus) )
                     genus_dereplicated_sequences.append(id)
                 else:
                     seen_genera.add(genus)
             logging.info("Removing %i sequences from the search HMM that are redundant at the %s level" % (len(genus_dereplicated_sequences), 
-                                                                                        Create._RANK_DICT[dereplication_level]))
+                                                                                                           Create._RANK_DICT[dereplication_level + 1]))
             self._remove_sequences_from_alignment(genus_dereplicated_sequences, sequences, temporary_dereplicated)            
             self._align_sequences(temporary_dereplicated, temporary_alignment)
         else:

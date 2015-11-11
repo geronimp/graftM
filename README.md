@@ -33,5 +33,5 @@ A [manual](https://github.com/geronimp/graftM/wiki) is available in the form of 
 If you have any further comments, complaints or recomendations about GraftM, drop an email to the [SupportM](https://groups.google.com/forum/?hl=en#!forum/supportm) public help forum.
 
 ---
-Software by Joel A. Boyd (http://ecogenomic.org/users/joel-boyd) (@geronimp) and [Ben J. Woodcroft](http://www.ecogenomic.org/users/ben-woodcroft) (@wwood) at the [Australian Centre for Ecogenomics](http://ecogenomic.org)
+Software by [Joel A. Boyd](http://ecogenomic.org/users/joel-boyd) (@geronimp) and [Ben J. Woodcroft](http://www.ecogenomic.org/users/ben-woodcroft) (@wwood) at the [Australian Centre for Ecogenomics](http://ecogenomic.org)
 Released under GPL3 - see LICENCE.txt for licencing details

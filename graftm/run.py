@@ -550,5 +550,7 @@ class Run:
                 evalue = args.evalue,
                 min_orf_length = args.min_orf_length,
                 graftm_package = pkg)
-            strapper.generate_bootstrap_database_from_contigs(args.contigs, args.output_hmm)
+            strapper.generate_bootstrap_database_from_contigs(args.contigs,
+                                                              args.output_hmm,
+                                                              search_method=Bootstrapper.HMM_SEARCH_METHOD)
 

@@ -1,9 +1,7 @@
 import logging
 import tempfile
 import shutil
-import os
 import extern
-import json
 
 from graftm.hmmer import Hmmer
 from graftm.unpack_sequences import UnpackRawReads
@@ -39,8 +37,10 @@ class Bootstrapper:
         if graftm_package:
             self.diamond_database = graftm_package.diamond_database_path()
             self.unaligned_sequence_database = graftm_package.unaligned_sequence_database_path()
+            if self.search_hmm_files is None:
+                self.search_hmm_files = []
             for h in graftm_package.search_hmm_paths():
-                if h not in self.search_hmm_files: 
+                if h not in self.search_hmm_files:
                     self.search_hmm_files.append(h)
             if self.maximum_range is None:
                 self.maximum_range = graftm_package.maximum_range()

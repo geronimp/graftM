@@ -18,8 +18,16 @@ class GraftMFiles:
     def hmmsearch_output_path(self, out_path):
         return os.path.join(self.outdir, out_path, "%s.hmmout.csv" % self.basename)
     
+    def diamond_search_output_basename(self, out_path):
+        '''Does not include the .daa part that diamond creates'''
+        return os.path.join(self.outdir, out_path, "%s_diamond_search" % self.basename)
+    
+    def diamond_assignment_output_basename(self, out_path):
+        '''Does not include the .daa part that diamond creates'''
+        return os.path.join(self.outdir, out_path, "%s_diamond_assignment" % out_path)
+    
     def read_tax_output_path(self, out_path):
-        return os.path.join(self.outdir, out_path, "%s_read_tax.tsv" % self.basename)
+        return os.path.join(self.outdir, out_path, "%s_read_tax.tsv" % out_path)
 
     def jplace_output_path(self):
         return "placements.jplace"
@@ -72,9 +80,6 @@ class GraftMFiles:
     def sto_output_path(self, out_path):
         return os.path.join(self.outdir, out_path, "%s.sto" % self.basename)
 
-    def orf_hmmsearch_output_path(self, out_path):
-        return os.path.join(self.outdir, out_path, "%s_orf.hmmout.csv" % self.basename)
-    
     def basic_stats_path(self):
         return os.path.join(self.outdir, "basic_stats.txt")
 

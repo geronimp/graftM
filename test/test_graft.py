@@ -15,7 +15,6 @@
 # Distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
-# GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License.
 # If not, see <http://www.gnu.org/licenses/>.
@@ -185,6 +184,8 @@ SYMSGGVGFTQYATAAYTDNILDDYSYYGNDYAKKYGADGAAPATMDGV
                     self.assertEqual(expected_aln[count], line.strip())
                     count += 1
                 self.assertEqual(count, len(open(orfFile).readlines()))
+                
+                self.assertTrue(os.path.exists(os.path.join(tmp, sample_name, '%s_diamond_search.daa' % sample_name)), "should keep the diamond daa file")
                 
 
 
@@ -1103,6 +1104,7 @@ ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGAC
         with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
             fasta.write(testing_read)
             fasta.flush()
+            sample_name = os.path.basename(fasta.name[:-3])
             with tempdir.TempDir() as tmp:
                 cmd = '%s graft --verbosity 2  --forward %s --output_directory %s --force --assignment_method diamond --graftm_package %s' % (path_to_script,
                                                                                                                  fasta.name,
@@ -1113,6 +1115,7 @@ ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGAC
                             ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales; Methanoflorentaceae; Methanoflorens']]
                 expected = ['\t'.join(l) + '\n' for l in expected]
                 self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
+                self.assertTrue(os.path.exists(os.path.join(tmp, sample_name, '%s.hmmout.csv' % sample_name)), "should keep the hmmer search file")
                 
     def test_diamond_placement_method_protein_input(self):
         testing_read = '''>2518787893 METHANOFLORENS STORDALENMIRENSIS MCRA
@@ -1139,6 +1142,7 @@ ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGAC
         with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
             fasta.write(testing_read)
             fasta.flush()
+            sample_name = os.path.basename(fasta.name[:-3])
             with tempdir.TempDir() as tmp:
                 cmd = '%s graft --verbosity 2 --search_method diamond --forward %s --output_directory %s --force --assignment_method diamond --graftm_package %s' % (path_to_script,
                                                                                                                  fasta.name,
@@ -1155,6 +1159,9 @@ ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGAC
                             ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales; Methanoflorentaceae; Methanoflorens']]
                 expected = ['\t'.join(l) + '\n' for l in expected]
                 self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
+                
+                self.assertTrue(os.path.exists(os.path.join(tmp, sample_name, '%s_diamond_search.daa' % sample_name)), "should keep the diamond search file")
+                self.assertTrue(os.path.exists(os.path.join(tmp, sample_name, '%s_diamond_assignment.daa' % sample_name)), "should keep the diamond assign file")
 
     def test_hit_where_sequence_evalue_is_good_but_individuals_bad(self):
         # the first one is a real hit, the second has several hits better but none better than 1e-5

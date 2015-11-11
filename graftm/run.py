@@ -135,8 +135,6 @@ class Run:
                                     self.gmf.readnames_output_path(base),
                                     self.gmf.sto_output_path(base),
                                     self.gmf.orf_titles_output_path(base),
-                                    self.gmf.orf_hmmsearch_output_path(base),
-                                    self.gmf.hmmsearch_output_path(base),
                                     self.gmf.orf_output_path(base),
                                     self.gmf.output_for_path(base),
                                     self.gmf.output_rev_path(base)])
@@ -151,8 +149,6 @@ class Run:
                                 self.gmf.readnames_output_path(base),
                                 self.gmf.sto_output_path(base),
                                 self.gmf.orf_titles_output_path(base),
-                                self.gmf.hmmsearch_output_path(base),
-                                self.gmf.orf_hmmsearch_output_path(base),
                                 self.gmf.orf_output_path(base),
                                 self.gmf.output_for_path(base),
                                 self.gmf.output_rev_path(base)])
@@ -471,7 +467,9 @@ class Run:
             sequence_id_to_hit = {}
             # Run diamond
             logging.debug("Running diamond on %s" % search_result.hit_fasta())
-            diamond_result = runner.run(search_result.hit_fasta(), UnpackRawReads.PROTEIN_SEQUENCE_TYPE)
+            diamond_result = runner.run(search_result.hit_fasta(),
+                                        UnpackRawReads.PROTEIN_SEQUENCE_TYPE,
+                                        daa_file_basename=graftm_files.diamond_assignment_output_basename(base_list[i]))
             for res in diamond_result.each([SequenceSearchResult.QUERY_ID_FIELD,
                                             SequenceSearchResult.HIT_ID_FIELD]):
                 if res[0] in sequence_id_to_hit:

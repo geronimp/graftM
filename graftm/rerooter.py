@@ -75,11 +75,12 @@ class Rerooter:
             sums = [x[0] + x[1] for x in length_combination]
             
             while no_found_root:
+                
                 nodes = [node_combinations[sums.index(x)]
                          for x in heapq.nlargest(2, sums)]
                 most_distant_node = [node for node in nodes[0] 
                                      if node in nodes[1]]
-                if any(most_distant_node):
+                if len(most_distant_node) > 0:
                     most_distant_node = most_distant_node[0]
                     no_found_root = False
                 

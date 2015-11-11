@@ -8,6 +8,7 @@ import subprocess32
 import extern
 import tempdir
 import json
+import signal
 
 from Bio import SeqIO
 
@@ -20,6 +21,7 @@ from skbio.tree import TreeNode
 from graftm.sequence_io import SequenceIO
 from graftm.graftm_package import GraftMPackageVersion3, GraftMPackage
 from graftm.decorator import Decorator
+
 class InsufficientGraftMPackageVersion(Exception): 
     pass
 
@@ -86,7 +88,8 @@ class Create:
                 to_return.append(s.name)
         return to_return
     
-    def _align_sequences(self, input_sequences_path, output_alignment_path):
+    def _align_sequences(self, input_sequences_path, output_alignment_path,
+                         threads):
         '''Align sequences into alignment_file
         
         Parameters
@@ -95,13 +98,16 @@ class Create:
             path to input sequences in fasta format
         output_alignment_path: str
             path to output alignment path
-            
+        threads: str
+            number of threads to use
         Returns
         -------
         Nothing
         '''
         logging.debug("Aligning sequences using mafft")
-        cmd = "mafft --anysymbol --thread 5 --auto '%s' > %s" % (input_sequences_path, output_alignment_path)
+        cmd = "mafft --anysymbol --thread %s --auto '%s' > %s" % (threads, 
+                                                                  input_sequences_path, 
+                                                                  output_alignment_path)
         extern.run(cmd)
         
     def _get_hmm_from_alignment(self, alignment, hmm_filename, output_alignment_filename):
@@ -134,8 +140,10 @@ class Create:
                                                               tempaln.name)
         out = extern.run(cmd)
         logging.debug("Got STDOUT from seqmagick: %s" % out)
-        
-        Hmmer(hmm_filename).alignment_correcter([tempaln.name], output_alignment_filename)
+        ptype, _ = self._pipe_type(hmm_filename)   
+        Hmmer(hmm_filename).alignment_correcter([tempaln.name], 
+                                                output_alignment_filename)
+        return ptype
         
     def _align_sequences_to_hmm(self, hmm_file, sequences_file, output_alignment_file):
         '''Align sequences to an HMM, and return a path to an alignment of
@@ -209,7 +217,8 @@ class Create:
             try:
                 process = subprocess32.Popen(['bash','-c',cmd],
                                            stdout=subprocess32.PIPE,
-                                           stderr=subprocess32.PIPE)
+                                           stderr=subprocess32.PIPE,
+                                           preexec_fn=os.setsid)
                 stdout, stderr = process.communicate(timeout=60)
                     
                 if process.returncode != 0:
@@ -218,6 +227,7 @@ class Create:
                                                           stderr,
                                                           stdout)
             except (subprocess32.TimeoutExpired, extern.ExternCalledProcessError):
+                os.killpg(process.pid, signal.SIGTERM)
                 local_base = os.path.basename(base)
                 #nontemp_search_hmm_file = 'graftm_create_search_hmm.%s.hmm' % local_base
                 #shutil.copy(search_hmms, nontemp_search_hmm_file)
@@ -245,16 +255,18 @@ When rerunning, please use the following flags for the command line to account
 for the fact that some sequences may have been removed during the deduplication
 process.
 
-graftM create --hmm %s --search_hmm_files %s --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --sequences %s --rerooted_tree <REROOTED_TREE>
+graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --rerooted_tree <REROOTED_TREE>
 
 (plus other relevant arguments).
-''' % (nontemp_align_hmm_file,
-       nontemp_search_hmm_file,
+''' % (
+       #nontemp_align_hmm_file,
+       #nontemp_search_hmm_file,
        nontemp_tax_file,
        nontemp_seqinfo_file,
        nontemp_aln_file, 
-       nontemp_seq_file))
-                import IPython ; IPython.embed()
+       #nontemp_seq_file
+       )
+                              )
                 exit(2)
         return refpkg
     
@@ -359,7 +371,7 @@ graftM create --hmm %s --search_hmm_files %s --taxtastic_taxonomy %s --taxtastic
         return num_written
 
     def _create_search_hmm(self, sequences, taxonomy_definition, 
-                           search_hmm, dereplication_level):
+                           search_hmm, dereplication_level, threads):
         logging.debug("Constructing search HMM")
         temporary_alignment = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa').name
         temporary_dereplicated = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.faa').name
@@ -383,10 +395,10 @@ graftM create --hmm %s --search_hmm_files %s --taxtastic_taxonomy %s --taxtastic
             logging.info("Removing %i sequences from the search HMM that are redundant at the %s level" % (len(genus_dereplicated_sequences), 
                                                                                                            Create._RANK_DICT[dereplication_level + 1]))
             self._remove_sequences_from_alignment(genus_dereplicated_sequences, sequences, temporary_dereplicated)            
-            self._align_sequences(temporary_dereplicated, temporary_alignment)
+            self._align_sequences(temporary_dereplicated, temporary_alignment, threads)
         else:
             logging.debug("Skipping dereplication step and using all sequences to build search HMM")
-            self._align_sequences(sequences, temporary_alignment)
+            self._align_sequences(sequences, temporary_alignment, threads)
         self._get_hmm_from_alignment(temporary_alignment, search_hmm, temporary_alignment)
     
              
@@ -407,7 +419,7 @@ graftM create --hmm %s --search_hmm_files %s --taxtastic_taxonomy %s --taxtastic
         extern.run(cmd)
     
     def _align_and_create_hmm(self, sequences, alignment, user_hmm, 
-                              output_align_hmm, output_alignment):
+                              output_align_hmm, output_alignment, threads):
 
         # align sequences to HMM (and potentially build hmm from alignment)
         if user_hmm:
@@ -415,10 +427,10 @@ graftM create --hmm %s --search_hmm_files %s --taxtastic_taxonomy %s --taxtastic
             self._align_sequences_to_hmm(output_hmm, sequences, output_alignment)
         else:
             if not alignment:
-                self._align_sequences(sequences, output_alignment)
-            self._get_hmm_from_alignment(output_alignment, output_align_hmm, output_alignment)
-            
-        ptype, _ = self._pipe_type(output_align_hmm)    
+                self._align_sequences(sequences, output_alignment, threads)
+            ptype = self._get_hmm_from_alignment(output_alignment, 
+                                                 output_align_hmm, 
+                                                 output_alignment)
         return ptype
     
     
@@ -438,10 +450,13 @@ graftM create --hmm %s --search_hmm_files %s --taxtastic_taxonomy %s --taxtastic
         force_overwrite = kwargs.pop('force',False)
         graftm_package = kwargs.pop('graftm_package',False)
         dereplication_level = kwargs.pop('dereplication_level',False)
+        threads = kwargs.pop('threads',False)
         if len(kwargs) > 0:
             raise Exception("Unexpected arguments detected: %s" % kwargs)
-        
-        locus_name = os.path.basename(sequences).split('.')[0]
+        seqio = SequenceIO()
+        locus_name = (os.path.basename(sequences).split('.')[0]
+                      if sequences
+                      else os.path.basename(alignment).split('.')[0])
         tmp = tempdir.TempDir()
         base = os.path.join(tmp.name, locus_name)
         insufficiently_aligned_sequences = [None]
@@ -476,57 +491,73 @@ graftM create --hmm %s --search_hmm_files %s --taxtastic_taxonomy %s --taxtastic
                  open(taxtastic_seqinfo))
         else:
             raise Exception("Taxonomy is required somehow e.g. by --taxonomy or --rerooted_annotated_tree")
-
-   
-        
         
         output_alignment = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa').name
         align_hmm = tempfile.NamedTemporaryFile(prefix='graftm', suffix='_align.hmm').name
-        ptype = self._align_and_create_hmm(sequences, alignment, user_hmm,
-                                           align_hmm, output_alignment)   
-        
-        logging.info("Checking for incorrect or fragmented reads")
-        insufficiently_aligned_sequences = self._check_reads_hit(open(output_alignment),
-                                                                 min_aligned_percent)
-        while len(insufficiently_aligned_sequences) > 0:
-            logging.warn("One or more alignments do not span > %.2f %% of HMM" % (min_aligned_percent*100))
-            for s in insufficiently_aligned_sequences:
-                logging.warn("Insufficient alignment of %s, not including this sequence" % s)
-            
-            _, sequences2 = tempfile.mkstemp(prefix='graftm', suffix='.faa')
-            num_sequences = self._remove_sequences_from_alignment(insufficiently_aligned_sequences, 
-                                                                  sequences, 
-                                                                  sequences2)
-            sequences = sequences2
-            logging.info("After removing %i insufficiently aligned sequences, left with %i sequences" % (len(insufficiently_aligned_sequences), num_sequences))
-            if num_sequences < 4:
-                raise Exception("Too few sequences remaining in alignment after removing insufficiently aligned sequences: %i" % num_sequences)
+        if sequences:
+            if alignment:
+                ptype = self._get_hmm_from_alignment(alignment, 
+                                                     align_hmm, 
+                                                     output_alignment)
             else:
-                logging.info("Reconstructing the alignment and HMM from remaining sequences")
-                output_alignment = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa').name
-                align_hmm = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.hmm').name
-                ptype = self._align_and_create_hmm(sequences, alignment, user_hmm, 
-                                                   align_hmm, output_alignment)
-                logging.info("Checking for incorrect or fragmented reads")
-                insufficiently_aligned_sequences = self._check_reads_hit(open(output_alignment),
-                                                                         min_aligned_percent)
-        if not search_hmm_files:
-            search_hmm = tempfile.NamedTemporaryFile(prefix='graftm', suffix='_search.hmm').name
-            self._create_search_hmm(sequences, taxonomy_definition, search_hmm, dereplication_level)
-            search_hmm_files = [search_hmm]
-
-        # Make sure each sequence has been assigned a taxonomy:
-        seqio = SequenceIO()
-        aligned_sequence_objects = seqio.read_fasta_file(output_alignment)
-        unannotated = []
-        for s in aligned_sequence_objects:
-            if s.name not in taxonomy_definition:
-                unannotated.append(s.name)
-        if len(unannotated) > 0:
-            for s in unannotated:
-                logging.error("Unable to find sequence '%s' in the taxonomy definition" % s)
-            raise Exception("All sequences must be assigned a taxonomy, cannot continue")
-        
+                ptype = self._align_and_create_hmm(sequences, alignment, user_hmm,
+                                                   align_hmm, output_alignment, threads)   
+            
+            logging.info("Checking for incorrect or fragmented reads")
+            insufficiently_aligned_sequences = self._check_reads_hit(open(output_alignment),
+                                                                     min_aligned_percent)
+            while len(insufficiently_aligned_sequences) > 0:
+                logging.warn("One or more alignments do not span > %.2f %% of HMM" % (min_aligned_percent*100))
+                for s in insufficiently_aligned_sequences:
+                    logging.warn("Insufficient alignment of %s, not including this sequence" % s)
+                
+                _, sequences2 = tempfile.mkstemp(prefix='graftm', suffix='.faa')
+                num_sequences = self._remove_sequences_from_alignment(insufficiently_aligned_sequences, 
+                                                                      sequences, 
+                                                                      sequences2)
+                sequences = sequences2
+                logging.info("After removing %i insufficiently aligned sequences, left with %i sequences" % (len(insufficiently_aligned_sequences), num_sequences))
+                if num_sequences < 4:
+                    raise Exception("Too few sequences remaining in alignment after removing insufficiently aligned sequences: %i" % num_sequences)
+                else:
+                    logging.info("Reconstructing the alignment and HMM from remaining sequences")
+                    output_alignment = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa').name
+                    align_hmm = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.hmm').name
+                    ptype = self._align_and_create_hmm(sequences, alignment, user_hmm, 
+                                                       align_hmm, output_alignment, threads)
+                    logging.info("Checking for incorrect or fragmented reads")
+                    insufficiently_aligned_sequences = self._check_reads_hit(open(output_alignment),
+                                                                             min_aligned_percent)
+            if not search_hmm_files:
+                search_hmm = tempfile.NamedTemporaryFile(prefix='graftm', suffix='_search.hmm').name
+                self._create_search_hmm(sequences, taxonomy_definition, search_hmm, dereplication_level, threads)
+                search_hmm_files = [search_hmm]
+    
+            # Make sure each sequence has been assigned a taxonomy:
+            aligned_sequence_objects = seqio.read_fasta_file(output_alignment)
+            unannotated = []
+            for s in aligned_sequence_objects:
+                if s.name not in taxonomy_definition:
+                    unannotated.append(s.name)
+            if len(unannotated) > 0:
+                for s in unannotated:
+                    logging.error("Unable to find sequence '%s' in the taxonomy definition" % s)
+                raise Exception("All sequences must be assigned a taxonomy, cannot continue")
+        else:
+            ptype = self._get_hmm_from_alignment(alignment, 
+                                                 align_hmm, 
+                                                 output_alignment)  
+            
+            aligned_sequence_objects = seqio.read_fasta_file(output_alignment)      
+            unannotated = []
+            for s in aligned_sequence_objects:
+                if s.name not in taxonomy_definition:
+                    unannotated.append(s.name)
+            if len(unannotated) > 0:
+                for s in unannotated:
+                    logging.error("Unable to find sequence '%s' in the taxonomy definition" % s)
+                raise Exception("All sequences must be assigned a taxonomy, cannot continue")
+    
         # Deduplicate sequences - pplacer cannot handle these
         logging.info("Deduplicating sequences")
         dedup = Deduplicator()
@@ -549,10 +580,6 @@ graftM create --hmm %s --search_hmm_files %s --taxtastic_taxonomy %s --taxtastic
             for seq in list:
                 filtered_names.append(seq.name)
         _, sequences2 = tempfile.mkstemp(prefix='graftm', suffix='.faa')
-        num_sequences = self._remove_sequences_from_alignment(filtered_names, 
-                                                              sequences, 
-                                                              sequences2)
-        tree_sequences = sequences2
         
             
         # Create tree unless one was provided
@@ -630,6 +657,7 @@ graftM create --hmm %s --search_hmm_files %s --taxtastic_taxonomy %s --taxtastic
                 taxonomy_definition = gtns.read_taxonomy_file(taxonomy)
             else:
                 raise Exception("Programming error: Taxonomy is required somehow e.g. by --taxonomy or --rerooted_annotated_tree")
+           
             taxonomy_definition = {x:taxonomy_definition[x] 
                                    for x in taxonomy_definition 
                                    if x in taxonomy_to_keep}
@@ -643,20 +671,25 @@ graftM create --hmm %s --search_hmm_files %s --taxtastic_taxonomy %s --taxtastic
             refpkg = self._taxit_create(base, deduplicated_alignment_file, 
                                         tre_file, log_file, tax, seq, refpkg, 
                                         no_reroot)
-        
-        # Run diamond makedb
-        logging.info("Creating diamond database")
-        if ptype == Create._PROTEIN_PACKAGE_TYPE:
-            cmd = "diamond makedb --in '%s' -d '%s'" % (sequences, base)
-            extern.run(cmd)
-            diamondb = '%s.dmnd' % base
-        elif ptype == Create._NUCLEOTIDE_PACKAGE_TYPE:
+        if sequences:
+            # Run diamond makedb
+            logging.info("Creating diamond database")
+            if ptype == Create._PROTEIN_PACKAGE_TYPE:
+                cmd = "diamond makedb --in '%s' -d '%s'" % (sequences, base)
+                extern.run(cmd)
+                diamondb = '%s.dmnd' % base
+            elif ptype == Create._NUCLEOTIDE_PACKAGE_TYPE:
+                diamondb = None
+            else: raise Exception("Programming error")
+        else:
             diamondb = None
-        else: raise Exception("Programming error")
-
-        # Get range
-        max_range=self._define_range(sequences)
         
+        if sequences:
+            # Get range
+            max_range = self._define_range(sequences)
+        else:
+            max_range = self._define_range(alignment)
+
         # Compile the gpkg
         logging.info("Compiling gpkg")
         

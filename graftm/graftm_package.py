@@ -233,8 +233,8 @@ class GraftMPackageVersion3(GraftMPackageVersion2):
         
     @staticmethod
     def compile(output_package_path, refpkg_path, hmm_path, diamond_database_file, 
-                max_range, unaligned_sequence_database, trusted_cutoff=False,
-                search_hmm_files=None):
+                max_range, unaligned_sequence_database=None, 
+                trusted_cutoff=False, search_hmm_files=None):
         '''Create a new GraftM package with the given inputs. Any files
         specified as parameters are copied into the final package so can
         be removed after calling this function.
@@ -272,8 +272,9 @@ class GraftMPackageVersion3(GraftMPackageVersion2):
         hmm_file_in_gpkg = os.path.basename(hmm_path)
         shutil.copyfile(hmm_path, os.path.join(output_package_path, hmm_file_in_gpkg))
         # Copy unaligned sequence database into graftm package
-        unaligned_sequence_database_in_gpkg = os.path.join(output_package_path, os.path.basename(unaligned_sequence_database))
-        shutil.copyfile(unaligned_sequence_database, unaligned_sequence_database_in_gpkg)
+        if unaligned_sequence_database:
+            unaligned_sequence_database_in_gpkg = os.path.join(output_package_path, os.path.basename(unaligned_sequence_database))
+            shutil.copyfile(unaligned_sequence_database, unaligned_sequence_database_in_gpkg)
         
         if diamond_database_file:
             diamond_database_file_in_gpkg = os.path.basename(diamond_database_file)
@@ -301,7 +302,8 @@ class GraftMPackageVersion3(GraftMPackageVersion2):
                     GraftMPackage.REFERENCE_PACKAGE_KEY: refpkg_in_gpkg,
                     GraftMPackage.HMM_TRUSTED_CUTOFF_KEY: trusted_cutoff,
                     GraftMPackage.RANGE_KEY: max_range,
-                    GraftMPackage.UNALIGNED_SEQUENCE_DATABASE_KEY: os.path.basename(unaligned_sequence_database),
+                    GraftMPackage.UNALIGNED_SEQUENCE_DATABASE_KEY: (os.path.basename(unaligned_sequence_database)
+                                                                    if unaligned_sequence_database else None),
                     GraftMPackage.DIAMOND_DATABASE_KEY: diamond_database_file_in_gpkg}
         
         json.dump(contents, open(os.path.join(output_package_path, GraftMPackage._CONTENTS_FILE_NAME), 'w'))

@@ -151,7 +151,8 @@ if __name__ == '__main__':
     running_options = graft_parser.add_argument_group('running options')
     running_options.add_argument('--threads', type=int, metavar='threads', help='Number of threads to use (default = 5)', default=5)
     running_options.add_argument('--input_sequence_type', help='Specify whether the input sequence is "nucleotide" or "aminoacid" sequence data (default=will attempt to auto-detect)', choices = ['aminoacid', 'nucleotide'],  default=argparse.SUPPRESS)
-    
+    running_options.add_argument('--filter_minimum', type=int, metavar='filter_minimum', help='Minimum number of positions that must be aligned for each sequence in order to by placed in the phylogenetic tree')
+
     searching_options = graft_parser.add_argument_group('searching options')
     searching_options.add_argument('--evalue', metavar='evalue', help='evalue cutoff for the hmmsearch (default = 1e-5)', default= '1e-5')
     searching_options.add_argument('--search_and_align_only', action="store_true", help='Stop after reads have been identified (default=False)', default=False)
@@ -228,7 +229,7 @@ if __name__ == '__main__':
     create = create_parser.add_argument_group('Common options')
     create.add_argument('--taxonomy', metavar='TAX', help='File containing two tab separated columns, the first with the ID of the sequences, the second with the taxonomy string (required unless --rerooted_annotated_tree or --taxtastic_taxonomy and --taxtastic_seqinfo are specified)')
     create.add_argument('--alignment', metavar='ALN', help='An alignment with which to build a custom HMM and tree (required unless --hmm is set)')
-    create.add_argument('--sequences', metavar='FASTA', help='Unaligned sequences (required)', required=True)
+    create.add_argument('--sequences', metavar='FASTA', help='Unaligned sequences (required)')
     create.add_argument('--rerooted_tree', help='A tree with which to build the refpkg, appropriately rooted. (default: generate tree with FastTree and attempt reroot with taxtastic)')
     
     create_lesser_options=create_parser.add_argument_group('Lesser used options')
@@ -244,6 +245,8 @@ to dereplicate the sequences to create the HMM. 0: No dereplication, 1: Domain l
     create_lesser_options.add_argument('--taxtastic_taxonomy', help='A taxtastic format taxonomy file. (default: use taxonomy from --taxonomy)')
     create_lesser_options.add_argument('--taxtastic_seqinfo', help='A taxtastic format seqinfo file. (default: use taxonomy from --taxonomy)')
     create_lesser_options.add_argument('--force', action="store_true", help='Overwrite output gpkg directory if it exists. (default: be cowardly and don\'t)', default=False)
+    create_lesser_options.add_argument('--threads', metavar='threads', help='Number of threads to use (default = 5)', default=5)
+
     create_lesser_options.add_argument('--graftm_package', help='GraftM package to update')
     
     create_update_options=create_parser.add_argument_group('Update options')
@@ -305,6 +308,7 @@ must be in GreenGenes format (2 column tab separated, ID then taxonomy with taxo
 must be in taxtastic format.')
     decorate_options.add_argument('--input_taxtastic_seqinfo', help='Seqinfo file to accompany Taxtastic taxonomy file')
     decorate_options.add_argument('--no_unique_tax', action = "store_true", help='Do not append unique numbers on the end of clades that appear twice', default = False)
+    decorate_options.add_argument('--decorate', action = "store_true", help='Decorate the tree', default = False)
 
     decorate_options.add_argument('--output_taxonomy', help='File path to output decorated taxonomy strings in GreenGenes format \
 corresponding to each leaf in the tree.', required=True)

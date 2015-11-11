@@ -45,10 +45,12 @@ class TreeDecorator:
         self.tree = tree
         
         # Read in taxonomy
+        
         if seqinfo:
             gtns = Getaxnseq()
             logging.info("Importing taxtastic taxonomy from files: %s and %s" % (taxonomy, seqinfo))
             self.taxonomy =  gtns.read_taxtastic_taxonomy_and_seqinfo(open(taxonomy), open(seqinfo))
+            
             for id, taxonomy_list in self.taxonomy.iteritems():
                 if len(taxonomy_list) != MAX_RESOLUTION:
                     self.taxonomy[id] = taxonomy_list + self.gg_prefixes[1:][len(taxonomy_list):]
@@ -76,6 +78,7 @@ class TreeDecorator:
 tree that was  provided. Tree is being rerooted to the branch of the node that \
 is the greatest distance to the root.")
             self.tree = Rerooter().reroot(self.tree)
+            print "ecit"
         for node in self.tree.preorder():
             if node.is_root():
                 logging.debug("%i reads in tree from root" % (len(list(node.tips()))))                   

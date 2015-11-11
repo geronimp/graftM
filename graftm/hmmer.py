@@ -496,7 +496,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         return output_path, complement_info
         
 
-    def alignment_correcter(self, alignment_file_list, output_file_name):
+    def alignment_correcter(self, alignment_file_list, output_file_name,
+                            filter_minimum=None):
         '''
         Remove lower case insertions in alignment outputs from HMM align. Give
         a list of alignments, and an output file name, and each alignment will
@@ -510,7 +511,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
             inputs provided to GraftM
         output_file_name : str
             The path and filename of the output file desired.
-            
+        filter_minimum : int
+            minimum number of positions that must be aligned for each sequence
         Returns
         -------
         True or False, depending if reads were written to file
@@ -533,7 +535,9 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                 corrected_sequences['>' + sequence.id + '\n'] = (''.join(new_seq) + '\n').replace('~', '-')
         
         pre_filter_count=len(corrected_sequences)
-        corrected_sequences={key:item for key, item in corrected_sequences.iteritems() if len(item.replace('-', '')) >10}
+
+        if filter_minimum:
+            corrected_sequences={key:item for key, item in corrected_sequences.iteritems() if len(item.replace('-', '')) > filter_minimum}
         
         post_filter_count=len(corrected_sequences)
         logging.info("Filtered %i short sequences from the alignment" % \
@@ -544,10 +548,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         if len(corrected_sequences) >= 1:
             with open(output_file_name, 'w') as output_file:  # Create an open file to write the new sequences to
                 for fasta_id, fasta_seq in corrected_sequences.iteritems():
-                    if len(fasta_seq.strip().replace('-','')) > 10:
-                        if any(c.isalpha() for c in fasta_seq):
-                            output_file.write(fasta_id)
-                            output_file.write(fasta_seq)
+                    output_file.write(fasta_id)
+                    output_file.write(fasta_seq)
             return True
         else:
             return False
@@ -1096,7 +1098,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         return result, direction_information
         
     @T.timeit
-    def align(self, input_path, output_path, directions, pipeline):
+    def align(self, input_path, output_path, directions, pipeline, 
+              filter_minimum):
         '''align - Takes input path to fasta of unaligned reads, aligns them to
         a HMM, and returns the aligned reads in the output path
 
@@ -1122,7 +1125,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                     directions,
                                     pipeline)
         alignment_result = self.alignment_correcter(alignments,
-                                                    output_path)
+                                                    output_path,
+                                                    filter_minimum)
         return alignment_result
         
 

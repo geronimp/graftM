@@ -5,6 +5,7 @@ import csv
 class SequenceSearchResult:
     QUERY_FROM_FIELD = 'query_from'
     QUERY_TO_FIELD = 'query_to'
+    QUERY_LENGTH_FIELD = 'query_length'
     HIT_FROM_FIELD = 'hit_from'
     HIT_TO_FIELD = 'hit_to'
     ALIGNMENT_LENGTH_FIELD = 'alignment_length'
@@ -14,6 +15,7 @@ class SequenceSearchResult:
     QUERY_ID_FIELD = 'query_id'
     HMM_NAME_FIELD = 'hmm_name'
     ACCESSION_ID_FIELD = 'accession_id'
+    
     
     
     def __init__(self):
@@ -146,6 +148,7 @@ class HMMSearchResult(SequenceSearchResult):
                        SequenceSearchResult.QUERY_ID_FIELD,
                        SequenceSearchResult.HMM_NAME_FIELD,
                        SequenceSearchResult.ACCESSION_ID_FIELD,
+                       SequenceSearchResult.QUERY_LENGTH_FIELD,
                        SequenceSearchResult.ALIGNMENT_LENGTH_FIELD,
                        SequenceSearchResult.QUERY_FROM_FIELD,
                        SequenceSearchResult.QUERY_TO_FIELD,
@@ -163,6 +166,7 @@ class HMMSearchResult(SequenceSearchResult):
                 res.results.append([row[0],
                                     row[3],
                                     row[4],
+                                    row[5],
                                     aln_length,
                                     int(row[15]),
                                     int(row[16]),

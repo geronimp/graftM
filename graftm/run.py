@@ -177,6 +177,7 @@ class Run:
         hit_read_count_list = []
         db_search_results   = []
 
+
         if gpkg:
             maximum_range = gpkg.maximum_range()
             diamond_db    = gpkg.diamond_database_path()
@@ -236,9 +237,9 @@ class Run:
             logging.debug("HMM type: %s Trusted Cutoff: %s" % (hmm_type, hmm_tc))
         setattr(self.args, 'type', hmm_type)
         if hmm_tc:
-            pass
-            #setattr(self.args, 'evalue', '--cut_tc')
-            
+            setattr(self.args, 'evalue', '--cut_tc')
+        if not self.args.filter_minimum:
+            filter_minimum      = (95 if self.args.type == PIPELINE_NT else 30)
         # Generate bootstrap database if required
         if self.args.bootstrap_contigs:
             if self.args.graftm_package:
@@ -357,7 +358,8 @@ class Run:
                                                         result.hit_fasta(),
                                                         hit_aligned_reads,
                                                         complement_information,
-                                                        self.args.type
+                                                        self.args.type,
+                                                        filter_minimum
                                                         )
                     if aln_result:
                         seqs_list.append(hit_aligned_reads)
@@ -545,6 +547,11 @@ class Run:
                         logging.error("--taxonomy must be specified to update a GraftM package")
                         exit(1)
             else:
+                if not self.args.sequences:
+                    if not self.args.alignment and not self.args.rerooted_annotated_tree \
+                                               and not self.args.rerooted_tree:
+                        logging.error("Some sort of sequence data must be provided to run graftM create")
+                        exit(1)
                 if self.args.taxonomy:
                     if self.args.rerooted_annotated_tree:
                         logging.error("--taxonomy is incompatible with --rerooted_annotated_tree")
@@ -583,7 +590,8 @@ class Run:
                               hmm = self.args.hmm,
                               search_hmm_files = self.args.search_hmm_files,
                               force = self.args.force,
-                              graftm_package = self.args.graftm_package
+                              graftm_package = self.args.graftm_package,
+                              threads = self.args.threads
                               )
         
         elif self.args.subparser_name == 'bootstrap':
@@ -609,7 +617,6 @@ class Run:
         
         
         elif self.args.subparser_name == 'decorate':
-            
             if self.args.rooted_tree:
                 if self.args.unrooted_tree:
                     logging.error("Both a rooted tree and an un-rooted tree were provided, so it's unclear what you are asking graftM to do. \
@@ -628,17 +635,19 @@ If you're unsure how to use GraftM decorate use graftM decorate -h")
                                                                                                         self.args.input_taxonomy))
                 dec = Decorator(reference_tree_path = self.args.reference_tree,
                                 tree_path = self.args.unrooted_tree)
-            
             if self.args.input_greengenes_taxonomy:
                 if self.args.input_taxtastic_seqinfo or self.args.input_taxtastic_taxonomy:
                     logging.error("Both taxtastic and greengenes taxonomy were provided, so its unclear what taxonomy you want graftM to decorate with")
                     exit(1)
-                dec.main(self.args.input_greengenes_taxonomy, self.args.output_tree, self.args.output_taxonomy, self.args.no_unique_tax) 
+                dec.main(self.args.input_greengenes_taxonomy, 
+                         self.args.output_tree, self.args.output_taxonomy, 
+                         self.args.no_unique_tax, self.args.decorate, None) 
             elif self.args.input_taxtastic_seqinfo and self.args.input_taxtastic_taxonomy:
                 dec.main(self.args.input_taxtastic_taxonomy, self.args.output_tree, 
-                         self.args.output_taxonomy, self.args.no_unique_tax, self.args.input_taxtastic_seqinfo) 
+                         self.args.output_taxonomy, self.args.no_unique_tax, 
+                         self.args.decorate, self.args.input_taxtastic_seqinfo) 
             else:
-                logging.error("Only a taxtastic file or a seqinfo file were provided. graftM cannot continue without both.")
+                logging.error("Only a taxtastic file or a seqinfo file were provided. GraftM cannot continue without both.")
                 exit(1)        
             
             

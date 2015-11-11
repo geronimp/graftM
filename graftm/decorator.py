@@ -49,7 +49,7 @@ class Decorator:
                                                          self.tree)
         
     def main(self, taxonomy, output_tree, output_tax, no_unique_tax,
-             decorate, seqinfo = None):
+             decorate, seqinfo):
         '''Decorate and if necessary, re-root the tree. If an old reference tree
         is provided it is assumed that re-rooting is desired
         
@@ -67,7 +67,6 @@ class Decorator:
         seqinfo: str
             path to taxtastic seqinfo file to be used with taxonomy to annotate
             the tree.'''        
-
         # Reroot
         if self.reference_tree:
             self._reroot()

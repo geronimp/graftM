@@ -23,7 +23,7 @@ GraftM requires a few extra binary applications as well, unfortunately:
 * fxtract (https://github.com/ctSkennerton/fxtract)
 * pplacer v. >= 2.6.32 (http://matsen.fhcrc.org/pplacer/)
 * krona v. >= 2.4 (http://sourceforge.net/p/krona/home/krona/)
-* mafft v.7.22 (http://mafft.cbrc.jp/)
+* mafft v. >= 7.22 (http://mafft.cbrc.jp/)
 
 ---
 
@@ -33,5 +33,5 @@ A [manual](https://github.com/geronimp/graftM/wiki) is available in the form of 
 If you have any further comments, complaints or recomendations about GraftM, drop an email to the [SupportM](https://groups.google.com/forum/?hl=en#!forum/supportm) public help forum.
 
 ---
-Software by Joel A. Boyd (http://ecogenomic.org/users/joel-boyd) (@geronimp) and [Ben J. Woodcroft](http://www.ecogenomic.org/users/ben-woodcroft) (@wwood) at the [Australian Centre for Ecogenomics](http://ecogenomic.org)
+Software by [Joel A. Boyd](http://ecogenomic.org/users/joel-boyd) (@geronimp) and [Ben J. Woodcroft](http://www.ecogenomic.org/users/ben-woodcroft) (@wwood) at the [Australian Centre for Ecogenomics](http://ecogenomic.org)
 Released under GPL3 - see LICENCE.txt for licencing details

@@ -23,7 +23,7 @@ GraftM requires a few extra binary applications as well, unfortunately:
 * fxtract (https://github.com/ctSkennerton/fxtract)
 * pplacer v. >= 2.6.32 (http://matsen.fhcrc.org/pplacer/)
 * krona v. >= 2.4 (http://sourceforge.net/p/krona/home/krona/)
-* mafft v.7.22 (http://mafft.cbrc.jp/)
+* mafft v. >= 7.22 (http://mafft.cbrc.jp/)
 
 ---
 

@@ -777,9 +777,7 @@ alignment/HMM/Tree can be created""")
         new_gpkg.rooted_tree = "%s_rooted.tre" % (new_gpkg.name)
         new_gpkg.decorate_tax = "%s_decorate_tax.tsv" % (new_gpkg.name)
         new_gpkg.gg_taxonomy = "%s_greengenes_taxonomy.tsv" % (new_gpkg.name)
-        old_contents = self._parse_contents(os.path.join(old_gpkg.reference_package_path(), "CONTENTS.json"))
-        reference_tree = os.path.join(old_gpkg.reference_package_path(), 
-                                      old_contents['files']['tree'])
+        reference_tree = old_gpkg.refpkg_tree_path()
         
         decorator = Decorator(reference_tree_path = reference_tree,
                       tree_path = new_gpkg.unrooted_tree)

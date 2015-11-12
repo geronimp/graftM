@@ -147,6 +147,10 @@ class GraftMPackageVersion2(GraftMPackage):
     def taxtastic_taxonomy_path(self):
         return os.path.join(self.reference_package_path(),
                             self._refpkg_contents()['files']['taxonomy'])
+        
+    def refpkg_tree_path(self):
+        return os.path.join(self.reference_package_path(),
+                            self._refpkg_contents()['files']['tree'])
 
     @staticmethod
     def compile(output_package_path, refpkg_path, hmm_path, diamond_database_file, max_range, 

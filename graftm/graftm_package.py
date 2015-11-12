@@ -148,7 +148,7 @@ class GraftMPackageVersion2(GraftMPackage):
         return os.path.join(self.reference_package_path(),
                             self._refpkg_contents()['files']['taxonomy'])
         
-    def refpkg_tree_path(self):
+    def reference_package_tree_path(self):
         return os.path.join(self.reference_package_path(),
                             self._refpkg_contents()['files']['tree'])
 

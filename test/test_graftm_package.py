@@ -38,6 +38,12 @@ class Tests(unittest.TestCase):
         self.assertEqual(False, pkg.use_hmm_trusted_cutoff())
         self.assertEqual(os.path.join(path_to_data, 'mcrA.gpkg','mcrA.refpkg','treeoN87dL.tre'),
                          pkg.reference_package_tree_path())
+        
+    def test_version3_unaligned_fasta(self):
+        pkg = GraftMPackage.acquire(os.path.join(path_to_data, 'mcrA.gpkg'))
+        self.assertEqual(3, pkg.version)
+        self.assertEqual(os.path.join(path_to_data, 'mcrA.gpkg','mcrA.faa'),
+                         pkg.unaligned_sequence_database_path())
 
 if __name__ == "__main__":
     unittest.main()

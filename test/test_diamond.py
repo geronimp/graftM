@@ -64,9 +64,10 @@ VAFATGNSNAGINGWYLSQILHKEYHSRLGFYGYDLQDQCGAANSLSIRSDEGLLHECRG'''
             # seq1    637699780    100.0    548    0    0    1    548    1    548    0.0e+00    1111.3
             # seq2    638201361    100.0    472    0    0    1    472    1    472    2.9e-283    963.0
             self.assertEqual(
-                             [['seq1', '637699780', '548', 1, 548, 1, 548, '1111.3', True, None],
-                              ['seq2', '638201361', '472', 1, 472, 1, 472, '963.0', True, None]],
-                             list(res.each(res.fields))
+
+                             [['seq1', '637699780', '100.0', '548', '0', 1, 548, 1, 548, '0.0e+00', '1111.3', True],
+                              ['seq2', '638201361', '100.0', '472', '0', 1, 472, 1, 472, '2.9e-283', '963.0', True]],
+                             list([x[:-1] for x in res.each(res.fields)])
                              )
             
     def test_basename(self):
@@ -75,17 +76,18 @@ VAFATGNSNAGINGWYLSQILHKEYHSRLGFYGYDLQDQCGAANSLSIRSDEGLLHECRG'''
             f.flush()
             d = Diamond(os.path.join(path_to_data,'diamond','mcra.faa.dmnd'))
             base = 'mybase'
+            daa="%s.daa" % base
             res = d.run(f.name, UnpackRawReads.PROTEIN_SEQUENCE_TYPE, daa_file_basename=base)
             # ben@ben:~/git/graftM.local/test$ diamond view -a /tmp/a
             # seq1    637699780    100.0    548    0    0    1    548    1    548    0.0e+00    1111.3
             # seq2    638201361    100.0    472    0    0    1    472    1    472    2.9e-283    963.0
 
             self.assertEqual(
-                             [['seq1', '637699780', '548', 1, 548, 1, 548, '1111.3', True, None],
-                              ['seq2', '638201361', '472', 1, 472, 1, 472, '963.0', True, None]],
-                             list(res.each(res.fields))
+                             [['seq1', '637699780', '100.0', '548', '0', 1, 548, 1, 548, '0.0e+00', '1111.3', True],
+                              ['seq2', '638201361', '100.0', '472', '0', 1, 472, 1, 472, '2.9e-283', '963.0', True]],
+                             list([x[:-1] for x in res.each(res.fields)])
                              )
-            self.assertTrue(os.path.exists("%s.daa" % base))
+            self.assertTrue(os.path.exists(daa))
             os.remove("%s.daa" % base)
 
 

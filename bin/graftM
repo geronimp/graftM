@@ -234,12 +234,12 @@ if __name__ == '__main__':
     
     create_lesser_options=create_parser.add_argument_group('Lesser used options')
     create_lesser_options.add_argument('--rerooted_annotated_tree', metavar='newick_tree', help='Define taxonomy through this annotated newick file. (default: use taxonomy from --taxonomy)')
-    create_lesser_options.add_argument('--hmm', metavar='.hmm file', help='Use this HMM for alignment, and search unless --search_hmm_files is specified. (default: use HMM built automatically from alignment)')
+    create_lesser_options.add_argument('--hmm', metavar='.hmm file', help='Use this HMM for alignment, and search unless --search_hmm_files is specified. (default: use HMM build automatically from alignment)')
     create_lesser_options.add_argument('--dereplication_level', metavar='.hmm file', type = int, help='taxonomic rank at which \
 to dereplicate the sequences to create the HMM. 0: No dereplication, 1: Domain level dereplication, 2: Phylum level dereplication, 3: Class level dereplication \
 4: Order level dereplication, 5: Family level dereplication, 6: Genus level dereplication (Default = 6, i.e. Genus level dereplication)', default = 6)
     create_lesser_options.add_argument('--search_hmm_files', metavar='.hmm files', nargs='+', help='Use these HMM(s) for search. (default: use --hmm or build automatically from alignment)')
-    create_lesser_options.add_argument('--min_aligned_percent', type=int, metavar='percent', help='Remove sequences from the alignment which do not cover at least this percentage of the HMM', default=50)
+    create_lesser_options.add_argument('--min_aligned_percent', type=int, metavar='percent', help='Remove sequences from the alignment which do not cover at least this percentage of the HMM', default=30)
     create_lesser_options.add_argument('--output', metavar='PATH', help='Name of output GraftM package (default: use name derived from alignment)')
     create_lesser_options.add_argument('--tree_log', help='A log file for the tree. (default: generate from tree and alignment)')
     create_lesser_options.add_argument('--taxtastic_taxonomy', help='A taxtastic format taxonomy file. (default: use taxonomy from --taxonomy)')

@@ -384,7 +384,10 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
             genus_dereplicated_sequences = []
             seen_genera = set()
             for id, taxonomy in taxonomy_definition.iteritems():
+                
+
                 genus = taxonomy[dereplication_index]
+
                 if genus == "" or genus == "g__":
                     continue
                 elif genus in seen_genera:
@@ -399,6 +402,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         else:
             logging.debug("Skipping dereplication step and using all sequences to build search HMM")
             self._align_sequences(sequences, temporary_alignment, threads)
+        
         self._get_hmm_from_alignment(temporary_alignment, search_hmm, temporary_alignment)
     
              
@@ -420,18 +424,21 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
     
     def _align_and_create_hmm(self, sequences, alignment, user_hmm, 
                               output_align_hmm, output_alignment, threads):
-
+        
         # align sequences to HMM (and potentially build hmm from alignment)
         if user_hmm:
             output_hmm = user_hmm
+            ptype, _ = self._pipe_type(output_hmm)
             self._align_sequences_to_hmm(output_hmm, sequences, output_alignment)
         else:
             if not alignment:
                 self._align_sequences(sequences, output_alignment, threads)
+            else:
+                output_alignment = alignment 
             ptype = self._get_hmm_from_alignment(output_alignment, 
                                                  output_align_hmm, 
                                                  output_alignment)
-        return ptype
+        return ptype, output_alignment
     
     
     def main(self, **kwargs):
@@ -460,7 +467,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         tmp = tempdir.TempDir()
         base = os.path.join(tmp.name, locus_name)
         insufficiently_aligned_sequences = [None]
-        
+        removed_sequence_names = []
         
         if prefix:
             output_gpkg_path = prefix
@@ -474,7 +481,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
             else:
                 raise Exception("Cowardly refusing to overwrite gpkg to already existing %s" % output_gpkg_path)
         logging.info("Building gpkg for %s" % output_gpkg_path)
-        
+
         # Read in taxonomy somehow
         gtns = Getaxnseq()
         if rerooted_annotated_tree:
@@ -493,14 +500,14 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
             raise Exception("Taxonomy is required somehow e.g. by --taxonomy or --rerooted_annotated_tree")
         
         output_alignment = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa').name
-        align_hmm = tempfile.NamedTemporaryFile(prefix='graftm', suffix='_align.hmm').name
+        align_hmm = (user_hmm if user_hmm else tempfile.NamedTemporaryFile(prefix='graftm', suffix='_align.hmm').name)
         if sequences:
             if alignment:
                 ptype = self._get_hmm_from_alignment(alignment, 
                                                      align_hmm, 
                                                      output_alignment)
             else:
-                ptype = self._align_and_create_hmm(sequences, alignment, user_hmm,
+                ptype, output_alignment = self._align_and_create_hmm(sequences, alignment, user_hmm,
                                                    align_hmm, output_alignment, threads)   
             
             logging.info("Checking for incorrect or fragmented reads")
@@ -516,6 +523,21 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
                                                                       sequences, 
                                                                       sequences2)
                 sequences = sequences2
+                if alignment:
+
+                    _, alignment2 = tempfile.mkstemp(prefix='graftm', suffix='.aln.faa')
+                    
+                    num_sequences = self._remove_sequences_from_alignment(insufficiently_aligned_sequences, 
+                                                                          alignment, 
+                                                                          alignment2)
+                    alignment = alignment2
+                    for name in insufficiently_aligned_sequences:
+                        if rerooted_tree or rerooted_annotated_tree:
+                            logging.warning('''Sequence %s in provided alignment does not meet the --min_aligned_percent cutoff. This sequence will be removed from the tree
+in the final GraftM package. If you are sure these sequences are correct, turn off the --min_aligned_percent cutoff, provide it with a 0 (e.g. --min_aligned_percent 0) ''' % name)
+                        removed_sequence_names.append(name)
+                    
+
                 logging.info("After removing %i insufficiently aligned sequences, left with %i sequences" % (len(insufficiently_aligned_sequences), num_sequences))
                 if num_sequences < 4:
                     raise Exception("Too few sequences remaining in alignment after removing insufficiently aligned sequences: %i" % num_sequences)
@@ -523,7 +545,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
                     logging.info("Reconstructing the alignment and HMM from remaining sequences")
                     output_alignment = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa').name
                     align_hmm = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.hmm').name
-                    ptype = self._align_and_create_hmm(sequences, alignment, user_hmm, 
+                    ptype, output_alignment= self._align_and_create_hmm(sequences, alignment, user_hmm, 
                                                        align_hmm, output_alignment, threads)
                     logging.info("Checking for incorrect or fragmented reads")
                     insufficiently_aligned_sequences = self._check_reads_hit(open(output_alignment),
@@ -603,7 +625,6 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
             # Remove any sequences from the tree that are duplicates
             cleaner = TreeCleaner()
             tree = TreeNode.read(open(tre_file))
-            removed_sequence_names = []
             for group in deduplicated_arrays:
                 [removed_sequence_names.append(s.name) for s in group[1:]]        
             cleaner.remove_sequences(tree, removed_sequence_names)

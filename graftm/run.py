@@ -235,7 +235,7 @@ class Run:
         if hmm_tc:
             setattr(self.args, 'evalue', '--cut_tc')
         if not self.args.filter_minimum:
-            filter_minimum      = (95 if self.args.type == PIPELINE_NT else 30)
+            filter_minimum = (95 if self.args.type == PIPELINE_NT else 30)
         # Generate bootstrap database if required
         if self.args.bootstrap_contigs:
             if self.args.graftm_package:
@@ -347,7 +347,7 @@ class Run:
                     continue
                 
                 if self.args.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
-                    logging.info('Aligning reads to reference package database')
+                    logging.info('aligning reads to reference package database')
                     hit_aligned_reads = self.gmf.aligned_fasta_output_path(base)
 
                     aln_time, aln_result = self.h.align(

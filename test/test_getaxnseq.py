@@ -26,6 +26,7 @@ import os.path
 import sys
 import tempfile
 from StringIO import StringIO
+import string
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 from graftm.getaxnseq import Getaxnseq
@@ -61,6 +62,33 @@ class Tests(unittest.TestCase):
         self.assertEqual({'seq1': ['k__me','p__you'],
                           'seq2': []},
                          Getaxnseq().read_taxtastic_taxonomy_and_seqinfo(tax, seq))
+        
+    def test_more_than_seven_levels(self):
+        with tempfile.NamedTemporaryFile(prefix='graftm_test_getaxnseq') as tmp_seq:
+            with tempfile.NamedTemporaryFile(prefix='graftm_test_getaxnseq') as tmp_tax:
+                Getaxnseq().write_taxonomy_and_seqinfo_files({'seq1': string.split('k__me p__you c__came over for great spaghetti extra'),
+                                                              'seq1.5': string.split('k__me p__you c__came over for great spaghetti'),
+                                                              'seq2': []},
+                                                             tmp_tax.name,
+                                                             tmp_seq.name)
+                expected = "\n".join([','.join(p) for p in [['seqname','tax_id'],
+                    ['seq2','Root'],
+                    ['seq1','spaghetti'],
+                    ['seq1.5','spaghetti']]])+"\n"
+                self.assertEqual(expected, open(tmp_seq.name).read())
+                expected = '\n'.join(['tax_id,parent_id,rank,tax_name,root,kingdom,phylum,class,order,family,genus,species',
+                                      'Root,Root,root,Root,Root,,,,,,,',
+                                      'k__me,Root,kingdom,k__me,Root,k__me,,,,,,',
+                                      'p__you,k__me,phylum,p__you,Root,k__me,p__you,,,,,',
+                                      'c__came,p__you,class,c__came,Root,k__me,p__you,c__came,,,,',
+                                      'over,c__came,order,over,Root,k__me,p__you,c__came,over,,,',
+                                      'for,over,family,for,Root,k__me,p__you,c__came,over,for,,',
+                                      'great,for,genus,great,Root,k__me,p__you,c__came,over,for,great,',
+                                      'spaghetti,great,species,spaghetti,Root,k__me,p__you,c__came,over,for,great,spaghetti',
+                                      ])+"\n"
+                self.assertEqual(expected, open(tmp_tax.name).read())
+
+        
 
 if __name__ == "__main__":
     unittest.main()

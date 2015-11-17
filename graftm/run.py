@@ -614,15 +614,30 @@ class Run:
         
         
         
-        elif self.args.subparser_name == 'decorate':
+        elif self.args.subparser_name == 'tree':
+            if self.args.graftm_package:
+                # shim in the paths from the graftm package, not overwriting
+                # any of the provided paths.
+                gpkg = GraftMPackage.acquire(self.args.graftm_package)
+                if not self.args.rooted_tree: self.args.rooted_tree = gpkg.reference_package_tree_path()
+                if not self.args.input_greengenes_taxonomy:
+                    if not self.args.input_taxtastic_seqinfo:
+                        self.args.input_taxtastic_seqinfo = gpkg.taxtastic_seqinfo_path()
+                    if not self.args.input_taxtastic_taxonomy:
+                        self.args.input_taxtastic_taxonomy = gpkg.taxtastic_taxonomy_path()
+                        
             if self.args.rooted_tree:
                 if self.args.unrooted_tree:
                     logging.error("Both a rooted tree and an un-rooted tree were provided, so it's unclear what you are asking graftM to do. \
-If you're unsure how to use GraftM decorate use graftM decorate -h")
+If you're unsure see graftM tree -h")
                     exit(1)
                 elif self.args.reference_tree:
                     logging.error("Both a rooted tree and reference tree were provided, so it's unclear what you are asking graftM to do. \
-If you're unsure how to use GraftM decorate use graftM decorate -h")
+If you're unsure see graftM tree -h")
+                    exit(1)
+                    
+                if not self.args.decorate:
+                    logging.error("It seems a rooted tree has been provided, but --decorate has not been specified so it is unclear what you are asking graftM to do.")
                     exit(1)
                 
                 dec = Decorator(tree_path = self.args.rooted_tree)
@@ -633,20 +648,31 @@ If you're unsure how to use GraftM decorate use graftM decorate -h")
                                                                                                         self.args.input_taxonomy))
                 dec = Decorator(reference_tree_path = self.args.reference_tree,
                                 tree_path = self.args.unrooted_tree)
+            else:
+                logging.error("Some tree(s) must be provided, either a rooted tree or both an unrooted tree and a reference tree")
+                exit(1)
+                
+            if self.args.output_taxonomy is None and self.args.output_tree is None:
+                logging.error("Either an output tree or taxonomy must be provided")
+                exit(1)
             if self.args.input_greengenes_taxonomy:
                 if self.args.input_taxtastic_seqinfo or self.args.input_taxtastic_taxonomy:
                     logging.error("Both taxtastic and greengenes taxonomy were provided, so its unclear what taxonomy you want graftM to decorate with")
                     exit(1)
+                logging.debug("Using input GreenGenes style taxonomy file")
                 dec.main(self.args.input_greengenes_taxonomy, 
                          self.args.output_tree, self.args.output_taxonomy, 
                          self.args.no_unique_tax, self.args.decorate, None) 
             elif self.args.input_taxtastic_seqinfo and self.args.input_taxtastic_taxonomy:
+                logging.debug("Using input taxtastic style taxonomy/seqinfo")
                 dec.main(self.args.input_taxtastic_taxonomy, self.args.output_tree, 
                          self.args.output_taxonomy, self.args.no_unique_tax, 
-                         self.args.decorate, self.args.input_taxtastic_seqinfo) 
+                         self.args.decorate, self.args.input_taxtastic_seqinfo)
             else:
-                logging.error("Only a taxtastic file or a seqinfo file were provided. GraftM cannot continue without both.")
-                exit(1)        
+                logging.error("Either a taxtastic taxonomy or seqinfo file was provided. GraftM cannot continue without both.")
+                exit(1)
+        else:
+            raise Exception("Unexpected subparser name %s" % self.args.subparser_name)
             
             
             

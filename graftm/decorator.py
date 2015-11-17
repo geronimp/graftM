@@ -31,7 +31,7 @@ class Decorator:
         
         logging.debug("Importing old tree from file: %s" 
                         % tree_path)
-        self.tree = TreeNode.read(open(tree_path, "r"))  
+        self.tree = TreeNode.read(open(tree_path))  
         
         if reference_tree_path:
             logging.debug("Importing reference tree from file: %s" 

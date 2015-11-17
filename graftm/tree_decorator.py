@@ -302,8 +302,10 @@ is the greatest distance to the root.")
                 logging.debug("Cannot resolve node, no consistent taxonomy beyond that which has been described.")
                 self.encountered_nodes[node]=current_index
             
-        self._write_tree(output_tree)
-        self._write_consensus_strings(output_tax)
+        if output_tree:
+            self._write_tree(output_tree)
+        if output_tax:
+            self._write_consensus_strings(output_tax)
 
 ################################################################################
 ################################################################################

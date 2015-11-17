@@ -277,44 +277,54 @@ to dereplicate the sequences to create the HMM. 0: No dereplication, 1: Domain l
     #########################################################################
     # argparser for "decorate" - Reroot, and decorate a gene tree                           
   
-    decorate_parser = subparsers.add_parser('decorate',
-                                            description='Reroot, and decorate a gene tree',
+    tree_parser = subparsers.add_parser('tree',
+                                            description='Reroot and/or decorate a tree',
                                             formatter_class=CustomHelpFormatter,
                                             epilog='''
  ##################################################################################################################################
-                                                       ~~ GraftM "decorate" ~~
+                                                       ~~ GraftM "tree" ~~
  ##################################################################################################################################
 
  Example usage:
 
  Decorate input.tre with my.taxonomy, and output the decorated tree to output.tre and taxonomy to output.taxonomy:
 
-    $ graftM decorate --rooted_tree input.tre --taxonomy my.taxonomy --output_tree output.tre --output_taxonomy output.taxonomy
+    $ graftM tree --decorate --rooted_tree input.tre --taxonomy my.taxonomy --output_tree output.tre --output_taxonomy output.taxonomy
+    
+ Decorate the tree in a GraftM package and output the decorated tree to output.tre and taxonomy to output.taxonomy:
 
-'''+__author__)    
-    tree_options = decorate_parser.add_argument_group('tree options')
+    $ graftM tree --decorate --graftm_package my.gpkg --output_tree output.tre --output_taxonomy output.taxonomy
+     
+ Re-root a tree as best as possible using a reference tree, maintaining as best as possible:
+
+    $ graftM tree --unrooted_tree input.tre --reference_tree reference.tre --output_tree output.tre
+
+'''+__author__)
+    tree_parser.add_argument('--graftm_package', help='Path to a GraftM package to inspect. GraftM will decorate the rooted tree \
+within using the taxonomy within.')
+    
+    tree_options = tree_parser.add_argument_group('tree options')
     tree_options.add_argument('--rooted_tree', help='Path to rooted tree in newick format. GraftM will decorate this tree under the \
 assumption it is correctly rooted.')
     tree_options.add_argument('--unrooted_tree', help='Path to unrooted tree in newick format. GraftM decorate will first attempt to \
 reroot using the --reference_tree. Once rerooted, GraftM will decorate this tree.')
     tree_options.add_argument('--reference_tree', help='Path to tree that is rooted correctly that will be used to reroot the \
-tree provided to the --unrooted_tree flag (required).')
-    tree_options.add_argument('--output_tree', help='Output decorated tree', required=True)
+tree provided to the --unrooted_tree flag.')
+    tree_options.add_argument('--output_tree', help='Output decorated tree')
     
-    decorate_options = decorate_parser.add_argument_group('taxonomy options')
+    decorate_options = tree_parser.add_argument_group('taxonomy options')
     decorate_options.add_argument('--input_greengenes_taxonomy', help='Input taxonomy of sequences used to build tree. This taxonomy \
 must be in GreenGenes format (2 column tab separated, ID then taxonomy with taxonomy separated by \'; \'. Prefixes such as \'p__\' are not required')
     decorate_options.add_argument('--input_taxtastic_taxonomy', help='Input taxonomy of sequences used to build tree. This taxonomy \
 must be in taxtastic format.')
     decorate_options.add_argument('--input_taxtastic_seqinfo', help='Seqinfo file to accompany Taxtastic taxonomy file')
     decorate_options.add_argument('--no_unique_tax', action = "store_true", help='Do not append unique numbers on the end of clades that appear twice', default = False)
-    decorate_options.add_argument('--decorate', action = "store_true", help='Decorate the tree', default = False)
-
+    decorate_options.add_argument('--decorate', action = "store_true", help='Decorate the tree conservatively', default = False)
     decorate_options.add_argument('--output_taxonomy', help='File path to output decorated taxonomy strings in GreenGenes format \
-corresponding to each leaf in the tree.', required=True)
+corresponding to each leaf in the tree (REQUIRED).')
 
     # Logging options                                        
-    logging_options = decorate_parser.add_argument_group('logging options')
+    logging_options = tree_parser.add_argument_group('logging options')
     logging_options.add_argument('--verbosity', metavar='verbosity', help='1 - 5, 1 being silent, 5 being noisy indeed. Default = 4', type=int, default=4)
     logging_options.add_argument('--log', metavar='logfile', help='Output logging information to file', default=False)
     #########################################################################    

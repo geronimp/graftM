@@ -9,6 +9,7 @@ import extern
 import tempdir
 import json
 import signal
+import re
 
 from Bio import SeqIO
 
@@ -373,37 +374,38 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
     def _create_search_hmm(self, sequences, taxonomy_definition, 
                            search_hmm, dereplication_level, threads):
         logging.debug("Constructing search HMM")
-        temporary_alignment = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa').name
-        temporary_dereplicated = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.faa').name
-        if dereplication_level > 0:
-            dereplication_index = dereplication_level - 1
-            
-            #################################
-            ### Genus level dereplication ###
-            logging.debug("Dereplicating sequences at the %s level" % (Create._RANK_DICT[dereplication_level + 1]  ))
-            genus_dereplicated_sequences = []
-            seen_genera = set()
-            for id, taxonomy in taxonomy_definition.iteritems():
-                
-
-                genus = taxonomy[dereplication_index]
-
-                if genus == "" or genus == "g__":
-                    continue
-                elif genus in seen_genera:
-                    logging.debug("Sequence %s redundant at %s level: %s" % (id, Create._RANK_DICT[dereplication_level + 1], genus) )
-                    genus_dereplicated_sequences.append(id)
-                else:
-                    seen_genera.add(genus)
-            logging.info("Removing %i sequences from the search HMM that are redundant at the %s level" % (len(genus_dereplicated_sequences), 
-                                                                                                           Create._RANK_DICT[dereplication_level + 1]))
-            self._remove_sequences_from_alignment(genus_dereplicated_sequences, sequences, temporary_dereplicated)            
-            self._align_sequences(temporary_dereplicated, temporary_alignment, threads)
-        else:
-            logging.debug("Skipping dereplication step and using all sequences to build search HMM")
-            self._align_sequences(sequences, temporary_alignment, threads)
+        with tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa') as temporary_alignment_fh:
+            temporary_alignment = temporary_alignment_fh.name
+            with tempfile.NamedTemporaryFile(prefix='graftm', suffix='.faa') as temporary_dereplicated_fh:
+                temporary_dereplicated = temporary_dereplicated_fh.name
+                if dereplication_level > 0:
+                    dereplication_index = dereplication_level - 1
+                    
+                    #################################
+                    ### Dereplication ###
+                    logging.debug("Dereplicating sequences at the %s level" % (Create._RANK_DICT[dereplication_level + 1]  ))
+                    dereplicated_sequence_ids = []
+                    seen_taxons = set()
+                    prefix_re = re.compile(r'^[a-zA-Z]__')
+                    for sequence_id, taxonomy in taxonomy_definition.iteritems():
+                        taxon = taxonomy[dereplication_index]
         
-        self._get_hmm_from_alignment(temporary_alignment, search_hmm, temporary_alignment)
+                        if taxon == "" or prefix_re.match(taxon):
+                            continue
+                        elif taxon in seen_taxons:
+                            logging.debug("Sequence %s redundant at %s level: %s" % (sequence_id, Create._RANK_DICT[dereplication_level + 1], taxon) )
+                            dereplicated_sequence_ids.append(sequence_id)
+                        else:
+                            seen_taxons.add(taxon)
+                    logging.info("Removing %i sequences from the search HMM that are redundant at the %s level" % (len(dereplicated_sequence_ids),
+                                                                                                                   Create._RANK_DICT[dereplication_level + 1]))
+                    self._remove_sequences_from_alignment(dereplicated_sequence_ids, sequences, temporary_dereplicated)
+                    self._align_sequences(temporary_dereplicated, temporary_alignment, threads)
+                else:
+                    logging.debug("Skipping dereplication step and using all sequences to build search HMM")
+                    self._align_sequences(sequences, temporary_alignment, threads)
+                
+                self._get_hmm_from_alignment(temporary_alignment, search_hmm, temporary_alignment)
     
              
     def _create_dmnd_database(self, unaligned_sequences_path, daa_output):

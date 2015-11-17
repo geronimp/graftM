@@ -64,6 +64,7 @@ CCCCGCCTTCCTCCCCTTTGTCAGAGGCAGTTCTGCTAGAGTGCGCCCCGATTGCTCGGGGGTAGCAACTAACCGTAAGG
                                                                                                    package,
                                                                                                    tmp)
                 extern.run(cmd)
+
                 sample_name = os.path.basename(fasta.name[:-3])
                 otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
                 lines = ("\t".join(('#ID',sample_name,'ConsensusLineage')),
@@ -836,7 +837,6 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                                                                                                    hmms.name,
                                                                                                    hmm,
                                                                                                    tmp)
-                print cmd
                 subprocess.check_output(cmd, shell=True)
                 otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
                 # otu table should not exist
@@ -960,21 +960,22 @@ CCGACTGCCCTTGAAGACCACTTCG
         gpkg=os.path.join(path_to_data, "61_otus.gpkg")
         
         with tempdir.TempDir() as tmp:
-            cmd = '%s graft --verbosity 2  --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+            cmd = '%s graft --verbosity 5  --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                   reads_1,
                                                                                                   reads_2,
                                                                                                   gpkg,
                                                                                                   tmp)
-            subprocess.check_output(cmd, shell=True)
+            extern.run(cmd)
             comb_otu_table=os.path.join(tmp, "combined_count_table.txt")
+            
             expected=('\t'.join(('#ID', 'sample_16S_1.1', 'sample_16S_2.1', 'ConsensusLineage')),
-                      '\t'.join(('1','1','2','Root; k__Bacteria; p__Cyanobacteria; c__Chloroplast')),
-                      '\t'.join(('2','35','42','Root; k__Bacteria; p__Proteobacteria')),
+                      '\t'.join(('1','1','1','Root; k__Bacteria; p__Cyanobacteria; c__Chloroplast')),
+                      '\t'.join(('2','9','36','Root; k__Bacteria; p__Proteobacteria')),
                       '\t'.join(('3','0','2','Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria; o__Rickettsiales; f__mitochondria')),
-                      '\t'.join(('4','42','120','Root; k__Bacteria')),
-                      '\t'.join(('5','8','6','Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria; o__Rickettsiales')),
-                      '\t'.join(('6','4','18','Root')),
-                      '\t'.join(('7','6','10','Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria'))
+                      '\t'.join(('4','18','106','Root; k__Bacteria')),
+                      '\t'.join(('5','5','6','Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria; o__Rickettsiales')),
+                      '\t'.join(('6','1','18','Root')),
+                      '\t'.join(('7','2','9','Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria'))
             )
             count=0
             for line in open(comb_otu_table):
@@ -1141,11 +1142,11 @@ ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGAC
             fasta.flush()
             sample_name = os.path.basename(fasta.name[:-3])
             with tempdir.TempDir() as tmp:
-                cmd = '%s graft --verbosity 2 --search_method diamond --forward %s --output_directory %s --force --assignment_method diamond --graftm_package %s' % (path_to_script,
+                cmd = '%s graft --verbosity 5 --search_method diamond --forward %s --output_directory %s --force --assignment_method diamond --graftm_package %s' % (path_to_script,
                                                                                                                  fasta.name,
                                                                                                                  tmp,
                                                                                                                  os.path.join(path_to_data,'mcrA.gpkg'))
-                subprocess.check_output(cmd, shell=True)
+                extern.run(cmd)
                 expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
                             ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales; Methanoflorentaceae; Methanoflorens']]
                 expected = ['\t'.join(l) + '\n' for l in expected]

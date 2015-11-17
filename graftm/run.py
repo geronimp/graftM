@@ -5,6 +5,7 @@ import logging
 
 from graftm.sequence_search_results import SequenceSearchResult
 from graftm.graftm_output_paths import GraftMFiles
+from graftm.search_table import SearchTableWriter
 from graftm.hmmer import Hmmer
 from graftm.housekeeping import HouseKeeping
 from graftm.summarise import Stats_And_Summary
@@ -18,12 +19,17 @@ from graftm.getaxnseq import Getaxnseq
 from graftm.sequence_io import SequenceIO
 from graftm.timeit import Timer
 from graftm.clusterer import Clusterer
+from graftm.decorator import Decorator
+
 from biom.util import biom_open
 
 T=Timer()
 
 PIPELINE_AA = "P"
 PIPELINE_NT = "D"
+
+class UnrecognisedSuffixError(Exception): 
+    pass
 
 class Run:
     _MIN_VERBOSITY_FOR_ART = 3 # with 2 then, only errors are printed
@@ -41,21 +47,15 @@ class Run:
             self.hk.set_attributes(self.args)
             self.hk.set_euk_hmm(self.args)
             if args.euk_check:self.args.search_hmm_files.append(self.args.euk_hmm_file)
-            self.h = Hmmer(self.args.search_hmm_files, self.args.aln_hmm_file)
+            self.h = Hmmer(
+                           self.args.search_hmm_files, 
+                           (None if self.args.search_only else self.args.aln_hmm_file)
+                           )
             self.sequence_pair_list = self.hk.parameter_checks(args)
             if hasattr(args, 'reference_package'):
                 self.p = Pplacer(self.args.reference_package)
 
-    def _get_sequence_directions(self, search_result):
-        complement_strand = {}
-        for result in search_result:
-            result_directions = dict(
-                                     result.each([SequenceSearchResult.QUERY_ID_FIELD,
-                                                  SequenceSearchResult.ALIGNMENT_DIRECTION])
-                                       )
-            complement_strand.update(result_directions)
 
-        return complement_strand
 
     def summarise(self, base_list, trusted_placements, reverse_pipe, times, hit_read_count_list):
         '''
@@ -173,6 +173,7 @@ class Run:
         hit_read_count_list = []
         db_search_results   = []
 
+
         if gpkg:
             maximum_range = gpkg.maximum_range()
             diamond_db    = gpkg.diamond_database_path()
@@ -190,7 +191,11 @@ class Run:
                 maximum_range = self.args.maximum_range
             else:
                 if self.args.search_method=='hmmsearch':
-                    maximum_range = self.hk.get_maximum_range(self.args.aln_hmm_file)
+                    if not self.args.search_only:
+                        maximum_range = self.hk.get_maximum_range(self.args.aln_hmm_file)
+                    else:
+                        logging.debug("Running search only pipeline. maximum_range not configured.")
+                        maximum_range = None
                 else:
                     logging.warning('Cannot determine maximum range when using %s pipeline and with no GraftM package specified' % self.args.search_method)
                     logging.warning('Setting maximum_range to None (linked hits will not be detected)')
@@ -220,12 +225,17 @@ class Run:
                                        self.args.force)
 
         # Set pipeline and evalue by checking HMM format
-        hmm_type, hmm_tc = self.hk.setpipe(self.args.aln_hmm_file)
-        logging.debug("HMM type: %s Trusted Cutoff: %s" % (hmm_type, hmm_tc))
+        if self.args.search_only:
+            hmm_type, hmm_tc = self.hk.setpipe(self.args.search_hmm_files[0])
+            logging.debug("HMM type: %s Trusted Cutoff: %s" % (hmm_type, hmm_tc))
+        else:
+            hmm_type, hmm_tc = self.hk.setpipe(self.args.aln_hmm_file)
+            logging.debug("HMM type: %s Trusted Cutoff: %s" % (hmm_type, hmm_tc))
         setattr(self.args, 'type', hmm_type)
         if hmm_tc:
             setattr(self.args, 'evalue', '--cut_tc')
-            
+        if not self.args.filter_minimum:
+            filter_minimum = (95 if self.args.type == PIPELINE_NT else 30)
         # Generate bootstrap database if required
         if self.args.bootstrap_contigs:
             if self.args.graftm_package:
@@ -240,7 +250,7 @@ class Run:
                 min_orf_length = self.args.min_orf_length,
                 graftm_package = pkg)
             
-            #this is a hack, it should really use GraftMFiles but that class isn't currently flexible enough
+            # this is a hack, it should really use GraftMFiles but that class isn't currently flexible enough
             new_database = (os.path.join(self.args.output_directory, "bootstrap.hmm") \
                             if self.args.search_method == "hmmsearch" \
                             else os.path.join(self.args.output_directory, "bootstrap")
@@ -297,45 +307,55 @@ class Run:
 
                 if self.args.type == PIPELINE_AA:
                     logging.debug("Running protein pipeline")
-                    search_time, (result, read_complement_information) = self.h.aa_db_search(
-                                                          self.gmf,
-                                                          base,
-                                                          unpack,
-                                                          self.args.search_method,
-                                                          maximum_range,
-                                                          self.args.threads,
-                                                          self.args.evalue,
-                                                          self.args.min_orf_length,
-                                                          self.args.restrict_read_length,
-                                                          diamond_db
-                                                          )
+
+                
+                    search_time, (result, complement_information) = self.h.aa_db_search(
+                                                              self.gmf,
+                                                              base,
+                                                              unpack,
+                                                              self.args.search_method,
+                                                              maximum_range,
+                                                              self.args.threads,
+                                                              self.args.evalue,
+                                                              self.args.min_orf_length,
+                                                              self.args.restrict_read_length,
+                                                              diamond_db
+                                                              )
+
 
                 # Or the DNA pipeline
                 elif self.args.type == PIPELINE_NT:
                     logging.debug("Running nucleotide pipeline")
-                    search_time, (result, read_complement_information) = self.h.nt_db_search(
-                                                          self.gmf,
-                                                          base,
-                                                          unpack,
-                                                          self.args.euk_check,
-                                                          self.args.search_method,
-                                                          maximum_range,
-                                                          self.args.threads,
-                                                          self.args.evalue
-                                                          )
+                    search_time, (result, complement_information)  = self.h.nt_db_search(
+                                                              self.gmf,
+                                                              base,
+                                                              unpack,
+                                                              self.args.euk_check,
+                                                              self.args.search_method,
+                                                              maximum_range,
+                                                              self.args.threads,
+                                                              self.args.evalue
+                                                              )
 
                 if not result.hit_fasta():
                     logging.info('No reads found in %s' % base)
                     continue
+                elif self.args.search_only:
+                    db_search_results.append(result)
+                    base_list.append(base)
 
+                    continue
+                
                 if self.args.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
-                    logging.info('Aligning reads to reference package database')
+                    logging.info('aligning reads to reference package database')
                     hit_aligned_reads = self.gmf.aligned_fasta_output_path(base)
+
                     aln_time, aln_result = self.h.align(
                                                         result.hit_fasta(),
                                                         hit_aligned_reads,
-                                                        read_complement_information,
-                                                        self.args.type
+                                                        complement_information,
+                                                        self.args.type,
+                                                        filter_minimum
                                                         )
                     if aln_result:
                         seqs_list.append(hit_aligned_reads)
@@ -347,7 +367,19 @@ class Run:
                 base_list.append(base)
                 search_results.append(result.search_result)
                 hit_read_count_list.append(result.hit_count)
-
+        
+        # Write summary table
+        
+        srchtw = SearchTableWriter()
+        srchtw.build_search_otu_table([x.search_objects for x in db_search_results],
+                                      base_list,
+                                      self.gmf.search_otu_table())
+        
+        if self.args.search_only:
+            logging.info('Stopping before alignment and taxonomic assignment phase\n')
+            exit(0)
+        
+        
         if self.args.merge_reads: # not run when diamond is the assignment mode- enforced by argparse grokking
             base_list=base_list[0::2]
             merged_output=[GraftMFiles(base, self.args.output_directory, False).aligned_fasta_output_path(base) \
@@ -494,45 +526,72 @@ class Run:
               >c                        |________|
               ----------
 '''
+            if self.args.graftm_package:
+                if self.args.taxonomy and self.args.sequences:
+                    logging.info("GraftM package %s specified to update with sequences in %s" % (self.args.graftm_package, self.args.sequences))
+                    if not self.args.output:
+                        if self.args.graftm_package.endswith(".gpkg"):
+                            self.args.output = self.args.graftm_package.replace(".gpkg", "-updated.gpkg")
+                        else:
+                            raise UnrecognisedSuffixError("Unrecognised suffix on GraftM package %s. Please provide a graftM package with the correct suffix (.gpkg)" % (self.args.graftm_package))
+                    Create().update(self.args.sequences, self.args.taxonomy, self.args.graftm_package,
+                                    self.args.output)
 
-            if self.args.taxonomy:
-                if self.args.rerooted_annotated_tree:
-                    logging.error("--taxonomy is incompatible with --rerooted_annotated_tree")
-                    exit(1)
-                if self.args.taxtastic_taxonomy or self.args.taxtastic_seqinfo:
-                    logging.error("--taxtastic_taxonomy and --taxtastic_seqinfo are incompatible with --taxonomy")
-                    exit(1)
-            elif self.args.rerooted_annotated_tree:
-                if self.args.taxtastic_taxonomy or self.args.taxtastic_seqinfo:
-                    logging.error("--taxtastic_taxonomy and --taxtastic_seqinfo are incompatible with --rerooted_annotated_tree")
-                    exit(1)
+                else:
+                    if self.args.taxonomy:
+                        logging.error("--sequences must be specified to update a GraftM package")
+                        exit(1)
+                    elif self.args.sequences:
+                        logging.error("--taxonomy must be specified to update a GraftM package")
+                        exit(1)
             else:
-                if not self.args.taxtastic_taxonomy or not self.args.taxtastic_seqinfo:
-                    logging.error("--taxonomy, --rerooted_annotated_tree or --taxtastic_taxonomy/--taxtastic_seqinfo is required")
+                if not self.args.sequences:
+                    if not self.args.alignment and not self.args.rerooted_annotated_tree \
+                                               and not self.args.rerooted_tree:
+                        logging.error("Some sort of sequence data must be provided to run graftM create")
+                        exit(1)
+                if self.args.taxonomy:
+                    if self.args.rerooted_annotated_tree:
+                        logging.error("--taxonomy is incompatible with --rerooted_annotated_tree")
+                        exit(1)
+                    if self.args.taxtastic_taxonomy or self.args.taxtastic_seqinfo:
+                        logging.error("--taxtastic_taxonomy and --taxtastic_seqinfo are incompatible with --taxonomy")
+                        exit(1)
+                elif self.args.rerooted_annotated_tree:
+                    if self.args.taxtastic_taxonomy or self.args.taxtastic_seqinfo:
+                        logging.error("--taxtastic_taxonomy and --taxtastic_seqinfo are incompatible with --rerooted_annotated_tree")
+                        exit(1)
+                else:
+                    if not self.args.taxtastic_taxonomy or not self.args.taxtastic_seqinfo:
+                        logging.error("--taxonomy, --rerooted_annotated_tree or --taxtastic_taxonomy/--taxtastic_seqinfo is required")
+                        exit(1)
+                if bool(self.args.taxtastic_taxonomy) ^  bool(self.args.taxtastic_seqinfo):
+                    logging.error("Both or neither of --taxtastic_taxonomy and --taxtastic_seqinfo must be defined")
                     exit(1)
-            if bool(self.args.taxtastic_taxonomy) ^  bool(self.args.taxtastic_seqinfo):
-                logging.error("Both or neither of --taxtastic_taxonomy and --taxtastic_seqinfo must be defined")
-                exit(1)
-            if self.args.alignment and self.args.hmm:
-                logging.error("--alignment and --hmm cannot both be set")
-                exit(1)
-            self.hk.checkCreatePrerequisites()
-
-            Create().main(
-                          sequences = self.args.sequences,
-                          alignment=self.args.alignment,
-                          taxonomy=self.args.taxonomy,
-                          rerooted_tree=self.args.rerooted_tree,
-                          tree_log=self.args.tree_log,
-                          prefix=self.args.output,
-                          rerooted_annotated_tree=self.args.rerooted_annotated_tree,
-                          min_aligned_percent=float(self.args.min_aligned_percent)/100,
-                          taxtastic_taxonomy = self.args.taxtastic_taxonomy,
-                          taxtastic_seqinfo = self.args.taxtastic_seqinfo,
-                          hmm = self.args.hmm,
-                          search_hmm_files = self.args.search_hmm_files,
-                          force = self.args.force
-                          )
+                if self.args.alignment and self.args.hmm:
+                    logging.error("--alignment and --hmm cannot both be set")
+                    exit(1)
+                self.hk.checkCreatePrerequisites()
+    
+                Create().main(
+                              dereplication_level = self.args.dereplication_level,
+                              sequences = self.args.sequences,
+                              alignment = self.args.alignment,
+                              taxonomy = self.args.taxonomy,
+                              rerooted_tree = self.args.rerooted_tree,
+                              tree_log = self.args.tree_log,
+                              prefix = self.args.output,
+                              rerooted_annotated_tree = self.args.rerooted_annotated_tree,
+                              min_aligned_percent = float(self.args.min_aligned_percent)/100,
+                              taxtastic_taxonomy = self.args.taxtastic_taxonomy,
+                              taxtastic_seqinfo = self.args.taxtastic_seqinfo,
+                              hmm = self.args.hmm,
+                              search_hmm_files = self.args.search_hmm_files,
+                              force = self.args.force,
+                              graftm_package = self.args.graftm_package,
+                              threads = self.args.threads
+                              )
+        
         elif self.args.subparser_name == 'bootstrap':
             args = self.args
             if not args.graftm_package and not args.search_hmm_files:
@@ -554,3 +613,69 @@ class Run:
                                                               args.output_hmm,
                                                               search_method=Bootstrapper.HMM_SEARCH_METHOD)
 
+        
+        
+        
+        elif self.args.subparser_name == 'tree':
+            if self.args.graftm_package:
+                # shim in the paths from the graftm package, not overwriting
+                # any of the provided paths.
+                gpkg = GraftMPackage.acquire(self.args.graftm_package)
+                if not self.args.rooted_tree: self.args.rooted_tree = gpkg.reference_package_tree_path()
+                if not self.args.input_greengenes_taxonomy:
+                    if not self.args.input_taxtastic_seqinfo:
+                        self.args.input_taxtastic_seqinfo = gpkg.taxtastic_seqinfo_path()
+                    if not self.args.input_taxtastic_taxonomy:
+                        self.args.input_taxtastic_taxonomy = gpkg.taxtastic_taxonomy_path()
+                        
+            if self.args.rooted_tree:
+                if self.args.unrooted_tree:
+                    logging.error("Both a rooted tree and an un-rooted tree were provided, so it's unclear what you are asking graftM to do. \
+If you're unsure see graftM tree -h")
+                    exit(1)
+                elif self.args.reference_tree:
+                    logging.error("Both a rooted tree and reference tree were provided, so it's unclear what you are asking graftM to do. \
+If you're unsure see graftM tree -h")
+                    exit(1)
+                    
+                if not self.args.decorate:
+                    logging.error("It seems a rooted tree has been provided, but --decorate has not been specified so it is unclear what you are asking graftM to do.")
+                    exit(1)
+                
+                dec = Decorator(tree_path = self.args.rooted_tree)
+            
+            elif self.args.unrooted_tree and self.args.reference_tree:
+                logging.debug("Using provided reference tree %s to reroot %s and decorating with %s" % (self.args.reference_tree, 
+                                                                                                        self.args.unrooted_tree, 
+                                                                                                        self.args.input_taxonomy))
+                dec = Decorator(reference_tree_path = self.args.reference_tree,
+                                tree_path = self.args.unrooted_tree)
+            else:
+                logging.error("Some tree(s) must be provided, either a rooted tree or both an unrooted tree and a reference tree")
+                exit(1)
+                
+            if self.args.output_taxonomy is None and self.args.output_tree is None:
+                logging.error("Either an output tree or taxonomy must be provided")
+                exit(1)
+            if self.args.input_greengenes_taxonomy:
+                if self.args.input_taxtastic_seqinfo or self.args.input_taxtastic_taxonomy:
+                    logging.error("Both taxtastic and greengenes taxonomy were provided, so its unclear what taxonomy you want graftM to decorate with")
+                    exit(1)
+                logging.debug("Using input GreenGenes style taxonomy file")
+                dec.main(self.args.input_greengenes_taxonomy, 
+                         self.args.output_tree, self.args.output_taxonomy, 
+                         self.args.no_unique_tax, self.args.decorate, None) 
+            elif self.args.input_taxtastic_seqinfo and self.args.input_taxtastic_taxonomy:
+                logging.debug("Using input taxtastic style taxonomy/seqinfo")
+                dec.main(self.args.input_taxtastic_taxonomy, self.args.output_tree, 
+                         self.args.output_taxonomy, self.args.no_unique_tax, 
+                         self.args.decorate, self.args.input_taxtastic_seqinfo)
+            else:
+                logging.error("Either a taxtastic taxonomy or seqinfo file was provided. GraftM cannot continue without both.")
+                exit(1)
+        else:
+            raise Exception("Unexpected subparser name %s" % self.args.subparser_name)
+            
+            
+            
+            

@@ -7,6 +7,8 @@ from graftm.prerequisite_checker import PrerequisiteChecker
 PIPELINE_AA = "P"
 PIPELINE_NT = "D"
 
+class InvalidFileExtensionError(Exception):
+    pass
 
 class UninstalledProgramError(Exception):
     pass
@@ -16,6 +18,26 @@ class HouseKeeping:
     ### general housekeeping things like adding and removing directories and 
     ### files.
 
+    def file_basename(self, file):
+        '''
+        Strips the path and last extension from the file variable. If the 
+        extension is found to be valid, the basename will be returned. Otherwise
+        an error will be raise and graftM will exit
+        '''
+        valid_extensions = set(".tree",
+                               ".tre")
+        split_file = os.path.basename(file).split('.')
+        base, suffix = '.'.join(split_file[:-1]), split_file[-1]
+        
+        if suffix in valid_extensions:
+            return base
+        else:
+            logging.error("Invalid file extension found on file: %s" % file)
+            logging.error("For trees, please provide a file with one of the \
+following extensions: %s" % ' '.join(valid_extensions.keys()))
+            raise InvalidFileExtensionError
+            
+            
     def set_euk_hmm(self, args):
         'Set the hmm used by graftM to cross check for euks.'
         if hasattr(args, 'euk_hmm_file'):
@@ -150,7 +172,8 @@ class HouseKeeping:
             if args.search_method == 'hmmsearch':
                 if not hasattr(args, 'aln_hmm_file'):
                     if len(args.search_hmm_files) == 1:
-                        setattr(args, 'aln_hmm_file', args.search_hmm_files[0])
+                        if not args.search_only:
+                            setattr(args, 'aln_hmm_file', args.search_hmm_files[0])
                     else:
                         raise Exception("Multiple search HMMs specified, but aln_hmm_file not specified")
 
@@ -161,7 +184,8 @@ class HouseKeeping:
             if args.search_method == 'hmmsearch':
                 setattr(args, 'search_hmm_files', [x.rstrip() for x in open(args.search_hmm_list_file).readlines()])
                 if not hasattr(args, 'aln_hmm_file'):
-                    raise Exception("Multiple search HMMs specified, but aln_hmm_file not specified")
+                    if not args.search_only:
+                        raise Exception("Multiple search HMMs specified, but aln_hmm_file not specified")
             else:
                 raise Exception("Specified HMM search_hmm_files when not using the hmmsearch pipeline. Using: %s" % (args.search_method))
         

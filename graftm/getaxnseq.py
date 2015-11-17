@@ -2,39 +2,37 @@
 
 import re
 import sets
+import string
+import logging
 
 class Getaxnseq:
+    # Perhaps in the future allow this to be set programmatically
+    _taxonomic_level_names = string.split('kingdom phylum class order family genus species')
     
-    def taxonomy_line(self, level_index, taxon_array):
+    def _taxonomy_line(self, level_index, taxon_array):
         
         if level_index == 0:
-            return '%s,Root,kingdom,%s,%s,%s,,,,,,' % (taxon_array[level_index], taxon_array[level_index], 'Root', taxon_array[level_index])
+            return '%s,Root,%s,%s,%s,%s,,,,,,' % (taxon_array[level_index], self._taxonomic_level_names[level_index], taxon_array[level_index], 'Root', taxon_array[level_index])
         elif level_index == 1:
-            return '%s,%s,phylum,%s,%s,%s,%s,,,,,' % (taxon_array[level_index], taxon_array[level_index-1], taxon_array[level_index], 'Root', taxon_array[0], taxon_array[1])
+            return '%s,%s,%s,%s,%s,%s,%s,,,,,' % (taxon_array[level_index], taxon_array[level_index-1], self._taxonomic_level_names[level_index], taxon_array[level_index], 'Root', taxon_array[0], taxon_array[1])
         elif level_index == 2:
-            return '%s,%s,class,%s,%s,%s,%s,%s,,,,' % (taxon_array[level_index], taxon_array[level_index-1], taxon_array[level_index], 'Root', taxon_array[0], taxon_array[1], taxon_array[2])
+            return '%s,%s,%s,%s,%s,%s,%s,%s,,,,' % (taxon_array[level_index], taxon_array[level_index-1], self._taxonomic_level_names[level_index], taxon_array[level_index], 'Root', taxon_array[0], taxon_array[1], taxon_array[2])
         elif level_index == 3:
-            return '%s,%s,order,%s,%s,%s,%s,%s,%s,,,' % (taxon_array[level_index], taxon_array[level_index-1], taxon_array[level_index], 'Root', taxon_array[0], taxon_array[1], taxon_array[2], taxon_array[3])
+            return '%s,%s,%s,%s,%s,%s,%s,%s,%s,,,' % (taxon_array[level_index], taxon_array[level_index-1], self._taxonomic_level_names[level_index], taxon_array[level_index], 'Root', taxon_array[0], taxon_array[1], taxon_array[2], taxon_array[3])
         elif level_index == 4:
-            return '%s,%s,family,%s,%s,%s,%s,%s,%s,%s,,' % (taxon_array[level_index], taxon_array[level_index-1], taxon_array[level_index], 'Root', taxon_array[0], taxon_array[1], taxon_array[2], taxon_array[3], taxon_array[4])
+            return '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,,' % (taxon_array[level_index], taxon_array[level_index-1], self._taxonomic_level_names[level_index], taxon_array[level_index], 'Root', taxon_array[0], taxon_array[1], taxon_array[2], taxon_array[3], taxon_array[4])
         elif level_index == 5:
-            return '%s,%s,genus,%s,%s,%s,%s,%s,%s,%s,%s,' % (taxon_array[level_index], taxon_array[level_index-1], taxon_array[level_index], 'Root', taxon_array[0], taxon_array[1], taxon_array[2], taxon_array[3], taxon_array[4], taxon_array[5])
+            return '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,' % (taxon_array[level_index], taxon_array[level_index-1], self._taxonomic_level_names[level_index], taxon_array[level_index], 'Root', taxon_array[0], taxon_array[1], taxon_array[2], taxon_array[3], taxon_array[4], taxon_array[5])
         elif level_index == 6:
-            return '%s,%s,species,%s,%s,%s,%s,%s,%s,%s,%s,%s' % (taxon_array[level_index], taxon_array[level_index-1], taxon_array[level_index], 'Root', taxon_array[0], taxon_array[1], taxon_array[2], taxon_array[3], taxon_array[4], taxon_array[5], taxon_array[6])
+            return '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s' % (taxon_array[level_index], taxon_array[level_index-1], self._taxonomic_level_names[level_index], taxon_array[level_index], 'Root', taxon_array[0], taxon_array[1], taxon_array[2], taxon_array[3], taxon_array[4], taxon_array[5], taxon_array[6])
         else:
-            raise Exception("Programming error, found too many levels!")
+            raise Exception("Programming error, found too many taxonomic levels!")
         
     def read_taxonomy_file(self, taxonomy_file):
-        taxonomies = {}
-        for entry in open(taxonomy_file):
-            # split the entire line including the  on '; '
-            split = entry.rstrip().split(';')
-
-            # split out the taxon ID from the first split of above
-            taxon_id, first_taxon = [s.strip() for s in split[0].split()[:2]]
-            tax_split = [first_taxon] + split[1:]
-            
-            taxonomies[taxon_id] = tax_split
+        taxonomies = \
+            {x.split('\t')[0]:(x.split('\t')[1].strip().split('; ') if '; ' in x 
+                               else x.split('\t')[1].strip().split(';'))
+             for x in open(taxonomy_file)}
         return taxonomies
     
     def read_taxtastic_taxonomy_and_seqinfo(self, taxonomy_io, seqinfo_io):
@@ -165,8 +163,13 @@ class Getaxnseq:
             seqout.write('seqname,tax_id\n')
             # write each taxonomic association
             for array in first_pass_id_and_taxonomies:
+                sequence_id = array[0]
                 if len(array)==1:
                     most_specific_taxonomic_affiliation = 'Root'
+                elif len(array)-1 > len(self._taxonomic_level_names):
+                    logging.warn("Excluding the more specific parts of the taxonomic assignment '%s' assigned to sequence '%s' due to it having more levels than this code can currently accommodate" %\
+                                 (array[1:], sequence_id))
+                    most_specific_taxonomic_affiliation = array[len(self._taxonomic_level_names)]
                 else:  
                     most_specific_taxonomic_affiliation = array[-1]
                 seqout.write("%s,%s\n" % (array[0], 
@@ -181,14 +184,12 @@ class Getaxnseq:
             # write all the taxonomies
             for array in first_pass_id_and_taxonomies:
                 taxons = array[1:]
-
-
-
                 for i, tax in enumerate(taxons):
-                    line = self.taxonomy_line(i, taxons[:(i+1)])
+                    if i < len(self._taxonomic_level_names):
+                        line = self._taxonomy_line(i, taxons[:(i+1)])
+                        if line not in noted_taxonomies:
+                            seqout.write(line+"\n")
+                            noted_taxonomies.add(line)
 
-                    if line not in noted_taxonomies:
-                        seqout.write(line+"\n")
-                        noted_taxonomies.add(line)
 
 

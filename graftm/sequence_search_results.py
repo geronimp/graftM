@@ -1,10 +1,12 @@
 import subprocess
 import logging
 import csv
+import os
 
 class SequenceSearchResult:
     QUERY_FROM_FIELD = 'query_from'
     QUERY_TO_FIELD = 'query_to'
+    QUERY_LENGTH_FIELD = 'query_length'
     HIT_FROM_FIELD = 'hit_from'
     HIT_TO_FIELD = 'hit_to'
     ALIGNMENT_LENGTH_FIELD = 'alignment_length'
@@ -13,6 +15,11 @@ class SequenceSearchResult:
     HIT_ID_FIELD = 'hit_id'
     QUERY_ID_FIELD = 'query_id'
     HMM_NAME_FIELD = 'hmm_name'
+    ACCESSION_ID_FIELD = 'accession_id'
+    PERCENT_ID_FIELD = 'percent_id'
+    MISMATCH_FIELD = "mismatch"
+    EVALUE_FIELD = "evalue"
+    
     
     
     def __init__(self):
@@ -41,6 +48,7 @@ class SequenceSearchResult:
             # below raises error if the field name is not found, so
             # don't need to account for that.
             field_ids.append(self.fields.index(f))
+        
         for r in self.results:
             yield([r[i] for i in field_ids])
         
@@ -55,18 +63,19 @@ class DiamondSearchResult(SequenceSearchResult):
         res.fields = [
                        SequenceSearchResult.QUERY_ID_FIELD,
                        SequenceSearchResult.HIT_ID_FIELD,
-                       #skip
+                       SequenceSearchResult.PERCENT_ID_FIELD,
                        SequenceSearchResult.ALIGNMENT_LENGTH_FIELD,
-                       #skip
+                       SequenceSearchResult.MISMATCH_FIELD,
                        #skip
                        SequenceSearchResult.QUERY_FROM_FIELD,
                        SequenceSearchResult.QUERY_TO_FIELD,
                        SequenceSearchResult.HIT_FROM_FIELD,
                        SequenceSearchResult.HIT_TO_FIELD,
-                       #skip
+                       SequenceSearchResult.EVALUE_FIELD,
                        SequenceSearchResult.ALIGNMENT_BIT_SCORE,
                        # extras
                        SequenceSearchResult.ALIGNMENT_DIRECTION,
+                       SequenceSearchResult.HMM_NAME_FIELD
                        ]
         
         cmd = "diamond view -a '%s'" % daa_filename
@@ -87,13 +96,17 @@ class DiamondSearchResult(SequenceSearchResult):
             query_end = int(row[7])
             res.results.append([row[0],
                                  row[1],
+                                 row[2],
                                  row[3],
+                                 row[4],
                                  query_start,
                                  query_end,
                                  int(row[8]),
                                  int(row[9]),
+                                 row[10],
                                  row[11],
                                  query_start < query_end,
+                                 os.path.basename(daa_filename)
                                  ])
         return res
 
@@ -142,6 +155,8 @@ class HMMSearchResult(SequenceSearchResult):
         res.fields = [
                        SequenceSearchResult.QUERY_ID_FIELD,
                        SequenceSearchResult.HMM_NAME_FIELD,
+                       SequenceSearchResult.ACCESSION_ID_FIELD,
+                       SequenceSearchResult.QUERY_LENGTH_FIELD,
                        SequenceSearchResult.ALIGNMENT_LENGTH_FIELD,
                        SequenceSearchResult.QUERY_FROM_FIELD,
                        SequenceSearchResult.QUERY_TO_FIELD,
@@ -158,6 +173,8 @@ class HMMSearchResult(SequenceSearchResult):
             if alito != alifrom: #this actually happens..
                 res.results.append([row[0],
                                     row[3],
+                                    row[4],
+                                    row[5],
                                     aln_length,
                                     int(row[15]),
                                     int(row[16]),

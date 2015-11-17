@@ -124,7 +124,7 @@ class Pplacer:
                                                            resolve_placements
                                                            )
         self.hk.delete([jplace])# Remove combined split, not really useful
-        logging.info("Reads classified.")
+        logging.info("Reads classified")
         # If the reverse pipe has been specified, run the comparisons between the two pipelines. If not then just return.
         
         for idx, file in enumerate(seqs_list):

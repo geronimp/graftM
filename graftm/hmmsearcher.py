@@ -54,6 +54,7 @@ class HmmSearcher:
             # Run hmmsearches with each of the pairs
             cmd = self._hmm_command(input_pipe, pairs_to_run)
             logging.debug("Running command: %s" % cmd)
+
             extern.run(cmd)
             
     def _munch_off_batch(self, queue):
@@ -106,7 +107,7 @@ class HmmSearcher:
                                                                               element[0][1],
                                                                               element[1]),
                                                 hmmsearch_cmd)
-            
+        
         # Run the actual command
         hmmsearch_cmd = "%s | %s" % (input_pipe, hmmsearch_cmd)
         return hmmsearch_cmd

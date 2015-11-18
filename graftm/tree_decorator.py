@@ -4,6 +4,7 @@
 # Local imports
 from graftm.getaxnseq import Getaxnseq
 from graftm.rerooter import Rerooter
+from graftm.greengenes_taxonomy import GreenGenesTaxonomy
 # System imports
 from skbio import TreeNode
 import argparse
@@ -55,12 +56,8 @@ class TreeDecorator:
                 if len(taxonomy_list) != MAX_RESOLUTION:
                     self.taxonomy[id] = taxonomy_list + self.gg_prefixes[1:][len(taxonomy_list):]
         else:
-            self.taxonomy = {}
             logging.info("Importing greengenes taxonomy from file: %s" % (taxonomy))
-            for entry in open(taxonomy, "r"):
-                entry = entry.strip().split('\t')
-                self.taxonomy[entry[0]] = (entry[1].split('; ') if '; ' in entry[1]\
-                                           else entry[1].split(';'))
+            self.taxonomy = GreenGenesTaxonomy.read_file(taxonomy).taxonomy
             
     def _nodes(self):
         '''
@@ -78,7 +75,6 @@ class TreeDecorator:
 tree that was  provided. Tree is being rerooted to the branch of the node that \
 is the greatest distance to the root.")
             self.tree = Rerooter().reroot(self.tree)
-            print "ecit"
         for node in self.tree.preorder():
             if node.is_root():
                 logging.debug("%i reads in tree from root" % (len(list(node.tips()))))                   

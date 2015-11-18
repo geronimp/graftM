@@ -27,13 +27,6 @@ class Getaxnseq:
             return '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s' % (taxon_array[level_index], taxon_array[level_index-1], self._taxonomic_level_names[level_index], taxon_array[level_index], 'Root', taxon_array[0], taxon_array[1], taxon_array[2], taxon_array[3], taxon_array[4], taxon_array[5], taxon_array[6])
         else:
             raise Exception("Programming error, found too many taxonomic levels!")
-        
-    def read_taxonomy_file(self, taxonomy_file):
-        taxonomies = \
-            {x.split('\t')[0]:(x.split('\t')[1].strip().split('; ') if '; ' in x 
-                               else x.split('\t')[1].strip().split(';'))
-             for x in open(taxonomy_file)}
-        return taxonomies
     
     def read_taxtastic_taxonomy_and_seqinfo(self, taxonomy_io, seqinfo_io):
         '''Read the taxonomy and seqinfo files into a dictionary of 

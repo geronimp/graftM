@@ -22,6 +22,7 @@ from skbio.tree import TreeNode
 from graftm.sequence_io import SequenceIO
 from graftm.graftm_package import GraftMPackageVersion3, GraftMPackage
 from graftm.decorator import Decorator
+from graftm.greengenes_taxonomy import GreenGenesTaxonomy
 
 class InsufficientGraftMPackageVersion(Exception):
     pass
@@ -495,7 +496,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
                     TreeNode.read(open(rerooted_annotated_tree)))
         elif taxonomy:
             logging.info("Building seqinfo and taxonomy file from input taxonomy")
-            taxonomy_definition = gtns.read_taxonomy_file(taxonomy)
+            taxonomy_definition = GreenGenesTaxonomy.read_file(taxonomy).taxonomy
         elif taxtastic_seqinfo and taxtastic_taxonomy:
             logging.info("Reading taxonomy from taxtastic taxonomy and seqinfo files")
             taxonomy_definition = gtns.read_taxtastic_taxonomy_and_seqinfo\
@@ -680,7 +681,7 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
                         TreeNode.read(open(rerooted_annotated_tree)))
             elif taxonomy:
                 logging.info("Building seqinfo and taxonomy file from input taxonomy")
-                taxonomy_definition = gtns.read_taxonomy_file(taxonomy)
+                taxonomy_definition = GreenGenesTaxonomy.read_file(taxonomy).taxonomy
             else:
                 raise Exception("Programming error: Taxonomy is required somehow e.g. by --taxonomy or --rerooted_annotated_tree")
 
@@ -849,7 +850,7 @@ alignment/HMM/Tree can be created""")
         ### Creating taxtastic files ###
         new_gpkg.tt_seqinfo = "%s_seqinfo.csv" % new_gpkg.name
         new_gpkg.tt_taxonomy = "%s_taxonomy.csv" % new_gpkg.name
-        gtns.write_taxonomy_and_seqinfo_files(gtns.read_taxonomy_file(new_gpkg.gg_taxonomy),
+        gtns.write_taxonomy_and_seqinfo_files(GreenGenesTaxonomy.read_file(new_gpkg.gg_taxonomy).taxonomy,
                                               new_gpkg.tt_taxonomy,
                                               new_gpkg.tt_seqinfo)
         ######################

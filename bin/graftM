@@ -289,7 +289,7 @@ to dereplicate the sequences to create the HMM. 0: No dereplication, 1: Domain l
 
  Decorate input.tre with my.taxonomy, and output the decorated tree to output.tre and taxonomy to output.taxonomy:
 
-    $ graftM tree --decorate --rooted_tree input.tre --taxonomy my.taxonomy --output_tree output.tre --output_taxonomy output.taxonomy
+    $ graftM tree --decorate --rooted_tree input.tre --input_greengenes_taxonomy my.taxonomy --output_tree output.tre --output_taxonomy output.taxonomy
     
  Decorate the tree in a GraftM package and output the decorated tree to output.tre and taxonomy to output.taxonomy:
 

@@ -216,25 +216,8 @@ class Create:
         else:
             logging.debug("Calling command: %s" % cmd)
             logging.info("Attempting to run taxit create with rerooting capabilities")
-            try:
-                process = subprocess32.Popen(['bash','-c',cmd],
-                                           stdout=subprocess32.PIPE,
-                                           stderr=subprocess32.PIPE,
-                                           preexec_fn=os.setsid)
-                stdout, stderr = process.communicate(timeout=60)
-
-                if process.returncode != 0:
-                    raise extern.ExternCalledProcessError(cmd,
-                                                          process.returncode,
-                                                          stderr,
-                                                          stdout)
-            except (subprocess32.TimeoutExpired, extern.ExternCalledProcessError):
-                os.killpg(process.pid, signal.SIGTERM)
+            def exit_gracefully(base):
                 local_base = os.path.basename(base)
-                #nontemp_search_hmm_file = 'graftm_create_search_hmm.%s.hmm' % local_base
-                #shutil.copy(search_hmms, nontemp_search_hmm_file)
-                #nontemp_align_hmm_file = 'graftm_create_align_hmm.%s.hmm' % local_base
-                #shutil.copy(hmm, nontemp_align_hmm_file)
                 nontemp_tax_file = 'graftm_create_taxonomy.%s.csv' % local_base
                 shutil.copy(tax, nontemp_tax_file)
                 nontemp_seqinfo_file = 'graftm_create_seqinfo.%s.csv' % local_base
@@ -243,8 +226,6 @@ class Create:
                 shutil.copy(aln_file, nontemp_aln_file)
                 nontemp_tre_file = 'graftm_create_tree.%s.tree' % local_base
                 shutil.copy(tre, nontemp_tre_file)
-                #nontemp_seq_file = 'graftm_create_sequences.%s.faa' % local_base
-                #shutil.copy(sequences, nontemp_seq_file)
                 logging.error('''
 taxit create failed to run in a small amount of time suggesting that
 rerooting was unsuccessful. Unfortunately this tree will need to be rerooted
@@ -270,6 +251,28 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
        )
                               )
                 exit(2)
+                
+                
+            try:
+                process = subprocess32.Popen(['bash','-c',cmd],
+                                           stdout=subprocess32.PIPE,
+                                           stderr=subprocess32.PIPE,
+                                           preexec_fn=os.setsid)
+                stdout, stderr = process.communicate(timeout=60)
+                logging.debug("taxit create STDOUT was: %s" % stdout)
+                logging.debug("taxit create STDERR was: %s" % stderr)
+
+                if process.returncode != 0 or re.match(r'^Error: ',stdout):
+                    raise extern.ExternCalledProcessError(cmd,
+                                                          process.returncode,
+                                                          stderr,
+                                                          stdout)
+            except subprocess32.TimeoutExpired:
+                os.killpg(process.pid, signal.SIGTERM)
+                exit_gracefully(base)
+            except extern.ExternCalledProcessError:
+                exit_gracefully(base)
+
         return refpkg
 
     def _concatenate_file(self, file_list, output):

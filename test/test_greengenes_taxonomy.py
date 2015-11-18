@@ -57,6 +57,18 @@ class Tests(unittest.TestCase):
                                            'seq1\tbacteria;cyanobacteria\n'
                                            ))
             
+    def test_raises_when_missing_middle(self):
+        with self.assertRaises(MalformedGreenGenesTaxonomyException):
+            GreenGenesTaxonomy.read(StringIO('seq1\tbacteria;cyanobacteria\n'\
+                                           'seq2\tbacteria;;cyanobacteria\n'
+                                           ))
+            
+    def test_removes_empties_at_end(self):
+        self.assertEqual({'seq1': ['bacteria','cyanobacteria'], 'seq2': ['bacteria','bluebacteria']},\
+            GreenGenesTaxonomy.read(StringIO('seq1\tbacteria;cyanobacteria;\n'\
+                                           'seq2\tbacteria;bluebacteria;;\n'
+                                           )).taxonomy)
+            
     def test_input_file(self):
         with tempfile.NamedTemporaryFile(prefix='graftm_greengenes_tax_testing') as tf:
             tf.write('seq1\tbacteria;cyanobacteria')

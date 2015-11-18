@@ -32,7 +32,12 @@ class GreenGenesTaxonomy:
                 raise MalformedGreenGenesTaxonomyException("Unexpected number of tab-separated fields found in taxonomy file, on line %s" % line)
             name = splits[0]
             taxonomy = [t.strip() for t in splits[1].split(';')]
-            if taxonomy == ['']: taxonomy = []
+            while len(taxonomy) > 0 and taxonomy[-1] == '':
+                taxonomy = taxonomy[:-1]
+            for lineage in taxonomy:
+                if lineage == '':
+                    raise MalformedGreenGenesTaxonomyException("Encountered a taxonomy string with the middle of the taxonomy string missing: %s" % line)
+            
             if name in tax:
                 raise MalformedGreenGenesTaxonomyException("Duplicate definition of taxonomy for %s" % name)
             tax[name] = taxonomy

@@ -526,6 +526,11 @@ class Run:
               >c                        |________|
               ----------
 '''
+            
+            if self.args.dereplication_level not in range(0,8):
+                logging.error("Invalid dereplication level selected! please enter an integer from 0 - 7")
+                exit(1)
+            
             if self.args.graftm_package:
                 if self.args.taxonomy and self.args.sequences:
                     logging.info("GraftM package %s specified to update with sequences in %s" % (self.args.graftm_package, self.args.sequences))

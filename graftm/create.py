@@ -45,8 +45,9 @@ class Create:
                 2:"phylum",
                 3:"class",
                 4:"order",
-                6:"family",
-                7:"genus"}
+                5:"family",
+                6:"genus",
+                7:"species"}
 
     def __init__(self):
         self.h=Hmmer(None, None)
@@ -387,25 +388,32 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
 
                     #################################
                     ### Dereplication ###
-                    logging.debug("Dereplicating sequences at the %s level" % (Create._RANK_DICT[dereplication_level + 1]  ))
+                    logging.debug("Dereplicating sequences at the %s level" % (Create._RANK_DICT[dereplication_level]  ))
                     dereplicated_sequence_ids = []
                     seen_taxons = set()
                     prefix_re = re.compile(r'^[a-zA-Z]__')
                     for sequence_id, taxonomy in taxonomy_definition.iteritems():
+                        
                         try:
                             taxon = taxonomy[dereplication_index]
                         except IndexError:
                             continue
-
-                        if taxon == "" or prefix_re.match(taxon):
+    
+                        if taxon == "":
                             continue
+                        elif len(taxon)==3:
+                            if prefix_re.match(taxon):
+                                continue
+                            else:
+                                logging.debug("Sequence %s redundant at %s level: %s" % (sequence_id, Create._RANK_DICT[dereplication_level], taxon) )
+                                dereplicated_sequence_ids.append(sequence_id)
                         elif taxon in seen_taxons:
-                            logging.debug("Sequence %s redundant at %s level: %s" % (sequence_id, Create._RANK_DICT[dereplication_level + 1], taxon) )
+                            logging.debug("Sequence %s redundant at %s level: %s" % (sequence_id, Create._RANK_DICT[dereplication_level], taxon) )
                             dereplicated_sequence_ids.append(sequence_id)
                         else:
                             seen_taxons.add(taxon)
                     logging.info("Removing %i sequences from the search HMM that are redundant at the %s level" % (len(dereplicated_sequence_ids),
-                                                                                                                   Create._RANK_DICT[dereplication_level + 1]))
+                                                                                                                   Create._RANK_DICT[dereplication_level]))
                     self._remove_sequences_from_alignment(dereplicated_sequence_ids, sequences, temporary_dereplicated)
                     self._align_sequences(temporary_dereplicated, temporary_alignment, threads)
                 else:

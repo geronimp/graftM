@@ -211,7 +211,7 @@ if __name__ == '__main__':
  To update a GraftM package with new sequences, you just need to provide the same arguments as above, but also pass a graftM 
  package to the --graftm_package flag. Giving a package to graftM create will automatically execute the update pipeline. If no
  output name is provided, a default suffix of "-updated.gpkg" will be appended to the current name. If no taxonomy for the 
- new sequences is provided, GraftM will attempt to decorate using the surrounding sequences, but this is an imprfect method, 
+ new sequences is provided, GraftM will attempt to decorate using the surrounding sequences, but this is an imperfect method, 
  so the --taxonomy flag should be used where possible. 
     $ graftM create --graftm_package my_old_graftm_package.gpkg --sequences my_new_sequences.fasta --taxonomy my_new_taxonomy.tsv 
       --output my_new_graftm_package.gpkg
@@ -222,7 +222,7 @@ if __name__ == '__main__':
     sequence1    k__kingdom1; p__phylum2
 
  Internally, the taxonomic levels separated by '; ' are assumed to be kingdom, phylum, class, order, family, genus, species. 
- However, this may not matter for the purposes of using graftM. The prefixes e.g. 'k__' are not required.
+ However, this may not matter for the purposes of using graftM. The prefixes e.g. 'k__' are also not required.
  
 ''')
 
@@ -236,8 +236,8 @@ if __name__ == '__main__':
     create_lesser_options.add_argument('--rerooted_annotated_tree', metavar='newick_tree', help='Define taxonomy through this annotated newick file. (default: use taxonomy from --taxonomy)')
     create_lesser_options.add_argument('--hmm', metavar='.hmm file', help='Use this HMM for alignment, and search unless --search_hmm_files is specified. (default: use HMM build automatically from alignment)')
     create_lesser_options.add_argument('--dereplication_level', metavar='.hmm file', type = int, help='taxonomic rank at which \
-to dereplicate the sequences to create the HMM. 0: No dereplication, 1: Domain level dereplication, 2: Phylum level dereplication, 3: Class level dereplication \
-4: Order level dereplication, 5: Family level dereplication, 6: Genus level dereplication (Default = 6, i.e. Genus level dereplication)', default = 6)
+to dereplicate the sequences to create the HMM. Provide an integer that corresponds to the rank (from left to right) will be dereplicated. For example --dereplication_level 3 will omit all sequences \
+that are redundant at the 3rd rank (from left to right in the taxonomy file) from the search HMM.  (0 == No dereplication)', default = 6)
     create_lesser_options.add_argument('--search_hmm_files', metavar='.hmm files', nargs='+', help='Use these HMM(s) for search. (default: use --hmm or build automatically from alignment)')
     create_lesser_options.add_argument('--min_aligned_percent', type=int, metavar='percent', help='Remove sequences from the alignment which do not cover at least this percentage of the HMM', default=30)
     create_lesser_options.add_argument('--output', metavar='PATH', help='Name of output GraftM package (default: use name derived from alignment)')
@@ -289,7 +289,7 @@ to dereplicate the sequences to create the HMM. 0: No dereplication, 1: Domain l
 
  Decorate input.tre with my.taxonomy, and output the decorated tree to output.tre and taxonomy to output.taxonomy:
 
-    $ graftM tree --decorate --rooted_tree input.tre --taxonomy my.taxonomy --output_tree output.tre --output_taxonomy output.taxonomy
+    $ graftM tree --decorate --rooted_tree input.tre --input_greengenes_taxonomy my.taxonomy --output_tree output.tre --output_taxonomy output.taxonomy
     
  Decorate the tree in a GraftM package and output the decorated tree to output.tre and taxonomy to output.taxonomy:
 

@@ -184,19 +184,19 @@ r6\td__Archaea;p__Euryarchaeota;c__Methanomicrobia;o__Halobacteriales;f__Halobac
                                       prefix = package,
                                       dereplication_level = i,
                                       force = True,
-                                      threads=5)
+                                      threads = 5)
                         base = os.path.basename(package)
-                        gpkg=GraftMPackageVersion2.acquire(package)
+                        gpkg = GraftMPackageVersion2.acquire(package)
                         seqinfo = open(gpkg.taxtastic_seqinfo_path())\
                                                                 .readlines()
 
-                        hmm=gpkg.search_hmm_paths()[0]
-                        nseq=[int(x.strip().split()[1]) for x in open(hmm).readlines()
-                              if x.startswith("NSEQ")][0]
-                        try:
-                            self.assertEqual(nseq, expected)
-                        except:
-                            import IPython ; IPython.embed()
+                        hmm = gpkg.search_hmm_paths()[0]
+                        nseq = [int(x.strip().split()[1]) 
+                                for x in open(hmm).readlines()
+                                if x.startswith("NSEQ")][0]
+
+                        self.assertEqual(nseq, expected)
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.ERROR)
     unittest.main()

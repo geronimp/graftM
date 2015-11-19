@@ -1,6 +1,3 @@
-import ez_setup
-ez_setup.use_setuptools()
-
 from setuptools import setup, find_packages
 
 with open('README.md') as readme_file:

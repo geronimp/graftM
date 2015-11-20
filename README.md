@@ -8,6 +8,7 @@ tree (pplacer). The provides fast, phylogenetically informed community profiles.
 * Analyse sequence datasets using these GraftM packages
 Head over to the [GraftM page](http://geronimp.github.io/graftM/) for more general information.
 ---
+
 ### Installation
 GraftM can be installed via pip:
 ```
@@ -20,8 +21,10 @@ However, to use all features of GraftM a few extra binary applications are requi
 * pplacer v. >= 2.6.32 (http://matsen.fhcrc.org/pplacer/)
 * krona v. >= 2.4 (http://sourceforge.net/p/krona/home/krona/)
 * mafft v. >= 7.22 (http://mafft.cbrc.jp/)
+
 ### Manual
 A [manual](https://github.com/geronimp/graftM/wiki) is available in the form of the wiki here on GitHub.
+
 ### Contact
 If you have any further comments, complaints or recomendations about GraftM, drop an email to the [SupportM](https://groups.google.com/forum/?hl=en#!forum/supportm) public help forum.
 Software by [Joel A. Boyd](http://ecogenomic.org/users/joel-boyd) (@geronimp) and [Ben J. Woodcroft](http://www.ecogenomic.org/users/ben-woodcroft) (@wwood) at the [Australian Centre for Ecogenomics](http://ecogenomic.org)

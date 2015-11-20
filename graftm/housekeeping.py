@@ -13,15 +13,15 @@ class InvalidFileExtensionError(Exception):
 
 class UninstalledProgramError(Exception):
     pass
-    
+
 class HouseKeeping:
-    ### Functions for setting up the graftM pipeline to run correctly, and 
-    ### general housekeeping things like adding and removing directories and 
+    ### Functions for setting up the graftM pipeline to run correctly, and
+    ### general housekeeping things like adding and removing directories and
     ### files.
 
     def file_basename(self, file):
         '''
-        Strips the path and last extension from the file variable. If the 
+        Strips the path and last extension from the file variable. If the
         extension is found to be valid, the basename will be returned. Otherwise
         an error will be raise and graftM will exit
         '''
@@ -29,7 +29,7 @@ class HouseKeeping:
                                ".tre")
         split_file = os.path.basename(file).split('.')
         base, suffix = '.'.join(split_file[:-1]), split_file[-1]
-        
+
         if suffix in valid_extensions:
             return base
         else:
@@ -37,8 +37,8 @@ class HouseKeeping:
             logging.error("For trees, please provide a file with one of the \
 following extensions: %s" % ' '.join(valid_extensions.keys()))
             raise InvalidFileExtensionError
-            
-            
+
+
     def set_euk_hmm(self, args):
         'Set the hmm used by graftM to cross check for euks.'
         if hasattr(args, 'euk_hmm_file'):
@@ -49,8 +49,8 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
             # pip.
             setattr(args, 'euk_hmm_file', os.path.join(os.path.dirname(inspect.stack()[-1][1]),'..','share', '18S.hmm'))
         else:
-            raise Exception('Programming Error: setting the euk HMM')    
-    
+            raise Exception('Programming Error: setting the euk HMM')
+
     def setpipe(self, hmm):
         ## Read in the hmm file and return the evalue trusted cutoff and the
         ## type of HMM
@@ -69,7 +69,7 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
             else:
                 raise Exception('Possibly Programming Error: Misread HMM library.')
         return hmm_type, hmm_tc
-        
+
     def delete(self, delete_list):
         for item in delete_list:
             try:
@@ -87,7 +87,7 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
             except:
                 logging.error('Directory %s already exists. Exiting to prevent over-writing' % directory_path)
                 raise Exception('Directory %s already exists. Exiting to prevent over-writing'% directory_path)
-    
+
     def parameter_checks(self, args):
         ## Check that the necessary files are in place
         if args.subparser_name == 'graft':
@@ -95,13 +95,13 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
             if float(args.placements_cutoff) < float(0.5) or float(args.placements_cutoff) > float(1.0):
                 logging.info('Please specify a confidence level (-d) between 0.5 and 1.0! Found: %s' % args.placements_cutoff)
                 exit(1)
-            
+
             self._check_file_existence(args.forward)
             if args.reverse:
                 self._check_file_existence(args.reverse)
-                    
+
             # Determine the File format based on the suffix
-            
+
             sequence_file_list = []
             if args.reverse:
                 if len(args.forward) != len(args.reverse):
@@ -110,9 +110,9 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
                     sequence_file_list.append([forward_file, args.reverse[i]])
             else:
                 sequence_file_list = [[f] for f in args.forward]
-                
+
             return sequence_file_list
-        
+
     def _check_file_existence(self, files):
         '''Iterate through files and exit(1) if any do not pass
         os.path.isfile'''
@@ -120,33 +120,33 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
             if not os.path.isfile(f):
                 logging.error("The file '%s' does not appear to exist, stopping" % f)
                 exit(1)
-            
-    
+
+
     def checkCreatePrerequisites(self):
         PrerequisiteChecker.check_prerequisites(('taxit','FastTreeMP','seqmagick','hmmalign','mafft'))
 
     def get_maximum_range(self, hmm):
         '''
-        If no maximum range has been specified, and if using a hmm search, a 
-        maximum range can be determined by using the length of the HMM 
-        
+        If no maximum range has been specified, and if using a hmm search, a
+        maximum range can be determined by using the length of the HMM
+
         Parameters
         ----------
         hmm : str
             path to hmm profile
-        
+
         Returns
         -------
         Length to search to when linking hits on a single contig
         '''
         length=int([x for x in open(hmm) if x.startswith("LENG")][0].split()[1])
         max_length=round(length*1.5, 0)
-        
+
         return max_length
 
     def set_attributes(self, args):
         PrerequisiteChecker.check_prerequisites(('orfm','nhmmer','hmmsearch','fxtract','pplacer','seqmagick','ktImportText','diamond'))
-        
+
         # Read graftM package and assign HMM and refpkg file
         if args.graftm_package:
             if not os.path.isdir(args.graftm_package):
@@ -164,14 +164,14 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
                     setattr(args, 'reference_package', gpkg.reference_package_path())
 
         elif hasattr(args, 'search_diamond_files'):
-            if args.search_method == 'diamond': 
+            if args.search_method == 'diamond':
                 if hasattr(args, 'aln_hmm_file'):
                     pass
                 else:
                     raise Exception("aln_hmm_file not specified")
             else:
-                raise Exception("Specified HMM databases when not using the diamond search pipeline. Using: %s" % (args.search_method))   
-        
+                raise Exception("Specified HMM databases when not using the diamond search pipeline. Using: %s" % (args.search_method))
+
         elif hasattr(args, 'search_hmm_files'):
             if args.search_method == 'hmmsearch':
                 if not hasattr(args, 'aln_hmm_file'):
@@ -192,7 +192,7 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
                         raise Exception("Multiple search HMMs specified, but aln_hmm_file not specified")
             else:
                 raise Exception("Specified HMM search_hmm_files when not using the hmmsearch pipeline. Using: %s" % (args.search_method))
-        
+
         else:
             raise Exception('No refpkg or HMM specified: Do not know what to search with.')
 

@@ -31,9 +31,15 @@ class PrerequisiteChecker:
         '''
         uninstalled_programs = []
         for program in program_list:
-            if not extern.which(program):
-                uninstalled_programs.append(program)
-        if uninstalled_programs:
+            if program == "FastTreeMP":
+                if not extern.which(program) or extern.which("fasttree") \
+                                             or extern.which("fasttreeMP"):
+                    uninstalled_programs.append(program)
+            else:
+                if not extern.which(program):
+                    uninstalled_programs.append(program)
+    
+        if any(uninstalled_programs):
             msg = "The following programs appear to be missing, and need to be installed before GraftM can continue:"
             logging.error(msg)
             for program in sorted(uninstalled_programs):

@@ -7,7 +7,6 @@ tree (pplacer). The provides fast, phylogenetically informed community profiles.
 * Decorate trees, and of course
 * Analyse sequence datasets using these GraftM packages
 Head over to the [GraftM page](http://geronimp.github.io/graftM/) for more general information.
----
 
 ### Installation
 GraftM can be installed via pip:

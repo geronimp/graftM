@@ -92,9 +92,9 @@ UTILITIES
     bootstrap   -       Create new HMMs from a base HMM and an assembly or genome. 
                         See graftM bootstrap -h
     
-    decorate    -       Decorate a tree with provided taxonomy, and attempt to re-root the tree
-                        (if needed) using a reference rooted tree.
-                        See graftM decorate -h
+    tree        -       Decorate a tree with provided taxonomy, re-root a tree using a reference
+                        rooted tree, or inspect the clades in a GraftM package.
+                        See graftM tree -h
 
 =====================================================================================================
 """ % (graftm.__version__)

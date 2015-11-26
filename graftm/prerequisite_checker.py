@@ -19,8 +19,7 @@ class PrerequisiteChecker:
                             'ktImportText': 'krona',
                             'FastTreeMP': 'FastTree'}
     
-    @staticmethod
-    def check_prerequisites(program_list):
+    def __init__(program_list):
         '''Given a list of executable names, check that they are available
         on the PATH, raising an exception otherwise
         
@@ -32,9 +31,15 @@ class PrerequisiteChecker:
         uninstalled_programs = []
         for program in program_list:
             if program == "FastTreeMP":
-                if not extern.which(program) or extern.which("fasttree") \
-                                             or extern.which("fasttreeMP"):
+                if not extern.which(program):
+                    if not extern.which("fasttree"):
+                        if not extern.which("fasttreeMP"):
+            
                     uninstalled_programs.append(program)
+                    
+                
+                
+                self.fasttree = 
             else:
                 if not extern.which(program):
                     uninstalled_programs.append(program)

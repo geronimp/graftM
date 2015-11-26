@@ -123,7 +123,7 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
 
 
     def checkCreatePrerequisites(self):
-        PrerequisiteChecker.check_prerequisites(('taxit','FastTreeMP','seqmagick','hmmalign','mafft'))
+        return PrerequisiteChecker('taxit', 'FastTreeMP', 'seqmagick', 'hmmalign', 'mafft')
 
     def get_maximum_range(self, hmm):
         '''

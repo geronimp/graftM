@@ -576,7 +576,7 @@ class Run:
                 if self.args.alignment and self.args.hmm:
                     logging.error("--alignment and --hmm cannot both be set")
                     exit(1)
-                self.hk.checkCreatePrerequisites()
+                prerequisites = self.hk.checkCreatePrerequisites()
     
                 Create().main(
                               dereplication_level = self.args.dereplication_level,

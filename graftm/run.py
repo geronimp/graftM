@@ -526,6 +526,7 @@ class Run:
               >c                        |________|
               ----------
 '''
+            prerequisites = self.hk.checkCreatePrerequisites()
             
             if self.args.dereplication_level not in range(0,8):
                 logging.error("Invalid dereplication level selected! please enter an integer from 0 - 7")
@@ -540,7 +541,7 @@ class Run:
                         else:
                             raise UnrecognisedSuffixError("Unrecognised suffix on GraftM package %s. Please provide a graftM package with the correct suffix (.gpkg)" % (self.args.graftm_package))
                     Create().update(self.args.sequences, self.args.taxonomy, self.args.graftm_package,
-                                    self.args.output)
+                                    self.args.output, prerequisites)
 
                 else:
                     if self.args.taxonomy:
@@ -576,7 +577,7 @@ class Run:
                 if self.args.alignment and self.args.hmm:
                     logging.error("--alignment and --hmm cannot both be set")
                     exit(1)
-                prerequisites = self.hk.checkCreatePrerequisites()
+                
     
                 Create().main(
                               dereplication_level = self.args.dereplication_level,
@@ -594,7 +595,8 @@ class Run:
                               search_hmm_files = self.args.search_hmm_files,
                               force = self.args.force,
                               graftm_package = self.args.graftm_package,
-                              threads = self.args.threads
+                              threads = self.args.threads,
+                              programs = prerequisites
                               )
         
         elif self.args.subparser_name == 'bootstrap':

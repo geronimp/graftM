@@ -1,6 +1,9 @@
 import extern
 import logging
 
+class MultipleVersionsError:
+    pass
+
 class PrerequisiteChecker:
     package_urls = {'taxit': 'https://github.com/fhcrc/taxtastic',
              'FastTree': 'http://www.microbesonline.org/fasttree/',
@@ -19,7 +22,14 @@ class PrerequisiteChecker:
                             'ktImportText': 'krona',
                             'FastTreeMP': 'FastTree'}
     
-    def __init__(program_list):
+    programs_to_possibilities = {
+                                 "FastTreeMP": ["FastTreeMP",
+                                                "fasttree",
+                                                "fasttreeMP"]
+                                 }
+    
+    
+    def __init__(self, program_list):
         '''Given a list of executable names, check that they are available
         on the PATH, raising an exception otherwise
         
@@ -28,18 +38,26 @@ class PrerequisiteChecker:
         program_list: iterable of str
             list of program names to check
         '''
+
         uninstalled_programs = []
         for program in program_list:
-            if program == "FastTreeMP":
-                if not extern.which(program):
-                    if not extern.which("fasttree"):
-                        if not extern.which("fasttreeMP"):
-            
-                    uninstalled_programs.append(program)
+            if program in PrerequisiteChecker.programs_to_possibilities:
+                check = [p for p in PrerequisiteChecker\
+                                        .programs_to_possibilities[program] 
+                         if extern.which(p)]
+                if len(check)>1:
+                    raise MultipleVersionsError("Multiple versions of %s are \
+possible to use. GraftM requires one of the following: %s" % (program,
+                                                              ' '.join(check)))
+                else:
+                    for key, item in PrerequisiteChecker\
+                                            .programs_to_possibilities\
+                                            .iteritems():
+                        if program in item:
+                            program = key
                     
-                
-                
-                self.fasttree = 
+                    if key == "FastTreeMP":
+                        self.fasttree = check[0]
             else:
                 if not extern.which(program):
                     uninstalled_programs.append(program)

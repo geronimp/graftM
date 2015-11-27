@@ -185,14 +185,20 @@ class Create:
     def _check_aln_length(self, alignment):
         return len(list(SeqIO.parse(open(alignment, 'r'), 'fasta'))[0].seq)
 
-    def _build_tree(self, alignment, base, ptype):
+    def _build_tree(self, alignment, base, ptype, fasttree):
         log_file = base + ".tre.log"
         tre_file = base + ".tre"
         if ptype == Create._NUCLEOTIDE_PACKAGE_TYPE: # If it's a nucleotide sequence
-            cmd = "FastTreeMP -quiet -gtr -nt -log %s -out %s %s" % (log_file, tre_file, alignment)
+            cmd = "%s -quiet -gtr -nt -log %s -out %s %s" % (fasttree,
+                                                             log_file, 
+                                                             tre_file, 
+                                                             alignment)
             extern.run(cmd)
         else: # Or if its an amino acid sequence
-            cmd = "FastTreeMP -quiet -log %s -out %s %s" % (log_file, tre_file, alignment)
+            cmd = "%s -quiet -log %s -out %s %s" % (fasttree,
+                                                    log_file, 
+                                                    tre_file, 
+                                                    alignment)
             extern.run(cmd)
 
         self.the_trash += [log_file, tre_file]
@@ -326,7 +332,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         return max_range
 
     def _generate_tree_log_file(self, tree, alignment, output_tree_file_path,
-                               output_log_file_path, residue_type):
+                               output_log_file_path, residue_type, fasttree):
         '''Generate the FastTree log file given a tree and the alignment that
         made that tree
 
@@ -335,12 +341,12 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         Nothing. The log file as parameter is written as the log file.
         '''
         if residue_type==Create._NUCLEOTIDE_PACKAGE_TYPE:
-            cmd = "FastTree -quiet -gtr -nt -nome -mllen -intree '%s' -log %s -out %s %s" %\
-                                       (tree, output_log_file_path,
+            cmd = "%s -quiet -gtr -nt -nome -mllen -intree '%s' -log %s -out %s %s" %\
+                                       (fasttree, tree, output_log_file_path,
                                         output_tree_file_path, alignment)
         elif residue_type==Create._PROTEIN_PACKAGE_TYPE:
-            cmd = "FastTree -quiet -nome -mllen -intree '%s' -log %s -out %s %s" %\
-                                       (tree, output_log_file_path,
+            cmd = "%s -quiet -nome -mllen -intree '%s' -log %s -out %s %s" %\
+                                       (fasttree, tree, output_log_file_path,
                                         output_tree_file_path, alignment)
         extern.run(cmd)
 
@@ -500,6 +506,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         graftm_package = kwargs.pop('graftm_package',False)
         dereplication_level = kwargs.pop('dereplication_level',False)
         threads = kwargs.pop('threads',False)
+        programs = kwargs.pop('programs',False) 
         if len(kwargs) > 0:
             raise Exception("Unexpected arguments detected: %s" % kwargs)
         seqio = SequenceIO()
@@ -653,7 +660,9 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
         if not rerooted_tree and not rerooted_annotated_tree:
             logging.debug("No tree provided")
             logging.info("Building tree")
-            log_file, tre_file = self._build_tree(deduplicated_alignment_file, base, ptype)
+            log_file, tre_file = self._build_tree(deduplicated_alignment_file, 
+                                                  base, ptype, 
+                                                  programs.fasttree)
             no_reroot = False
         else:
             if rerooted_tree:
@@ -694,7 +703,7 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
                     tree.write(f)
                     f.flush()
                     self._generate_tree_log_file(f.name, deduplicated_alignment_file,
-                                            tre_file, log_file, ptype)
+                                            tre_file, log_file, ptype, programs.fasttree)
 
         # Create tax and seqinfo .csv files
         taxonomy_to_keep=[
@@ -768,7 +777,7 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
         logging.info("Finished\n")
 
     def update(self, input_sequence_path, input_taxonomy_path,
-               input_graftm_package_path, output_graftm_package_path):
+               input_graftm_package_path, output_graftm_package_path, programs):
         '''
         Update an existing GraftM pacakge with new sequences and taxonomy. If no
         taxonomy is provided, attempt to decorate the new sequences with
@@ -835,7 +844,7 @@ alignment/HMM/Tree can be created""")
         new_gpkg.unrooted_tree = "%s.tre" % (new_gpkg.name)
         new_gpkg.unrooted_tree_log = "%s.tre.log" % (new_gpkg.name)
         new_gpkg.ptype, new_gpkg.hmm_length = self._pipe_type(old_gpkg.alignment_hmm_path())
-        self._build_tree(new_gpkg.hmm_alignment, new_gpkg.name, new_gpkg.ptype)
+        self._build_tree(new_gpkg.hmm_alignment, new_gpkg.name, new_gpkg.ptype, programs.fasttree)
 
 
         #################################
@@ -883,7 +892,8 @@ alignment/HMM/Tree can be created""")
                                      new_gpkg.hmm_alignment,
                                      new_gpkg.gpkg_tree,
                                      new_gpkg.gpkg_tree_log,
-                                     new_gpkg.ptype)
+                                     new_gpkg.ptype,
+                                     programs.fasttree)
 
         ################################
         ### Creating taxtastic files ###

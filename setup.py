@@ -22,5 +22,8 @@ setup(name='graftm',
                         'taxtastic ==0.5.4',
                         'tempdir ==0.6'),
       url='http://geronimp.github.io/graftM',
-      scripts=['bin/graftM']
+      scripts=['bin/graftM'],
+      data_files=[
+          ('share', ['share/18S.hmm']),
+      ],
 )

@@ -7,7 +7,6 @@ import tempfile
 import subprocess
 
 from Bio import SeqIO
-from Bio.Alphabet import generic_dna
 from collections import OrderedDict
 
 from graftm.timeit import Timer

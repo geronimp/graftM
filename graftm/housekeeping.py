@@ -3,6 +3,7 @@ import shutil
 import logging
 from graftm.graftm_package import GraftMPackage
 from graftm.prerequisite_checker import PrerequisiteChecker
+import inspect
 
 PIPELINE_AA = "P"
 PIPELINE_NT = "D"
@@ -43,7 +44,10 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
         if hasattr(args, 'euk_hmm_file'):
             pass
         elif not hasattr(args, 'euk_hmm_file'):
-            setattr(args, 'euk_hmm_file', os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'constants', '18S.hmm'))
+            # set to path based on the location of bin/graftM, which has
+            # a more stable relative path to the HMM when installed through
+            # pip.
+            setattr(args, 'euk_hmm_file', os.path.join(inspect.stack()[-1][1]),'..','share', '18S.hmm')
         else:
             raise Exception('Programming Error: setting the euk HMM')    
     

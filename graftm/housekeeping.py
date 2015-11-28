@@ -47,7 +47,7 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
             # set to path based on the location of bin/graftM, which has
             # a more stable relative path to the HMM when installed through
             # pip.
-            setattr(args, 'euk_hmm_file', os.path.join(inspect.stack()[-1][1]),'..','share', '18S.hmm')
+            setattr(args, 'euk_hmm_file', os.path.join(os.path.dirname(inspect.stack()[-1][1]),'..','share', '18S.hmm'))
         else:
             raise Exception('Programming Error: setting the euk HMM')    
     

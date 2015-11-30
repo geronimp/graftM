@@ -62,6 +62,7 @@ class Tests(unittest.TestCase):
     def test_rerooted_tree_with_node_names(self):
         with tempdir.TempDir() as tmp:
             with tempdir.TempDir() as tmp2:
+                
                 cmd1 = "%s create --verbosity 2 --sequences %s --alignment %s --taxonomy %s --rerooted_tree %s --output %s" \
                     %(path_to_script,
                       os.path.join(path_to_data,'create','homologs.trimmed.unaligned.faa'),
@@ -75,6 +76,7 @@ class Tests(unittest.TestCase):
                        "%s.gpkg" % tmp,
                        os.path.join(path_to_data,'create','test.faa'),
                        tmp2+"_")
+                
                 extern.run(cmd2)
         
     def test_min_aligned_percent(self):

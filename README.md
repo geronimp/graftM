@@ -1,8 +1,7 @@
 # GraftM
-GraftM is a tool for the analysis of ~omic sequence datasets.
+GraftM is a tool for finding genes of interest in metagenomes, metatranscriptomes, and whole genomes.
 
-Using modular gene packages, GraftM will search the provided sequences using hmmsearch (hmmer) and subsequently places the identified sequences within a pre-constructed phylogenetic
-tree (pplacer). The provides fast, phylogenetically informed community profiles. GraftM provides tools to:
+Using modular gene packages, GraftM will search the provided sequences using hmmsearch (HMMER) and place the identified sequences into a pre-constructed phylogenetic tree. The provides fast, phylogenetically informed community profiles and genome annotations. GraftM provides tools to:
 * Create and update custom gene packages to use with GraftM
 * Decorate trees, and of course
 * Analyse sequence datasets using these GraftM packages
@@ -20,6 +19,10 @@ However, to use all features of GraftM a few extra binary applications are requi
 * pplacer v. >= 2.6.32 (http://matsen.fhcrc.org/pplacer/)
 * krona v. >= 2.4 (http://sourceforge.net/p/krona/home/krona/)
 * mafft v. >= 7.22 (http://mafft.cbrc.jp/)
+* diamond v. >= 0.7.9 (https://github.com/bbuchfink/diamond)
+
+To create new GraftM packages, you'll also need
+* FastTreeMP (http://www.microbesonline.org/fasttree/)
 
 ### Manual
 A [manual](https://github.com/geronimp/graftM/wiki) is available in the form of the wiki here on GitHub.

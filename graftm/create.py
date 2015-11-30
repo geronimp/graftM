@@ -42,9 +42,10 @@ class Create:
                     "s__"]
 
 
-    def __init__(self):
+    def __init__(self, commands):
         self.h=Hmmer(None, None)
         self.the_trash=[]
+        self.fasttree = commands.fasttree
 
     def _parse_contents(self, contents_file_path):
         '''
@@ -506,7 +507,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         graftm_package = kwargs.pop('graftm_package',False)
         dereplication_level = kwargs.pop('dereplication_level',False)
         threads = kwargs.pop('threads',False)
-        programs = kwargs.pop('programs',False) 
+
         if len(kwargs) > 0:
             raise Exception("Unexpected arguments detected: %s" % kwargs)
         seqio = SequenceIO()
@@ -662,7 +663,7 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
             logging.info("Building tree")
             log_file, tre_file = self._build_tree(deduplicated_alignment_file, 
                                                   base, ptype, 
-                                                  programs.fasttree)
+                                                  self.fasttree)
             no_reroot = False
         else:
             if rerooted_tree:
@@ -703,7 +704,7 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
                     tree.write(f)
                     f.flush()
                     self._generate_tree_log_file(f.name, deduplicated_alignment_file,
-                                            tre_file, log_file, ptype, programs.fasttree)
+                                            tre_file, log_file, ptype, self.fasttree)
 
         # Create tax and seqinfo .csv files
         taxonomy_to_keep=[
@@ -777,7 +778,7 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
         logging.info("Finished\n")
 
     def update(self, input_sequence_path, input_taxonomy_path,
-               input_graftm_package_path, output_graftm_package_path, programs):
+               input_graftm_package_path, output_graftm_package_path):
         '''
         Update an existing GraftM pacakge with new sequences and taxonomy. If no
         taxonomy is provided, attempt to decorate the new sequences with
@@ -844,7 +845,7 @@ alignment/HMM/Tree can be created""")
         new_gpkg.unrooted_tree = "%s.tre" % (new_gpkg.name)
         new_gpkg.unrooted_tree_log = "%s.tre.log" % (new_gpkg.name)
         new_gpkg.ptype, new_gpkg.hmm_length = self._pipe_type(old_gpkg.alignment_hmm_path())
-        self._build_tree(new_gpkg.hmm_alignment, new_gpkg.name, new_gpkg.ptype, programs.fasttree)
+        self._build_tree(new_gpkg.hmm_alignment, new_gpkg.name, new_gpkg.ptype, self.fasttree)
 
 
         #################################
@@ -893,7 +894,7 @@ alignment/HMM/Tree can be created""")
                                      new_gpkg.gpkg_tree,
                                      new_gpkg.gpkg_tree_log,
                                      new_gpkg.ptype,
-                                     programs.fasttree)
+                                     self.fasttree)
 
         ################################
         ### Creating taxtastic files ###

@@ -122,8 +122,6 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
                 exit(1)
 
 
-    def checkCreatePrerequisites(self):
-        return PrerequisiteChecker(['taxit', 'FastTreeMP', 'seqmagick', 'hmmalign', 'mafft'])
 
     def get_maximum_range(self, hmm):
         '''
@@ -145,7 +143,6 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
         return max_length
 
     def set_attributes(self, args):
-        PrerequisiteChecker(['orfm','nhmmer','hmmsearch','fxtract','pplacer','seqmagick','ktImportText','diamond'])
         
 
         # Read graftM package and assign HMM and refpkg file

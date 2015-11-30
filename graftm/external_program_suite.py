@@ -58,7 +58,7 @@ Arbitrarily selecting %s" % (' '.join(program_list), check[0]))
                     uninstalled_programs.append(program)
     
         if any(uninstalled_programs):
-            msg = "The following programs appear to be missing, and need to be installed before GraftM can continue:"
+            msg = "The following programs appear to be missing, and need to be updated or installed before GraftM can continue:"
             logging.error(msg)
             for program in sorted(uninstalled_programs):
                 try:

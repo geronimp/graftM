@@ -32,9 +32,9 @@ import tempfile
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 from graftm.create import Create
 from graftm.graftm_package import GraftMPackageVersion2
-from graftm.prerequisite_checker import PrerequisiteChecker
+from graftm.external_program_suite import ExternalProgramSuite
 
-prerequisites = PrerequisiteChecker(['taxit', 'FastTreeMP', 'seqmagick', 'hmmalign', 'mafft'])
+prerequisites = ExternalProgramSuite(['taxit', 'FastTreeMP', 'seqmagick', 'hmmalign', 'mafft'])
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
 
@@ -80,49 +80,45 @@ class Tests(unittest.TestCase):
     def test_min_aligned_percent(self):
         # test it doesn't raise with a lower check limit
         with tempdir.TempDir() as tmp:
-            Create().main(alignment=os.path.join(path_to_data,'create','homologs.trimmed.aligned.faa'),
+            Create(prerequisites).main(alignment=os.path.join(path_to_data,'create','homologs.trimmed.aligned.faa'),
                           taxonomy=os.path.join(path_to_data,'create','homologs.tax2tree.rerooted.decorated.tree-consensus-strings'),
                           sequences=os.path.join(path_to_data,'create','homologs.trimmed.unaligned.faa'),
                           rerooted_tree=os.path.join(path_to_data,'create','decorated.tree'),
                           min_aligned_percent=0.5,
                           prefix=tmp+".gpkg",
-                          threads=5,
-                          programs = prerequisites)
+                          threads=5)
             original_alignment_length = len(open(os.path.join(tmp+'.gpkg',os.path.basename(tmp)+'.gpkg.refpkg','homologs_deduplicated_aligned.fasta')).readlines())
 
         with tempdir.TempDir() as tmp:
-            Create().main(alignment=os.path.join(path_to_data,'create','homologs.trimmed.aligned.faa'),
+            Create(prerequisites).main(alignment=os.path.join(path_to_data,'create','homologs.trimmed.aligned.faa'),
                       taxonomy=os.path.join(path_to_data,'create','homologs.tax2tree.rerooted.decorated.tree-consensus-strings'),
                       sequences=os.path.join(path_to_data,'create','homologs.trimmed.unaligned.faa'),
                       #rerooted_tree=os.path.join(path_to_data,'create','decorated.tree'), 
                       min_aligned_percent=0.9,
                       prefix=tmp+".gpkg",
-                      threads=5,
-                      programs = prerequisites)
+                      threads=5)
             self.assertEqual(original_alignment_length-4, # 2 sequences get removed
                              len(open(os.path.join(tmp+'.gpkg',os.path.basename(tmp)+'.gpkg.refpkg','homologs_deduplicated_aligned.fasta')).readlines()))
             
     def test_hmm_input(self):
         with tempdir.TempDir() as tmp:
             gpkg = tmp+".gpkg"
-            Create().main(sequences=os.path.join(path_to_data,'create','homologs.trimmed.unaligned.faa'),
+            Create(prerequisites).main(sequences=os.path.join(path_to_data,'create','homologs.trimmed.unaligned.faa'),
                           taxonomy=os.path.join(path_to_data,'create','homologs.tax2tree.rerooted.decorated.tree-consensus-strings'),
                           hmm=os.path.join(path_to_data, 'create', 'first5.hmm'), # an HMM created from just the first 5 sequences
                           prefix=gpkg,
-                          threads=5,
-                          programs = prerequisites)
+                          threads=5)
             self.assertEqual('NAME  first10\n', open(GraftMPackageVersion2.acquire(gpkg).alignment_hmm_path()).readlines()[1])
             
     def test_search_hmms_input(self):
         with tempdir.TempDir() as tmp:
             gpkg = tmp+".gpkg"
-            Create().main(sequences=os.path.join(path_to_data,'create','homologs.trimmed.unaligned.faa'),
+            Create(prerequisites).main(sequences=os.path.join(path_to_data,'create','homologs.trimmed.unaligned.faa'),
                           taxonomy=os.path.join(path_to_data,'create','homologs.tax2tree.rerooted.decorated.tree-consensus-strings'),
                           hmm=os.path.join(path_to_data, 'create', 'first5.hmm'), # an HMM created from just the first 5 sequences
                           search_hmm_files=[os.path.join(path_to_data, 'create', 'homologs.hmm')],
                           prefix=gpkg,
-                          threads=5,
-                          programs = prerequisites)
+                          threads=5)
             self.assertEqual('NAME  first10\n', open(GraftMPackageVersion2.acquire(gpkg).alignment_hmm_path()).readlines()[1])
             self.assertEqual(1, len(GraftMPackageVersion2.acquire(gpkg).search_hmm_paths()))
             self.assertEqual('NAME  homologs.trimmed.aligned\n', open(GraftMPackageVersion2.acquire(gpkg).search_hmm_paths()[0]).readlines()[1])
@@ -130,13 +126,12 @@ class Tests(unittest.TestCase):
     def test_dna_package(self):
         with tempdir.TempDir() as tmp:
             gpkg = tmp+".gpkg"
-            Create().main(sequences=os.path.join(path_to_data,'create','61_otus.fasta'),
+            Create(prerequisites).main(sequences=os.path.join(path_to_data,'create','61_otus.fasta'),
                           taxtastic_taxonomy=os.path.join(path_to_data,'61_otus.gpkg','61_otus.refpkg','61_otus_taxonomy.csv'),
                           taxtastic_seqinfo=os.path.join(path_to_data,'61_otus.gpkg','61_otus.refpkg','61_otus_seqinfo.csv'),
                           alignment=os.path.join(path_to_data,'61_otus.gpkg','61_otus.refpkg','61_otus.aln.fa'),
                           prefix=gpkg,
-                          threads=5,
-                          programs = prerequisites)
+                          threads=5)
             pkg = GraftMPackageVersion2.acquire(gpkg)
             self.assertEqual('NAME  61_otus.aln\n', open(pkg.alignment_hmm_path()).readlines()[1])
             self.assertEqual(pkg.diamond_database_path(), None)
@@ -146,11 +141,10 @@ class Tests(unittest.TestCase):
     def test_create_no_alignment(self):
         with tempdir.TempDir() as tmp:
             gpkg = tmp+".gpkg"
-            Create().main(sequences=os.path.join(path_to_data,'create','homologs.trimmed.unaligned.faa'),
+            Create(prerequisites).main(sequences=os.path.join(path_to_data,'create','homologs.trimmed.unaligned.faa'),
                           taxonomy=os.path.join(path_to_data,'create','homologs.tax2tree.rerooted.decorated.tree-consensus-strings'),
                           prefix=gpkg,
-                          threads=5,
-                          programs = prerequisites)
+                          threads=5)
             self.assertTrue(os.path.exists(GraftMPackageVersion2.acquire(gpkg).alignment_hmm_path()))
         
     def test_create_dereplication(self): 
@@ -188,13 +182,12 @@ r6\td__Archaea;p__Euryarchaeota;c__Methanomicrobia;o__Halobacteriales;f__Halobac
                 for expected, i in zip( expected_list, range(0,6) ):
 
                     with tempdir.TempDir() as package:
-                        Create().main(sequences = sequences_file,
+                        Create(prerequisites).main(sequences = sequences_file,
                                       taxonomy = taxonomy_file,
                                       prefix = package,
                                       dereplication_level = i,
                                       force = True,
-                                      threads = 5,
-                                      programs = prerequisites)
+                                      threads = 5)
                         base = os.path.basename(package)
                         gpkg = GraftMPackageVersion2.acquire(package)
                         seqinfo = open(gpkg.taxtastic_seqinfo_path())\

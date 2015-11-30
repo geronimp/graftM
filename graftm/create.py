@@ -729,7 +729,65 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
 
         logging.info("Finished\n")
 
-    def update(self, input_sequence_path, input_taxonomy_path,
+    def update_contents(self, 
+                        input_graftm_package_path, 
+                        output_graftm_package_path,
+                        search_hmm_files=None,
+                        trusted_cutoff=None,
+                        diamond_database_file=None,
+                        max_range=None):
+        '''
+        Make minor changes to an existing gpkg.
+        
+        Parameters
+        ----------
+        input_graftm_package_path: str
+            Path to the directory of the GraftM package that is to be updated
+        output_graftm_package_path: str
+            Path to the directory to which the new GraftM package will be
+            written to
+        '''
+        
+        gpkg = GraftMPackage.acquire(input_graftm_package_path)
+        updates = []
+        
+        if diamond_database_file:
+            updates.append("diamond database")
+        else:
+            diamond_database_file = gpkg.diamond_database_path()
+            
+        if search_hmm_files:
+            updates.append("search hmm files")
+        else:
+            search_hmm_files = gpkg.search_hmm_paths()
+            
+        if trusted_cutoff:
+            updates.append("trusted cutoff")
+        else:
+            trusted_cutoff = False
+        
+        if max_range:
+            updates.append("maximum range")
+        else:
+            max_range = gpkg.maximum_range()
+
+        logging.info("Updating following parameters within GraftM package: \
+%s" % (', '.join(updates)))
+        
+        GraftMPackageVersion3.compile(output_graftm_package_path, 
+                                      gpkg.reference_package_path(), 
+                                      gpkg.alignment_hmm_path(), 
+                                      diamond_database_file, 
+                                      max_range, 
+                                      gpkg.unaligned_sequence_database_path(), 
+                                      trusted_cutoff, 
+                                      search_hmm_files)
+            
+        logging.info("Finished compiling updated graftM package! %s" \
+                                            % (output_graftm_package_path) )
+        
+        
+    def update_package(self, input_sequence_path, input_taxonomy_path,
                input_graftm_package_path, output_graftm_package_path):
         '''
         Update an existing GraftM pacakge with new sequences and taxonomy. If no
@@ -761,8 +819,7 @@ alignment/HMM/Tree can be created""")
 
         new_gpkg.output = output_graftm_package_path
         new_gpkg.name = output_graftm_package_path.replace(".gpkg", "")
-
-
+        
         #####################################
         ### Re-construct diamond database ###
         new_gpkg.unaligned_sequences = "%s_sequences.fa" % (new_gpkg.name)

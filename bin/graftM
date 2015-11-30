@@ -250,6 +250,10 @@ that are redundant at the 3rd rank (from left to right in the taxonomy file) fro
     create_lesser_options.add_argument('--graftm_package', help='GraftM package to update')
     
     create_update_options=create_parser.add_argument_group('Update options')
+    create_update_options.add_argument('--trusted_cutoff', action="store_true", help='Update the trusted cutoff parameter within the graftM package to True, telling GraftM graft to use the trusted cutoffs specified within the search hmms')
+    create_update_options.add_argument('--max_range', type = int, help='Set the maximum range of a hit within a graftM package') 
+    create_update_options.add_argument('--diamond_database_file', help='Update the diamond database within a graftM package')
+
 
     create_logging_options=create_parser.add_argument_group('Logging options')
     create_logging_options.add_argument('--verbosity', metavar='verbosity', help='1 - 5, 1 being silent, 5 being noisy indeed', type=int, default=4)

@@ -2,6 +2,7 @@
 
 import os
 import logging
+import shutil 
 
 from graftm.sequence_search_results import SequenceSearchResult
 from graftm.graftm_output_paths import GraftMFiles
@@ -532,6 +533,18 @@ class Run:
                 exit(1)
             
             if self.args.graftm_package:
+                
+                if os.path.isdir(self.args.output):
+                    
+                    if self.args.force:
+                        if self.args.output == self.args.graftm_package:
+                            logging.error("You cannot use the same name as the graftM package that you are replacing!")
+                            exit(1)
+                        logging.warning("Overwriting directory with same name as specified output: %s" % (self.args.output))
+                        shutil.rmtree(self.args.output)        
+                    else:
+                        logging.error("Directory %s already exists! Terminating update to prevent overwriting" % (self.args.output))
+                
                 if self.args.taxonomy and self.args.sequences:
                     logging.info("GraftM package %s specified to update with sequences in %s" % (self.args.graftm_package, self.args.sequences))
                     if not self.args.output:
@@ -539,10 +552,12 @@ class Run:
                             self.args.output = self.args.graftm_package.replace(".gpkg", "-updated.gpkg")
                         else:
                             raise UnrecognisedSuffixError("Unrecognised suffix on GraftM package %s. Please provide a graftM package with the correct suffix (.gpkg)" % (self.args.graftm_package))
-                    Create().update(self.args.sequences, self.args.taxonomy, self.args.graftm_package,
+                    Create().update_package(self.args.sequences, self.args.taxonomy, self.args.graftm_package,
                                     self.args.output)
 
                 else:
+                    if self.args.search_hmm_files:
+                        Create().update_contents(self.args.graftm_package, self.args.output, self.args.search_hmm_files)
                     if self.args.taxonomy:
                         logging.error("--sequences must be specified to update a GraftM package")
                         exit(1)

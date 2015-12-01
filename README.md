@@ -31,7 +31,7 @@ A [manual](https://github.com/geronimp/graftM/wiki) is available in the form of 
 We have a starter pack of graftM packages available including:
 
 * 16S rRNA packages
-* 15 single copy ribosomal protein marker genes 
+* 15 single copy ribosomal protein marker genes
 * The methanogenesis marker mcrA
 
 All are available via this link:
@@ -40,7 +40,7 @@ All are available via this link:
 Once you have downloaded the package you want, just decompress it as follows:
 
 ```
-tar -xvzf community_images.tar.gz
+tar -xvzf my.tar.gz
 ```
 And you should be good to go!
 

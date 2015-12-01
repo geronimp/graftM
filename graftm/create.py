@@ -43,6 +43,17 @@ class Create:
 
 
     def __init__(self, commands):
+        '''
+        Class for managing the creation of GraftM packages.
+        
+        Parameters
+        ----------
+        commands: ExternalProgramSuite object
+            Contains each of the command line commands as attributes. e.g.
+            fasttree:
+                commands.fasttree = "FastTreeMP" or "fasttree" depending on
+                what is installed.
+        '''
         self.h=Hmmer(None, None)
         self.the_trash=[]
         self.fasttree = commands.fasttree

@@ -1,5 +1,6 @@
 import logging
 import subprocess
+from signal import signal, SIGPIPE, SIG_DFL
 import os
 import itertools
 from string import lower

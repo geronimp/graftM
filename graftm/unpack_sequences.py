@@ -1,7 +1,8 @@
 import logging
 import subprocess
-from signal import signal, SIGPIPE, SIG_DFL
 import os
+import itertools
+from string import lower
 
 class UnpackRawReads:
     class UnexpectedFileFormatException(Exception): pass
@@ -39,8 +40,10 @@ class UnpackRawReads:
         (string) seq parameter, else 'nucleotide'. Raise Exception if a
         non-standard character is encountered'''
         # Define expected residues for each sequence type
-        aas = set(['P','V','L','I','M','F','Y','W','H','K','R','Q','N','E','D','S','X'])
-        nas = set(['A', 'T', 'G', 'C', 'N', 'U'])
+        aa_chars = ['P','V','L','I','M','F','Y','W','H','K','R','Q','N','E','D','S','X']
+        aas = set(itertools.chain(aa_chars, [lower(a) for a in aa_chars]))
+        na_chars = ['A', 'T', 'G', 'C', 'N', 'U']
+        nas = set(itertools.chain(na_chars, [lower(a) for a in na_chars]))
         
         num_nucleotide = 0
         num_protein = 0

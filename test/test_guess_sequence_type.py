@@ -35,6 +35,7 @@ class Tests(unittest.TestCase):
         self.assertEqual('aminoacid', urr._guess_sequence_type_from_string('P'*10+'T'*89))
         self.assertEqual('nucleotide', urr._guess_sequence_type_from_string('P'*10+'T'*90))
         self.assertEqual('nucleotide', urr._guess_sequence_type_from_string('A'*300+'E'*999)) #only look at the first 300bp
+        self.assertEqual('nucleotide', urr._guess_sequence_type_from_string('a'*10+'T'*89)) #lowercase
 
 if __name__ == "__main__":
     unittest.main()

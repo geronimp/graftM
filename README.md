@@ -27,6 +27,23 @@ To create new GraftM packages, you'll also need
 ### Manual
 A [manual](https://github.com/geronimp/graftM/wiki) is available in the form of the wiki here on GitHub.
 
+### GraftM packages
+We have a starter pack of graftM packages available including:
+
+* 16S rRNA packages
+* 15 single copy ribosomal protein marker genes 
+* The methanogenesis marker mcrA
+
+All are available via this link:
+* [GraftM package database](https://drive.google.com/open?id=0BwJ4AwdqUiTzfndmRXowX3MydkM5bG1PYmxRUjNmMUNnazdFaUJaWjJFSkh1UEFDSkpReU0)
+
+Once you have downloaded the package you want, just decompress it as follows:
+
+```
+tar -xvzf community_images.tar.gz
+```
+And you should be good to go!
+
 ### Contact
 If you have any further comments, complaints or recomendations about GraftM, drop an email to the [SupportM](https://groups.google.com/forum/?hl=en#!forum/supportm) public help forum.
 Software by [Joel A. Boyd](http://ecogenomic.org/users/joel-boyd) (@geronimp) and [Ben J. Woodcroft](http://www.ecogenomic.org/users/ben-woodcroft) (@wwood) at the [Australian Centre for Ecogenomics](http://ecogenomic.org)

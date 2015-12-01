@@ -32,7 +32,6 @@ import tempfile
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 from graftm.external_program_suite import ExternalProgramSuite
 
-
 class Tests(unittest.TestCase):
 
     def test_external_fasttree_command(self):
@@ -45,7 +44,6 @@ class Tests(unittest.TestCase):
         extern.run(cmd)
         
         
-    
 if __name__ == "__main__":
     logging.basicConfig(level=logging.ERROR)
     unittest.main()

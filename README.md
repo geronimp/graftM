@@ -44,6 +44,50 @@ tar -xvzf my.tar.gz
 ```
 And you should be good to go!
 
+### Example
+As an example, we'll use GraftM to classify a single 16S sequence from GreenGenes. Saving the example file as `/tmp/eg.fasta` with the following contents:
+```
+>229854
+GAGTTTGATCCTGGCTCAGATTGAACGCTGGCGGCATGCTTAACACATGCAAGTCGAACGGCAGCATGACTTAGCTTGCT
+AAGTTGATGGCGAGTGGCGAACGGGTGAGTAACGCGTAGGAATATGCCTTAAAGAGGGGGACAACTTGGGGAAACTCAAG
+CTAATACCGCATAAACTCTTCGGAGAAAAGCTGGGGACTTTCGAGCCTGGCGCTTTAAGATTAGCCTGCGTCCGATTAGC
+```
+Then we can use GraftM's 61% OTU clustered GraftM package to detect and classify this sequence. Running graftM might look something like this:
+```
+$ graftM graft --forward /tmp/eg.fasta --graftm_package /srv/db/graftm/4/4.01.2013_08_greengenes_61_otus.gpkg/ --output_directory eg.graftm
+                         
+                             GraftM 0.9.2
+
+                                GRAFT
+
+                       Joel Boyd, Ben Woodcroft
+
+                                                         __/__
+                                                  ______|
+          _- - _                         ________|      |_____/
+           - -            -             |        |____/_
+           - _     >>>>  -   >>>>   ____|
+          - _-  -         -             |      ______
+             - _                        |_____|
+           -                                  |______
+            
+12/02/2015 09:52:06 AM INFO: Working on eg
+12/02/2015 09:52:06 AM INFO: 1 read(s) detected
+12/02/2015 09:52:06 AM INFO: aligning reads to reference package database
+12/02/2015 09:52:06 AM INFO: Filtered 0 short sequences from the alignment
+12/02/2015 09:52:06 AM INFO: 1 sequences remaining
+12/02/2015 09:52:06 AM INFO: Placing reads into phylogenetic tree
+12/02/2015 09:52:07 AM INFO: Placements finished
+12/02/2015 09:52:07 AM INFO: Reading classifications
+12/02/2015 09:52:07 AM INFO: Reads classified
+12/02/2015 09:52:07 AM INFO: Writing summary table
+12/02/2015 09:52:07 AM INFO: Writing biom file
+12/02/2015 09:52:07 AM INFO: Building summary krona plot
+12/02/2015 09:52:07 AM INFO: Cleaning up
+12/02/2015 09:52:07 AM INFO: Done, thanks for using graftM!
+```
+This creates a folder `eg.graftm` which contains the results.
+
 ### Contact
 If you have any further comments, complaints or recomendations about GraftM, drop an email to the [SupportM](https://groups.google.com/forum/?hl=en#!forum/supportm) public help forum.
 Software by [Joel A. Boyd](http://ecogenomic.org/users/joel-boyd) (@geronimp) and [Ben J. Woodcroft](http://www.ecogenomic.org/users/ben-woodcroft) (@wwood) at the [Australian Centre for Ecogenomics](http://ecogenomic.org)

@@ -3,7 +3,7 @@ GraftM is a tool for finding genes of interest in metagenomes, metatranscriptome
 
 Using modular gene packages, GraftM will search the provided sequences using hmmsearch (HMMER) and place the identified sequences into a pre-constructed phylogenetic tree. The provides fast, phylogenetically informed community profiles and genome annotations. GraftM provides tools to:
 * Create and update custom gene packages to use with GraftM
-* Decorate trees, and of course
+* Decorate trees, and of course..
 * Analyse sequence datasets using these GraftM packages
 Head over to the [GraftM page](http://geronimp.github.io/graftM/) for more general information.
 
@@ -34,8 +34,7 @@ We have a starter pack of graftM packages available including:
 * 15 single copy ribosomal protein marker genes
 * The methanogenesis marker mcrA
 
-All are available via this link:
-* [GraftM package database](https://drive.google.com/open?id=0BwJ4AwdqUiTzfndmRXowX3MydkM5bG1PYmxRUjNmMUNnazdFaUJaWjJFSkh1UEFDSkpReU0)
+All are available at the [GraftM package database store](https://drive.google.com/open?id=0BwJ4AwdqUiTzfndmRXowX3MydkM5bG1PYmxRUjNmMUNnazdFaUJaWjJFSkh1UEFDSkpReU0).
 
 Once you have downloaded the package you want, just decompress it as follows:
 
@@ -54,7 +53,7 @@ CTAATACCGCATAAACTCTTCGGAGAAAAGCTGGGGACTTTCGAGCCTGGCGCTTTAAGATTAGCCTGCGTCCGATTAGC
 ```
 Then we can use GraftM's 61% OTU clustered GraftM package to detect and classify this sequence. Running graftM might look something like this:
 ```
-$ graftM graft --forward /tmp/eg.fasta --graftm_package /srv/db/graftm/4/4.01.2013_08_greengenes_61_otus.gpkg/ --output_directory eg.graftm
+$ graftM graft --forward /tmp/eg.fasta --graftm_package /path/to/4.01.2013_08_greengenes_61_otus.gpkg/ --output_directory eg.graftm
                          
                              GraftM 0.9.2
 

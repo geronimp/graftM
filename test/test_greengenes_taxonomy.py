@@ -75,6 +75,12 @@ class Tests(unittest.TestCase):
                                            'seq2\tbacteria;bluebacteria;;\n'\
                                            '\n'
                                            )).taxonomy)
+        
+    def test_strip_identifier(self):
+        self.assertEqual({'seq1': ['bacteria','cyanobacteria'], 'seq2': ['bacteria','bluebacteria']},\
+            GreenGenesTaxonomy.read(StringIO('seq1 \tbacteria;cyanobacteria;\n'\
+                                           'seq2\tbacteria;bluebacteria;;\n'
+                                           )).taxonomy)
             
     def test_input_file(self):
         with tempfile.NamedTemporaryFile(prefix='graftm_greengenes_tax_testing') as tf:

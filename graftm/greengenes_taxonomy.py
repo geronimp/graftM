@@ -27,6 +27,7 @@ class GreenGenesTaxonomy:
         MalformedGreenGenesTaxonomyException: if there is something amiss'''
         tax = {}
         for line in input_taxonomy_io:
+            if len(line.strip()) == 0: continue #ignore empty lines 
             splits = line.split("\t")
             if len(splits) != 2:
                 raise MalformedGreenGenesTaxonomyException("Unexpected number of tab-separated fields found in taxonomy file, on line %s" % line)

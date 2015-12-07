@@ -43,7 +43,7 @@ class TaxonomyExtractor:
         Taxonomy as a string, or None if there is no taxonomy
         '''
         
-        def isFloat(s):
+        def is_float(s):
             try:
                 float(s)
                 return True
@@ -52,7 +52,7 @@ class TaxonomyExtractor:
         
         if node_name is None:
             return None
-        elif isFloat(node_name):
+        elif is_float(node_name):
             # no name, just a bootstrap
             return None
         else:

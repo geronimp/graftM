@@ -446,7 +446,42 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
                                                  output_align_hmm,
                                                  output_alignment)
         return ptype, output_alignment
-
+    
+    def _mask_strange_sequence_letters(self, sequences, package_type):
+        '''Replace strange characters like selenocysteine (U) with X or N for
+        protein and nucleotide sequences, respectively. Sequences are 
+        modified in place.
+        
+        Parameters
+        ----------
+        aligned_sequences: array of Sequence objects
+            sequences to mask
+        package_type: _PROTEIN_PACKAGE_TYPE or _NUCLEOTIDE_PACKAGE_TYPE
+            type of sequences these are
+        
+        Returns
+        -------
+        None
+        '''
+        if package_type == Create._PROTEIN_PACKAGE_TYPE:
+            search_re = re.compile(r'([^ACDEFGHIKLMNPQRSTVWY\-X])',re.IGNORECASE)
+            replace_char = 'X'
+        elif package_type == Create._NUCLEOTIDE_PACKAGE_TYPE:
+            search_re = re.compile(r'([^ATGC\-N])',re.IGNORECASE)
+            replace_char = 'N'
+        
+        for s in sequences:
+            if package_type == Create._NUCLEOTIDE_PACKAGE_TYPE:
+                s.seq = s.seq.replace('U','T')
+                s.seq = s.seq.replace('u','t')
+            newseq = s.seq
+            m = search_re.search(newseq)
+            while m:
+                logging.warn("Found a non-standard character in the sequence of %s: e.g. '%s'"\
+                             % (s.name, m.group()))
+                newseq = newseq[:m.start()] + replace_char + newseq[(m.start()+1):]
+                m = search_re.search(newseq)
+            s.seq = newseq
 
     def main(self, **kwargs):
         alignment = kwargs.pop('alignment',None)
@@ -586,6 +621,9 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
                 for s in unannotated:
                     logging.error("Unable to find sequence '%s' in the taxonomy definition" % s)
                 raise Exception("All sequences must be assigned a taxonomy, cannot continue")
+            
+        logging.debug("Looking for non-standard characters in aligned sequences")
+        self._mask_strange_sequence_letters(aligned_sequence_objects, ptype)
 
         # Deduplicate sequences - pplacer cannot handle these
         logging.info("Deduplicating sequences")

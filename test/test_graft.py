@@ -1233,10 +1233,9 @@ REFQPAGERTIVSPGRKF*'''
                                                                                                                  os.path.join(path_to_data,'mcrA.gpkg'))
 
                 extern.run(cmd)
-                expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
-                            ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales']]
+                expected = [['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales']]
                 expected = ['\t'.join(l) + '\n' for l in expected]
-                self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
+                self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines()[1:])
     
 
         

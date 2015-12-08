@@ -98,6 +98,7 @@ class UnpackRawReads:
                 raise Exception('Encountered unexpected character when attempting to guess sequence type: %s' % (residue))
             count += 1
             if count >300: break
+    
         if float(num_protein) / (num_protein+num_nucleotide) > 0.1:
             return self.PROTEIN_SEQUENCE_TYPE
         else:
@@ -122,8 +123,10 @@ class UnpackRawReads:
         for line in first_seq.strip().split('\n'):
             if not line.startswith('>'):
                 seq+=line
-                
-        type = self._guess_sequence_type_from_string(seq)
+        if seq:
+            type = self._guess_sequence_type_from_string(seq)
+        else:
+            type="test"
         logging.debug("Detected sequence type as %s" % type)    
         if self.gapped_alignment:
             self._ungap_sequences()

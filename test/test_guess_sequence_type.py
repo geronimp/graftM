@@ -30,7 +30,7 @@ from graftm.unpack_sequences import UnpackRawReads
 
 class Tests(unittest.TestCase):
     def test__guess_sequence_type(self):
-        urr = UnpackRawReads(None)
+        urr = UnpackRawReads('.fa')
         self.assertEqual('aminoacid', urr._guess_sequence_type_from_string('P'*10))
         self.assertEqual('aminoacid', urr._guess_sequence_type_from_string('P'*10+'T'*89))
         self.assertEqual('nucleotide', urr._guess_sequence_type_from_string('P'*10+'T'*90))

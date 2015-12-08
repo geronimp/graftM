@@ -48,6 +48,7 @@ class UnpackRawReads:
         self.type = self._guess_sequence_type(self.read_file)
         
     def _ungap_sequences(self):
+        logging.debug("Removing gaps from the input sequences")
         if self.format()==self.FORMAT_FASTA:
             reads=SeqIO.parse(open(self.read_file), "fasta")
         elif self.format()==self.FORMAT_FASTQ:
@@ -125,7 +126,6 @@ class UnpackRawReads:
         type = self._guess_sequence_type_from_string(seq)
         logging.debug("Detected sequence type as %s" % type)    
         if self.gapped_alignment:
-            logging.debug("Removing gaps from the input sequences")
             self._ungap_sequences()
         
         return type

@@ -1231,6 +1231,7 @@ REFQPAGERTIVSPGRKF*'''
                                                                                                                  fasta.name,
                                                                                                                  tmp,
                                                                                                                  os.path.join(path_to_data,'mcrA.gpkg'))
+
                 extern.run(cmd)
                 expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
                             ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales']]

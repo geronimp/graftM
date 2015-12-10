@@ -35,6 +35,7 @@ from graftm.external_program_suite import ExternalProgramSuite
 class Tests(unittest.TestCase):
 
     def test_external_fasttree_command(self):
+        
         commands = ExternalProgramSuite(['FastTreeMP'])
         self.assertTrue(commands.fasttree in ['FastTreeMP',
                                               'fasttree',

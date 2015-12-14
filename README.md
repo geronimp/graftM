@@ -8,6 +8,7 @@ Using modular gene packages, GraftM will search the provided sequences using hmm
 Head over to the [GraftM page](http://geronimp.github.io/graftM/) for more general information.
 
 ### Installation
+#### pip installation
 GraftM can be installed via pip:
 ```
 pip install graftm
@@ -23,6 +24,8 @@ However, to use all features of GraftM a few extra binary applications are requi
 
 To create new GraftM packages, you'll also need
 * FastTreeMP (http://www.microbesonline.org/fasttree/)
+#### Docker images
+Versions of graftM on pip now have matching docker images as of GraftM v0.9.2. GraftM docker images portable filesystems that contain the graftM code and all dependancies. These images can be run on any platform with docker installed. Details on how to download and run a GraftM docker image can be found on the [graftm-docker](https://github.com/geronimp/graftM-docker) GitHub page or the [docker hub page](https://hub.docker.com/u/geronimp/).
 
 ### Manual
 A [manual](https://github.com/geronimp/graftM/wiki) is available in the form of the wiki here on GitHub.
@@ -43,6 +46,8 @@ tar -xvzf my.tar.gz
 ```
 And you should be good to go!
 
+
+
 ### Example
 As an example, we'll use GraftM to classify a single 16S sequence from GreenGenes. Saving the example file as `/tmp/eg.fasta` with the following contents:
 ```
@@ -54,7 +59,7 @@ CTAATACCGCATAAACTCTTCGGAGAAAAGCTGGGGACTTTCGAGCCTGGCGCTTTAAGATTAGCCTGCGTCCGATTAGC
 Then we can use GraftM's 61% OTU clustered GraftM package to detect and classify this sequence. Running graftM might look something like this:
 ```
 $ graftM graft --forward /tmp/eg.fasta --graftm_package /path/to/4.01.2013_08_greengenes_61_otus.gpkg/ --output_directory eg.graftm
-                         
+
                              GraftM 0.9.2
 
                                 GRAFT
@@ -69,7 +74,7 @@ $ graftM graft --forward /tmp/eg.fasta --graftm_package /path/to/4.01.2013_08_gr
           - _-  -         -             |      ______
              - _                        |_____|
            -                                  |______
-            
+
 12/02/2015 09:52:06 AM INFO: Working on eg
 12/02/2015 09:52:06 AM INFO: 1 read(s) detected
 12/02/2015 09:52:06 AM INFO: aligning reads to reference package database

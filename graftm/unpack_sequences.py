@@ -1,7 +1,13 @@
 import logging
 import subprocess
-from signal import signal, SIGPIPE, SIG_DFL
 import os
+import itertools
+import tempfile
+
+from signal import signal, SIGPIPE, SIG_DFL
+from string import lower
+
+from graftm.sequence_io import SequenceIO
 
 class UnpackRawReads:
     class UnexpectedFileFormatException(Exception): pass
@@ -32,16 +38,18 @@ class UnpackRawReads:
                                }
     
     def __init__(self, read_file):
-        self.read_file   = read_file
+        self.read_file = read_file
     
     def _guess_sequence_type_from_string(self, seq):
         '''Return 'protein' if there is >10% amino acid residues in the 
         (string) seq parameter, else 'nucleotide'. Raise Exception if a
         non-standard character is encountered'''
         # Define expected residues for each sequence type
-        aas = set(['P','V','L','I','M','F','Y','W','H','K','R','Q','N','E','D','S','X'])
-        nas = set(['A', 'T', 'G', 'C', 'N', 'U'])
-        
+        aa_chars = ['P','V','L','I','M','F','Y','W','H','K','R','Q','N','E','D','S','X']
+        aas = set(itertools.chain(aa_chars, [lower(a) for a in aa_chars]))
+        na_chars = ['A', 'T', 'G', 'C', 'N', 'U']
+        nas = set(itertools.chain(na_chars, [lower(a) for a in na_chars]))
+        gapped_sequence=False
         num_nucleotide = 0
         num_protein = 0
         count = 0
@@ -51,9 +59,14 @@ class UnpackRawReads:
             elif residue in aas:
                 num_protein += 1
             else:
-                raise Exception('Encountered unexpected character when attempting to guess sequence type: %s' % (residue))
+                if residue ==  '-':
+                    gapped_sequence=True
+                else:
+                    raise Exception('Encountered unexpected character when attempting to guess sequence type: %s' % (residue))
             count += 1
             if count >300: break
+        if gapped_sequence:
+            logging.warning("Input sequences are gapped. If they do not match the alignment length of the HMM will fail!")
         if float(num_protein) / (num_protein+num_nucleotide) > 0.1:
             return self.PROTEIN_SEQUENCE_TYPE
         else:

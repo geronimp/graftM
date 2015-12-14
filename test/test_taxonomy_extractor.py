@@ -41,6 +41,23 @@ class Tests(unittest.TestCase):
                            u'c': [u't1']},
                           TaxonomyExtractor().taxonomy_from_annotated_tree(\
                             TreeNode.read(StringIO(u"(a,(b,c)'t1':0.9)root;"))))
+        
+    def test_bootstraps_in_annotated_tree(self):
+        self.assertEquals({u'a': [],
+                           u'b': [u't1'],
+                           u'c': [u't1']},
+                          TaxonomyExtractor().taxonomy_from_annotated_tree(\
+                            TreeNode.read(StringIO(u"(a,(b,c)'0.01973:t1':0.9)root;"))))
+        
+        
+    def test_bootstraps_in_annotated_tree_alongside_empty_taxa(self):
+        self.assertEquals({u'a': [],
+                           u'b': [],
+                           u'c': ['tax'],
+                           u'd': ['tax']},
+                          TaxonomyExtractor().taxonomy_from_annotated_tree(\
+                            TreeNode.read(StringIO(u"(a,(b,(c,d:0.2)'0.2:tax')0.01973:0.9)root;"))))
+        
 
         
 

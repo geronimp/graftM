@@ -24,6 +24,7 @@ However, to use all features of GraftM a few extra binary applications are requi
 
 To create new GraftM packages, you'll also need
 * FastTreeMP (http://www.microbesonline.org/fasttree/)
+
 #### Docker images
 Versions of graftM on pip now have matching docker images as of GraftM v0.9.2. GraftM docker images portable filesystems that contain the graftM code and all dependancies. These images can be run on any platform with docker installed. Details on how to download and run a GraftM docker image can be found on the [graftm-docker](https://github.com/geronimp/graftM-docker) GitHub page or the [docker hub page](https://hub.docker.com/u/geronimp/).
 

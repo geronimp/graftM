@@ -39,9 +39,7 @@ class UnpackRawReads:
     
     def __init__(self, read_file):
         self.read_file = read_file
-    
-    def _remove_gaps(self, alignment_file):
-        with open()
+
     
     def _guess_sequence_type_from_string(self, seq):
         '''Return 'protein' if there is >10% amino acid residues in the 

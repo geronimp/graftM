@@ -23,6 +23,7 @@
 
 # System
 import itertools
+import logging
 import heapq
 from skbio import TreeNode
 
@@ -31,10 +32,7 @@ from skbio import TreeNode
 
 ################################ - Classes - ##################################
 
-class BinaryTreeError(Exception):
-    pass
-
-class NoGoodRootError(Exception):
+class BadRootError(Exception):
     pass
 
 ################################# - Code - ####################################
@@ -62,16 +60,22 @@ class Rerooter:
         tree: TreeNode object
             TreeNode object (tree opened with skbio)
         '''   
-        children = tree.children
+        length_dict = {node.length:node for node in tree.traverse()}
+        tree = tree.root_at(length_dict[max(length_dict.keys())].parent)
+
+        children = [child for child in tree.children if not child.is_tip()]
         no_found_root = True
-        branches_to_combine = 2
+        
         if len(children) > 2:
+            
             node_combinations = list(itertools\
                                    .combinations([x for x in children], 
                                                  2))
+
             length_combination = list(itertools\
                                    .combinations([x.length for x in children], 
                                                  2))
+            
             sums = [x[0] + x[1] for x in length_combination]
             
             while no_found_root:
@@ -86,12 +90,22 @@ class Rerooter:
                 
             other_nodes = [node for node in children 
                            if node != most_distant_node]
-            link_root = TreeNode(children=other_nodes)
-            tree = TreeNode(children=[link_root,tree])
+            dec_len = most_distant_node.length/2
+            most_distant_node.length = dec_len
+            link_root = TreeNode(children=other_nodes, length = dec_len)
+            tree = TreeNode(children=[link_root, most_distant_node], 
+                            name = "root",
+                            length=0)
             return tree
+        
         else:
-            raise BinaryTreeError("Tree is already binary. Something has \
-mislead me here!")
-
+            logging.warning("This tree contains a root root positioned \
+at the base of one or more leaves. The root needs to be deeper for this type \
+of re-rooting")
+            logging.warning("This tree will be rooted at the mid-point as an \
+an alternative.")
+            tree=tree.root_at_midpoint()
+            return tree
+        
 ###############################################################################
 ###############################################################################

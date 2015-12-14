@@ -662,9 +662,8 @@ If you're unsure see graftM tree -h")
                 dec = Decorator(tree_path = self.args.rooted_tree)
             
             elif self.args.unrooted_tree and self.args.reference_tree:
-                logging.debug("Using provided reference tree %s to reroot %s and decorating with %s" % (self.args.reference_tree, 
-                                                                                                        self.args.unrooted_tree, 
-                                                                                                        self.args.input_taxonomy))
+                logging.debug("Using provided reference tree %s to reroot %s and then decorating the tree" % (self.args.reference_tree, 
+                                                                                                              self.args.unrooted_tree))
                 dec = Decorator(reference_tree_path = self.args.reference_tree,
                                 tree_path = self.args.unrooted_tree)
             else:

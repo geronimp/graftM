@@ -126,6 +126,10 @@ class GraftMPackageVersion2(GraftMPackage):
     def alignment_hmm_path(self):
         return os.path.join(self._base_directory,
                             self._contents_hash[GraftMPackage.ALIGNMENT_HMM_KEY])
+        
+    def alignment_fasta_path(self):
+        return os.path.join(self.reference_package_path(),
+                            self._refpkg_contents()['files']['aln_fasta'])
 
     def reference_package_path(self):
         return os.path.join(self._base_directory,

@@ -28,10 +28,13 @@ import sys
 import extern
 import logging
 import tempfile
+from Bio import SeqIO
+from Bio.Seq import Seq
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 from graftm.create import Create
-from graftm.graftm_package import GraftMPackageVersion2
+from graftm.graftm_package import GraftMPackageVersion2, GraftMPackage
+from graftm.sequence_io import Sequence
 
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
@@ -198,6 +201,56 @@ r6\td__Archaea;p__Euryarchaeota;c__Methanomicrobia;o__Halobacteriales;f__Halobac
                                 if x.startswith("NSEQ")][0]
 
                         self.assertEqual(nseq, expected)
+                        
+    def test_strange_character_replace(self):
+        create = Create()
+        seqs = [Sequence('namer','SEQWENCE')]
+        create._mask_strange_sequence_letters(seqs, Create._PROTEIN_PACKAGE_TYPE)
+        self.assertEqual(1, len(seqs))
+        self.assertEqual('SEQWENCE', str(seqs[0].seq))
+        
+        seqs = [Sequence('namer','SEQUENCE')]
+        create._mask_strange_sequence_letters(seqs, Create._PROTEIN_PACKAGE_TYPE)
+        self.assertEqual(1, len(seqs))
+        self.assertEqual('SEQXENCE', str(seqs[0].seq))
+        
+    def test_dna_strange_character_replace(self):
+        create = Create()
+        seqs = [Sequence('namer','ATGC')]
+        create._mask_strange_sequence_letters(seqs, Create._NUCLEOTIDE_PACKAGE_TYPE)
+        self.assertEqual(1, len(seqs))
+        self.assertEqual('ATGC', str(seqs[0].seq))
+        
+        seqs = [Sequence('namer','ATGCRTWU')]
+        create._mask_strange_sequence_letters(seqs, Create._NUCLEOTIDE_PACKAGE_TYPE)
+        self.assertEqual(1, len(seqs))
+        self.assertEqual('ATGCNTNT', str(seqs[0].seq))
+        
+    def test_remove_strange_characters_integration_test(self):
+        with tempdir.TempDir() as tmp:
+            gpkg = tmp+".gpkg"
+            first_seq = None
+            with tempfile.NamedTemporaryFile(suffix='61_otus.Rs.fasta') as f:
+                for record in SeqIO.parse(open(os.path.join(path_to_data,'create','61_otus.fasta')), 'fasta'):
+                    if not first_seq:
+                        first_seq = str(record.seq)
+                    record.seq = Seq(str(record.seq).replace('A','R',5)) #don't replace too many otherwise hmmbuild fails
+                    SeqIO.write(record, f, 'fasta')
+                f.flush()
+
+                Create().main(sequences=f.name,
+                              taxtastic_taxonomy=os.path.join(path_to_data,'61_otus.gpkg','61_otus.refpkg','61_otus_taxonomy.csv'),
+                              taxtastic_seqinfo=os.path.join(path_to_data,'61_otus.gpkg','61_otus.refpkg','61_otus_seqinfo.csv'),
+                              alignment=os.path.join(path_to_data,'61_otus.gpkg','61_otus.refpkg','61_otus.aln.fa'),
+                              prefix=gpkg,
+                              threads=5)
+                pkg = GraftMPackage.acquire(gpkg)
+                self.assertEqual('NAME  61_otus.aln\n', open(pkg.alignment_hmm_path()).readlines()[1])
+                self.assertEqual(pkg.diamond_database_path(), None)
+                for record in SeqIO.parse(open(pkg.alignment_fasta_path()), 'fasta'):
+                    self.assertEqual(str(record.seq).replace('R','N'), str(record.seq))
+                    break
+        
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.ERROR)

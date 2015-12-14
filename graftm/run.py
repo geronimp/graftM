@@ -20,7 +20,7 @@ from graftm.sequence_io import SequenceIO
 from graftm.timeit import Timer
 from graftm.clusterer import Clusterer
 from graftm.decorator import Decorator
-
+from graftm.external_program_suite import ExternalProgramSuite
 from biom.util import biom_open
 
 T=Timer()
@@ -41,9 +41,14 @@ class Run:
         self.setattributes(self.args)
 
     def setattributes(self, args):
+        
         self.hk = HouseKeeping()
         self.s = Stats_And_Summary()
         if args.subparser_name == 'graft':
+            commands = ExternalProgramSuite(['orfm', 'nhmmer', 'hmmsearch', 
+                                                 'fxtract', 'pplacer', 
+                                                 'seqmagick', 'ktImportText', 
+                                                 'diamond'])
             self.hk.set_attributes(self.args)
             self.hk.set_euk_hmm(self.args)
             if args.euk_check:self.args.search_hmm_files.append(self.args.euk_hmm_file)
@@ -54,6 +59,14 @@ class Run:
             self.sequence_pair_list = self.hk.parameter_checks(args)
             if hasattr(args, 'reference_package'):
                 self.p = Pplacer(self.args.reference_package)
+        
+        
+        elif self.args.subparser_name == "create":
+            commands = ExternalProgramSuite(['taxit', 'FastTreeMP', 
+                                                 'seqmagick', 'hmmalign', 
+                                                 'mafft'])
+            self.create = Create(commands)
+
 
 
 
@@ -525,8 +538,7 @@ class Run:
               --------          >>>     |  GPKG  |
               >c                        |________|
               ----------
-'''
-            
+'''            
             if self.args.dereplication_level not in range(0,8):
                 logging.error("Invalid dereplication level selected! please enter an integer from 0 - 7")
                 exit(1)
@@ -539,8 +551,8 @@ class Run:
                             self.args.output = self.args.graftm_package.replace(".gpkg", "-updated.gpkg")
                         else:
                             raise UnrecognisedSuffixError("Unrecognised suffix on GraftM package %s. Please provide a graftM package with the correct suffix (.gpkg)" % (self.args.graftm_package))
-                    Create().update(self.args.sequences, self.args.taxonomy, self.args.graftm_package,
-                                    self.args.output)
+                    self.create.update(self.args.sequences, self.args.taxonomy, self.args.graftm_package,
+                                       self.args.output)
 
                 else:
                     if self.args.taxonomy:
@@ -576,9 +588,9 @@ class Run:
                 if self.args.alignment and self.args.hmm:
                     logging.error("--alignment and --hmm cannot both be set")
                     exit(1)
-                self.hk.checkCreatePrerequisites()
+                
     
-                Create().main(
+                self.create.main(
                               dereplication_level = self.args.dereplication_level,
                               sequences = self.args.sequences,
                               alignment = self.args.alignment,
@@ -594,7 +606,7 @@ class Run:
                               search_hmm_files = self.args.search_hmm_files,
                               force = self.args.force,
                               graftm_package = self.args.graftm_package,
-                              threads = self.args.threads
+                              threads = self.args.threads                              
                               )
         
         elif self.args.subparser_name == 'bootstrap':

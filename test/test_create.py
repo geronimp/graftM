@@ -207,7 +207,7 @@ r6\td__Archaea;p__Euryarchaeota;c__Methanomicrobia;o__Halobacteriales;f__Halobac
                         self.assertEqual(nseq, expected)
                         
     def test_strange_character_replace(self):
-        create = Create()
+        create = Create(prerequisites)
         seqs = [Sequence('namer','SEQWENCE')]
         create._mask_strange_sequence_letters(seqs, Create._PROTEIN_PACKAGE_TYPE)
         self.assertEqual(1, len(seqs))
@@ -219,7 +219,7 @@ r6\td__Archaea;p__Euryarchaeota;c__Methanomicrobia;o__Halobacteriales;f__Halobac
         self.assertEqual('SEQXENCE', str(seqs[0].seq))
         
     def test_dna_strange_character_replace(self):
-        create = Create()
+        create = Create(prerequisites)
         seqs = [Sequence('namer','ATGC')]
         create._mask_strange_sequence_letters(seqs, Create._NUCLEOTIDE_PACKAGE_TYPE)
         self.assertEqual(1, len(seqs))
@@ -242,7 +242,7 @@ r6\td__Archaea;p__Euryarchaeota;c__Methanomicrobia;o__Halobacteriales;f__Halobac
                     SeqIO.write(record, f, 'fasta')
                 f.flush()
 
-                Create().main(sequences=f.name,
+                Create(prerequisites).main(sequences=f.name,
                               taxtastic_taxonomy=os.path.join(path_to_data,'61_otus.gpkg','61_otus.refpkg','61_otus_taxonomy.csv'),
                               taxtastic_seqinfo=os.path.join(path_to_data,'61_otus.gpkg','61_otus.refpkg','61_otus_seqinfo.csv'),
                               alignment=os.path.join(path_to_data,'61_otus.gpkg','61_otus.refpkg','61_otus.aln.fa'),

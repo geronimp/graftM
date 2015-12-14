@@ -21,6 +21,8 @@ setup(name='graftm',
                         'extern >=0.0.4',
                         'taxtastic >=0.5.4',
                         'tempdir >=0.6'),
+      setup_requires=['nose>=1.0'],
+      test_suite='nose.collector',
       url='http://geronimp.github.io/graftM',
       scripts=['bin/graftM'],
       data_files=[

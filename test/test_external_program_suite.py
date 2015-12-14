@@ -32,18 +32,53 @@ import tempfile
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 from graftm.external_program_suite import ExternalProgramSuite
 
+class NoFastTreeExecError(Exception):
+    pass
+
+def which(file):
+    for path in os.environ["PATH"].split(os.pathsep):
+        if os.path.exists(os.path.join(path, file)):
+                return os.path.join(path)
+
+    return None
+
 class Tests(unittest.TestCase):
 
-    def test_external_fasttree_command(self):
+    def test_native_external_fasttree_command(self):
+                
+        if which("FastTree"):
         
-        commands = ExternalProgramSuite(['FastTreeMP'])
-        self.assertTrue(commands.fasttree in ['FastTreeMP',
-                                              'fasttree',
-                                              'fasttreeMP',
-                                              'FastTree'])
-        cmd = commands.fasttree
-        extern.run(cmd)
-        
+            fasttree_original_path=which("FastTree")
+            fasttree_possibilities = {'FastTreeMP':'fasttreeMP',
+                                      'FastTree':'fasttree'}
+        elif which("fasttree"):
+            fasttree_original_path=which("fasttree")
+            fasttree_possibilities = {'fasttreeMP':'FastTreeMP',
+                                      'fasttree':'FastTree'}
+        else:
+            raise NoFastTreeExecError("No version of fasttree is installed that graftM can recognise!")
+            
+        if fasttree_original_path:
+            for orig, possibility in fasttree_possibilities.iteritems():    
+                with tempdir.TempDir() as tmp_file:
+                    os.symlink(os.path.join(fasttree_original_path,
+                                            orig), 
+                               os.path.join(tmp_file,
+                                            possibility))
+                    
+                    os.environ["PATH"] = os.environ["PATH"].replace(fasttree_original_path,
+                                                                    tmp_file)
+                    
+                    commands = ExternalProgramSuite(['FastTreeMP'])
+                    self.assertTrue(commands.fasttree in ['FastTreeMP',
+                                                          'fasttree',
+                                                          'fasttreeMP',
+                                                          'FastTree'])
+                    cmd = commands.fasttree
+                    extern.run(cmd)
+                    os.environ["PATH"] = os.environ["PATH"].replace(tmp_file,
+                                                                    fasttree_original_path)
+            
         
 if __name__ == "__main__":
     logging.basicConfig(level=logging.ERROR)

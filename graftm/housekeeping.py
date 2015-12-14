@@ -145,7 +145,7 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
         return max_length
 
     def set_attributes(self, args):
-        PrerequisiteChecker.check_prerequisites(('orfm','nhmmer','hmmsearch','fxtract','pplacer','seqmagick','ktImportText','diamond'))
+        PrerequisiteChecker(['orfm','nhmmer','hmmsearch','fxtract','pplacer','seqmagick','ktImportText','diamond'])
         
 
         # Read graftM package and assign HMM and refpkg file

@@ -2,6 +2,9 @@ import extern
 import logging
 
 class ExternalProgramSuite:
+    
+    _FASTTREE="FastTreeMP"
+    
     package_urls = {'taxit': 'https://github.com/fhcrc/taxtastic',
              'FastTree': 'http://www.microbesonline.org/fasttree/',
              'seqmagick': 'https://github.com/fhcrc/seqmagick',
@@ -20,9 +23,10 @@ class ExternalProgramSuite:
                             'FastTreeMP': 'FastTree'}
     
     programs_to_possibilities = {
-                                 "FastTreeMP": ["FastTreeMP",
-                                                "fasttree",
-                                                "fasttreeMP"]
+                                 _FASTTREE: ["FastTreeMP",
+                                              "fasttree",
+                                              "fasttreeMP",
+                                              "FastTree"]
                                  }
     
     def __init__(self, program_list):
@@ -51,7 +55,7 @@ Arbitrarily selecting %s" % (' '.join(program_list), check[0]))
                     if program in item:
                         program = key
                 
-                if key == "FastTreeMP":
+                if key == self._FASTTREE:
                     self.fasttree = check[0]
             else:
                 if not extern.which(program):

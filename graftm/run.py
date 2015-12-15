@@ -647,11 +647,11 @@ class Run:
                         
             if self.args.rooted_tree:
                 if self.args.unrooted_tree:
-                    logging.error("Both a rooted tree and an un-rooted tree were provided, so it's unclear what you are asking graftM to do. \
+                    logging.error("Both a rooted tree and an un-rooted tree were provided, so it's unclear what you are asking GraftM to do. \
 If you're unsure see graftM tree -h")
                     exit(1)
                 elif self.args.reference_tree:
-                    logging.error("Both a rooted tree and reference tree were provided, so it's unclear what you are asking graftM to do. \
+                    logging.error("Both a rooted tree and reference tree were provided, so it's unclear what you are asking GraftM to do. \
 If you're unsure see graftM tree -h")
                     exit(1)
                     

@@ -66,13 +66,11 @@ class Rerooter:
 
         '''   
         
-        if len(tree.children)==2:
-            raise BinaryTreeError("Tree is already binary. Something has \
--mislead me here!")
+
         
         length_dict = {node.length:node for node in tree.traverse()}
         tree = tree.root_at(length_dict[max(length_dict.keys())].parent)
-        children = [child for child in tree.children if not child.is_tip()]
+        children = tree.children
         no_found_root = True
         
         if len(children) > 2:
@@ -108,13 +106,8 @@ class Rerooter:
             return tree
         
         else:
-            logging.warning("This tree contains a root positioned \
-at the base of one or more leaves. The root needs to be deeper for this type \
-of re-rooting")
-            logging.warning("This tree will be rooted at the mid-point as an \
-an alternative.")
-            tree=tree.root_at_midpoint()
-            return tree
-        
+            raise BinaryTreeError("Tree is already binary. Something has \
+-mislead me here!")
+
 ###############################################################################
 ###############################################################################

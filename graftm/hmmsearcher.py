@@ -1,9 +1,10 @@
 import logging
 import extern
+import subprocess
 
 class HmmSearcher:
     r"""Runs hmmsearch given one or many HMMs in a scalable and fast way""" 
-    
+    _GAPPED_SEQS_ERROR='Parse failed (sequence file -):\nLine 68: illegal character -\n\n'
     def __init__(self, num_cpus, extra_args=''):
         r"""New
         
@@ -54,9 +55,15 @@ class HmmSearcher:
             # Run hmmsearches with each of the pairs
             cmd = self._hmm_command(input_pipe, pairs_to_run)
             logging.debug("Running command: %s" % cmd)
-
-            extern.run(cmd)
-            
+            try:
+                extern.run(cmd)
+                return True
+            except extern.ExternCalledProcessError as e:
+                if e.stderr==self._GAPPED_SEQS_ERROR:
+                    return False
+                else:
+                    raise extern.ExternCalledProcessError
+                
     def _munch_off_batch(self, queue):
         r"""Take a batch of sequences off the queue, and return pairs_to_run.
         The queue given as a parameter is affected

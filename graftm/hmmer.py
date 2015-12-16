@@ -16,6 +16,8 @@ from graftm.diamond import Diamond
 from graftm.sequence_search_results import SequenceSearchResult, HMMSearchResult
 from graftm.readHmmTable import HMMreader
 from graftm.db_search_results import DBSearchResult
+from graftm.unpack_sequences import UnpackRawReads
+
 
 FORMAT_FASTA = "FORMAT_FASTA"
 FORMAT_FASTQ = "FORMAT_FASTQ"
@@ -194,19 +196,18 @@ class Hmmer:
             raise Exception("Programming error: expected 1 or more HMMs")
 
         # Choose an input to this base command based off the file format found.
-        if seq_type == 'nucleotide':  # If the input is nucleotide sequence
+        if seq_type == UnpackRawReads.NUCLEOTIDE_SEQUENCE_TYPE:  # If the input is nucleotide sequence
             input_cmd = orfm.command_line(input_path)
-        elif seq_type == 'aminoacid':  # If the input is amino acid sequence
+        elif seq_type == UnpackRawReads.PROTEIN_SEQUENCE_TYPE:  # If the input is amino acid sequence
             input_cmd = unpack.command_line()
-        else:
-            raise Exception('Programming Error: error guessing input sequence type')
         
         # Run the HMMsearches
         if cutoff == "--cut_tc":
             searcher = HmmSearcher(threads, cutoff) 
         else:
             searcher = HmmSearcher(threads, '--domE %s' % cutoff) 
-        searcher.hmmsearch(input_cmd, self.search_hmm, output_table_list)
+        finished = searcher.hmmsearch(input_cmd, self.search_hmm, output_table_list)
+
         hmmtables = [HMMSearchResult.import_from_hmmsearch_table(x) for x in output_table_list]
         return hmmtables
 
@@ -323,12 +324,20 @@ class Hmmer:
         input_pipe = unpack.command_line()
 
         searcher = NhmmerSearcher(threads, extra_args='--incE %s -E %s' % (evalue, evalue))
-        searcher.hmmsearch(input_pipe, self.search_hmm, output_table_list)
-
+        finished = searcher.hmmsearch(input_pipe, self.search_hmm, output_table_list)
+        
+        if not finished:
+            unpack._ungap_sequences()
+            input_pipe = unpack.command_line()
+            searcher.hmmsearch(input_pipe, self.search_hmm, output_table_list)
+            
         hmmtables = [HMMSearchResult.import_from_nhmmer_table(x) for x in output_table_list]
-
         return hmmtables, output_table_list
-
+    
+        
+        
+            
+        
     def _check_euk_contamination(self, hmm_hit_tables):
         '''
         check_euk_contamination - Check output HMM tables hits reads that hit

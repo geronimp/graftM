@@ -2,7 +2,6 @@ import os
 import shutil
 import logging
 from graftm.graftm_package import GraftMPackage
-from graftm.prerequisite_checker import PrerequisiteChecker
 import inspect
 
 PIPELINE_AA = "P"
@@ -143,7 +142,7 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
         return max_length
 
     def set_attributes(self, args):
-        
+
 
         # Read graftM package and assign HMM and refpkg file
         if args.graftm_package:

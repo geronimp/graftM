@@ -1183,6 +1183,34 @@ MSRSLKKGPFIADSLLKKIEKLNANNKKEVIKTWSRASTILPQMVGHTIAVHNGRQHIPV
 FISDQMVGHKLGEFAPTRTFRGHAKSDKKGRR
 '''
                 self.assertEqual(expected, open(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "%s_hits.fa" % os.path.basename(fasta.name)[:-3])).read())
+                
+    def test_forward_and_reverse_slash_type_fastq(self):
+        fwd = '''@FCC0WM1ACXX:2:2208:12709:74426#GTCCAGAA/1
+ACACTGCCCAGACACCTACGGGTGGCTGCAGTCGAGGATCTTCGGCAATGGGCGAAAGCCTGACCGAGCGACGCCGCGTGTGGGATGAAGGCCCTCGGGT
++
+^^_cccacgeecafgfghhhhheYea_c^efaff`eggfhhhhf]`_d]]X^aa\]^Y^a`[^bbaZaaaa]]a]_[]HTX`[[[_[]`_][`^^`]__a
+'''
+        rev = '''@FCC0WM1ACXX:2:2208:12709:74426#GTCCAGAA/2
+CGGGGTATCTAATCCCGTTCGCTCCCCTAGCTTTCGTGCCTCAGCGTCAGAAAAGACCCAGTGAGCCGCTTTCGCCCCCGGTGTTCCTTAGGATATCAAC
++
+\a_ccO_ceceeehdgaffZ^degfggfdefggib^ef^cecRafeefgdZecf_dd`gbcZ___b]aUZaa`aa__aaX__TT[]_bY]Y`]RG]`b_b
+'''
+        with tempfile.NamedTemporaryFile(suffix='.fq') as fwd_f:
+            fwd_f.write(fwd)
+            fwd_f.flush()
+            with tempfile.NamedTemporaryFile(suffix='.fq') as rev_f:
+                rev_f.write(rev)
+                rev_f.flush()
+
+                with tempdir.TempDir() as tmp:
+                    cmd = '%s graft --verbosity 5 --forward %s --reverse %s --output_directory %s --force --graftm_package %s' % (path_to_script,
+                                                                                                                     fwd_f.name,
+                                                                                                                     rev_f.name,
+                                                                                                                     tmp,
+                                                                                                                     os.path.join(path_to_data,'61_otus.gpkg'))
+                    extern.run(cmd)
+                    raise Exception("At least it runs, but nt sure what is expected for this test. Before it didn't even run")
+    
         
 
 

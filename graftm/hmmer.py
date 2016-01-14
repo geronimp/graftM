@@ -536,6 +536,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         pre_filter_count=len(corrected_sequences)
         
         if filter_minimum:
+            # Use '>' not '>=' here because the sequence is on a single line, 
+            # but also includes a newline character at the end of the sequence
             corrected_sequences={key:item for key, item in corrected_sequences.iteritems() if len(item.replace('-', '')) > filter_minimum}
         
         post_filter_count=len(corrected_sequences)

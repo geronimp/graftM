@@ -1207,6 +1207,22 @@ CGGGAGGAACACCAGTGGCGAAGGCGGCTTCCTGGCCTGTTCTTGACGCTGAGGCGCGAA
                                                                                                                  os.path.join(path_to_data,'61_otus.gpkg'))
                 extern.run(cmd)
                 self.assertFalse(os.path.exists(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "%s_hits.aln.fa" % os.path.basename(fasta.name)[:-3])))
+                
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --verbosity 5 --forward %s --output_directory %s --force --graftm_package %s --filter_minimum 56' % (path_to_script,
+                                                                                                                 fasta.name,
+                                                                                                                 tmp,
+                                                                                                                 os.path.join(path_to_data,'61_otus.gpkg'))
+                extern.run(cmd)
+                self.assertTrue(os.path.exists(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "%s_hits.aln.fa" % os.path.basename(fasta.name)[:-3])))
+                
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --verbosity 5 --forward %s --output_directory %s --force --graftm_package %s --filter_minimum 57' % (path_to_script,
+                                                                                                                 fasta.name,
+                                                                                                                 tmp,
+                                                                                                                 os.path.join(path_to_data,'61_otus.gpkg'))
+                extern.run(cmd)
+                self.assertFalse(os.path.exists(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "%s_hits.aln.fa" % os.path.basename(fasta.name)[:-3])))
 
         
 

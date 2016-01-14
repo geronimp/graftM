@@ -1,0 +1,33 @@
+#!/bin/sh
+
+#
+# A hook script to verify that a push is not done with untracked source file
+#
+# To use it, either symlink this script to $your-git-clone/.git/hooks/pre-push
+# or include it in your existing pre-push script.
+#
+
+# Perl-style regular expression which limits the files we interpret as source files.
+# The default pattern here excludes CMakeLists.txt files and any .h/.cpp/.cmake files.
+# Extend/adapt this to your needs. Alternatively, set the pattern in your repo via:
+#     git config hooks.prepush.sourcepattern "$your-pattern"
+pattern=$(git config --get hooks.prepush.sourcepattern)
+if [ -z "$pattern" ]; then
+  pattern="\.py$"
+fi
+
+echo "Checking for untracked files that match the pattern '$pattern'"
+files=$(git status -u --porcelain --no-column | sed "s/^?? //" | grep -P "$pattern")
+if [ -z "$files" ]; then
+  exit 0
+fi
+
+echo
+echo "ERROR: Preventing push with untracked source files:"
+echo
+echo "$files" | sed "s/^/    /"
+echo
+echo "Either include these files in your commits, add them to .gitignore"
+echo "or stash them with git stash -u."
+echo
+exit 1

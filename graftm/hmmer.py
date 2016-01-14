@@ -534,7 +534,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                 corrected_sequences['>' + sequence.id + '\n'] = (''.join(new_seq) + '\n').replace('~', '-')
         
         pre_filter_count=len(corrected_sequences)
-
+        
         if filter_minimum:
             corrected_sequences={key:item for key, item in corrected_sequences.iteritems() if len(item.replace('-', '')) > filter_minimum}
         

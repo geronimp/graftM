@@ -250,8 +250,15 @@ class Run:
         setattr(self.args, 'type', hmm_type)
         if hmm_tc:
             setattr(self.args, 'evalue', '--cut_tc')
-        if not self.args.filter_minimum:
-            filter_minimum = (Run.MIN_ALIGNED_FILTER_FOR_NUCLEOTIDE_PACKAGES if self.args.type == PIPELINE_NT else Run.MIN_ALIGNED_FILTER_FOR_AMINO_ACID_PACKAGES)
+                        
+        if self.args.filter_minimum is not None:
+            filter_minimum = self.args.filter_minimum
+        else:
+            if self.args.type == PIPELINE_NT:
+                filter_minimum = Run.MIN_ALIGNED_FILTER_FOR_NUCLEOTIDE_PACKAGES
+            else:
+                filter_minimum = Run.MIN_ALIGNED_FILTER_FOR_AMINO_ACID_PACKAGES
+            
         # Generate bootstrap database if required
         if self.args.bootstrap_contigs:
             if self.args.graftm_package:

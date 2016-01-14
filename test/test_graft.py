@@ -1184,7 +1184,31 @@ FISDQMVGHKLGEFAPTRTFRGHAKSDKKGRR
 '''
                 self.assertEqual(expected, open(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "%s_hits.fa" % os.path.basename(fasta.name)[:-3])).read())
         
+    def test_filter_minimum(self):
+        testing = '''>NS500333:6:H1124BGXX:1:23310:10768:12778 1:N:0:GATCAG
+CGGGAGGAACACCAGTGGCGAAGGCGGCTTCCTGGCCTGTTCTTGACGCTGAGGCGCGAA
+'''
+        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+            fasta.write(testing)
+            fasta.flush()
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --verbosity 5 --forward %s --output_directory %s --force --graftm_package %s --filter_minimum 0' % (path_to_script,
+                                                                                                                 fasta.name,
+                                                                                                                 tmp,
+                                                                                                                 os.path.join(path_to_data,'61_otus.gpkg'))
+                extern.run(cmd)
+                expected = '>NS500333:6:H1124BGXX:1:23310:10768:12778\n--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GGAGGAACACCAGTGGCGAAGGCGGCTTCCTGGCCTGCTTGACGCTGAGGCGCGAA-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n'
+                self.assertEqual(expected, open(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "%s_hits.aln.fa" % os.path.basename(fasta.name)[:-3])).read())
+                
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --verbosity 5 --forward %s --output_directory %s --force --graftm_package %s --filter_minimum 150' % (path_to_script,
+                                                                                                                 fasta.name,
+                                                                                                                 tmp,
+                                                                                                                 os.path.join(path_to_data,'61_otus.gpkg'))
+                extern.run(cmd)
+                self.assertFalse(os.path.exists(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "%s_hits.aln.fa" % os.path.basename(fasta.name)[:-3])))
 
+        
 
     
 

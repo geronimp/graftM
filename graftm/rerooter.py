@@ -34,6 +34,8 @@ from skbio import TreeNode
 
 class BinaryTreeError(Exception):
     pass
+class MalformedTreeError(Exception):
+    pass
 
 ################################# - Code - ####################################
 
@@ -65,11 +67,7 @@ class Rerooter:
         BinaryTreeError : If the input tree is already a binary tree
 
         '''   
-        
 
-        
-        length_dict = {node.length:node for node in tree.traverse()}
-        tree = tree.root_at(length_dict[max(length_dict.keys())].parent)
         children = tree.children
         no_found_root = True
         
@@ -97,7 +95,9 @@ class Rerooter:
                 
             other_nodes = [node for node in children 
                            if node != most_distant_node]
+            
             dec_len = most_distant_node.length/2
+            
             most_distant_node.length = dec_len
             link_root = TreeNode(children=other_nodes, length = dec_len)
             tree = TreeNode(children=[link_root, most_distant_node], 
@@ -105,9 +105,11 @@ class Rerooter:
                             length=0)
             return tree
         
-        else:
+        elif len(children) == 2:
             raise BinaryTreeError("Tree is already binary. Something has \
 -mislead me here!")
-
+        elif len(children) < 2:
+            raise MalformedTreeError("Has only one child from the root!") # Impossible?
+            
 ###############################################################################
 ###############################################################################

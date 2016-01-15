@@ -647,11 +647,11 @@ class Run:
                         
             if self.args.rooted_tree:
                 if self.args.unrooted_tree:
-                    logging.error("Both a rooted tree and an un-rooted tree were provided, so it's unclear what you are asking graftM to do. \
+                    logging.error("Both a rooted tree and an un-rooted tree were provided, so it's unclear what you are asking GraftM to do. \
 If you're unsure see graftM tree -h")
                     exit(1)
                 elif self.args.reference_tree:
-                    logging.error("Both a rooted tree and reference tree were provided, so it's unclear what you are asking graftM to do. \
+                    logging.error("Both a rooted tree and reference tree were provided, so it's unclear what you are asking GraftM to do. \
 If you're unsure see graftM tree -h")
                     exit(1)
                     
@@ -662,9 +662,8 @@ If you're unsure see graftM tree -h")
                 dec = Decorator(tree_path = self.args.rooted_tree)
             
             elif self.args.unrooted_tree and self.args.reference_tree:
-                logging.debug("Using provided reference tree %s to reroot %s and decorating with %s" % (self.args.reference_tree, 
-                                                                                                        self.args.unrooted_tree, 
-                                                                                                        self.args.input_taxonomy))
+                logging.debug("Using provided reference tree %s to reroot %s and then decorating the tree" % (self.args.reference_tree, 
+                                                                                                              self.args.unrooted_tree))
                 dec = Decorator(reference_tree_path = self.args.reference_tree,
                                 tree_path = self.args.unrooted_tree)
             else:

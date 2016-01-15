@@ -6,6 +6,7 @@ from graftm.rerooter import Rerooter
 class TreeParaphyleticException(Exception): pass
 
 class Reannotator:
+    
     def _reroot_tree_by_old_root(self, old_tree, new_tree):
         '''reroot the new tree so that it matches the old tree's root, if 
         possible. If more than one rerooting is possible, root at the longest

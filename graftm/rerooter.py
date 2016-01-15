@@ -23,6 +23,7 @@
 
 # System
 import itertools
+import logging
 import heapq
 from skbio import TreeNode
 
@@ -33,8 +34,7 @@ from skbio import TreeNode
 
 class BinaryTreeError(Exception):
     pass
-
-class NoGoodRootError(Exception):
+class MalformedTreeError(Exception):
     pass
 
 ################################# - Code - ####################################
@@ -61,17 +61,26 @@ class Rerooter:
         ----------
         tree: TreeNode object
             TreeNode object (tree opened with skbio)
+            
+        Raises
+        ------
+        BinaryTreeError : If the input tree is already a binary tree
+
         '''   
+
         children = tree.children
         no_found_root = True
-        branches_to_combine = 2
+        
         if len(children) > 2:
+            
             node_combinations = list(itertools\
                                    .combinations([x for x in children], 
                                                  2))
+
             length_combination = list(itertools\
                                    .combinations([x.length for x in children], 
                                                  2))
+            
             sums = [x[0] + x[1] for x in length_combination]
             
             while no_found_root:
@@ -86,12 +95,21 @@ class Rerooter:
                 
             other_nodes = [node for node in children 
                            if node != most_distant_node]
-            link_root = TreeNode(children=other_nodes)
-            tree = TreeNode(children=[link_root,tree])
+            
+            dec_len = most_distant_node.length/2
+            
+            most_distant_node.length = dec_len
+            link_root = TreeNode(children=other_nodes, length = dec_len)
+            tree = TreeNode(children=[link_root, most_distant_node], 
+                            name = "root",
+                            length=0)
             return tree
-        else:
+        
+        elif len(children) == 2:
             raise BinaryTreeError("Tree is already binary. Something has \
-mislead me here!")
-
+-mislead me here!")
+        else:
+            raise MalformedTreeError("Input tree is malformed")
+            
 ###############################################################################
 ###############################################################################

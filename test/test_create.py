@@ -35,7 +35,6 @@ sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.
 from graftm.create import Create
 from graftm.graftm_package import GraftMPackageVersion2, GraftMPackage
 from graftm.sequence_io import Sequence
-from graftm.prerequisite_checker import PrerequisiteChecker
 from graftm.external_program_suite import ExternalProgramSuite
 
 prerequisites = ExternalProgramSuite(['taxit', 'FastTreeMP', 'seqmagick', 'hmmalign', 'mafft'])

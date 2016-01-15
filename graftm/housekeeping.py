@@ -2,7 +2,6 @@ import os
 import shutil
 import logging
 from graftm.graftm_package import GraftMPackage
-from graftm.prerequisite_checker import PrerequisiteChecker
 import inspect
 
 PIPELINE_AA = "P"

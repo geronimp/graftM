@@ -108,8 +108,8 @@ class Rerooter:
         elif len(children) == 2:
             raise BinaryTreeError("Tree is already binary. Something has \
 -mislead me here!")
-        elif len(children) < 2:
-            raise MalformedTreeError("Has only one child from the root!") # Impossible?
+        else:
+            raise MalformedTreeError("Input tree is malformed")
             
 ###############################################################################
 ###############################################################################

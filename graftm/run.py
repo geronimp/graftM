@@ -247,8 +247,11 @@ class Run:
         setattr(self.args, 'type', hmm_type)
         if hmm_tc:
             setattr(self.args, 'evalue', '--cut_tc')
-        if not self.args.filter_minimum:
+        
+        if self.args.filter_minimum == None:
             filter_minimum = (95 if self.args.type == PIPELINE_NT else 30)
+        else:
+            filter_minimum = self.args.filter_minimum
         # Generate bootstrap database if required
         if self.args.bootstrap_contigs:
             if self.args.graftm_package:

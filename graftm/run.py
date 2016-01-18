@@ -35,6 +35,9 @@ class Run:
     _MIN_VERBOSITY_FOR_ART = 3 # with 2 then, only errors are printed
     PPLACER_TAXONOMIC_ASSIGNMENT = 'pplacer'
     DIAMOND_TAXONOMIC_ASSIGNMENT = 'diamond'
+    
+    MIN_ALIGNED_FILTER_FOR_NUCLEOTIDE_PACKAGES = 95
+    MIN_ALIGNED_FILTER_FOR_AMINO_ACID_PACKAGES = 30
 
     def __init__(self, args):
         self.args = args
@@ -247,8 +250,15 @@ class Run:
         setattr(self.args, 'type', hmm_type)
         if hmm_tc:
             setattr(self.args, 'evalue', '--cut_tc')
-        if not self.args.filter_minimum:
-            filter_minimum = (95 if self.args.type == PIPELINE_NT else 30)
+                        
+        if self.args.filter_minimum is not None:
+            filter_minimum = self.args.filter_minimum
+        else:
+            if self.args.type == PIPELINE_NT:
+                filter_minimum = Run.MIN_ALIGNED_FILTER_FOR_NUCLEOTIDE_PACKAGES
+            else:
+                filter_minimum = Run.MIN_ALIGNED_FILTER_FOR_AMINO_ACID_PACKAGES
+            
         # Generate bootstrap database if required
         if self.args.bootstrap_contigs:
             if self.args.graftm_package:

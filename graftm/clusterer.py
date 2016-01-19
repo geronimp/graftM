@@ -38,14 +38,14 @@ class Clusterer:
         output_annotations = {}
         for _, (clusters, placed_alignment_file_path) in self.seq_library.iteritems():
 
-            if reverse_pipe and placed_alignment_file_path.endswith("_reverse_clustered.fa"): continue
+            if reverse_pipe and placed_alignment_file_path.endswith("_reverse_clustered.aln.fa"): continue
             placed_alignment_file = os.path.basename(placed_alignment_file_path)
             cluster_classifications = input_annotations[placed_alignment_file]
 
             if reverse_pipe:
-                placed_alignment_base = placed_alignment_file.replace('_forward_clustered.fa', '')
+                placed_alignment_base = placed_alignment_file.replace('_forward_clustered.aln.fa', '')
             else:
-                placed_alignment_base = placed_alignment_file.replace('_clustered.fa', '')
+                placed_alignment_base = placed_alignment_file.replace('_clustered.aln.fa', '')
             output_annotations[placed_alignment_base] = {}
             for rep_read_name, rep_read_taxonomy in cluster_classifications.iteritems():
                 slashendingregex = self.slash_ending_regex.match(rep_read_name)
@@ -81,7 +81,7 @@ class Clusterer:
         
         output_fasta_list = []
         for input_fasta in input_fasta_list:
-            output_path  = input_fasta.replace('_hits.aln.fa', '_clustered.fa')
+            output_path  = input_fasta.replace('_hits.aln.fa', '_clustered.aln.fa')
             path = os.path.split(input_fasta)[0]
             cluster_dict = {}
 

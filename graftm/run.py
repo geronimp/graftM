@@ -99,7 +99,7 @@ class Run:
         Returns
         -------
         '''
-
+    
         # Summary steps.
         placements_list = []
         for base in base_list:
@@ -137,8 +137,9 @@ class Run:
 
         # Delete unnecessary files
         logging.info('Cleaning up')
-        for base in base_list:
+        for base in base_list:                
             directions = ['forward', 'reverse']
+            
             if reverse_pipe:
                 for i in range(0,2):
                     self.gmf = GraftMFiles(base, self.args.output_directory, directions[i])
@@ -153,7 +154,8 @@ class Run:
                                     self.gmf.orf_titles_output_path(base),
                                     self.gmf.orf_output_path(base),
                                     self.gmf.output_for_path(base),
-                                    self.gmf.output_rev_path(base)])
+                                    self.gmf.output_rev_path(base),
+                                    self.gmf.comb_aln_fa()])
             else:
                 self.gmf = GraftMFiles(base, self.args.output_directory, False)
                 self.hk.delete([self.gmf.for_aln_path(base),
@@ -167,7 +169,8 @@ class Run:
                                 self.gmf.orf_titles_output_path(base),
                                 self.gmf.orf_output_path(base),
                                 self.gmf.output_for_path(base),
-                                self.gmf.output_rev_path(base)])
+                                self.gmf.output_rev_path(base),
+                                self.gmf.comb_aln_fa()])
 
         logging.info('Done, thanks for using graftM!\n')
 

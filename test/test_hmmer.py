@@ -74,7 +74,9 @@ class Tests(unittest.TestCase):
                     reverse_file.write(reverse_reads)
                     forward_file.flush()
                     reverse_file.flush()
-                    Hmmer(None).merge_forev_aln([forward_file.name],[reverse_file.name],[output_file.name])
+                    Hmmer(None).merge_forev_aln(False, [forward_file.name],
+                                                [reverse_file.name], 
+                                                [output_file.name])
                     count = 0
                     for line in open(output_file.name):
                         self.assertEqual(expected_aln[count], line.strip())

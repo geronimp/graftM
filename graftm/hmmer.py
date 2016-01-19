@@ -211,16 +211,22 @@ class Hmmer:
         hmmtables = [HMMSearchResult.import_from_hmmsearch_table(x) for x in output_table_list]
         return hmmtables
 
-    def merge_forev_aln(self, forward_aln_list, reverse_aln_list, outputs):
+    def merge_forev_aln(self, slash_endings,
+                        forward_aln_list, reverse_aln_list, outputs):
         '''
         merge_forev_aln - Merges forward and reverse alignments for a given run
 
         Parameters
         ----------
-        aln_list : array
-            List of the forward and reverse alignments for each of the runs
-            given to graftM. **MUST** be the following pattern:
-            [forward_run1, reverse_run1, forward_run2, reverse_run2 ...]
+        slash_endings : bool
+            True/False: whether the sequence headers contain the old style 
+            '/1' and '/2' headers to denote forward and reverse reads.
+        for_aln_list : array
+            List of the forward alignments for each of the runs
+            given to graftM. 
+        rev_aln_list : array
+            List of the reverse alignments for each of the runs
+            given to graftM.
         outputs : array
             List of paths to output file to which the merged alignments from the
             aln_list will go into. Must be exactly half the size of the aln_list
@@ -230,7 +236,7 @@ class Hmmer:
         -------
         Nothing - output files are known.
         '''
-        slash_ending_regex = re.compile('.*/[12]$')
+
         orfm_regex = OrfM.regular_expression()
         
         def clean_read_headers(records):
@@ -238,8 +244,7 @@ class Hmmer:
             new_dict = {}
 
             for key, record in records.iteritems():
-                slashregex = slash_ending_regex.match(key)
-                if slashregex:
+                if slash_endings:
                     key = key[:-2]
                 
                 orfmregex = orfm_regex.match(key)

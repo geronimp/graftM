@@ -410,7 +410,9 @@ class Run:
             base_list=base_list[0::2]
             merged_output=[GraftMFiles(base, self.args.output_directory, False).aligned_fasta_output_path(base) \
                            for base in base_list]
-            self.h.merge_forev_aln(seqs_list[0::2], seqs_list[1::2], merged_output)
+            self.h.merge_forev_aln(unpack.slash_endings,
+                                   seqs_list[0::2], seqs_list[1::2], 
+                                   merged_output)
             seqs_list=merged_output
             REVERSE_PIPE = False
         elif REVERSE_PIPE:
@@ -430,8 +432,9 @@ class Run:
         if self.args.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
             # Classification steps        
             if not self.args.no_clustering:
-                C=Clusterer()
+                C=Clusterer(unpack.slash_endings)
                 cluster_dictionary = C.seq_library
+
                 seqs_list=C.cluster(seqs_list, REVERSE_PIPE)
             logging.info("Placing reads into phylogenetic tree")
             taxonomic_assignment_time, assignments=self.p.place(REVERSE_PIPE,
@@ -443,7 +446,8 @@ class Run:
                                                                 gpkg.taxtastic_taxonomy_path(),
                                                                 cluster_dictionary)
             if not self.args.no_clustering:
-                assignments = C.uncluster_annotations(assignments, REVERSE_PIPE)
+                assignments = C.uncluster_annotations(assignments, REVERSE_PIPE,
+                                                      self.args.merge_reads)
         
         elif self.args.assignment_method == Run.DIAMOND_TAXONOMIC_ASSIGNMENT:
             logging.info("Assigning taxonomy with diamond")

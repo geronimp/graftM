@@ -24,18 +24,27 @@
 import unittest
 import os
 import sys
+import tempfile
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 from graftm.unpack_sequences import UnpackRawReads
 
 class Tests(unittest.TestCase):
     def test__guess_sequence_type(self):
-        urr = UnpackRawReads(None)
-        self.assertEqual('aminoacid', urr._guess_sequence_type_from_string('P'*10))
-        self.assertEqual('aminoacid', urr._guess_sequence_type_from_string('P'*10+'T'*89))
-        self.assertEqual('nucleotide', urr._guess_sequence_type_from_string('P'*10+'T'*90))
-        self.assertEqual('nucleotide', urr._guess_sequence_type_from_string('A'*300+'E'*999)) #only look at the first 300bp
-        self.assertEqual('nucleotide', urr._guess_sequence_type_from_string('a'*10+'T'*89)) #lowercase
+        
+        test_read=""">HWI-ST1243:121:D1AF9ACXX:8:1101:12684:12444
+GTCAACAACCCCGCAATGCAACAGATGTGGGATGAGATCAGACGTACAGTTATCGTCGGTCTCGACCAGGCCCACGAGACGCTGACCAGAAGACTCGGTAAGGAAGTTACCCCTGAGACCATCAACGGCTATCTTGAGGCGTTGAACCAC"""
+        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+            fasta.write(test_read)
+            fasta.flush()
+
+            urr = UnpackRawReads(fasta.name)
+            
+            self.assertEqual('aminoacid', urr._guess_sequence_type_from_string('P'*10))
+            self.assertEqual('aminoacid', urr._guess_sequence_type_from_string('P'*10+'T'*89))
+            self.assertEqual('nucleotide', urr._guess_sequence_type_from_string('P'*10+'T'*90))
+            self.assertEqual('nucleotide', urr._guess_sequence_type_from_string('A'*300+'E'*999)) #only look at the first 300bp
+            self.assertEqual('nucleotide', urr._guess_sequence_type_from_string('a'*10+'T'*89)) #lowercase
 
 if __name__ == "__main__":
     unittest.main()

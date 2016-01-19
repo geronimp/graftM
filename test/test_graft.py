@@ -1317,42 +1317,29 @@ GGCATTGAACCACACGATGCCCGGTGCGGCCATTGTCCAAGAACACATGGTGGAAACCCACCCTGCGCTCGTTGAAGACT
 >another_Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040
 ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGACGACCTATAAGCGCGAGGGGTGGACTCAGTCCAAGGACAAGCGCGAGTTCCAGGAATGGGGCGCAAAAATCGCCAAGGACCGTGGAATACCGGCGTACAACGTCAACGTCCACCTCGGCGGTATGACCCT
 CGGCCAGCGGCAACTCATGCCGTACAATGTCTCTGGGACCGACGTGATGTGTGAAGGCGATGACCTCCACTACGTCAACAACCCCGCAATGCAACAGATGTGGGATGAGATCAGGCGTACGGTTATCGTAGGTCTTGACACCGCTCACGAGACGCTGACCAGGAGACTCGGCAAGGAGGTTACCCCCGAGACCATCAACGGCTATCTCGA
-GGCATTGAACCACACGATGCCCGGTGCGGCCATTGTCCAAGAACACATGGTGGAAACCCACCCTGCGCTCGTTGAAGACTGCTTCGTAAAAGTCTTCACCGGCGACGATGACCTCGCC
-'''
+GGCATTGAACCACACGATGCCCGGTGCGGCCATTGTCCAAGAACACATGGTGGAAACCCACCCTGCGCTCGTTGAAGACTGCTTCGTAAAAGTCTTCACCGGCGACGATGACCTCGCC'''
         with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
             fasta.write(testing)
             fasta.flush()
+            
+            fasta_name = os.path.basename(fasta.name)[:-3]
+            
             with tempdir.TempDir() as tmp:
                 cmd = '%s graft --verbosity 5 --forward %s --output_directory %s --force --graftm_package %s' % (path_to_script,
                                                                                                                  fasta.name,
                                                                                                                  tmp,
                                                                                                                  os.path.join(path_to_data,'mcrA.gpkg'))
                 extern.run(cmd)
-                jplace = json.load(open(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "placements.jplace")))
+                jplace = json.load(open(os.path.join(tmp, fasta_name, "placements.jplace")))
                 self.assertEqual(2, len(jplace['placements'][0]['nm']))
-                expected = '''>Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040_1_1_7_0 Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040_1_1_7
-MATEKTQKMFLEAMKKKFAEDPTSNKTTYKR-EGWTQSKDKREFQEWGAKIAKDRGIPAY
-NVNVHLGMTLGQRQLMPYNVSGTDVMCEGDDLHYVNNPAMQQMWDEIRRTVIVGLDTAHE
-TLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA-
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
------------------
->another_Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040_1_1_7_0 Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040_1_1_7
-MATEKTQKMFLEAMKKKFAEDPTSNKTTYKR-EGWTQSKDKREFQEWGAKIAKDRGIPAY
-NVNVHLGMTLGQRQLMPYNVSGTDVMCEGDDLHYVNNPAMQQMWDEIRRTVIVGLDTAHE
-TLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA-
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
-------------------------------------------------------------
------------------'''.split('\n')
-                self.assertEqual(expected, open(os.path.join(tmp, "combined_alignment.aln.fa")).read())
+                expected = '''>Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040_1_1_7
+MATEKTQKMFLEAMKKKFAEDPTSNKTTYKR-EGWTQSKDKREFQEWGAKIAKDRGIPAYNVNVHLGMTLGQRQLMPYNVSGTDVMCEGDDLHYVNNPAMQQMWDEIRRTVIVGLDTAHETLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+>another_Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040_1_1_7
+MATEKTQKMFLEAMKKKFAEDPTSNKTTYKR-EGWTQSKDKREFQEWGAKIAKDRGIPAYNVNVHLGMTLGQRQLMPYNVSGTDVMCEGDDLHYVNNPAMQQMWDEIRRTVIVGLDTAHETLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------'''.split('\n')
+
+                for idx, line in enumerate(open(os.path.join(tmp, fasta_name, "%s_hits.aln.fa" % fasta_name)).readlines()):
+                    line = line.strip()
+                    self.assertEqual(expected[idx], line)
                 
 
 

@@ -7,6 +7,7 @@ from string import lower
 from signal import signal, SIGPIPE, SIG_DFL
 
 class UnpackRawReads:
+    
     class UnexpectedFileFormatException(Exception): pass
     
     FORMAT_FASTA    = "FORMAT_FASTA"
@@ -36,6 +37,10 @@ class UnpackRawReads:
     
     def __init__(self, read_file):
         self.read_file   = read_file
+        self.slash_ending_regex = re.compile('.*/[12]$')
+        self.sequence_type()
+
+        
     
     def _guess_sequence_type_from_string(self, seq):
         '''Return 'protein' if there is >10% amino acid residues in the 
@@ -78,9 +83,17 @@ class UnpackRawReads:
                                                 shell=True,
                                                 preexec_fn=lambda:signal(SIGPIPE, SIG_DFL)
                                                 )
-            _, seq = tuple(first_seq.strip().split('\n'))
+            header, seq = tuple(first_seq.strip().split('\n'))
             self.type = self._guess_sequence_type_from_string(seq)
             logging.debug("Detected sequence type as %s" % self.type)
+            
+            slashendingregex = self.slash_ending_regex.match(header)
+            if slashendingregex:
+                logging.debug("Detected '/1' '/2' style headers.")
+                self.slash_endings = True
+            else:
+                self.slash_endings = False
+            
             return self.type
 
     def guess_sequence_input_file_format(self, sequence_file_path):

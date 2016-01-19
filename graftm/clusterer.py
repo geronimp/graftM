@@ -35,7 +35,7 @@ class Clusterer:
             each cluster
         '''
         output_annotations = {}
-        for placed_alignment_file_path, clusters in self.seq_library.iteritems():
+        for _, (clusters, placed_alignment_file_path) in self.seq_library.iteritems():
 
             if reverse_pipe and placed_alignment_file_path.endswith("_reverse_clustered.fa"): continue
             placed_alignment_file = os.path.basename(placed_alignment_file_path)
@@ -77,6 +77,7 @@ class Clusterer:
         output_fasta_list = []
         for input_fasta in input_fasta_list:
             output_path  = input_fasta.replace('_hits.aln.fa', '_clustered.fa')
+            path = os.path.split(input_fasta)[0]
             cluster_dict = {}
 
             logging.debug('Clustering reads')
@@ -92,7 +93,7 @@ class Clusterer:
                                         ) # Choose the first sequence to write to file as representative (all the same anyway)
             for cluster in clusters:
                 cluster_dict[cluster[0].name]=cluster # assign the cluster to the dictionary
-            self.seq_library[output_path]= cluster_dict
+            self.seq_library[path]= [cluster_dict, output_path] 
 
             output_fasta_list.append(output_path)
 

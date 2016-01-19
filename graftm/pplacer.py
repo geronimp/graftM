@@ -40,14 +40,38 @@ class Pplacer:
                 for record in alignments: # For each record in the read list
                     record.id = record.id + '_' + str(file_number) # append the unique identifier to the record id
                 SeqIO.write(alignments, output, "fasta") # And write the reads to the file
-                alias_hash[str(file_number)] = {'output_path': os.path.join(os.path.dirname(alignment_file),'placements.jplace'),
+                alias_hash[str(file_number)] = {'output_path': os.path.join(os.path.dirname(alignment_file),
+                                                                            'placements.jplace'),
                                                 'place': []}
                 file_number += 1
         return alias_hash
 
-    def jplace_split(self, jplace_file, alias_hash):
+    def jplace_split(self, jplace_file, alias_hash, cluster_dictionary):
+        '''
+        This is the placement pipeline in GraftM, in aligned reads 
+        are placed into phylogenetic trees, and the results interpreted.
+        If reverse reads are used, this is where the comparisons are made
+        between placements, for the summary tables to be build in the
+        next stage.
+         
+        Parameters
+        ----------
+        jplace_file : string
+            Path to the combined jplace .file
+        alias_hash : dictionary
+            dictionary containing unique identifiers used on reads within the 
+            tree as keys and the corresponding file to each and their 
+            placements as entries. 
+        cluster_dictionary : dict
+            dictionary describing they clusters contained within the seqs_list
+            file        
+        Returns
+        ------- 
+        jplace_path_list : dict
+            dictionary of reads and their trusted placements
+        '''
         ## Split the jplace file into their respective directories
-
+        
         # Load the placement file
         placement_file = json.load(open(jplace_file))
 
@@ -56,32 +80,43 @@ class Pplacer:
         for placement in placement_file['placements']: # for each placement
             hash = {} # create an empty hash
             for alias in alias_hash: # For each alias, append to the 'place' list each read that identifier
+                names = []
+                for nm in placement['nm']:
+                    if nm[0].split('_')[-1] == alias:
+                        cluster = cluster_dictionary[os.path.split(alias_hash[alias]['output_path'])[0]][0]['_'.join(nm[0].split('_')[:-1])] # Ugly
+                        for read in cluster:  
+                            names.append([read.name + '_%s' % alias, nm[1]])
+                
                 hash = {'p': placement['p'],
-                        'nm': [nm for nm in placement['nm'] if nm[0].split('_')[-1] == alias]}
+                        'nm': names}
+                
                 alias_hash[alias]['place'].append(hash)
 
         # Write the jplace file to their respective file paths.
         jplace_path_list = []
+        
         for alias in alias_hash:
             output = {'fields'     : placement_file['fields'],
                       'version'    : placement_file['version'],
                       'tree'       : placement_file['tree'],
                       'placements' : alias_hash[alias]['place'],
                       'metadata'   : placement_file['metadata']}
+            
             with open(alias_hash[alias]['output_path'], 'w') as output_path:
                 json.dump(output, output_path, ensure_ascii=False)
             jplace_path_list.append(alias_hash[alias]['output_path'])
+        
         return jplace_path_list
     
     @T.timeit
     def place(self, reverse_pipe, seqs_list, resolve_placements, files, args,
-              slash_endings, tax_descr):
+              slash_endings, tax_descr, cluster_dictionary):
         '''
-        placement - This is the placement pipeline in GraftM, in aligned reads 
-                    are placed into phylogenetic trees, and the results interpreted.
-                    If reverse reads are used, this is where the comparisons are made
-                    between placements, for the summary tables to be build in the
-                    next stage.
+        This is the placement pipeline in GraftM, in aligned reads 
+        are placed into phylogenetic trees, and the results interpreted.
+        If reverse reads are used, this is where the comparisons are made
+        between placements, for the summary tables to be build in the
+        next stage.
          
         Parameters
         ----------
@@ -98,6 +133,16 @@ class Pplacer:
             graftM output file name object
         args : obj
             argparse object
+        slash_endings : bool
+            True or False, indicating whether the any of the read headers 
+            contain a '/'
+        tax_descr : string
+            taxtastic taxonomy file describing the sequences within the 
+            phylogenetic tree
+        cluster_dictionary : dict
+            dictionary describing they clusters contained within the seqs_list
+            file
+    
         Returns
         ------- 
         trusted_placements : dict
@@ -109,11 +154,12 @@ class Pplacer:
         alias_hash = self.alignment_merger(seqs_list, files.comb_aln_fa())
         
         # Run pplacer on merged file
-        jplace = self.pplacer(files.jplace_output_path(), args.output_directory, files.comb_aln_fa(), args.threads)
+        jplace = self.pplacer(files.jplace_output_path(), args.output_directory, 
+                              files.comb_aln_fa(), args.threads)
         logging.info("Placements finished")
 
         # Split the jplace file
-        self.jplace_split(jplace, alias_hash)
+        self.jplace_split(jplace, alias_hash, cluster_dictionary)
         
         #Read the json of refpkg
         logging.info("Reading classifications")

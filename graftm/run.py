@@ -429,6 +429,7 @@ class Run:
             # Classification steps        
             if not self.args.no_clustering:
                 C=Clusterer()
+                cluster_dictionary = C.seq_library
                 seqs_list=C.cluster(seqs_list, REVERSE_PIPE)
             logging.info("Placing reads into phylogenetic tree")
             taxonomic_assignment_time, assignments=self.p.place(REVERSE_PIPE,
@@ -437,7 +438,8 @@ class Run:
                                                                 self.gmf,
                                                                 self.args,
                                                                 result.slash_endings,
-                                                                gpkg.taxtastic_taxonomy_path())
+                                                                gpkg.taxtastic_taxonomy_path(),
+                                                                cluster_dictionary)
             if not self.args.no_clustering:
                 assignments = C.uncluster_annotations(assignments, REVERSE_PIPE)
         

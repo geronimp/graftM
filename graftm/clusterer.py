@@ -3,6 +3,7 @@ from graftm.sequence_io import SequenceIO
 from graftm.orfm import OrfM
 import logging
 import os
+import re
 
 class Clusterer:
 
@@ -10,7 +11,7 @@ class Clusterer:
         self.clust = Deduplicator()
         self.seqio = SequenceIO()
         self.seq_library = {}
-
+        self.slash_ending_regex = re.compile('.*/[12]$')
         self.orfm_regex = OrfM.regular_expression()
 
 
@@ -47,7 +48,9 @@ class Clusterer:
                 placed_alignment_base = placed_alignment_file.replace('_clustered.fa', '')
             output_annotations[placed_alignment_base] = {}
             for rep_read_name, rep_read_taxonomy in cluster_classifications.iteritems():
-
+                slashendingregex = self.slash_ending_regex.match(rep_read_name)
+                if slashendingregex:
+                    rep_read_name=rep_read_name[:-2]
                 if reverse_pipe:
                     orfm_regex = OrfM.regular_expression()
                     clusters={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) else key): item for key, item in clusters.iteritems()}
@@ -68,12 +71,14 @@ class Clusterer:
             list of strings, each a path to input fasta files to be clustered.
         reverse_pipe : bool
             True/False, whether the reverse reads pipeline is being followed.
+
         Returns
         -------
         output_fasta_list : list
             list of strings, each a path to the output fasta file to which
             clusters were written to.
         '''
+        
         output_fasta_list = []
         for input_fasta in input_fasta_list:
             output_path  = input_fasta.replace('_hits.aln.fa', '_clustered.fa')
@@ -92,8 +97,13 @@ class Clusterer:
                                         output_path
                                         ) # Choose the first sequence to write to file as representative (all the same anyway)
             for cluster in clusters:
-                cluster_dict[cluster[0].name]=cluster # assign the cluster to the dictionary
+                if self.slash_ending_regex.match(cluster[0].name):
+                    name = cluster[0].name[:-2]
+                else:
+                    name = cluster[0].name                    
+                cluster_dict[name]=cluster # assign the cluster to the dictionary
             self.seq_library[path]= [cluster_dict, output_path] 
+
 
             output_fasta_list.append(output_path)
 

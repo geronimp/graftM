@@ -70,6 +70,7 @@ class Pplacer:
         jplace_path_list : dict
             dictionary of reads and their trusted placements
         '''
+        slash_ending_regex = re.compile('.*/[12]$')
         ## Split the jplace file into their respective directories
         
         # Load the placement file
@@ -83,14 +84,19 @@ class Pplacer:
                 names = []
                 for nm in placement['nm']:
                     if nm[0].split('_')[-1] == alias:
-                        cluster = cluster_dictionary[os.path.split(alias_hash[alias]['output_path'])[0]][0]['_'.join(nm[0].split('_')[:-1])] # Ugly
+                        read = '_'.join(nm[0].split('_')[:-1])
+                        
+                        slashendingregex = slash_ending_regex.match(read)
+                        if slashendingregex:
+                            read = read[:-2]
+                            
+                        cluster = cluster_dictionary[os.path.split(alias_hash[alias]['output_path'])[0]][0][read] # Ugly
                         for read in cluster:  
                             names.append([read.name + '_%s' % alias, nm[1]])
-                
-                hash = {'p': placement['p'],
-                        'nm': names}
-                
-                alias_hash[alias]['place'].append(hash)
+                if names:
+                    hash = {'p': placement['p'],
+                            'nm': names}
+                    alias_hash[alias]['place'].append(hash)
 
         # Write the jplace file to their respective file paths.
         jplace_path_list = []

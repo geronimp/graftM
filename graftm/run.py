@@ -232,7 +232,7 @@ class Run:
        
         # If merge reads is specified, check that there are reverse reads to merge with
         if self.args.merge_reads and not hasattr(self.args, 'reverse'):
-            logging.error("--merge requires --reverse to be specified")
+            logging.error("--merge_reads requires --reverse to be specified")
             exit(1)
 
         # Set the output directory if not specified and create that directory
@@ -410,7 +410,6 @@ class Run:
             self.h.merge_forev_aln(seqs_list[0::2], seqs_list[1::2], merged_output)
             seqs_list=merged_output
             REVERSE_PIPE = False
-
         elif REVERSE_PIPE:
             base_list=base_list[0::2]
 

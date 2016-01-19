@@ -1,9 +1,11 @@
 import logging
 import subprocess
-from signal import signal, SIGPIPE, SIG_DFL
 import os
 import itertools
+import re
 from string import lower
+from db_search_results import DBSearchResult
+from signal import signal, SIGPIPE, SIG_DFL
 
 class UnpackRawReads:
     class UnexpectedFileFormatException(Exception): pass

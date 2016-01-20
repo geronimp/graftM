@@ -1,16 +1,11 @@
 import os
 import shutil
 import logging
-from graftm.graftm_package import GraftMPackage
 import inspect
 
-PIPELINE_AA = "P"
-PIPELINE_NT = "D"
+from graftm.graftm_package import GraftMPackage
 
 class InvalidFileExtensionError(Exception):
-    pass
-
-class UninstalledProgramError(Exception):
     pass
 
 class HouseKeeping:
@@ -143,22 +138,13 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
 
     def set_attributes(self, args):
 
-
         # Read graftM package and assign HMM and refpkg file
         if args.graftm_package:
-            if not os.path.isdir(args.graftm_package):
-                raise Exception("%s does not exist. Are you sure you provided the correct path?" % args.graftm_package)
-            else:
-                gpkg = GraftMPackage.acquire(args.graftm_package)
-                if hasattr(args, 'search_hmm_files'): # If a hmm is specified, overwrite the one graftM package
-                    setattr(args, 'aln_hmm_file', gpkg.alignment_hmm_path())
-                    setattr(args, 'reference_package', gpkg.reference_package_path())
+            for gpkg in args.graftm_package:
+                if not os.path.isdir(gpkg):
+                    raise Exception("%s does not exist. Are you sure you provided the correct path?" % gpkg)
                 else:
-                    setattr(args, 'search_hmm_files', [])
-                    for hmm in gpkg.search_hmm_paths():
-                        args.search_hmm_files.append(hmm)
-                    setattr(args, 'aln_hmm_file', gpkg.alignment_hmm_path())
-                    setattr(args, 'reference_package', gpkg.reference_package_path())
+                    import IPython ; IPython.embed()
 
         elif hasattr(args, 'search_diamond_files'):
             if args.search_method == 'diamond':
@@ -191,5 +177,5 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
                 raise Exception("Specified HMM search_hmm_files when not using the hmmsearch pipeline. Using: %s" % (args.search_method))
 
         else:
-            raise Exception('No refpkg or HMM specified: Do not know what to search with.')
-
+            raise Exception('No graftM package or HMM specified: Do not know what to search with.')
+        

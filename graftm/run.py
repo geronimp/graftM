@@ -189,7 +189,19 @@ class Run:
         hit_read_count_list = []
         db_search_results   = []
 
-
+        #### Moved in from housekeeping
+        #            gpkg = GraftMPackage.acquire(gpkg)
+        #            if hasattr(args, 'search_hmm_files'): # If a hmm is specified, overwrite the one graftM package
+        #                setattr(args, 'aln_hmm_file', gpkg.alignment_hmm_path())
+        #                setattr(args, 'reference_package', gpkg.reference_package_path())
+        #            else:
+        #                setattr(args, 'search_hmm_files', [])
+        #                for hmm in gpkg.search_hmm_paths():
+        #                    args.search_hmm_files.append(hmm)
+        #                setattr(args, 'aln_hmm_file', gpkg.alignment_hmm_path())
+        #                setattr(args, 'reference_package', gpkg.reference_package_path())
+        ####
+        
         if gpkg:
             maximum_range = gpkg.maximum_range()
             diamond_db    = gpkg.diamond_database_path()

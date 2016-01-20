@@ -8,7 +8,7 @@ from Bio import SeqIO
 
 from graftm.timeit import Timer
 from graftm.classify import Classify
-from graftm.housekeeping import HouseKeeping
+from graftm.graft import Graft
 T=Timer()
 
 
@@ -175,7 +175,7 @@ class Pplacer:
                                                            'reads', 
                                                            resolve_placements
                                                            )
-        self.hk.delete([jplace])# Remove combined split, not really useful
+        Graft.delete([jplace])# Remove combined split, not really useful
         logging.info("Reads classified")
         # If the reverse pipe has been specified, run the comparisons between the two pipelines. If not then just return.
         

@@ -5,6 +5,7 @@ import itertools
 import logging
 import tempfile
 import subprocess
+import re
 
 from Bio import SeqIO
 from collections import OrderedDict
@@ -210,16 +211,22 @@ class Hmmer:
         hmmtables = [HMMSearchResult.import_from_hmmsearch_table(x) for x in output_table_list]
         return hmmtables
 
-    def merge_forev_aln(self, forward_aln_list, reverse_aln_list, outputs):
+    def merge_forev_aln(self, slash_endings,
+                        forward_aln_list, reverse_aln_list, outputs):
         '''
         merge_forev_aln - Merges forward and reverse alignments for a given run
 
         Parameters
         ----------
-        aln_list : array
-            List of the forward and reverse alignments for each of the runs
-            given to graftM. **MUST** be the following pattern:
-            [forward_run1, reverse_run1, forward_run2, reverse_run2 ...]
+        slash_endings : bool
+            True/False: whether the sequence headers contain the old style 
+            '/1' and '/2' headers to denote forward and reverse reads.
+        for_aln_list : array
+            List of the forward alignments for each of the runs
+            given to graftM. 
+        rev_aln_list : array
+            List of the reverse alignments for each of the runs
+            given to graftM.
         outputs : array
             List of paths to output file to which the merged alignments from the
             aln_list will go into. Must be exactly half the size of the aln_list
@@ -231,35 +238,36 @@ class Hmmer:
         '''
 
         orfm_regex = OrfM.regular_expression()
-        def remove_orfm_end(records):
+        
+        def clean_read_headers(records):
 
             new_dict = {}
 
             for key, record in records.iteritems():
+                if slash_endings:
+                    key = key[:-2]
+                
                 orfmregex = orfm_regex.match(key)
                 if orfmregex:
-                    new_dict[orfmregex.groups(0)[0]] = record
-                else:
-                    new_dict[key] = record
+                    key = orfmregex.groups(0)[0] 
+                    
+                new_dict[key] = record
+            
             return new_dict
 
 
         for idx, (forward_path, reverse_path) in enumerate(zip(forward_aln_list, reverse_aln_list)):
+            
             output_path = outputs[idx]
             logging.info('Merging pair %s, %s' % (os.path.basename(forward_path), os.path.basename(reverse_path)))
-            forward_reads = SeqIO.parse(forward_path, 'fasta')
-            reverse_reads = remove_orfm_end(SeqIO.to_dict(SeqIO.parse(reverse_path, 'fasta')))
-
+            forward_reads = clean_read_headers(SeqIO.to_dict(SeqIO.parse(forward_path, 'fasta')))
+            reverse_reads = clean_read_headers(SeqIO.to_dict(SeqIO.parse(reverse_path, 'fasta')))
+            
             with open(output_path, 'w') as out:
-                for forward_record in forward_reads:
-                    regex_match = orfm_regex.match(forward_record.id)
-                    if regex_match:
-                        id = regex_match.groups(0)[0]
-                    else:
-                        id = forward_record.id
+                for key, forward_record in forward_reads.iteritems():
                     forward_sequence = str(forward_record.seq)
                     try:
-                        reverse_sequence = str(reverse_reads[id].seq)
+                        reverse_sequence = str(reverse_reads[key].seq)
                         new_seq = ''
                         if len(forward_sequence) == len(reverse_sequence):
                             for f, r in zip(forward_sequence, reverse_sequence):
@@ -274,16 +282,17 @@ class Hmmer:
                                         new_seq += f
                                 else:
                                     new_seq += '-'
+                        
                         else:
                             logging.error('Alignments do not match')
                             raise Exception('Merging alignments failed: Alignments do not match')
                         out.write('>%s\n' % forward_record.id)
                         out.write('%s\n' % (new_seq))
-                        del reverse_reads[id]
+                        del reverse_reads[key]
                     except:
-
                         out.write('>%s\n' % forward_record.id)
                         out.write('%s\n' % (forward_sequence))
+                
                 for record_id, record in reverse_reads.iteritems():
                     out.write('>%s\n' % record_id)
                     out.write('%s\n' % (str(record.seq)))

@@ -31,10 +31,13 @@ class InterleavedFileError(Exception):
     pass
 
 class Hmmer:
+    
+    # Define constants
+    DIAMOND_SEARCH_METHOD = 'diamond'
+    HMM_SEARCH_METHOD = 'hmmsearch'
 
-    def __init__(self, search_hmm, aln_hmm=None):
+    def __init__(self, search_hmm):
         self.search_hmm = search_hmm
-        self.aln_hmm = aln_hmm
 
     def _get_sequence_directions(self, search_result):
         sequence_directions = {}
@@ -44,7 +47,7 @@ class Hmmer:
         return sequence_directions
 
 
-    def _hmmalign(self, input_path, directions, pipeline):
+    def _hmmalign(self, input_path, directions, pipeline, aln_hmm):
         '''
         Align reads to the aln_hmm. Receives unaligned sequences and
         aligns them.
@@ -100,7 +103,7 @@ class Hmmer:
                     for_aln.write(str(record.seq) + '\n')
                     # HMMalign and convert to fasta format
             if any(forward):
-                self.hmmalign_sequences(self.aln_hmm, for_file, for_conv_file)
+                self.hmmalign_sequences(aln_hmm, for_file, for_conv_file)
             else:
                 cmd = 'touch %s' % (for_conv_file)
                 extern.run(cmd)
@@ -110,12 +113,12 @@ class Hmmer:
                     if record.id and record.seq:
                         rev_aln.write('>' + record.id + '\n')
                         rev_aln.write(str(record.seq.reverse_complement()) + '\n')
-            self.hmmalign_sequences(self.aln_hmm, rev_file, rev_conv_file)
+            self.hmmalign_sequences(aln_hmm, rev_file, rev_conv_file)
             conv_files = [for_conv_file, rev_conv_file]
             return conv_files
         # If there are only forward reads, just hmmalign and be done with it.
         else:
-            self.hmmalign_sequences(self.aln_hmm, input_path, for_conv_file)
+            self.hmmalign_sequences(aln_hmm, input_path, for_conv_file)
             conv_files = [for_conv_file]
 
             return conv_files
@@ -587,7 +590,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
             A dataframe (list of lists) containing readname, alignment direction
             and alignment start point information
         '''
-        if search_method == "hmmsearch":
+        if search_method == Graft.HMM_SEARCH_METHOD:
             # Build and run command to extract ORF sequences:
             orfm_cmd = orfm.command_line()
             cmd = 'fxtract -H -X -f /dev/stdin <(%s %s) > %s' % (orfm_cmd, input_path, output_path)
@@ -596,7 +599,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                        stdout=subprocess.PIPE)
             process.communicate('\n'.join(hit_readnames))
 
-        elif search_method == "diamond":
+        elif search_method == Graft.DIAMOND_SEARCH_METHOD:
             sequence_frame_info_dict = {x[0]:[x[1], x[2], x[3]] for x in sequence_frame_info_list}
             records = SeqIO.parse(input_path, "fasta")
             with open(output_path, 'w') as open_output_path:
@@ -797,9 +800,9 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         String path to amino acid fasta file of reads that hit
         '''
         # Define outputs
-        if search_method == 'hmmsearch':
+        if search_method == Graft.HMM_SEARCH_METHOD:
             output_search_file = files.hmmsearch_output_path(base)
-        elif search_method == 'diamond':
+        elif search_method == Graft.DIAMOND_SEARCH_METHOD:
             output_search_file = files.diamond_search_output_basename(base)
         hit_reads_fasta = files.fa_output_path(base)
         hit_reads_orfs_fasta = files.orf_fasta_output_path(base)
@@ -868,7 +871,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         extracting_orfm = OrfM(min_orf_length=min_orf_length,
                       restrict_read_length=restrict_read_length)
 
-        if search_method == 'hmmsearch':
+        if search_method == Graft.HMM_SEARCH_METHOD:
             # run hmmsearch
             search_result = self.hmmsearch(
                                            output_search_file,
@@ -880,7 +883,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                            orfm
                                            )
 
-        elif search_method == 'diamond':
+        elif search_method == Graft.DIAMOND_SEARCH_METHOD:
             # run diamond
             search_result = Diamond(
                                      database=diamond_database,
@@ -1050,7 +1053,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         information
         '''
 
-        if search_method == "hmmsearch":
+        if search_method == Graft.HMM_SEARCH_METHOD:
             # First search the reads using the HMM
             search_result, table_list = self.nhmmer(
                                                     hmmsearch_output_table,
@@ -1060,7 +1063,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                                     )
 
 
-        elif search_method == 'diamond':
+        elif search_method == Graft.DIAMOND_SEARCH_METHOD:
             raise Exception("Diamond searches not supported for nucelotide databases yet")
 
         
@@ -1113,7 +1116,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         
     @T.timeit
     def align(self, input_path, output_path, directions, pipeline, 
-              filter_minimum):
+              filter_minimum, aln_hmm):
         '''align - Takes input path to fasta of unaligned reads, aligns them to
         a HMM, and returns the aligned reads in the output path
 
@@ -1137,7 +1140,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         # HMMalign the forward reads, and reverse complement reads.
         alignments = self._hmmalign(input_path,
                                     directions,
-                                    pipeline)
+                                    pipeline,
+                                    aln_hmm)
         alignment_result = self.alignment_correcter(alignments,
                                                     output_path,
                                                     filter_minimum)

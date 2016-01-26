@@ -20,9 +20,11 @@ import os
 import logging
 import inspect
 
-from graftm.pplacer import Pplacer
 from graftm.create import Create
 from graftm.graft import Graft
+
+from graftm.pplacer import Pplacer
+from graftm.hmmer import Hmmer
 from graftm.graftm_package import GraftMPackage
 from graftm.bootstrapper import Bootstrapper
 from graftm.decorator import Decorator
@@ -41,6 +43,8 @@ class Run:
     _DNA = "DNA"
     _RNA = "RNA"
     _AMINO = "amino"
+    
+
 
     def __init__(self, args):
         self.args = args
@@ -135,7 +139,7 @@ choosing the default evalue as a search cutoff.")
                                 self.args.search_hmm_files.append(hmm)
     
             elif hasattr(self.args, 'search_diamond_files'):
-                if self.args.search_method == 'diamond':
+                if self.args.search_method == Hmmer.DIAMOND_SEARCH_METHOD:
                     if hasattr(self.args, 'aln_hmm_file'):
                         pass
                     else:
@@ -144,7 +148,7 @@ choosing the default evalue as a search cutoff.")
                     raise Exception("Specified HMM databases when not using the diamond search pipeline. Using: %s" % (self.args.search_method))
     
             elif hasattr(self.args, 'search_hmm_files'):
-                if self.argsself.args.search_method == 'hmmsearch':
+                if self.args.search_method == Hmmer.HMM_SEARCH_METHOD:
                     if not hasattr(self.args, 'aln_hmm_file'):
                         if len(self.args.search_hmm_files) == 1:
                             if not self.args.search_only:
@@ -156,7 +160,7 @@ choosing the default evalue as a search cutoff.")
                     raise Exception("Specified HMM search_hmm_files when not using the hmmsearch pipeline. Using: %s" % (self.args.search_method))
     
             elif hasattr(self.args, 'search_hmm_list_file'):
-                if self.args.search_method == 'hmmsearch':
+                if self.args.search_method == Hmmer.HMM_SEARCH_METHOD:
                     setattr(self.args, 'search_hmm_files', [x.rstrip() for x in open(self.args.search_hmm_list_file).readlines()])
                     if not hasattr(self.args, 'aln_hmm_file'):
                         if not self.args.search_only:
@@ -186,14 +190,14 @@ choosing the default evalue as a search cutoff.")
             if self.args.reverse:
                 self._check_file_existence(self.args.reverse)
             
-            sequence_file_list = []
+            sequence_pair_list = []
             if self.args.reverse:
                 if len(args.forward) != len(self.args.reverse):
                     logging.error('Confusing input. There appears to be different numbers of forward and reverse files specified')
                 for i, forward_file in enumerate(self.args.forward):
-                    sequence_file_list.append([forward_file, args.reverse[i]])
+                    sequence_pair_list.append([forward_file, args.reverse[i]])
             else:
-                sequence_file_list = [[f] for f in self.args.forward]
+                sequence_pair_list = [[f] for f in self.args.forward]
 
             if hasattr(self.args, 'reference_package'):
                 self.p = Pplacer(self.args.reference_package)   
@@ -210,6 +214,7 @@ choosing the default evalue as a search cutoff.")
                 
             hmm_type, hmm_tc = self._setpipe(self.args.search_hmm_files)
             logging.debug("HMM type: %s Trusted Cutoff: %s" % (hmm_type, hmm_tc))
+            
             setattr(self.args, 'type', hmm_type)
             if hmm_tc:
                 setattr(self.args, 'evalue', '--cut_tc')
@@ -221,11 +226,19 @@ choosing the default evalue as a search cutoff.")
                     self.args.filter_minimum = self.MIN_ALIGNED_FILTER_FOR_NUCLEOTIDE_PACKAGES
                 elif self.args.type == Graft.PIPELINE_AA:
                     self.args.filter_minimum = self.MIN_ALIGNED_FILTER_FOR_AMINO_ACID_PACKAGES
-        
-            graftm_packages = {}
-            for gpkg in self.args.graftm_package:
-                graftm_packages[gpkg] = GraftMPackage.acquire(gpkg)               
             
+            graftm_packages = {}
+            search_dict = {}
+            if self.args.graftm_package:
+                
+                for gpkg in self.args.graftm_package:
+                    graftm_packages[gpkg] = GraftMPackage.acquire(gpkg)
+            elif self.args.search_method:
+                pass 
+            else:
+                raise Exception("No GraftM package, search hmms or diamond \
+databases provided. GraftM can only run with at least one of those.")    
+                    
             Graft(assignment_method = self.args.assignment_method,
                   bootstrap_contigs = self.args.bootstrap_contigs, 
                   euk_check = self.args.euk_check,
@@ -246,7 +259,9 @@ choosing the default evalue as a search cutoff.")
                   search_hmm_files = self.args.search_hmm_files, 
                   search_method = self.args.search_method,
                   search_only = self.args.search_only, 
-                  threads = self.args.threads).graft()
+                  sequence_pair_list = sequence_pair_list,
+                  threads = self.args.threads,
+                  type = self.args.type).graft()
 
 ################################################################################
 #                                 CREATE                                       #
@@ -362,7 +377,7 @@ choosing the default evalue as a search cutoff.")
                 graftm_package = pkg)
             strapper.generate_bootstrap_database_from_contigs(self.args.contigs,
                                                               self.args.output_hmm,
-                                                              search_method=Bootstrapper.HMM_SEARCH_METHOD)
+                                                              search_method=Hmmer.HMM_SEARCH_METHOD)
 
 ################################################################################
 #                                   TREE                                       #

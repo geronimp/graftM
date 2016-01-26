@@ -7,11 +7,7 @@ from graftm.hmmer import Hmmer
 from graftm.unpack_sequences import UnpackRawReads
 from graftm.sequence_io import SequenceIO
 
-class Bootstrapper:
-    
-    # Define constants.
-    DIAMOND_SEARCH_METHOD = "diamond"
-    HMM_SEARCH_METHOD = "hmmsearch"    
+class Bootstrapper: 
 
     def __init__(self, **kwargs):
         '''
@@ -35,8 +31,13 @@ class Bootstrapper:
             raise Exception("Unexpected arguments detected: %s" % kwargs)
         
         if graftm_package:
-            self.diamond_database = graftm_package.diamond_database_path()
-            self.unaligned_sequence_database = graftm_package.unaligned_sequence_database_path()
+            try:
+                self.diamond_database = graftm_package.diamond_database_path()
+                self.unaligned_sequence_database = graftm_package.unaligned_sequence_database_path()
+            except:
+                raise Exception("No unaligned sequence database was detected on one or more of the GraftM packages provided. \
+Perhaps a nucleotide GraftM package was provided?")
+                
             if self.search_hmm_files is None:
                 self.search_hmm_files = []
             for h in graftm_package.search_hmm_paths():
@@ -52,7 +53,8 @@ class Bootstrapper:
             raise Exception("Unexpected arguments detected: %s" % kwargs)
                     
         
-    def generate_bootstrap_database_from_contigs(self, contig_files, output_database_file, 
+    def generate_bootstrap_database_from_contigs(self, contig_files, 
+                                                 output_database_file, 
                                                  search_method):
         '''Given a collection of search_hmm_files, search the contigs in 
         contig_files, and generate an HMM from the resulting hits, outputting
@@ -74,11 +76,11 @@ class Bootstrapper:
         
         hmmer = Hmmer(self.search_hmm_files)
         seqio = SequenceIO()
-        if search_method == self.DIAMOND_SEARCH_METHOD:
+        if search_method == Hmmer.DIAMOND_SEARCH_METHOD:
             if self.diamond_database == None or self.unaligned_sequence_database == None:
-                logging.warning("Cannot bootstrap continue with no diamond database or unaligned sequences.") 
+                logging.warning("Bootstrap cannot continue with no diamond database or unaligned sequences.") 
                 return False
-        
+
         with tempfile.NamedTemporaryFile(prefix='graftm_bootstrap_orfs') as orfs:
             logging.info("Finding bootstrap hits in provided contigs..")
             for contig_file in contig_files:
@@ -110,12 +112,12 @@ class Bootstrapper:
             # Now have a fasta file of ORFs.
             # Check to make sure the file is not zero-length
             orfs.flush()
-            
+            import IPython ; IPython.embed()
 
             
             with tempfile.NamedTemporaryFile(prefix="graftm_bootstrap_aln") as aln:
                     
-                if search_method == self.HMM_SEARCH_METHOD:
+                if search_method == Hmmer.HMM_SEARCH_METHOD:
                     
                     # Check that there is more than one sequence to align.
                     if len(seqio.read_fasta_file(orfs.name)) <= 1:# Just to build on this, you need to check if there is > 1 hit
@@ -135,7 +137,7 @@ class Bootstrapper:
 
                     extern.run(cmd)
                 
-                elif search_method == self.DIAMOND_SEARCH_METHOD:
+                elif search_method == Hmmer.DIAMOND_SEARCH_METHOD:
 
                     # Concatenate database with existing database
                     with tempfile.NamedTemporaryFile(prefix="concatenated_database") as databasefile:

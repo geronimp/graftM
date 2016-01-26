@@ -16,6 +16,7 @@ class GraftMPackage:
       #=> '/path/to/a.gpkg/the.hmm'
     '''
 
+    
     _CONTENTS_FILE_NAME = 'CONTENTS.json'
 
     # The key names are unlikely to change across package format versions,
@@ -83,6 +84,12 @@ class GraftMPackage:
         
         pkg._contents_hash = contents_hash
         pkg._base_directory = graftm_package_path
+        
+        if pkg._base_directory.endswith('/'):
+            pkg.name = os.path.basename(pkg._base_directory[:-1]).split('.')[0]
+        else:
+            pkg.name = os.path.basename(pkg._base_directory).split('.')[0]
+            
         # check we are at current version otherwise choke
         pkg.check_universal_keys(v)
         pkg.check_required_keys(GraftMPackage._REQUIRED_KEYS[str(v)])

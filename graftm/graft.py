@@ -31,6 +31,7 @@ from graftm.diamond import Diamond
 from graftm.getaxnseq import Getaxnseq
 from graftm.sequence_io import SequenceIO
 from graftm.clusterer import Clusterer
+from graftm.hmmer import Hmmer
 
 from biom.util import biom_open
 
@@ -67,10 +68,12 @@ class Graft:
         self.search_method = kwargs.pop('search_method', None)
         self.search_only = kwargs.pop('search_only', None)
         self.threads = kwargs.pop('threads', None)
-
+        self.sequence_pair_list = kwargs.pop('sequence_pair_list', None)
+        self.type = kwargs.pop("type", None)
+        
         if len(kwargs) > 0:
             raise Exception("Unexpected arguments detected: %s" % kwargs)
-    
+        
         # Set the output directory if not specified and create that directory
         logging.debug('Creating working directory: %s' % self.output_directory)
         self.make_working_directory(self.output_directory,
@@ -82,33 +85,33 @@ class Graft:
             boots_dict = {}
             if self.graftm_packages:
                 for gpkg in self.graftm_packages.values():
-                    
-                    boots_dict[] = Bootstrapper(
-                                    search_hmm_files = self.search_hmm_files,
+                    boots_dict[gpkg.name] = Bootstrapper(
+                                    search_hmm_files = gpkg.search_hmm_paths(),
                                     maximum_range = self.maximum_range,
                                     threads = self.threads,
                                     evalue = self.evalue,
                                     min_orf_length = self.min_orf_length,
                                     graftm_package = gpkg)
             else:
-                for hmm in self.search_hmm_files:
-                    
                 boots_dict[None] = Bootstrapper(
-                                search_hmm_files = self.search_hmm_files,
-                                maximum_range = self.maximum_range,
-                                threads = self.threads,
-                                evalue = self.evalue,
-                                min_orf_length = self.min_orf_length,
-                                graftm_package = None)          
-               
-            import IPython ; IPython.embed()
+                                                search_hmm_files = self.search_hmm_files,
+                                                maximum_range = self.maximum_range,
+                                                threads = self.threads,
+                                                evalue = self.evalue,
+                                                min_orf_length = self.min_orf_length,
+                                                graftm_package = None)          
             
             for gene, boots in boots_dict.iteritems():
                 
                 # this is a hack, it should really use GraftMFiles but that class isn't currently flexible enough
-                new_database = (os.path.join(self.output_directory, "%s_bootstrap.hmm" % ()) \
-                                if self.search_method == "hmmsearch" \
-                                else os.path.join(self.output_directory, "bootstrap")
+                if gene:
+                    name = "%s_bootstrap" % (gene)
+                else:
+                    name = "bootstrap"
+                    
+                new_database = (os.path.join(self.output_directory, "%s.hmm" % name) \
+                                if self.search_method == Hmmer.HMM_SEARCH_METHOD \
+                                else os.path.join(self.output_directory, name)
                                 )
                 
                 if boots.generate_bootstrap_database_from_contigs(
@@ -116,13 +119,17 @@ class Graft:
                                          new_database,
                                          self.search_method):
                     
-                    if self.search_method == "hmmsearch":
+                    if self.search_method == Hmmer.HMM_SEARCH_METHOD:
                         self.h.search_hmm.append(new_database)
                         
                     else:
                         diamond_db = new_database
+    
+        # Set up hmmer
+        self.h = Hmmer(self.search_hmm_files)
         
-
+        import IPython ; IPython.embed()
+        
     def graft(self):
      
         REVERSE_PIPE        = (True if self.reverse else False)
@@ -176,7 +183,7 @@ class Graft:
 
 
 
-
+        
 
 
 
@@ -225,8 +232,7 @@ class Graft:
 
                 if self.type == self.PIPELINE_AA:
                     logging.debug("Running protein pipeline")
-
-                
+                    maximum_range = None
                     search_time, (result, complement_information) = self.h.aa_db_search(
                                                               self.gmf,
                                                               base,

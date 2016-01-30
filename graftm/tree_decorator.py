@@ -6,11 +6,7 @@ from graftm.getaxnseq import Getaxnseq
 from graftm.rerooter import Rerooter
 from graftm.greengenes_taxonomy import GreenGenesTaxonomy
 # System imports
-from skbio import TreeNode
-import argparse
 import logging
-import os
-import sys
 
 ################################################################################
 ################################ - Statics - ###################################
@@ -89,25 +85,33 @@ is the greatest distance to the root.")
                         logging.debug("Unnamed node reached")
                     yield node
     
-    def _transpose_taxonomy(self, taxonomy_list):
+    def _unique_taxons(self, taxonomy_list):
         '''
-        Transpose the taxonomy grid to contain lists of each taxonomic
-        rank
+        Given a list of taxonomies, where each taxonomy is a list of strings
+        (taxons), return a list of unique taxons at each level.
         
         Inputs: 
             taxonomy_list: array
-                - List of split taxonomy strings to be tansposed
+                - List of split taxonomy strings to be transposed
         Outputs: 
-            transposed_taxonomy: array
-                - As per above description
+            list of lists of strings
         '''
         transposed_taxonomy = []
-        for index in range(0, 7):
-
-            rank_taxonomy_list = [taxonomy_entry[index] 
-                                    for taxonomy_entry in taxonomy_list]
-            transposed_taxonomy.append(set(rank_taxonomy_list))
-        return transposed_taxonomy
+        for taxonomy in taxonomy_list:
+            for i, taxon in enumerate(taxonomy):
+                try:
+                    transposed_taxonomy[i].add(taxon)
+                except IndexError:
+                    transposed_taxonomy.insert(i, set([taxon]))
+                        
+        to_return = []
+        for taxons in transposed_taxonomy:
+            if taxons is None:
+                to_return.append([])
+            else:
+                to_return.append(list(taxons))
+                
+        return to_return
     
     def _write_tree(self, output):
         '''Just Writes tree to file uisng scikit-bio'''
@@ -213,7 +217,7 @@ is the greatest distance to the root.")
                 tip_name = t.name.replace(' ', '_')
                 if tip_name in self.taxonomy:
                     children_taxonomy.append(self.taxonomy[tip_name])
-            node_tax = self._transpose_taxonomy(children_taxonomy)
+            node_tax = self._unique_taxons(children_taxonomy)
             tax_list = []
             for index, rank in enumerate(node_tax):
                 if len(rank) == 1:

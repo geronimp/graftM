@@ -133,7 +133,7 @@ is the greatest distance to the root.")
                         elif len(split_node_name) == 1:
                             pass
                         else:
-                            raise Exception("Malformed node name: %s" % node.name)
+                            raise Exception("Malformed node name: %s" % ancestor.name)
                         
                 tax_list = list(reversed(ancestor_tax))
                 tax_name = tip.name.replace(" ", "_")
@@ -178,7 +178,7 @@ is the greatest distance to the root.")
                     elif len(split_node_name) == 1:
                         pass
                     else:
-                        raise Exception("Malformed node name: %s" % node.name)
+                        raise Exception("Malformed node name: %s" % ancestor.name)
                 if ai > current_index:
                     current_index = ai
             

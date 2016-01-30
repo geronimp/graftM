@@ -197,7 +197,7 @@ if __name__ == '__main__':
     # Create - Create a gpkg from a sequence database and a hmm #
     #############################################################
     create_parser = subparsers.add_parser('create',
-                                            description='Create a graftM packages from sequence alignments and classifications',
+                                            description='Create a GraftM package from sequence alignments and classifications',
                                             formatter_class=CustomHelpFormatter,
                                             epilog='''
  ##################################################################################################################################
@@ -229,9 +229,9 @@ if __name__ == '__main__':
 
     create = create_parser.add_argument_group('Common options')
     create.add_argument('--taxonomy', metavar='TAX', help='File containing two tab separated columns, the first with the ID of the sequences, the second with the taxonomy string (required unless --rerooted_annotated_tree or --taxtastic_taxonomy and --taxtastic_seqinfo are specified)')
-    create.add_argument('--alignment', metavar='ALN', help='An alignment with which to build a custom HMM and tree (required unless --hmm is set)')
+    create.add_argument('--alignment', metavar='ALN', help='An alignment with which to build a custom HMM and tree in aligned FASTA format (required unless --hmm is set)')
     create.add_argument('--sequences', metavar='FASTA', help='Unaligned sequences (required)')
-    create.add_argument('--rerooted_tree', help='A tree with which to build the refpkg, appropriately rooted. (default: generate tree with FastTree and attempt reroot with taxtastic)')
+    create.add_argument('--rerooted_tree', help='A tree with which to build the reference package, appropriately rooted. (default: generate tree with FastTree and attempt reroot with taxtastic)')
     
     create_lesser_options=create_parser.add_argument_group('Lesser used options')
     create_lesser_options.add_argument('--rerooted_annotated_tree', metavar='newick_tree', help='Define taxonomy through this annotated newick file. (default: use taxonomy from --taxonomy)')

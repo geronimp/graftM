@@ -43,7 +43,7 @@ class ExternalProgramSuite:
         for program in program_list:
             if program in ExternalProgramSuite.programs_to_possibilities:
                 check = [p for p in ExternalProgramSuite\
-                                        .programs_to_possibilities[program] 
+                                        .programs_to_possibilities[program]
                          if extern.which(p)]
                 if len(check)>1:
                     logging.warning("Program found with multiple commands: %s. \
@@ -55,8 +55,11 @@ Arbitrarily selecting %s" % (' '.join(program_list), check[0]))
                     if program in item:
                         program = key
                 
-                if key == self._FASTTREE:
-                    self.fasttree = check[0]
+                if len(check) > 0:
+                    if key == self._FASTTREE:
+                        self.fasttree = check[0]
+                else:
+                    uninstalled_programs.append(program)
             else:
                 if not extern.which(program):
                     uninstalled_programs.append(program)

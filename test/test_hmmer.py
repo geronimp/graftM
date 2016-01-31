@@ -55,18 +55,18 @@ class Tests(unittest.TestCase):
 -------CGTATGCAACCTACCTT---------------------------------------
 >complete_overlap_mismatch
 -------CGTTTGCAAGCTACCTT---------------------------------------'''
-        expected_aln='''>no_overlap
--------CGTATGCAACCTACCTT---------------CGTATGCAACCTACCTT-------
->overlap_all_match
--------CGTATGCAACCTACCTTCAACCTACCTT----------------------------
->overlap_mismatch_in_reverse
--------CGTATGCAACCTACCTTCAACCTACCTT----------------------------
->overlap_mismatch_in_forward
--------CGTATGCAACCTTCCTTCAACCTACCTT----------------------------
->complete_overlap_all_match
+        expected_aln='''>complete_overlap_all_match
 -------CGTATGCAACCTACCTT---------------------------------------
 >complete_overlap_mismatch
--------CGTATGCATCCTACCTT---------------------------------------'''.split()
+-------CGTATGCATCCTACCTT---------------------------------------
+>overlap_all_match
+-------CGTATGCAACCTACCTTCAACCTACCTT----------------------------
+>no_overlap
+-------CGTATGCAACCTACCTT---------------CGTATGCAACCTACCTT-------
+>overlap_mismatch_in_forward
+-------CGTATGCAACCTTCCTTCAACCTACCTT----------------------------
+>overlap_mismatch_in_reverse
+-------CGTATGCAACCTACCTTCAACCTACCTT----------------------------'''.split()
         with tempfile.NamedTemporaryFile(suffix='_forward.fa') as forward_file:
             with tempfile.NamedTemporaryFile(suffix='_reverse.fa') as reverse_file:
                 with tempfile.NamedTemporaryFile(suffix='.fa') as output_file:
@@ -74,7 +74,9 @@ class Tests(unittest.TestCase):
                     reverse_file.write(reverse_reads)
                     forward_file.flush()
                     reverse_file.flush()
-                    Hmmer(None).merge_forev_aln([forward_file.name],[reverse_file.name],[output_file.name])
+                    Hmmer(None).merge_forev_aln(False, [forward_file.name],
+                                                [reverse_file.name], 
+                                                [output_file.name])
                     count = 0
                     for line in open(output_file.name):
                         self.assertEqual(expected_aln[count], line.strip())

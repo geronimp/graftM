@@ -3,18 +3,20 @@ from graftm.sequence_io import SequenceIO
 from graftm.orfm import OrfM
 import logging
 import os
+import re
 
 class Clusterer:
 
-    def __init__(self):
+    def __init__(self, slash_endings):
         self.clust = Deduplicator()
         self.seqio = SequenceIO()
         self.seq_library = {}
-
+        self.slash_endings = slash_endings
         self.orfm_regex = OrfM.regular_expression()
 
 
-    def uncluster_annotations(self, input_annotations, reverse_pipe):
+    def uncluster_annotations(self, input_annotations, reverse_pipe,
+                              merge_reads):
         '''
         Update the annotations hash provided by pplacer to include all
         representatives within each cluster
@@ -27,6 +29,9 @@ class Clusterer:
             string as a list.
         reverse_pipe : bool
             True/False, whether the reverse reads pipeline is being followed.
+        merge_reads : bool
+            True/False, whether forward and reverse reads were merged for 
+            placement
 
         Returns
         -------
@@ -35,19 +40,20 @@ class Clusterer:
             each cluster
         '''
         output_annotations = {}
-        for placed_alignment_file_path, clusters in self.seq_library.iteritems():
+        for _, (clusters, placed_alignment_file_path) in self.seq_library.iteritems():
 
-            if reverse_pipe and placed_alignment_file_path.endswith("_reverse_clustered.fa"): continue
+            if reverse_pipe and placed_alignment_file_path.endswith("_reverse_clustered.aln.fa"): continue
             placed_alignment_file = os.path.basename(placed_alignment_file_path)
             cluster_classifications = input_annotations[placed_alignment_file]
 
             if reverse_pipe:
-                placed_alignment_base = placed_alignment_file.replace('_forward_clustered.fa', '')
+                placed_alignment_base = placed_alignment_file.replace('_forward_clustered.aln.fa', '')
             else:
-                placed_alignment_base = placed_alignment_file.replace('_clustered.fa', '')
+                placed_alignment_base = placed_alignment_file.replace('_clustered.aln.fa', '')
             output_annotations[placed_alignment_base] = {}
             for rep_read_name, rep_read_taxonomy in cluster_classifications.iteritems():
-
+                if merge_reads:
+                    rep_read_name=rep_read_name[:-2]
                 if reverse_pipe:
                     orfm_regex = OrfM.regular_expression()
                     clusters={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) else key): item for key, item in clusters.iteritems()}
@@ -68,15 +74,18 @@ class Clusterer:
             list of strings, each a path to input fasta files to be clustered.
         reverse_pipe : bool
             True/False, whether the reverse reads pipeline is being followed.
+
         Returns
         -------
         output_fasta_list : list
             list of strings, each a path to the output fasta file to which
             clusters were written to.
         '''
+        
         output_fasta_list = []
         for input_fasta in input_fasta_list:
-            output_path  = input_fasta.replace('_hits.aln.fa', '_clustered.fa')
+            output_path  = input_fasta.replace('_hits.aln.fa', '_clustered.aln.fa')
+            path = os.path.split(input_fasta)[0]
             cluster_dict = {}
 
             logging.debug('Clustering reads')
@@ -91,8 +100,13 @@ class Clusterer:
                                         output_path
                                         ) # Choose the first sequence to write to file as representative (all the same anyway)
             for cluster in clusters:
-                cluster_dict[cluster[0].name]=cluster # assign the cluster to the dictionary
-            self.seq_library[output_path]= cluster_dict
+                if self.slash_endings:
+                    name = cluster[0].name[:-2]
+                else:
+                    name = cluster[0].name                    
+                cluster_dict[name]=cluster # assign the cluster to the dictionary
+            self.seq_library[path]= [cluster_dict, output_path] 
+
 
             output_fasta_list.append(output_path)
 

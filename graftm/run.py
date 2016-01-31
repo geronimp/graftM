@@ -99,7 +99,7 @@ class Run:
         Returns
         -------
         '''
-
+    
         # Summary steps.
         placements_list = []
         for base in base_list:
@@ -137,8 +137,9 @@ class Run:
 
         # Delete unnecessary files
         logging.info('Cleaning up')
-        for base in base_list:
+        for base in base_list:                
             directions = ['forward', 'reverse']
+            
             if reverse_pipe:
                 for i in range(0,2):
                     self.gmf = GraftMFiles(base, self.args.output_directory, directions[i])
@@ -153,7 +154,8 @@ class Run:
                                     self.gmf.orf_titles_output_path(base),
                                     self.gmf.orf_output_path(base),
                                     self.gmf.output_for_path(base),
-                                    self.gmf.output_rev_path(base)])
+                                    self.gmf.output_rev_path(base),
+                                    self.gmf.comb_aln_fa()])
             else:
                 self.gmf = GraftMFiles(base, self.args.output_directory, False)
                 self.hk.delete([self.gmf.for_aln_path(base),
@@ -167,7 +169,8 @@ class Run:
                                 self.gmf.orf_titles_output_path(base),
                                 self.gmf.orf_output_path(base),
                                 self.gmf.output_for_path(base),
-                                self.gmf.output_rev_path(base)])
+                                self.gmf.output_rev_path(base),
+                                self.gmf.comb_aln_fa()])
 
         logging.info('Done, thanks for using graftM!\n')
 
@@ -232,7 +235,7 @@ class Run:
        
         # If merge reads is specified, check that there are reverse reads to merge with
         if self.args.merge_reads and not hasattr(self.args, 'reverse'):
-            logging.error("--merge requires --reverse to be specified")
+            logging.error("--merge_reads requires --reverse to be specified")
             exit(1)
 
         # Set the output directory if not specified and create that directory
@@ -407,10 +410,11 @@ class Run:
             base_list=base_list[0::2]
             merged_output=[GraftMFiles(base, self.args.output_directory, False).aligned_fasta_output_path(base) \
                            for base in base_list]
-            self.h.merge_forev_aln(seqs_list[0::2], seqs_list[1::2], merged_output)
+            self.h.merge_forev_aln(unpack.slash_endings,
+                                   seqs_list[0::2], seqs_list[1::2], 
+                                   merged_output)
             seqs_list=merged_output
             REVERSE_PIPE = False
-
         elif REVERSE_PIPE:
             base_list=base_list[0::2]
 
@@ -428,7 +432,9 @@ class Run:
         if self.args.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
             # Classification steps        
             if not self.args.no_clustering:
-                C=Clusterer()
+                C=Clusterer(unpack.slash_endings)
+                cluster_dictionary = C.seq_library
+
                 seqs_list=C.cluster(seqs_list, REVERSE_PIPE)
             logging.info("Placing reads into phylogenetic tree")
             taxonomic_assignment_time, assignments=self.p.place(REVERSE_PIPE,
@@ -437,9 +443,11 @@ class Run:
                                                                 self.gmf,
                                                                 self.args,
                                                                 result.slash_endings,
-                                                                gpkg.taxtastic_taxonomy_path())
+                                                                gpkg.taxtastic_taxonomy_path(),
+                                                                cluster_dictionary)
             if not self.args.no_clustering:
-                assignments = C.uncluster_annotations(assignments, REVERSE_PIPE)
+                assignments = C.uncluster_annotations(assignments, REVERSE_PIPE,
+                                                      self.args.merge_reads)
         
         elif self.args.assignment_method == Run.DIAMOND_TAXONOMIC_ASSIGNMENT:
             logging.info("Assigning taxonomy with diamond")

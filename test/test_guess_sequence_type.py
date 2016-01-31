@@ -46,5 +46,24 @@ GTCAACAACCCCGCAATGCAACAGATGTGGGATGAGATCAGACGTACAGTTATCGTCGGTCTCGACCAGGCCCACGAGAC
             self.assertEqual('nucleotide', urr._guess_sequence_type_from_string('A'*300+'E'*999)) #only look at the first 300bp
             self.assertEqual('nucleotide', urr._guess_sequence_type_from_string('a'*10+'T'*89)) #lowercase
 
+    def test_find_slash_endings(self):
+        slash_read_1 = """>FCC0WM1ACXX:2:1101:2167:2180#GTCCAGAA/1
+CNTGCAGCCAAGTTGGCCGTTTCCGGCGCGATTGCAGATAAAAGCGCAGGCTGCTCCAAGGATAGGACCCCAGCTTCTGTTCAGGCCTCAGCAACTTCGC"""
+        slash_read_2 = """>FCC0WM1ACXX:2:1101:2167:2180#GTCCAGAA/2
+CNTGCAGCCAAGTTGGCCGTTTCCGGCGCGATTGCAGATAAAAGCGCAGGCTGCTCCAAGGATAGGACCCCAGCTTCTGTTCAGGCCTCAGCAACTTCGC"""
+        false_slash_1 = """>FCC0WM1ACXX:2:1101:2167:2180#GTCCAGAA/3
+CNTGCAGCCAAGTTGGCCGTTTCCGGCGCGATTGCAGATAAAAGCGCAGGCTGCTCCAAGGATAGGACCCCAGCTTCTGTTCAGGCCTCAGCAACTTCGC"""
+        false_slash_2 = """>FCC0WM1ACXX:2:1101:2167:2180#GTCCAGAA/a
+CNTGCAGCCAAGTTGGCCGTTTCCGGCGCGATTGCAGATAAAAGCGCAGGCTGCTCCAAGGATAGGACCCCAGCTTCTGTTCAGGCCTCAGCAACTTCGC"""
+        reads = [slash_read_1, slash_read_2, false_slash_1, false_slash_2]
+        truth = [True, True, False, False]
+        
+        for read, expected in zip(reads, truth):
+            with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+                fasta.write(read)
+                fasta.flush()
+                urr = UnpackRawReads(fasta.name)
+                self.assertEqual(expected, urr.slash_endings)
+                
 if __name__ == "__main__":
     unittest.main()

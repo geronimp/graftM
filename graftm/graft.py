@@ -127,7 +127,6 @@ class Graft:
     
         # Set up hmmer
         self.h = Hmmer(self.search_hmm_files)
-        
         import IPython ; IPython.embed()
         
     def graft(self):

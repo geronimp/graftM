@@ -8,9 +8,19 @@ import re
 class Clusterer:
 
     def __init__(self, slash_endings):
+        '''
+        Parameters
+        ----------
+        slash_endings : bool
+            True false as to whether reads follow the /1 /2 pattern for 
+            distinguishing forward and reverse reads. 
+        
+        '''
         self.clust = Deduplicator()
         self.seqio = SequenceIO()
+        
         self.seq_library = {}
+        
         self.slash_endings = slash_endings
         self.orfm_regex = OrfM.regular_expression()
 

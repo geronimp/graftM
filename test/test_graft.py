@@ -965,6 +965,7 @@ CCGACTGCCCTTGAAGACCACTTCG
                                                                                                   reads_2,
                                                                                                   gpkg,
                                                                                                   tmp)
+
             extern.run(cmd)
             comb_otu_table=os.path.join(tmp, "combined_count_table.txt")
             

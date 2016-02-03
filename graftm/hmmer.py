@@ -17,6 +17,7 @@ from graftm.diamond import Diamond
 from graftm.sequence_search_results import SequenceSearchResult, HMMSearchResult
 from graftm.readHmmTable import HMMreader
 from graftm.db_search_results import DBSearchResult
+#from graftm.graft import Graft
 
 FORMAT_FASTA = "FORMAT_FASTA"
 FORMAT_FASTQ = "FORMAT_FASTQ"
@@ -32,13 +33,42 @@ class InterleavedFileError(Exception):
 
 class Hmmer:
     
-    # Define constants
     DIAMOND_SEARCH_METHOD = 'diamond'
     HMM_SEARCH_METHOD = 'hmmsearch'
-
-    def __init__(self, search_hmm):
-        self.search_hmm = search_hmm
-
+    HMM_NAME_FIELD = "NAME"
+    PPLACER_TAXONOMIC_ASSIGNMENT = 'pplacer'
+    
+    def __init__(self, gpkg_hash, search_method):
+        '''
+        Parameters
+        ----------
+        gpkg_hash : hash
+            A hash containing the complete path to the graftm package as the 
+            key and the GraftMPackage object as the entry
+        search_method : str
+            Either DIAMOND_SEARCH_METHOD meaning the diamond will be used to 
+            search reads or HMM_SEARCH_METHOD, meaning that HMM searches will 
+            be used to search the reads.
+        '''
+        self.search_method = search_method
+        
+        if self.search_method == self.HMM_SEARCH_METHOD:
+            self.search_hmms = []
+            self.aln_hmms = {}
+            for gpkg in gpkg_hash.values():
+                for hmm in gpkg.search_hmm_paths():
+                    self.search_hmms.append(hmm)
+                    if self.PPLACER_TAXONOMIC_ASSIGNMENT:
+                        self.aln_hmms[hmm] = gpkg.alignment_hmm_path()  
+                        
+        elif self.search_method == self.DIAMOND_SEARCH_METHOD:
+            self.search_databases = []
+            for gpkg in gpkg_hash.values():
+                self.search_databases.append(gpkg.diamond_database_path())
+                
+        else:
+            raise Exception("Programming error: unexpected search method %s" % self.search_method)        
+        
     def _get_sequence_directions(self, search_result):
         sequence_directions = {}
         for result in search_result:
@@ -47,7 +77,7 @@ class Hmmer:
         return sequence_directions
 
 
-    def _hmmalign(self, input_path, directions, pipeline, aln_hmm):
+    def _hmmalign(self, input_path, directions, pipeline):
         '''
         Align reads to the aln_hmm. Receives unaligned sequences and
         aligns them.
@@ -139,7 +169,7 @@ class Hmmer:
         -------
         nothing
         '''
-
+        
         cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm --output-format fasta - %s' % (hmm,
                                                                                            sequences,
                                                                                            output_file)
@@ -152,7 +182,7 @@ class Hmmer:
 
     def hmmsearch(self, output_path, input_path, unpack, seq_type, threads, cutoff, orfm):
         '''
-        hmmsearch - Search raw reads for hits using search_hmm list
+        hmmsearch - Search raw reads for hits using search_hmms list
 
         Parameters
         ----------
@@ -186,13 +216,13 @@ class Hmmer:
         '''
 
         # Define the base hmmsearch command.
-        logging.debug("Using %i HMMs to search" % (len(self.search_hmm)))
+        logging.debug("Using %i HMMs to search" % (len(self.search_hmms)))
         output_table_list = []
-        if len(self.search_hmm) > 1:
-            for hmm in self.search_hmm:
+        if len(self.search_hmms) > 1:
+            for hmm in self.search_hmms:
                 out = os.path.join(os.path.split(output_path)[0], os.path.basename(hmm).split('.')[0] + '_' + os.path.split(output_path)[1])
                 output_table_list.append(out)
-        elif len(self.search_hmm) == 1:
+        elif len(self.search_hmms) == 1:
             output_table_list.append(output_path)
         else:
             raise Exception("Programming error: expected 1 or more HMMs")
@@ -210,7 +240,7 @@ class Hmmer:
             searcher = HmmSearcher(threads, cutoff) 
         else:
             searcher = HmmSearcher(threads, '--domE %s' % cutoff) 
-        searcher.hmmsearch(input_cmd, self.search_hmm, output_table_list)
+        searcher.hmmsearch(input_cmd, self.search_hmms, output_table_list)
         hmmtables = [HMMSearchResult.import_from_hmmsearch_table(x) for x in output_table_list]
         return hmmtables
 
@@ -322,20 +352,20 @@ class Hmmer:
         output_table_list : array
             Includes the name of the output domtblout table given by hmmer
         '''
-        logging.debug("Using %i HMMs to search" % (len(self.search_hmm)))
+        logging.debug("Using %i HMMs to search" % (len(self.search_hmms)))
         output_table_list = []
-        if len(self.search_hmm) > 1:
-            for hmm in self.search_hmm:
+        if len(self.search_hmms) > 1:
+            for hmm in self.search_hmms:
                 out = os.path.join(os.path.split(output_path)[0], os.path.basename(hmm).split('.')[0] + '_' + os.path.split(output_path)[1])
                 output_table_list.append(out)
-        elif len(self.search_hmm) == 1:
+        elif len(self.search_hmms) == 1:
             output_table_list.append(output_path)
         else:
             raise Exception("Programming error: Expected 1 or more HMMs")
         input_pipe = unpack.command_line()
 
         searcher = NhmmerSearcher(threads, extra_args='--incE %s -E %s' % (evalue, evalue))
-        searcher.hmmsearch(input_pipe, self.search_hmm, output_table_list)
+        searcher.hmmsearch(input_pipe, self.search_hmms, output_table_list)
 
         hmmtables = [HMMSearchResult.import_from_nhmmer_table(x) for x in output_table_list]
 
@@ -483,8 +513,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
             where True = Forward direction
             and False = Reverse direction
         '''
-
-        with tempfile.NamedTemporaryFile(prefix='_raw_extracted_reads.fa') as tmp:
+        
+        with tempfile.NamedTemporaryFile(suffix='_raw_extracted_reads.fa') as tmp:
             # Run fxtract to obtain reads form original sequence file
             fxtract_cmd = "fxtract -H -X -f /dev/stdin " 
             if input_file_format == FORMAT_FASTA:
@@ -568,7 +598,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
             return False
 
 
-    def _extract_orfs(self, input_path, orfm, hit_readnames, output_path, search_method, sequence_frame_info_list=None):
+    def _extract_orfs(self, input_path, orfm, hit_readnames, output_path, sequence_frame_info_list=None):
         '''
         Call ORFs on a file with nucleotide sequences and extract the proteins
         whose name is in `hit_readnames`.
@@ -584,23 +614,25 @@ deal with these, so please remove/rename sequences with duplicate keys.")
             line.
         output_path : str
             Path to output orfs into, in FASTA format.
-        search_method : str
-            The method for searching, either 'hmmsearch' or 'diamond'
+
         sequence_frame_info : list
             A dataframe (list of lists) containing readname, alignment direction
             and alignment start point information
         '''
-        if search_method == Graft.HMM_SEARCH_METHOD:
+        if self.search_method == self.HMM_SEARCH_METHOD:
             # Build and run command to extract ORF sequences:
             orfm_cmd = orfm.command_line()
-            cmd = 'fxtract -H -X -f /dev/stdin <(%s %s) > %s' % (orfm_cmd, input_path, output_path)
+            cmd = 'fxtract -H -X -f /dev/stdin <(%s %s) > %s' % (orfm_cmd, 
+                                                                 input_path, 
+                                                                 output_path)
             process = subprocess.Popen(["bash", "-c", cmd],
                                        stdin=subprocess.PIPE,
                                        stdout=subprocess.PIPE)
             process.communicate('\n'.join(hit_readnames))
 
-        elif search_method == Graft.DIAMOND_SEARCH_METHOD:
-            sequence_frame_info_dict = {x[0]:[x[1], x[2], x[3]] for x in sequence_frame_info_list}
+        elif self.search_method == self.HMM_SEARCH_METHOD:
+            sequence_frame_info_dict = {x[0]:[x[1], x[2], x[3]] 
+                                        for x in sequence_frame_info_list}
             records = SeqIO.parse(input_path, "fasta")
             with open(output_path, 'w') as open_output_path:
                 for record in records:
@@ -608,13 +640,82 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                     indfrom=(min(entry[2], entry[1])-1)
                     indto=max(entry[2], entry[1])
                     if entry[0] == False:
-                        record.seq = max([x for x in record.seq[indfrom:indto].reverse_complement().translate().split("*")], key=len)
+                        record.seq = max([x for x in record.seq[indfrom:indto]\
+                                                    .reverse_complement()\
+                                                    .translate()\
+                                                    .split("*")], 
+                                         key=len)
                     else:
-                        record.seq = max([x for x in record.seq[indfrom:indto].translate().split("*")], key=len)
+                        record.seq = max([x for x in record.seq[indfrom:indto]\
+                                                    .translate()\
+                                                    .split("*")], 
+                                         key=len)
+                        
                     SeqIO.write(record, open_output_path, "fasta")
                 open_output_path.flush()
 
-
+    def _sort_hits(self, hits, search_results):
+        '''
+        Assign each hit to its repective database. If a read hits more than one
+        database, assign it to the one with which it had the best score (dom 
+        bit score value) 
+        
+        Parameters
+        ----------
+        hits : hash
+            dicitonary returned from _get_read_names. See documentation for 
+            more info
+        search_results : list
+            list of SequenceSearchResult objects, one for each search HMM or 
+            diamond database provided to Hmmer. 
+        Returns
+        -------
+        Hash where the keys are the database names and the values are the 
+        entries from "hits" 
+        '''
+        def _create_hmm_name_dict():
+            try:
+                hash = {}
+                for hmm in self.search_hmms:
+                    for line in open(hmm):
+                        if line.startswith(self.HMM_NAME_FIELD):
+                            _, hmm_name = line.strip()\
+                                              .split()     
+                            hash[hmm_name] = []
+                return hash
+            except:
+                raise Exception("Error parsing search HMM files for their names")
+        
+        def _get_best_hits(search_result):
+            # Pre-scan to assign best hit
+            best_hit_hash = {}
+            for search_result in search_results:
+                for hmm, hit_name, bit_score in search_result\
+                                        .each([search_result.HMM_NAME_FIELD, 
+                                               search_result.QUERY_ID_FIELD,
+                                               search_result.ALIGNMENT_BIT_SCORE]):
+                    bit_score = float(bit_score)
+                    result = {'score' : bit_score,
+                              'hmm'   : hmm}
+                    
+                    if hit_name in best_hit_hash:
+                        if bit_score > best_hit_hash[hit_name]['score']:
+                            best_hit_hash[hit_name].update(result)
+                        else:
+                            pass
+                    else:
+                        best_hit_hash[hit_name] = result
+                
+            return best_hit_hash
+        
+        hmm_hash = _create_hmm_name_dict()
+        for hit_name, result in _get_best_hits(search_results).iteritems():
+            hmm_hash[result['hmm']].append(hit_name)
+        return hmm_hash
+            
+        
+    
+    
     def _get_read_names(self, search_result, max_range):
         '''
         _get_read_names - loops through hmm hits and their alignment spans to
@@ -757,9 +858,9 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         return result
 
     @T.timeit
-    def aa_db_search(self, files, base, unpack, search_method,
+    def aa_db_search(self, files, base, unpack,
                      maximum_range, threads, evalue, min_orf_length,
-                     restrict_read_length, diamond_database):
+                     restrict_read_length):
         '''
         Amino acid database search pipeline - pipeline where reads are searched
         as amino acids, and hits are identified using hmmsearch or diamond
@@ -776,8 +877,6 @@ deal with these, so please remove/rename sequences with duplicate keys.")
             UnpackRawReads object, returns string command that will output
             sequences to stdout when called on command line
             (use: unpack.command_line())
-        search_method : str
-            The method for searching, either 'hmmsearch' or 'diamond'
         maximum_range : int
             Maximum range that a gene can extend within a contig. Any hits
             that extend beyond this length cannot be linked. max_range is defined
@@ -799,36 +898,33 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         -------
         String path to amino acid fasta file of reads that hit
         '''
+        
         # Define outputs
-        if search_method == Graft.HMM_SEARCH_METHOD:
+        if self.search_method == self.HMM_SEARCH_METHOD:
             output_search_file = files.hmmsearch_output_path(base)
-        elif search_method == Graft.DIAMOND_SEARCH_METHOD:
+        elif self.search_method == self.DIAMOND_SEARCH_METHOD:
             output_search_file = files.diamond_search_output_basename(base)
         hit_reads_fasta = files.fa_output_path(base)
         hit_reads_orfs_fasta = files.orf_fasta_output_path(base)
 
         return self.search_and_extract_orfs_matching_protein_database(\
                                                     unpack,
-                                                    search_method,
                                                     maximum_range,
                                                     threads,
                                                     evalue,
                                                     min_orf_length,
                                                     restrict_read_length,
-                                                    diamond_database,
                                                     output_search_file,
                                                     hit_reads_fasta,
                                                     hit_reads_orfs_fasta)
 
     def search_and_extract_orfs_matching_protein_database(self,
                                                       unpack,
-                                                      search_method,
                                                       maximum_range,
                                                       threads,
                                                       evalue,
                                                       min_orf_length,
                                                       restrict_read_length,
-                                                      diamond_database,
                                                       output_search_file,
                                                       hit_reads_fasta,
                                                       hit_reads_orfs_fasta):
@@ -871,7 +967,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         extracting_orfm = OrfM(min_orf_length=min_orf_length,
                       restrict_read_length=restrict_read_length)
 
-        if search_method == Graft.HMM_SEARCH_METHOD:
+        if self.search_method == self.HMM_SEARCH_METHOD:
             # run hmmsearch
             search_result = self.hmmsearch(
                                            output_search_file,
@@ -883,7 +979,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                            orfm
                                            )
 
-        elif search_method == Graft.DIAMOND_SEARCH_METHOD:
+        elif self.search_method == self.HMM_SEARCH_METHOD:
             # run diamond
             search_result = Diamond(
                                      database=diamond_database,
@@ -896,8 +992,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                            )
             search_result = [search_result]
 
-        else:  # if the search_method isn't recognised
-            raise Exception("Programming error: unexpected search_method %s" % search_method)
+
 
         orfm_regex = OrfM.regular_expression()
         
@@ -908,14 +1003,16 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                         )
         else:   
             hits = self._get_sequence_directions(search_result)
-    
+        sorted_hits_dict = self._sort_hits(hits, search_result)
+        
+        
         orf_hit_readnames = hits.keys() # Orf read hit names
         if unpack.sequence_type() == 'nucleotide':
             hits={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) else key): item for key, item in hits.iteritems()}
             hit_readnames = hits.keys() # Store raw read hit names 
         else:
             hit_readnames=orf_hit_readnames
-        
+
         hit_reads_fasta, direction_information = self._extract_from_raw_reads(
                                                        hit_reads_fasta,
                                                        hit_readnames,
@@ -923,7 +1020,6 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                                        unpack.format(),
                                                        hits
                                                        )
-        
 
         if not hit_readnames:
             hit_read_counts = [0, len(hit_readnames)]
@@ -934,7 +1030,6 @@ deal with these, so please remove/rename sequences with duplicate keys.")
 
             return result, direction_information
 
-
         if unpack.sequence_type() == 'nucleotide':
             # Extract the orfs of these reads that hit the original search
 
@@ -943,7 +1038,6 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                extracting_orfm,
                                orf_hit_readnames,
                                hit_reads_orfs_fasta,
-                               search_method,
                                list(search_result[0].each([SequenceSearchResult.QUERY_ID_FIELD,
                                                            SequenceSearchResult.ALIGNMENT_DIRECTION,
                                                            SequenceSearchResult.QUERY_FROM_FIELD,
@@ -965,11 +1059,10 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         logging.info("%s read(s) detected" % n_hits)
                 
         return result, direction_information
-    
 
     @T.timeit
     def nt_db_search(self, files, base, unpack, euk_check,
-                     search_method, maximum_range, threads, evalue):
+                     maximum_range, threads, evalue):
         '''
         Nucleotide database search pipeline - pipeline where reads are searched
         as nucleotides, and hits are identified using nhmmer searches
@@ -988,8 +1081,6 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         euk_check : bool
             True indicates the sample will be checked for eukaryotic reads,
             False indicates not.
-        search_method : str
-            The method for searching e.g. 'hmmsearch' or 'diamond'
         maximum_range : int
             Maximum range that a gene can extend within a contig. Any hits
             that extend beyond this length cannot be linked. max_range is defined
@@ -1012,7 +1103,6 @@ deal with these, so please remove/rename sequences with duplicate keys.")
             self.search_and_extract_nucleotides_matching_nucleotide_database(\
                                                       unpack,
                                                       euk_check,
-                                                      search_method,
                                                       maximum_range,
                                                       threads,
                                                       evalue,
@@ -1022,7 +1112,6 @@ deal with these, so please remove/rename sequences with duplicate keys.")
     def search_and_extract_nucleotides_matching_nucleotide_database(self,
                                                       unpack,
                                                       euk_check,
-                                                      search_method,
                                                       maximum_range,
                                                       threads,
                                                       evalue,
@@ -1053,7 +1142,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         information
         '''
 
-        if search_method == Graft.HMM_SEARCH_METHOD:
+        if self.search_method == self.HMM_SEARCH_METHOD:
             # First search the reads using the HMM
             search_result, table_list = self.nhmmer(
                                                     hmmsearch_output_table,
@@ -1063,19 +1152,18 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                                     )
 
 
-        elif search_method == Graft.DIAMOND_SEARCH_METHOD:
+        elif self.search_method == self.HMM_SEARCH_METHOD:
             raise Exception("Diamond searches not supported for nucelotide databases yet")
 
-        
         if maximum_range:  
-            
             hits = self._get_read_names(
                                         search_result,  # define the span of hits
                                         maximum_range
                                         )
         else:   
             hits = self._get_sequence_directions(search_result)
-
+        sorted_dict = self._sort_hits(hits, search_result)
+        
         hit_readnames = hits.keys()
         
         if euk_check:
@@ -1116,7 +1204,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         
     @T.timeit
     def align(self, input_path, output_path, directions, pipeline, 
-              filter_minimum, aln_hmm):
+              filter_minimum):
         '''align - Takes input path to fasta of unaligned reads, aligns them to
         a HMM, and returns the aligned reads in the output path
 
@@ -1136,12 +1224,11 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         -------
         N/A - output alignment path known.
         '''
-
+        import IPython ; IPython.embed()
         # HMMalign the forward reads, and reverse complement reads.
         alignments = self._hmmalign(input_path,
                                     directions,
-                                    pipeline,
-                                    aln_hmm)
+                                    pipeline)
         alignment_result = self.alignment_correcter(alignments,
                                                     output_path,
                                                     filter_minimum)

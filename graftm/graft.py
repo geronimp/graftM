@@ -126,8 +126,8 @@ class Graft:
                         diamond_db = new_database
     
         # Set up hmmer
-        self.h = Hmmer(self.search_hmm_files)
-        import IPython ; IPython.embed()
+        self.h = Hmmer(self.graftm_packages,
+                       self.search_method)
         
     def graft(self):
      
@@ -236,14 +236,11 @@ class Graft:
                                                               self.gmf,
                                                               base,
                                                               unpack,
-                                                              self.search_method,
                                                               maximum_range,
                                                               self.threads,
                                                               self.evalue,
                                                               self.min_orf_length,
-                                                              self.restrict_read_length,
-                                                              diamond_db
-                                                              )
+                                                              self.restrict_read_length)
 
 
                 # Or the DNA pipeline
@@ -254,7 +251,6 @@ class Graft:
                                                               base,
                                                               unpack,
                                                               self.euk_check,
-                                                              self.search_method,
                                                               maximum_range,
                                                               self.threads,
                                                               self.evalue
@@ -263,14 +259,14 @@ class Graft:
                 if not result.hit_fasta():
                     logging.info('No reads found in %s' % base)
                     continue
+                
                 elif self.search_only:
                     db_search_results.append(result)
                     base_list.append(base)
-
                     continue
-                
-                if self.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
-                    logging.info('aligning reads to reference package database')
+
+                if self.assignment_method == self.PPLACER_TAXONOMIC_ASSIGNMENT:
+                    logging.info('Aligning reads to reference package database')
                     hit_aligned_reads = self.gmf.aligned_fasta_output_path(base)
 
                     aln_time, aln_result = self.h.align(
@@ -278,7 +274,7 @@ class Graft:
                                                         hit_aligned_reads,
                                                         complement_information,
                                                         self.type,
-                                                        filter_minimum
+                                                        self.filter_minimum
                                                         )
                     if aln_result:
                         seqs_list.append(hit_aligned_reads)
@@ -326,7 +322,7 @@ class Graft:
                                self.output_directory,
                                False)
 
-        if self.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
+        if self.assignment_method == self.PPLACER_TAXONOMIC_ASSIGNMENT:
             # Classification steps        
             if not self.no_clustering:
                 C=Clusterer(unpack.slash_endings)

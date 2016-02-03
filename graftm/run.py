@@ -43,8 +43,6 @@ class Run:
     _DNA = "DNA"
     _RNA = "RNA"
     _AMINO = "amino"
-    
-
 
     def __init__(self, args):
         self.args = args
@@ -56,8 +54,6 @@ class Run:
             if not os.path.isfile(f):
                 logging.error("The file '%s' does not appear to exist, stopping" % f)
                 exit(1)
-                
-
             
     def _setpipe(self, hmm_list):
 

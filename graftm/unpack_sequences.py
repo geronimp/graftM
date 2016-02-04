@@ -130,5 +130,5 @@ class UnpackRawReads:
             cmd="""zcat %s""" % (self.read_file)
         elif file_format == self.FORMAT_FASTQ:
             cmd="""awk '{print ">" substr($0,2);getline;print;getline;getline}' %s""" % (self.read_file)
-        logging.debug("raw read unpacking command chunk: %s" % cmd)
+        logging.debug("Raw read unpacking command chunk: %s" % cmd)
         return cmd 

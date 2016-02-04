@@ -86,9 +86,9 @@ class GraftMPackage:
         pkg._base_directory = graftm_package_path
         
         if pkg._base_directory.endswith('/'):
-            pkg.name = os.path.basename(pkg._base_directory[:-1]).split('.')[0]
+            pkg.name = os.path.basename(pkg._base_directory[:-1])
         else:
-            pkg.name = os.path.basename(pkg._base_directory).split('.')[0]
+            pkg.name = os.path.basename(pkg._base_directory)
             
         # check we are at current version otherwise choke
         pkg.check_universal_keys(v)

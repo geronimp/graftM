@@ -25,7 +25,6 @@ FORMAT_FASTQ_GZ = "FORMAT_FASTQ_GZ"
 FORMAT_FASTA_GZ = "FORMAT_FASTA_GZ"
 PIPELINE_AA = "P"
 PIPELINE_NT = "D"
-PREVIOUS_SPAN_CUTOFF = 0.25
 T = Timer()
 
 class InterleavedFileError(Exception):
@@ -35,7 +34,6 @@ class Hmmer:
     
     DIAMOND_SEARCH_METHOD = 'diamond'
     HMM_SEARCH_METHOD = 'hmmsearch'
-    HMM_NAME_FIELD = "NAME"
     PPLACER_TAXONOMIC_ASSIGNMENT = 'pplacer'
     
     def __init__(self, gpkg_hash, search_method):
@@ -54,13 +52,10 @@ class Hmmer:
         
         if self.search_method == self.HMM_SEARCH_METHOD:
             self.search_hmms = []
-            self.aln_hmms = {}
             for gpkg in gpkg_hash.values():
                 for hmm in gpkg.search_hmm_paths():
                     self.search_hmms.append(hmm)
-                    if self.PPLACER_TAXONOMIC_ASSIGNMENT:
-                        self.aln_hmms[hmm] = gpkg.alignment_hmm_path()  
-                        
+
         elif self.search_method == self.DIAMOND_SEARCH_METHOD:
             self.search_databases = []
             for gpkg in gpkg_hash.values():
@@ -68,6 +63,8 @@ class Hmmer:
                 
         else:
             raise Exception("Programming error: unexpected search method %s" % self.search_method)        
+
+        self.dbsr = DBSearchResult(gpkg_hash)
         
     def _get_sequence_directions(self, search_result):
         sequence_directions = {}
@@ -654,179 +651,6 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                     SeqIO.write(record, open_output_path, "fasta")
                 open_output_path.flush()
 
-    def _sort_hits(self, hits, search_results):
-        '''
-        Assign each hit to its repective database. If a read hits more than one
-        database, assign it to the one with which it had the best score (dom 
-        bit score value) 
-        
-        Parameters
-        ----------
-        hits : hash
-            dicitonary returned from _get_read_names. See documentation for 
-            more info
-        search_results : list
-            list of SequenceSearchResult objects, one for each search HMM or 
-            diamond database provided to Hmmer. 
-        Returns
-        -------
-        Hash where the keys are the database names and the values are the 
-        entries from "hits" 
-        '''
-        def _create_hmm_name_dict():
-            try:
-                hash = {}
-                for hmm in self.search_hmms:
-                    for line in open(hmm):
-                        if line.startswith(self.HMM_NAME_FIELD):
-                            _, hmm_name = line.strip()\
-                                              .split()     
-                            hash[hmm_name] = []
-                return hash
-            except:
-                raise Exception("Error parsing search HMM files for their names")
-        
-        def _get_best_hits(search_result):
-            # Pre-scan to assign best hit
-            best_hit_hash = {}
-            for search_result in search_results:
-                for hmm, hit_name, bit_score in search_result\
-                                        .each([search_result.HMM_NAME_FIELD, 
-                                               search_result.QUERY_ID_FIELD,
-                                               search_result.ALIGNMENT_BIT_SCORE]):
-                    bit_score = float(bit_score)
-                    result = {'score' : bit_score,
-                              'hmm'   : hmm}
-                    
-                    if hit_name in best_hit_hash:
-                        if bit_score > best_hit_hash[hit_name]['score']:
-                            best_hit_hash[hit_name].update(result)
-                        else:
-                            pass
-                    else:
-                        best_hit_hash[hit_name] = result
-                
-            return best_hit_hash
-        
-        hmm_hash = _create_hmm_name_dict()
-        for hit_name, result in _get_best_hits(search_results).iteritems():
-            hmm_hash[result['hmm']].append(hit_name)
-        return hmm_hash
-            
-        
-    
-    
-    def _get_read_names(self, search_result, max_range):
-        '''
-        _get_read_names - loops through hmm hits and their alignment spans to
-        determine if they are potentially linked (for example, if one gene in a 
-        contig hits a hmm more than once, in two different conserved regions
-        of that gene) and combines them into one 'hit' because they are
-        technically the same. The total span of the hits deemed to be linked is
-        returned.
-
-        Parameters
-        ----------
-        search_result : obj
-            SequenceSearchResult object with all paramaters defined. Used here
-            to create rows containing information on alignment direction and
-            alignment span.
-        max_range : int
-            Maximum range that a gene can extend within a contig. Any hits
-            that extend beyond this length cannot be linked. max_range is
-            set as 1.5 X the average length of all full length genes used
-            in the search database. This is defined in the CONTENTS.json file
-            within a gpkg.
-        Returns
-        -------
-            Dictionary where keys are the contig/read name. The value for each
-            entry is an array lists, one per hit in each contig, each with the
-            span (min and max) of the alignment.
-        '''
-
-        splits = {}  # Define an output dictionary to be filled
-        spans = []
-        for result in search_result:  # Create a table (list of rows contain span, and complement information
-            spans += list(
-                         result.each(
-                                    [SequenceSearchResult.QUERY_ID_FIELD,
-                                        SequenceSearchResult.ALIGNMENT_DIRECTION,
-                                        SequenceSearchResult.HIT_FROM_FIELD,
-                                        SequenceSearchResult.HIT_TO_FIELD,
-                                        SequenceSearchResult.QUERY_FROM_FIELD,
-                                        SequenceSearchResult.QUERY_TO_FIELD]
-                                       )
-                         )
-
-        for hit in spans:  # For each of these rows (i.e. hits)
-            i = hit[0]  # set id to i
-            c = hit[1]  # set complement to c
-            ft = [min(hit[2:4]), max(hit[2:4])]  # set span as ft (i.e. from - to) - This is the amount covering the query
-            qs = [min(hit[4:6]), max(hit[4:6])]  # seq the query span to qs - This is the amount covering the HMM
-
-            if ft[0] == ft[1]: continue  # if the span covers none of the query, skip that entry (seen this before)
-
-            if i not in splits:  # If the hit hasnt been seen yet
-                splits[i] = {'span'       : [ft],
-                             'strand'     : [c],
-                             'query_span' : [qs]}  # add the span and complement as new entry
-
-            else:  # otherwise (if it has been seen)
-                for idx, entry in enumerate(splits[i]['span']):  # for each previously added entry
-                    if splits[i]['strand'][idx] != c:  # If the hit is on the same complement strand
-                        splits[i]['span'].append(ft)  # Add the new range to be split out in the future
-                        splits[i]['strand'].append(c)  # Add the complement strand as well
-                        splits[i]['query_span'].append(qs)
-                        break
-
-                    previous_qs      = splits[i]['query_span'][idx] # Get the query span of the previous hit
-
-                    previous_q_range = set(range(previous_qs[0], previous_qs[1])) # Get the range of each
-                    current_q_range  = set(range(qs[0], qs[1]))
-                    query_overlap    = set(previous_q_range).intersection(current_q_range) # Find the intersection between the two ranges
-
-                    previous_ft_span = set(range(entry[0], entry[1]))
-                    current_ft_span  = set(range(ft[0], ft[1]))
-                    if any(query_overlap): # If there is an overlap
-                        ####################################################
-                        # if the span over the actual read that hit the HMM
-                        # for each hit overlap by > 25%, they are considered
-                        # the same hit, and ignored
-                        ####################################################
-                        intersection_fraction = float(len(previous_ft_span.intersection(current_ft_span)))
-
-                        if intersection_fraction / float(len(previous_ft_span)) >= PREVIOUS_SPAN_CUTOFF:
-                            break
-                        elif intersection_fraction / float(len(current_ft_span)) >= PREVIOUS_SPAN_CUTOFF:
-                            break
-                        else: # else (i.e. if the hit covers less that 25% of the sequence of the previous hit)
-                            ####################################################
-                            # If they made it this far, it means that the hits do not overlap.
-                            # But one last check must be made to ensure they do not cover the same
-                            # region in the HMM.
-                            ####################################################
-                            if len(query_overlap) > (len(current_q_range)*PREVIOUS_SPAN_CUTOFF): # if the overlap on the query HMM does not span over 25%
-                                if (idx+1) == len(splits[i]['span']):
-                                    splits[i]['span'].append(ft) # Add from-to as another entry, this is another hit.
-                                    splits[i]['strand'].append(c) # Add strand info as well
-                                    splits[i]['query_span'].append(qs)
-                                    break # And break
-
-                    if min(entry) < min(ft):  # if/else to determine which entry comes first (e.g. 1-5, 6-10 not 6-10, 1-5)
-                        if max(ft) - min(entry) < max_range:  # Check if they lie within range of eachother
-                            entry[1] = max(ft)  # ammend the entry if they are
-                            break  # And break the loop
-                    else:
-                        if max(entry) - min(ft) < max_range:  # Check if they lie within range of eachother
-                            entry[0] = min(ft)  # ammend the entry if they are
-                            break  # And break the loop
-
-                else:  # if no break occured (no overlap)
-                    splits[i]['span'].append(ft)  # Add the new range to be split out in the future
-                    splits[i]['strand'].append(c)  # Add the complement strand as well
-                    splits[i]['query_span'].append(qs)
-        return {key: {"entry":entry['span'], 'strand': entry['strand']} for key, entry in splits.iteritems()}  # return the dict, without strand information which isn't required.
-
     def _check_for_slash_endings(self, readnames):
         '''
         Provide a list of read names to be checked for the /1 or /2 endings
@@ -981,7 +805,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
 
         elif self.search_method == self.HMM_SEARCH_METHOD:
             # run diamond
-            search_result = Diamond(
+            search_result = [Diamond(
                                      database=diamond_database,
                                      threads=threads,
                                      evalue=evalue,
@@ -990,25 +814,14 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                            unpack.sequence_type(),
                                            daa_file_basename=output_search_file
                                            )
-            search_result = [search_result]
-
-
-
-        orfm_regex = OrfM.regular_expression()
+                             ]
         
-        if maximum_range:
-            hits = self._get_read_names(
-                                        search_result,  # define the span of hits
-                                        maximum_range
-                                        )
-        else:   
-            hits = self._get_sequence_directions(search_result)
-        sorted_hits_dict = self._sort_hits(hits, search_result)
-        
+        dbsearch = self.dbsr.read(search_result)       
         
         orf_hit_readnames = hits.keys() # Orf read hit names
         if unpack.sequence_type() == 'nucleotide':
-            hits={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) else key): item for key, item in hits.iteritems()}
+            hits={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) 
+                   else key): item for key, item in hits.iteritems()}
             hit_readnames = hits.keys() # Store raw read hit names 
         else:
             hit_readnames=orf_hit_readnames
@@ -1224,7 +1037,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         -------
         N/A - output alignment path known.
         '''
-        import IPython ; IPython.embed()
+
         # HMMalign the forward reads, and reverse complement reads.
         alignments = self._hmmalign(input_path,
                                     directions,

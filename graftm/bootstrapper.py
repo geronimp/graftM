@@ -112,7 +112,7 @@ Perhaps a nucleotide GraftM package was provided?")
             # Now have a fasta file of ORFs.
             # Check to make sure the file is not zero-length
             orfs.flush()
-            import IPython ; IPython.embed()
+            
 
             
             with tempfile.NamedTemporaryFile(prefix="graftm_bootstrap_aln") as aln:

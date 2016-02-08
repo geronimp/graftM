@@ -166,7 +166,7 @@ class DBSearchResult:
         
         return {key: {"entry":entry['span'], 'strand': entry['strand']} for key, entry in splits.iteritems()}
 
-    def read(self, search_results):
+    def load(self, search_results):
         '''
         Parameters
         ----------
@@ -178,6 +178,7 @@ class DBSearchResult:
         logging.debug("Parsing search results")        
         self.hits={}
         self.alignment_batches = {}
+        self.spans={}
         for search_result in search_results:
             self.search_hmm_name=None
             for read_data in search_result.each([search_result.QUERY_ID_FIELD,
@@ -206,7 +207,10 @@ hmmsearch or diamond search results have multiple entries for search hmm.")
                 self.maximum_range_hash[self.hmm_name_hash[self.search_hmm_name]]
             spans = self._get_hit_spans(search_result, 
                                         maximum_range)        
-            self.spans
+            self.spans.update(spans)
+    
+    def split(self):
+        pass
     
 class HitObject(DBSearchResult):
     

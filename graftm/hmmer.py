@@ -476,7 +476,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         
         return complement_information
 
-    def _extract_from_raw_reads(self, output_path, input_reads, raw_sequences_path, input_file_format, hits):
+    def _extract_from_raw_reads(self, output_path, dbsearch, unpack):
         '''
         _extract_from_raw_reads - call fxtract to extract the hit sequences
         of the hmm/diamond search from the raw sequences file. Output into
@@ -486,23 +486,16 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         ----------
         output_path : str
             Path of the desired output file
-        input_reads : list
-            list of read IDS to extract.
-        raw_sequences_path : str
-            Path to the raw sequences
-        input_file_format : var
-            Variable, either FORMAT_FASTA_GZ, FORMAT_FASTQ_GZ, FORMAT_FASTQ or
-            FORMAT_FASTA, denoting the format of the input sequence
-        hits : dict
-            A hash with the readnames as the keys and the spans as the values
+        dbsearch : obj
+            DBSearchResult object
+        unpack : obj
+            UnpackRawReads object
 
         Returns
         -------
-        output_path: str
-            Path to file containing extracted reads.
-        
-        direction_information: dict
-            
+        Path to file containing extracted reads, and a dictionary containing 
+        the direction information of each reads as per the following example:
+                   
             {read_1: False
              ...
              read n: True}
@@ -510,7 +503,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
             where True = Forward direction
             and False = Reverse direction
         '''
-        
+        import IPython ; IPython.embed()
         with tempfile.NamedTemporaryFile(suffix='_raw_extracted_reads.fa') as tmp:
             # Run fxtract to obtain reads form original sequence file
             fxtract_cmd = "fxtract -H -X -f /dev/stdin " 
@@ -816,22 +809,12 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                            )
                              ]
         
-        dbsearch = self.dbsr.read(search_result)       
-        
-        orf_hit_readnames = hits.keys() # Orf read hit names
-        if unpack.sequence_type() == 'nucleotide':
-            hits={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) 
-                   else key): item for key, item in hits.iteritems()}
-            hit_readnames = hits.keys() # Store raw read hit names 
-        else:
-            hit_readnames=orf_hit_readnames
-
+        self.dbsr.load(search_result)   
+         
         hit_reads_fasta, direction_information = self._extract_from_raw_reads(
                                                        hit_reads_fasta,
-                                                       hit_readnames,
-                                                       unpack.read_file,
-                                                       unpack.format(),
-                                                       hits
+                                                       self.dbsr,
+                                                       unpack
                                                        )
 
         if not hit_readnames:

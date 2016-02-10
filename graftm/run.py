@@ -21,6 +21,7 @@ from graftm.timeit import Timer
 from graftm.clusterer import Clusterer
 from graftm.decorator import Decorator
 from graftm.external_program_suite import ExternalProgramSuite
+from graftm.taxonomy import Taxonomy
 from biom.util import biom_open
 
 T=Timer()
@@ -44,7 +45,7 @@ class Run:
         self.setattributes(self.args)
 
     def setattributes(self, args):
-        
+        self.t = Taxonomy()
         self.hk = HouseKeeping()
         self.s = Stats_And_Summary()
         if args.subparser_name == 'graft':
@@ -649,12 +650,21 @@ class Run:
                 # any of the provided paths.
                 gpkg = GraftMPackage.acquire(self.args.graftm_package)
                 if not self.args.rooted_tree: self.args.rooted_tree = gpkg.reference_package_tree_path()
+
                 if not self.args.input_greengenes_taxonomy:
                     if not self.args.input_taxtastic_seqinfo:
                         self.args.input_taxtastic_seqinfo = gpkg.taxtastic_seqinfo_path()
                     if not self.args.input_taxtastic_taxonomy:
                         self.args.input_taxtastic_taxonomy = gpkg.taxtastic_taxonomy_path()
-                        
+               
+            if self.args.input_greengenes_taxonomy:
+                self.t.read_format_greengenes(open(self.args.input_greengenes_taxonomy))
+            elif self.args.input_taxtastic_seqinfo and self.args.input_taxtastic_taxonomy:
+                self.t.read_format_taxtastic(open(self.args.input_taxtastic_seqinfo),
+                                             open(self.args.input_taxtastic_taxonomy))
+            else:
+                logging.error("Some form of taxonomic description must be provided.")
+            
             if self.args.rooted_tree:
                 if self.args.unrooted_tree:
                     logging.error("Both a rooted tree and an un-rooted tree were provided, so it's unclear what you are asking GraftM to do. \
@@ -680,25 +690,14 @@ If you're unsure see graftM tree -h")
                 logging.error("Some tree(s) must be provided, either a rooted tree or both an unrooted tree and a reference tree")
                 exit(1)
                 
-            if self.args.output_taxonomy is None and self.args.output_tree is None:
-                logging.error("Either an output tree or taxonomy must be provided")
+            if self.args.output_tree is None:
+                logging.error("An output tree must be provided!")
                 exit(1)
-            if self.args.input_greengenes_taxonomy:
-                if self.args.input_taxtastic_seqinfo or self.args.input_taxtastic_taxonomy:
-                    logging.error("Both taxtastic and greengenes taxonomy were provided, so its unclear what taxonomy you want graftM to decorate with")
-                    exit(1)
-                logging.debug("Using input GreenGenes style taxonomy file")
-                dec.main(self.args.input_greengenes_taxonomy, 
-                         self.args.output_tree, self.args.output_taxonomy, 
-                         self.args.no_unique_tax, self.args.decorate, None) 
-            elif self.args.input_taxtastic_seqinfo and self.args.input_taxtastic_taxonomy:
-                logging.debug("Using input taxtastic style taxonomy/seqinfo")
-                dec.main(self.args.input_taxtastic_taxonomy, self.args.output_tree, 
-                         self.args.output_taxonomy, self.args.no_unique_tax, 
-                         self.args.decorate, self.args.input_taxtastic_seqinfo)
-            else:
-                logging.error("Either a taxtastic taxonomy or seqinfo file was provided. GraftM cannot continue without both.")
-                exit(1)
+            
+            dec.main(self.t, 
+                     self.args.output_tree, self.args.output_taxonomy, 
+                     self.args.no_unique_tax, self.args.decorate) 
+            
         else:
             raise Exception("Unexpected subparser name %s" % self.args.subparser_name)
             

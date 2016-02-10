@@ -146,7 +146,7 @@ if __name__ == '__main__':
     input_options = graft_parser.add_argument_group('input options')
     input_options.add_argument('--forward', nargs='+', metavar='forward_read', help='Forward read (or single read file), space separated in .fa, or .fq.gz format.', required=True)
     input_options.add_argument('--reverse', nargs='+',metavar='reverse read', help='[do NOT use unless you understand the difficulties with this] Optional reverse raw sequence file(s) in .fa, or .fq.gz format', default=None)
-    input_options.add_argument('--graftm_package', nargs='+', metavar='reference_package', help='Reference package of gene family')
+    input_options.add_argument('--graftm_package', nargs='+', metavar='graftm_package', help='GraftM gene packages to use when searching the data (more that one may be specified).')
 
     running_options = graft_parser.add_argument_group('running options')
     running_options.add_argument('--threads', type=int, metavar='threads', help='Number of threads to use (default = 5)', default=5)

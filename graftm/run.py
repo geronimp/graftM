@@ -38,6 +38,8 @@ class Run:
     
     MIN_ALIGNED_FILTER_FOR_NUCLEOTIDE_PACKAGES = 95
     MIN_ALIGNED_FILTER_FOR_AMINO_ACID_PACKAGES = 30
+    
+    DEFAULT_MAX_SAMPLES_FOR_KRONA = 100
 
     def __init__(self, args):
         self.args = args
@@ -73,7 +75,8 @@ class Run:
 
 
 
-    def summarise(self, base_list, trusted_placements, reverse_pipe, times, hit_read_count_list):
+    def summarise(self, base_list, trusted_placements, reverse_pipe, times,
+                  hit_read_count_list, max_samples_for_krona):
         '''
         summarise - write summary information to file, including otu table, biom
                     file, krona plot, and timing information
@@ -96,6 +99,9 @@ class Run:
             pipeline, each two entries, the first being the number of putative
             eukaryotic reads (when searching 16S), the second being the number
             of hits aligned and placed in the tree.
+        max_samples_for_krona: int
+            If the number of files processed is greater than this number, then
+            do not generate a krona diagram.
         Returns
         -------
         '''
@@ -128,7 +134,10 @@ class Run:
             os.remove(self.gmf.combined_biom_output_path())
 
         logging.info('Building summary krona plot')
-        self.s.write_krona_plot(base_list, placements_list, self.gmf.krona_output_path())
+        if len(base_list) > max_samples_for_krona:
+            logging.warn("Skipping creation of Krona diagram since there are too many input files. The maximum can be overridden using --max_samples_for_krona")
+        else:
+            self.s.write_krona_plot(base_list, placements_list, self.gmf.krona_output_path())
 
         # Basic statistics
         placed_reads=[len(trusted_placements[base]) for base in base_list]
@@ -185,7 +194,6 @@ class Run:
         base_list           = []
         seqs_list           = []
         search_results      = []
-        clusters_list       = []
         hit_read_count_list = []
         db_search_results   = []
 
@@ -452,7 +460,7 @@ class Run:
         else: raise Exception("Unexpected assignment method encountered: %s" % self.args.placement_method)
         self.summarise(base_list, assignments, REVERSE_PIPE,
                        [search_time,aln_time,taxonomic_assignment_time],
-                       hit_read_count_list)
+                       hit_read_count_list, self.args.max_samples_for_krona)
 
     @T.timeit
     def _assign_taxonomy_with_diamond(self, base_list, db_search_results,

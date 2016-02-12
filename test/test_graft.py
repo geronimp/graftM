@@ -1253,8 +1253,29 @@ CGGGAGGAACACCAGTGGCGAAGGCGGCTTCCTGGCCTGTTCTTGACGCTGAGGCGCGAA
                 self.assertFalse(os.path.exists(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "%s_hits.aln.fa" % os.path.basename(fasta.name)[:-3])))
 
         
-
-    
+    def test_max_samples_for_krona(self):
+        reads_1=os.path.join(path_to_samples, "sample_16S_1.1.fa")
+        reads_2=os.path.join(path_to_samples, "sample_16S_2.1.fa")
+        gpkg=os.path.join(path_to_data, "61_otus.gpkg")
+        
+        with tempdir.TempDir() as tmp:
+            cmd = '%s graft --verbosity 5  --forward %s %s --graftm_package %s --output_directory %s --force --max_samples_for_krona 2' % (path_to_script,
+                                                                                                  reads_1,
+                                                                                                  reads_2,
+                                                                                                  gpkg,
+                                                                                                  tmp)
+            extern.run(cmd)
+            self.assertTrue(os.path.exists(os.path.join(tmp, "combined_count_table.txt")))
+            self.assertTrue(os.path.exists(os.path.join(tmp, "krona.html")))
+            
+            cmd = '%s graft --verbosity 5  --forward %s %s --graftm_package %s --output_directory %s --force --max_samples_for_krona 1' % (path_to_script,
+                                                                                                  reads_1,
+                                                                                                  reads_2,
+                                                                                                  gpkg,
+                                                                                                  tmp)
+            extern.run(cmd)
+            self.assertTrue(os.path.exists(os.path.join(tmp, "combined_count_table.txt")))
+            self.assertFalse(os.path.exists(os.path.join(tmp, "krona.html")))
 
         
                     

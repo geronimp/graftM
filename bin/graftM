@@ -191,6 +191,7 @@ if __name__ == '__main__':
     output_options = graft_parser.add_argument_group('output options')
     output_options.add_argument('--output_directory', metavar='reference_package', help='Output directory name (default=\"GraftM_output\")', default="GraftM_output")
     output_options.add_argument('--force', action="store_true", help='Force overwrite the output directory, even if one already exists with the same name (default=False)', default=False)
+    output_options.add_argument('--max_samples_for_krona', type=int, help='Do not output krona diagram if the number of samples is greater than this', default=Run.DEFAULT_MAX_SAMPLES_FOR_KRONA)
 
 
     #############################################################

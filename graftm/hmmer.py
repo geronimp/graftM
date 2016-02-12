@@ -503,25 +503,33 @@ deal with these, so please remove/rename sequences with duplicate keys.")
             where True = Forward direction
             and False = Reverse direction
         '''
-        import IPython ; IPython.embed()
         with tempfile.NamedTemporaryFile(suffix='_raw_extracted_reads.fa') as tmp:
             # Run fxtract to obtain reads form original sequence file
             fxtract_cmd = "fxtract -H -X -f /dev/stdin " 
-            if input_file_format == FORMAT_FASTA:
-                cmd = "%s %s > %s" % (fxtract_cmd, raw_sequences_path, tmp.name)
-            elif input_file_format == FORMAT_FASTQ_GZ:
-                cmd = "%s -z %s | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > %s" % (fxtract_cmd, raw_sequences_path, tmp.name)
-            elif input_file_format == FORMAT_FASTA_GZ:
-                cmd = "%s -z %s > %s" % (fxtract_cmd, raw_sequences_path, tmp.name)
-            elif input_file_format == FORMAT_FASTQ:
-                cmd = "%s %s | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > %s" % (fxtract_cmd, raw_sequences_path, tmp.name)
+            if unpack.format() == FORMAT_FASTA:
+                cmd = "%s %s > %s" % (fxtract_cmd, 
+                                      unpack.read_file, 
+                                      tmp.name)
+            elif unpack.format() == FORMAT_FASTQ_GZ:
+                cmd = "%s -z %s | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > %s" % (fxtract_cmd, 
+                                                                                                          unpack.read_file, 
+                                                                                                          tmp.name)
+            elif unpack.format() == FORMAT_FASTA_GZ:
+                cmd = "%s -z %s > %s" % (fxtract_cmd, 
+                                         unpack.read_file, 
+                                         tmp.name)
+            elif unpack.format() == FORMAT_FASTQ:
+                cmd = "%s %s | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > %s" % (fxtract_cmd, 
+                                                                                                       unpack.read_file,
+                                                                                                       tmp.name)
             else:
                 raise Exception("Programming error")
 
             process = subprocess.Popen(["bash", "-c", cmd], 
                                        stdin=subprocess.PIPE,
                                        stdout=subprocess.PIPE)
-            process.communicate('\n'.join(input_reads))
+            process.communicate('\n'.join(dbsearch.hits.keys()))
+            import IPython ; IPython.embed()
             complement_info = self._extract_multiple_hits(hits, tmp.name, output_path)  # split them into multiple reads
         
         return output_path, complement_info
@@ -810,25 +818,19 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                              ]
         
         self.dbsr.load(search_result)   
-         
-        hit_reads_fasta, direction_information = self._extract_from_raw_reads(
-                                                       hit_reads_fasta,
-                                                       self.dbsr,
-                                                       unpack
-                                                       )
+        
+#        if not hit_readnames:
+#            hit_read_counts = [0, len(hit_readnames)]
+#            result = DBSearchResult(None,
+#                                    search_result,
+#                                    hit_read_counts,
+#                                    None)
 
-        if not hit_readnames:
-            hit_read_counts = [0, len(hit_readnames)]
-            result = DBSearchResult(None,
-                                    search_result,
-                                    hit_read_counts,
-                                    None)
-
-            return result, direction_information
+#            return result, direction_information
 
         if unpack.sequence_type() == 'nucleotide':
             # Extract the orfs of these reads that hit the original search
-
+            import IPython ; IPython.embed()
             self._extract_orfs(
                                hit_reads_fasta,
                                extracting_orfm,
@@ -839,9 +841,18 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                                            SequenceSearchResult.QUERY_FROM_FIELD,
                                                            SequenceSearchResult.QUERY_TO_FIELD])
                                     )
+                               
                                )
 
             hit_reads_fasta = hit_reads_orfs_fasta
+        
+        
+        else:
+            hit_reads_fasta, direction_information = self._extract_from_raw_reads(
+                                                    hit_reads_fasta,
+                                                    self.dbsr,
+                                                    unpack)
+        
         slash_endings=self._check_for_slash_endings(hit_readnames)
         result = DBSearchResult(hit_reads_fasta,
                                 search_result,

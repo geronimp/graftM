@@ -324,7 +324,7 @@ must be in taxtastic format.')
     decorate_options.add_argument('--no_unique_tax', action = "store_true", help='Do not append unique numbers on the end of clades that appear twice', default = False)
     decorate_options.add_argument('--decorate', action = "store_true", help='Decorate the tree conservatively', default = False)
     decorate_options.add_argument('--output_taxonomy', help='File path to output decorated taxonomy strings in GreenGenes format \
-corresponding to each leaf in the tree.', default = False)
+corresponding to each leaf in the tree.', default = None)
 
     # Logging options                                        
     logging_options = tree_parser.add_argument_group('logging options')

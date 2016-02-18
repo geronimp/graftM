@@ -15,15 +15,6 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.        #
 #                                                                             #
 ###############################################################################
-__author__ = "Joel Boyd, Ben Woodcroft"
-__copyright__ = "Copyright 2015"
-__credits__ = ["Joel Boyd"]
-__license__ = "GPL3"
-__version__ = "0.0.1"
-__maintainer__ = "Joel Boyd"
-__email__ = "joel.boyd near uq.net.au"
-__status__ = "Development"
-###############################################################################
 # System imports
 import logging 
 
@@ -56,15 +47,14 @@ class Taxonomy:
     def __init__(self):
         self.taxonomy = {}
         
-    def _ammend_taxonomy_gaps(self):
+    def _amend_taxonomy_gaps(self):
         '''
         Checks that each value in the self.taxonomy dict has consistent
         length. 
         '''
-        try:
-            self.max = max([len(x) for x in self.taxonomy.values()])
-            for taxa_id, taxa_taxonomy_list in self.taxonomy.iteritems():
-                
+        self.max = max([len(x) for x in self.taxonomy.values()])
+        for taxa_id, taxa_taxonomy_list in self.taxonomy.iteritems():
+            try:
                 if len(taxa_taxonomy_list) == self.max:
                     continue
                 else:
@@ -72,12 +62,11 @@ class Taxonomy:
                                 taxa_taxonomy_list + \
                                 [''] * (self.max - len(taxa_taxonomy_list))
                 self.taxonomy[taxa_id] = ammended_split_taxonomy
-        except:
-            logging.error("Controlled exit from taxonomy.Taxonomy \
- _ammend_taxonomy_gaps")    
-            ProgrammingError("Error when trying to interpret taxonomy input")
+            except:
+                raise ProgrammingError("Error when trying to interpret taxonomy \
+input on this line: %s\t%s" % (taxa_id, taxa_taxonomy_list))
     
-    def check(self, taxa_id):
+    def __get__(self, instance, owner):
         '''
         Check whether an id is within the taxonomy description.
         
@@ -86,10 +75,7 @@ class Taxonomy:
         taxa_id : array
             taxa id to return the taxonomy for
         '''
-        if taxa_id in self.id_set:
-            return True
-        else:
-            return False
+        return self.taxonomy
         
     def entry_ids(self):
         '''
@@ -149,26 +135,31 @@ any corresponding entry in the taxonomy description.")
         taxonomy_io : Open greengenes taxonomy file
         '''
         logging.debug("Reading in greengenes formatted taxonomy")
-        try:
-            for entry in taxonomy_io:
-                entry_id, entry_taxonomy_string = entry.strip()\
-                                                       .split(self.TAB)
+        for entry in taxonomy_io:
+            try:                   
+                if len(entry.strip()) == 0: continue #ignore empty lines 
+                splits = entry.split(self.TAB)
+                if len(splits) != 2:
+                    raise MalformedGreenGenesTaxonomyException("Unexpected number of tab-separated fields found in taxonomy file, on line %s" % entry)
+                name = splits[0].strip()
+                taxonomy = [t.strip() for t in splits[1].split(self.GG_SEP_1)]
+                while len(taxonomy) > 0 and not taxonomy[-1]:
+                    taxonomy = taxonomy[:-1]
+                for lineage in taxonomy:
+                    if not lineage:
+                        raise MalformedGreenGenesTaxonomyException("Encountered a taxonomy string with the middle of the taxonomy string missing: %s" % entry)
                 
-                if self.GG_SEP_0 in entry_taxonomy_string:
-                    split_entry_taxonomy = \
-                                entry_taxonomy_string.split(self.GG_SEP_0)                
-                else:
-                    split_entry_taxonomy = \
-                                 entry_taxonomy_string.split(self.GG_SEP_1)
+                if name in self.taxonomy:
+                    raise MalformedGreenGenesTaxonomyException("Duplicate definition of taxonomy for %s" % name)
+                self.taxonomy[name] = taxonomy
                 
-                self.taxonomy[entry_id] = split_entry_taxonomy
-            self._ammend_taxonomy_gaps()
-            self.id_set = set(self.taxonomy.keys())
-        except:
-            logging.error("Controlled exit from taxonomy.Taxonomy \
-read_format_greengenes")
-            raise MalformedGreenGenesFormattedFile("The GreenGenes taxonomy file \
+            except:
+                raise MalformedGreenGenesFormattedFile("The GreenGenes taxonomy file \
 provided was misformatted")
+        self._amend_taxonomy_gaps()
+        
+
+            
     
     def read_format_taxtastic(self, taxonomy_io, seqinfo_io):
         logging.debug("Reading in taxtastic formatted taxonomy")

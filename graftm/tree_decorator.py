@@ -15,15 +15,6 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.        #
 #                                                                             #
 ###############################################################################
-__author__ = "Joel Boyd, Ben Woodcroft"
-__copyright__ = "Copyright 2015"
-__credits__ = ["Joel Boyd"]
-__license__ = "GPL3"
-__version__ = "0.0.1"
-__maintainer__ = "Joel Boyd"
-__email__ = "joel.boyd near uq.net.au"
-__status__ = "Development"
-###############################################################################
 # System imports
 import logging
 import tempfile
@@ -68,8 +59,8 @@ class TreeDecorator: # Room to grow!
         '''
         Parameters
         ----------
-        tree: skbio TreeNode obj
-            http://scikit-bio.org/docs/latest/generated/skbio.tree.TreeNode.html#skbio.tree.TreeNode
+        tree: skbio.tree.TreeNode
+            Tree to be decorated
         no_unique_names : bool
             True of False, whether names will be made non-redundant if 
             monophyletic groupings are split.
@@ -101,7 +92,7 @@ class TreeDecorator: # Room to grow!
             taxonomy_string = reversed(taxonomy_string)
             decorated_taxonomy[tip_name] = Taxonomy.GG_SEP_0\
                                                    .join(taxonomy_string)
-                                                   
+        
         with open(output_taxonomy_path, 'w') as output_taxonomy_io:
             for taxa_name, taxonomy_string in decorated_taxonomy.iteritems():
                 line = "%s\t%s\n" % (taxa_name, taxonomy_string)
@@ -122,58 +113,80 @@ class TreeDecorator: # Room to grow!
         ----------
 
         
-        taxonomy: TaxonomyObject
+        taxonomy: Taxonomy()
                  
         Returns
         -------
         skbio TreeNode object
         '''
-        self.max_taxonomy_index=taxonomy.max
-        consistency_check = 1
-        seen_taxonomy_rank = {}
+        self.max_taxonomy_index = taxonomy.max
+        taxonomy_to_next_unique = {}
         to_decorate = []
         
         for node in self.tree.preorder():    
             tax_string_array = []
-            for rank in range(0, self.max_taxonomy_index):
-                node_classifications = []
+            
+            for rank in range(self.max_taxonomy_index):
+                node_classification = None
+                consistent_annotation = True
                 for tip in node.tips():
-                    tip_name = tip.name.replace(' ','_')
-                    if taxonomy.check(tip_name):
-                        node_classifications.append(taxonomy.rank(tip_name, 
-                                                                  rank))
-                    else:
-                        to_decorate.append(node_classifications)
-
-                if len(set(node_classifications)) == consistency_check:
-                    classification = node_classifications[0]
+                    tip_name = tip.name.replace(' ', '_')
+                    if tip_name in taxonomy.taxonomy:
+                        classification = taxonomy.taxonomy[tip_name][rank]
+                        if node_classification!=None:
+                            if node_classification!=classification:
+                                consistent_annotation=False
+                        else:
+                            node_classification=classification
+                
+                if consistent_annotation:
                     if self.no_unique_names:
                         tax_string_array.append(classification)
                     else:
-                        if classification in seen_taxonomy_rank:
-                            unique_number = seen_taxonomy_rank[classification]
+                        if classification in taxonomy_to_next_unique:
+                            unique_number = taxonomy_to_next_unique[classification]
                             tax_string_array.append('%s_%i' % (classification,
                                                                unique_number))
-                            seen_taxonomy_rank[classification]+=1
+                            taxonomy_to_next_unique[classification]+=1
                         else:
                             tax_string_array.append(classification) 
-                            seen_taxonomy_rank[classification] = 1
-                            
-            tax_string_array = [tax for tax in tax_string_array
+                            taxonomy_to_next_unique[classification] = 1
+
+            # At this point we have the have the list of classifications 
+            # assigned to the node we are on e.g. ['k__Bacteria', 'p__Proteo...]
+            
+            # Here I'm stripping out any empty gg prefixes, if they exist.
+            tax_string_array = [tax for tax in tax_string_array 
                                 if tax not in self.GREENGENES_PREFIXES]
             
             if any(tax_string_array):
-                index = 0
+                # We need to keep track of the index we're on (i.e. which
+                # rank we are up to in the taxonomy string.) so that we do not
+                # Exceed the maximum number of ranks expected. For example if 
+                # You had a tree where some bacteria are within an archaeal 
+                # clade, the full tax string will not be joined to that of the
+                # clase that it is within (i.e. the tax string will not be:
+                # [k__Archaea, k__Bacteria, p__Proteo...]). Above we account 
+                # For this situation by not allowing for any inconsistent 
+                # clades but having this index allows us to implement a 
+                # threshold, rather than strict clades, somewhere down the line
+                index = 0  
+                
                 for anc in node.ancestors():
                     
+                    # Here we count the number of indexes we encounter in the 
+                    # ancestors of the node. 
                     if hasattr(anc, 'index'):
-                        index+=anc.index
+                        # If we exceed the number we expect
                         if index >= self.max_taxonomy_index:break
-
+               
+                # Then we strip off those extra taxonomy ranks (the k__Archaea 
+                # in [k__Archaea, k__Bacteria, p__Proteo...])
                 tax_string_array = tax_string_array[index:]
-                
-                if len(tax_string_array) >0:
-                    node.name =  Taxonomy.GG_SEP_0.join(tax_string_array)
+                # And if we have any tax string left
+                if len(tax_string_array) > 0:
+                    # Decorate the node with that information
+                    node.name =  Taxonomy.GG_SEP_0.join(tax_string_array) 
                     node.index = len(tax_string_array)
         
     def return_tree(self):

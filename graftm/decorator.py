@@ -15,15 +15,6 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.        #
 #                                                                             #
 ###############################################################################
-__author__ = "Joel Boyd, Ben Woodcroft"
-__copyright__ = "Copyright 2015"
-__credits__ = ["Joel Boyd"]
-__license__ = "GPL3"
-__version__ = "0.0.1"
-__maintainer__ = "Joel Boyd"
-__email__ = "joel.boyd near uq.net.au"
-__status__ = "Development"
-###############################################################################
 # System imports
 import logging
 from skbio import TreeNode
@@ -94,9 +85,11 @@ class Decorator:
             Path to file to which the decorated taxonomy will be written to.
             A boolean False if no output taxonomy file was specified. In this
             case no taxonomy is written to file.
-        seqinfo: str
-            path to taxtastic seqinfo file to be used with taxonomy to annotate
-            the tree.
+        no_unique_tax: bool
+            True or False indicating whether or not to make the annotations 
+            assigned to each node within the tree non-redundant.
+        decorate: bool
+            Indicates that the tree is to be decorated with taxonomy.
         '''        
         
         # Reroot

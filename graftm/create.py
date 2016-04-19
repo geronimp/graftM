@@ -419,6 +419,8 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
                             dereplicated_sequence_ids.append(sequence_id)
                         else:
                             seen_taxons.add(taxon)
+                    if len(seen_taxons) < 2:
+                        raise Exception("Insufficient sequences available after dereplication to create a HMM. One solution might be to modify the dereplication level to do less dereplication.")
                     logging.info("Removing %i sequences from the search HMM that are redundant at the %i rank in the taxonomy file" \
                                             % (len(dereplicated_sequence_ids),
                                                dereplication_level))

@@ -13,7 +13,7 @@ class Classify:
 
         return taxonomy_hash
 
-    def assignPlacement(self, placement_json_path, cutoff, type, resolve_placements):
+    def assignPlacement(self, placement_json_path, cutoff, resolve_placements):
         ## Function that reads in classification and returns a 'guppy classify'
         ## like file
         all_placements_reads={}

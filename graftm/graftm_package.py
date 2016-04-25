@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 import logging
+import extern
 
 class InsufficientGraftMPackageException(Exception): pass
 
@@ -108,6 +109,9 @@ class GraftMPackage:
     def __getitem__(self, key):
         '''Return the value of the given key from the contents file'''
         return self.contents_hash[key]
+
+    def contents_file_path(self):
+        return os.path.join(self._base_directory, GraftMPackage._CONTENTS_FILE_NAME)
 
 class GraftMPackageVersion2(GraftMPackage):
     version = 2
@@ -238,6 +242,23 @@ class GraftMPackageVersion3(GraftMPackageVersion2):
                                 self._contents_hash[GraftMPackage.UNALIGNED_SEQUENCE_DATABASE_KEY])
         else:
             return None
+
+    def create_diamond_db(self):
+        '''Create a diamond database from the unaligned sequences in this package.
+
+        Returns
+        -------
+        path to the created diamond db e.g. 'my_seuqences.dmnd'
+        '''
+        base = self.unaligned_sequence_database_path()
+        cmd = "diamond makedb --in '%s' -d '%s'" % (self.unaligned_sequence_database_path(), base)
+        extern.run(cmd)
+        diamondb = '%s.dmnd' % base
+        # Mostly this moves a file to it's current location because Create
+        # follows this same logic, but there's a specially crafted
+        # test/data/mcrA.gpkg which is slightly different.
+        os.rename(diamondb, self.diamond_database_path())
+        return diamondb
         
     @staticmethod
     def compile(output_package_path, refpkg_path, hmm_path, diamond_database_file, 

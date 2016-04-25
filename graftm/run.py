@@ -21,6 +21,7 @@ from graftm.timeit import Timer
 from graftm.clusterer import Clusterer
 from graftm.decorator import Decorator
 from graftm.external_program_suite import ExternalProgramSuite
+from graftm.archive import Archive
 from biom.util import biom_open
 
 T=Timer()
@@ -707,6 +708,67 @@ If you're unsure see graftM tree -h")
             else:
                 logging.error("Either a taxtastic taxonomy or seqinfo file was provided. GraftM cannot continue without both.")
                 exit(1)
+                
+        elif self.args.subparser_name == 'archive':
+            # Back slashes in the ASCII art are escaped.
+            if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART: print """
+                               ARCHIVE
+
+                        Joel Boyd, Ben Woodcroft
+
+                  ____.----.
+        ____.----'          \\
+        \\                    \\
+         \\                    \\
+          \\                    \\
+           \\          ____.----'`--.__
+            \\___.----'          |     `--.____
+           /`-._                |       __.-' \\
+          /     `-._            ___.---'       \\
+         /          `-.____.---'                \\           +------+
+        /            / | \\                       \\          |`.    |`.
+       /            /  |  \\                   _.--'  <===>  |  `+--+---+
+       `-.         /   |   \\            __.--'              |   |  |   |
+          `-._    /    |    \\     __.--'     |              |   |  |   |
+            | `-./     |     \\_.-'           |              +---+--+   |
+            |          |                     |               `. |   `. |
+            |          |                     |                 `+------+
+            |          |                     |
+            |          |                     |
+            |          |                     |
+            |          |                     |
+            |          |                     |
+            `-.        |                  _.-'
+               `-.     |           __..--'
+                  `-.  |      __.-'
+                     `-|__.--'
+            """
+            if self.args.create:
+                if self.args.extract:
+                    logging.error("Please specify whether to either create or export a GraftM package")
+                    exit(1)
+                if not self.args.graftm_package:
+                    logging.error("Creating a GraftM package archive requires an package to be specified")
+                    exit(1)
+                if not self.args.archive:
+                    logging.error("Creating a GraftM package archive requires an output archive path to be specified")
+                    exit(1)
+
+                archive = Archive()
+                archive.create(self.args.graftm_package, self.args.archive,
+                               force=self.args.force)
+
+            elif self.args.extract:
+                archive = Archive()
+                archive.extract(self.args.archive, self.args.graftm_package,
+                                force=self.args.force)
+            else:
+                logging.error("Please specify whether to either create or export a GraftM package")
+                exit(1)
+                
+                    
+                
+
         else:
             raise Exception("Unexpected subparser name %s" % self.args.subparser_name)
             

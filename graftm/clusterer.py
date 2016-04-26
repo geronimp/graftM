@@ -53,7 +53,8 @@ class Clusterer:
             output_annotations[placed_alignment_base] = {}
             for rep_read_name, rep_read_taxonomy in cluster_classifications.iteritems():
                 if merge_reads:
-                    rep_read_name=rep_read_name[:-2]
+                    if self.slash_endings:
+                        rep_read_name=rep_read_name[:-2]
                 if reverse_pipe:
                     orfm_regex = OrfM.regular_expression()
                     clusters={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) else key): item for key, item in clusters.iteritems()}

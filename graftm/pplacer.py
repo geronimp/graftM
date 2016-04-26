@@ -120,7 +120,6 @@ class Pplacer:
         classifications=Classify(tax_descr).assignPlacement(
                                                            jplace, 
                                                            args.placements_cutoff, 
-                                                           'reads', 
                                                            resolve_placements
                                                            )
         self.hk.delete([jplace])# Remove combined split, not really useful

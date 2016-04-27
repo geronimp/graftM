@@ -76,7 +76,7 @@ class Pplacer:
                       'placements' : alias_hash[alias]['place'],
                       'metadata'   : placement_file['metadata']}
             with open(alias_hash[alias]['output_path'], 'w') as output_path:
-                json.dump(output, output_path, ensure_ascii=False)
+                json.dump(output, output_path, ensure_ascii=False, indent=3, separators=(',', ': '))
             jplace_path_list.append(alias_hash[alias]['output_path'])
         return jplace_path_list
     

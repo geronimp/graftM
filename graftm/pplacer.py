@@ -50,16 +50,23 @@ class Pplacer:
 
         # Load the placement file
         placement_file = json.load(open(jplace_file))
-
+        
         # Parse the placements based on unique identifies appended to the end
         # of each read
         for placement in placement_file['placements']: # for each placement
             hash = {} # create an empty hash
             for alias in alias_hash: # For each alias, append to the 'place' list each read that identifier
-                hash = {'p': placement['p'],
-                        'nm': [nm for nm in placement['nm'] if nm[0].split('_')[-1] == alias]}
-                alias_hash[alias]['place'].append(hash)
-
+                nm_list = []
+                p = placement['p']
+                for nm in placement['nm']:
+                    if nm[0].split('_')[-1] == alias:
+                        nm_list.append(nm)
+                if any(nm_list):
+                    hash = {'p': p,
+                            'nm': nm_list}
+                    alias_hash[alias]['place'].append(hash)
+                else:
+                    continue
         # Write the jplace file to their respective file paths.
         jplace_path_list = []
         for alias in alias_hash:

@@ -404,22 +404,21 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
                     seen_taxons = set()
                     prefix_re = re.compile(r'^[a-zA-Z]__$')
                     for sequence_id, taxonomy in taxonomy_definition.iteritems():
-                        
                         try:
                             taxon = taxonomy[dereplication_index]
                         except IndexError:
-                            continue
-    
-                        if taxon == "":
-                            continue
-                        if prefix_re.match(taxon):
-                            continue
+                            taxon = None
+                        if taxon is None or \
+                           taxon == "" or \
+                           prefix_re.match(taxon):
+                            pass
+                        
                         elif taxon in seen_taxons:
                             logging.debug("Sequence %s redundant at %i rank in the taxonomy file level: %s" % (sequence_id, dereplication_level, taxon) )
                             dereplicated_sequence_ids.append(sequence_id)
                         else:
                             seen_taxons.add(taxon)
-                    if len(seen_taxons) < 2:
+                    if len(taxonomy_definition) - len(dereplicated_sequence_ids) < 2:
                         raise Exception("Insufficient sequences available after dereplication to create a HMM. One solution might be to modify the dereplication level to do less dereplication.")
                     logging.info("Removing %i sequences from the search HMM that are redundant at the %i rank in the taxonomy file" \
                                             % (len(dereplicated_sequence_ids),

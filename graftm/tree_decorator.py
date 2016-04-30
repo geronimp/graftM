@@ -1,309 +1,200 @@
-################################################################################
-################################# - Imports - ##################################
+#!/usr/bin/env python
+###############################################################################
+#                                                                             #
+# This program is free software: you can redistribute it and/or modify        #
+# it under the terms of the GNU General Public License as published by        #
+# the Free Software Foundation, either version 3 of the License, or           #
+# (at your option) any later version.                                         #
+#                                                                             #
+# This program is distributed in the hope that it will be useful,             #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of              #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the                #
+# GNU General Public License for more details.                                #
+#                                                                             #
+# You should have received a copy of the GNU General Public License           #
+# along with this program. If not, see <http://www.gnu.org/licenses/>.        #
+#                                                                             #
+###############################################################################
+# System imports
+import logging
+import tempfile
+import subprocess
+import numpy as np
+import os
+import random
+from scipy import stats
+from itertools import combinations
+from collections import Counter
+from skbio.tree import TreeNode
+from graftm.taxonomy import Taxonomy
 
 # Local imports
-from graftm.getaxnseq import Getaxnseq
-from graftm.rerooter import Rerooter
-from graftm.greengenes_taxonomy import GreenGenesTaxonomy
-# System imports
-from skbio import TreeNode
-import argparse
-import logging
-import os
-import sys
-
 ################################################################################
-################################ - Statics - ###################################
-MAX_RESOLUTION = 7
-
 ################################################################################
-################################## - Code - ####################################
+################################################################################
 
 class TreeUnrootedException(Exception): 
     pass
 
-class TreeDecorator:
-    '''Yet another class that decorates trees, only the way I want it.'''
-    
-    
-    def __init__(self, 
-                 tree,
-                 taxonomy,
-                 seqinfo=None):
-        '''
-        Set up empty lists and open and import tree object, and load the
-        taxonomy into a hash
-        '''
-        
-        self.gg_prefixes = ["k__", "d__", 'p__', 'c__', 'o__', 'f__', 'g__', 's__']
-        
-        # Set empty list to record nodes that have already been assigned
-        # taxonomy.
-        self.encountered_nodes = {}
-        self.encountered_taxonomies = set()
-        
-        # Read in tree
-        self.tree = tree
-        
-        # Read in taxonomy
-        
-        if seqinfo:
-            gtns = Getaxnseq()
-            logging.info("Importing taxtastic taxonomy from files: %s and %s" % (taxonomy, seqinfo))
-            self.taxonomy =  gtns.read_taxtastic_taxonomy_and_seqinfo(open(taxonomy), open(seqinfo))
-            
-            for id, taxonomy_list in self.taxonomy.iteritems():
-                if len(taxonomy_list) != MAX_RESOLUTION:
-                    self.taxonomy[id] = taxonomy_list + self.gg_prefixes[1:][len(taxonomy_list):]
-        else:
-            logging.info("Importing greengenes taxonomy from file: %s" % (taxonomy))
-            self.taxonomy = GreenGenesTaxonomy.read_file(taxonomy).taxonomy
-            
-    def _nodes(self):
-        '''
-        Iterate through nodes in tree, returning those that are not tips (i.e.
-        returning only nodes)
-        
-        Inputs:
-            None
-        Yields:
-            Node object, if it is not a tip
-        '''
-        logging.debug("Iterating through nodes")       
-        if len(self.tree.children) > 2:
-            logging.warning("There are > 2 descendants from the root of the \
-tree that was  provided. Tree is being rerooted to the branch of the node that \
-is the greatest distance to the root.")
-            self.tree = Rerooter().reroot(self.tree)
-        for node in self.tree.preorder():
-            if node.is_root():
-                logging.debug("%i reads in tree from root" % (len(list(node.tips()))))                   
-                yield node
-            elif node.is_tip():
-                logging.debug("Tip %s reached" % (node.name))
-            else:
-                if node not in self.encountered_nodes: # If node hath not been decorated.
-                    if node.name:
-                        logging.debug("Node %s reached" % (node.name))
-                    else:
-                        logging.debug("Unnamed node reached")
-                    yield node
-    
-    def _transpose_taxonomy(self, taxonomy_list):
-        '''
-        Transpose the taxonomy grid to contain lists of each taxonomic
-        rank
-        
-        Inputs: 
-            taxonomy_list: array
-                - List of split taxonomy strings to be tansposed
-        Outputs: 
-            transposed_taxonomy: array
-                - As per above description
-        '''
-        transposed_taxonomy = []
-        for index in range(0, 7):
+#-------------------------------------------------------------------------------
 
-            rank_taxonomy_list = [taxonomy_entry[index] 
-                                    for taxonomy_entry in taxonomy_list]
-            transposed_taxonomy.append(set(rank_taxonomy_list))
-        return transposed_taxonomy
-    
-    def _write_tree(self, output):
-        '''Just Writes tree to file uisng scikit-bio'''
-        logging.info("Writing decorated tree to file: %s" % (output))
-        self.tree.write(
-                    output,
-                    format = "newick"   
-                        )
-        
-    def _write_consensus_strings(self, output):
-        '''Writes the taxonomy of each leaf to a file'''
-        logging.info("Writing decorated taxonomy to file: %s" % (output))
-        with open(output, 'w') as out:
-            for tip in self.tree.tips():
-                ancestors = tip.ancestors()
-                
-                ancestor_tax = []
-                for ancestor in ancestors:
-                    if ancestor.name:
-                        split_node_name = ancestor.name.split(':')
-                        if len(split_node_name) == 2:
-                            ancestor_tax.append(split_node_name[1])
-                        elif len(split_node_name) == 1:
-                            pass
-                        else:
-                            raise Exception("Malformed node name: %s" % ancestor.name)
-                        
-                tax_list = list(reversed(ancestor_tax))
-                tax_name = tip.name.replace(" ", "_")
-                if len(tax_list) < 1:
-                    logging.debug("Species %s not decorated within the tree, using provided tax string as substitute" % (tax_name))
-                    if tax_name in self.taxonomy:
-                        tax_string = '; '.join(self.taxonomy[tax_name])
-                    else:
-                        logging.warning("No taxonomy found for species %s!" % (tax_name))
-                        tax_string = "Unknown"
-                else:
-                    tax_string = '; '.join(tax_list)
-                output_line = "%s\t%s\n" % (tax_name, tax_string)
-                out.write(output_line)
-    
-    def _get_tax_index(self, ancestry):
+class MalformedTreeException(Exception):
+    pass
+
+#-------------------------------------------------------------------------------
+
+class TreeDecorator: # Room to grow!
+    '''
+    Decorate trees with information!
+    '''
+    GREENGENES_PREFIXES = set(['k__',
+                               'p__',
+                               'c__',
+                               'o__',
+                               'f__',
+                               'g__',
+                               's__'])
+
+    def __init__(self, tree, no_unique_names):
         '''
-        Iterate through ancestor nodes to find the current taxonomy index (i.e.
-        the rank that should be assigned to the current node.
-        
-        Inputs:
-            ancestry: list
-                TreeNode.ancestory list that contains all nodes above the 
-                current.
-        Outputs:
-            Current index of taxonomy. Returns None if node has no ancestors 
-            (i.e. is root)
-                
+        Parameters
+        ----------
+        tree: skbio.tree.TreeNode
+            Tree to be decorated
+        no_unique_names : bool
+            True of False, whether names will be made non-redundant if 
+            monophyletic groupings are split.
         '''
-        current_index = 0
-        ancetor_rank_number = 0
-        ancestry = [x for x in ancestry if not x.is_root()]
-        if any(ancestry):
-            ancestor_tax_list = []
-            for ancestor in ancestry:
-                ai = self.encountered_nodes[ancestor]
-                
-                if ancestor.name:
-                    split_node_name = ancestor.name.split(':')
-                    if len(split_node_name) == 2:
-                        ancestor_tax_list.append(split_node_name[1])
-                    elif len(split_node_name) == 1:
-                        pass
-                    else:
-                        raise Exception("Malformed node name: %s" % ancestor.name)
-                if ai > current_index:
-                    current_index = ai
+        self.tree               = tree
+        self.no_unique_names    = no_unique_names
+    
+    def write_taxonomy(self, output_taxonomy_path):
+        '''
+        Write a greengenes formatted taxonomy file to the "output_taxonomy_path"
+        path for each tip in the tree. If no classification is possible the 
+        string will be left empty
+        
+        Parameters
+        ----------
+        output_taxonomy_path
+        '''
+        logging.debug("Writing decorated taxonomy to %s" % output_taxonomy_path)
+        decorated_taxonomy = {}
+        for tip in self.tree.tips():
+            taxonomy_string = []
+            tip_name = tip.name.replace(' ','_')
+            index = 0
+            for ancestor in tip.ancestors():
+                if hasattr(ancestor, 'index'):
+                    index += ancestor.index
+                    taxonomy_string.append(ancestor.name)
+                    if index > self.max_taxonomy_index:break
+            taxonomy_string = reversed(taxonomy_string)
+            decorated_taxonomy[tip_name] = Taxonomy.GG_SEP_0\
+                                                   .join(taxonomy_string)
+        
+        with open(output_taxonomy_path, 'w') as output_taxonomy_io:
+            for taxa_name, taxonomy_string in decorated_taxonomy.iteritems():
+                line = "%s\t%s\n" % (taxa_name, taxonomy_string)
+                output_taxonomy_io.write(line)
+    
+    def taxonomy_partition(self, taxonomy):
+        '''
+        Partition the tree into strict taxonomy clades. This code currently 
+        does not allow for inconsistency within a clade of any fashion, but 
+        should be flexible enough to integrate easily should the need arise.
+        Taxonomy decoration should be granular, but if there are many HGT 
+        events or the tree just doesn't follow taxonomy it could be messy. 
+        A simple tally system distinguished taxonomic groupings. This can be 
+        turned off by providing a false to the no_unique_names paramters in the
+        __init__ of this function
+        
+        Parameters
+        ----------
+
+        
+        taxonomy: Taxonomy()
+                 
+        Returns
+        -------
+        skbio TreeNode object
+        '''
+        self.max_taxonomy_index = taxonomy.max
+        taxonomy_to_next_unique = {}
+        to_decorate = []
+        
+        for node in self.tree.preorder():    
+            tax_string_array = []
             
-            ancestor_tax = '; '.join(reversed(ancestor_tax_list))
-            logging.debug("Ancestors at %i nodes: %s" % (len(ancestor_tax_list), ancestor_tax))
-            ancetor_rank_number = len(ancestor_tax.split('; ')) #
-            return current_index, ancetor_rank_number
-        else:       
-            return current_index, ancetor_rank_number
-            #raise Exception("Programming error in _get_tax_index. Failed to find ancestors for current node.")
-    
-    def extract(self, output_tax):
-        self._write_consensus_strings(output_tax)
-    
-    def decorate(self, output_tree, output_tax, no_unique_names):
-        '''
-        Main function for TreeDecorator class. Accepts the output directory, 
-        iterates through nodes, classifying them according to provided taxonomy. 
-        '''
-        # Define list of prefixes        
-        logging.info("Decorating tree")
-        for node in self._nodes():
-            placement_depth = 0 
-            current_index = 0
-            parent = node.parent
-            children = list(node.tips())
-            logging.debug("Current node has %i children" % (len(children)))
-                        
-            # Gather the children 
-            children_taxonomy = []
-            for t in children:
-                tip_name = t.name.replace(' ', '_')
-                if tip_name in self.taxonomy:
-                    children_taxonomy.append(self.taxonomy[tip_name])
-            node_tax = self._transpose_taxonomy(children_taxonomy)
-            tax_list = []
-            for index, rank in enumerate(node_tax):
-                if len(rank) == 1:
-                    tax=list(rank)[0]
-                    if tax not in self.gg_prefixes:
-                        tax_list.append(list(rank)[0])
-                        placement_depth += 1
-                else:
-                    break
-
-            if len(tax_list) >= 1:
-                logging.debug("Node has consistent taxonomy: %s" % '; '.join(tax_list))
-                
-                if not parent:
-                    current_index = len(tax_list)
-                    resolution = 1
-                else:
-                    if parent.is_root():
-                        if parent.name:
-                            current_index, resolution = self._get_tax_index(node.ancestors())
+            for rank in range(self.max_taxonomy_index):
+                node_classification = None
+                consistent_annotation = True
+                for tip in node.tips():
+                    tip_name = tip.name.replace(' ', '_')
+                    if tip_name in taxonomy.taxonomy:
+                        classification = taxonomy.taxonomy[tip_name][rank]
+                        if node_classification!=None:
+                            if node_classification!=classification:
+                                consistent_annotation=False
                         else:
-                            current_index = 0
-                            resolution = len(tax_list)   
-                    else:
-                        current_index, resolution = self._get_tax_index(node.ancestors())
-                        
-                    if len(tax_list) <= current_index:
-                        logging.debug("No consistent taxonomy found for node! Moving to next node.")
-                        self.encountered_nodes[node] = current_index
-                        continue
-                    else:
-                        if len(tax_list) == placement_depth:
-
-                            tax_list = tax_list[current_index:]
-                            for child in children:
-                                self.encountered_nodes[child] = current_index
-                        elif len(node.children) == len(list(node.tips())):
-                            tax_list = tax_list[current_index:]
-                            for child in children:
-                                self.encountered_nodes[child] = current_index
-                        else:
-                            current_index = len(tax_list)
+                            node_classification=classification
                 
-                if resolution < MAX_RESOLUTION:
-                    new_tax_list = [] 
+                if consistent_annotation:
+                    if self.no_unique_names:
+                        tax_string_array.append(classification)
+                    else:
+                        if classification in taxonomy_to_next_unique:
+                            unique_number = taxonomy_to_next_unique[classification]
+                            tax_string_array.append('%s_%i' % (classification,
+                                                               unique_number))
+                            taxonomy_to_next_unique[classification]+=1
+                        else:
+                            tax_string_array.append(classification) 
+                            taxonomy_to_next_unique[classification] = 1
+
+            # At this point we have the have the list of classifications 
+            # assigned to the node we are on e.g. ['k__Bacteria', 'p__Proteo...]
+            
+            # Here I'm stripping out any empty gg prefixes, if they exist.
+            tax_string_array = [tax for tax in tax_string_array 
+                                if tax not in self.GREENGENES_PREFIXES]
+            
+            if any(tax_string_array):
+                # We need to keep track of the index we're on (i.e. which
+                # rank we are up to in the taxonomy string.) so that we do not
+                # Exceed the maximum number of ranks expected. For example if 
+                # You had a tree where some bacteria are within an archaeal 
+                # clade, the full tax string will not be joined to that of the
+                # clase that it is within (i.e. the tax string will not be:
+                # [k__Archaea, k__Bacteria, p__Proteo...]). Above we account 
+                # For this situation by not allowing for any inconsistent 
+                # clades but having this index allows us to implement a 
+                # threshold, rather than strict clades, somewhere down the line
+                index = 0  
+                
+                for anc in node.ancestors():
                     
-                        
-                    for tax in tax_list:
-                        if not no_unique_names:
-                            if tax in self.encountered_taxonomies:
-                                idx = 1
-                                while tax in self.encountered_taxonomies:
-                                    if idx > 1: 
-                                        tax = '%s_%i' % ('_'.join(tax.split('_')[:-1]), idx)
-                                    else:
-                                        tax = tax + '_%i' % idx
-                                    idx += 1
-
-                        new_tax_list.append(tax)
-                        self.encountered_taxonomies.add(tax)
-                    tax_string = '; '.join(new_tax_list)
+                    # Here we count the number of indexes we encounter in the 
+                    # ancestors of the node. 
+                    if hasattr(anc, 'index'):
+                        # If we exceed the number we expect
+                        if index >= self.max_taxonomy_index:break
+               
+                # Then we strip off those extra taxonomy ranks (the k__Archaea 
+                # in [k__Archaea, k__Bacteria, p__Proteo...])
+                tax_string_array = tax_string_array[index:]
+                # And if we have any tax string left
+                if len(tax_string_array) > 0:
+                    # Decorate the node with that information
+                    node.name =  Taxonomy.GG_SEP_0.join(tax_string_array) 
+                    node.index = len(tax_string_array)
+        
+    def return_tree(self):
+        '''
+        Returns the tree after all manipulation is done
+        '''
+        return self.tree                   
                     
-                    if node.name:
-                        split_node_name = node.name.split(':')
-                        if len(split_node_name) > 2: 
-                            raise Exception("Malformed tree. Please remove ':' from the read names in the tree")
-                            exit(1)
-                        elif len(split_node_name) < 2:
-                            node_name = "%s:%s" % (split_node_name[0], tax_string)
-                        else:
-                            bootstrap_value, node_name = split_node_name[0], split_node_name[1]
-                            node_name = "%s:%s" % (bootstrap_value, tax_string)
-                    else:
-                        node_name = tax_string
-                    node.name = node_name
-                    logging.debug("Renamed node %s" % node_name)
-                    self.encountered_nodes[node]=index
-                    
-                else:
-                    self.encountered_nodes[node]=current_index
-            else:
-                logging.debug("Cannot resolve node, no consistent taxonomy beyond that which has been described.")
-                self.encountered_nodes[node]=current_index
-            
-        if output_tree:
-            self._write_tree(output_tree)
-        if output_tax:
-            self._write_consensus_strings(output_tax)
-
+################################################################################d
 ################################################################################
-################################################################################
-        
         

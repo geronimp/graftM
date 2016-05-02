@@ -58,7 +58,15 @@ class Tests(unittest.TestCase):
                           TaxonomyExtractor().taxonomy_from_annotated_tree(\
                             TreeNode.read(StringIO(u"(a,(b,(c,d:0.2)'0.2:tax')0.01973:0.9)root;"))))
         
-
+    def test_branch_lengths(self):
+        '''https://github.com/geronimp/graftM/issues/192'''
+        taxes = TaxonomyExtractor().taxonomy_from_annotated_tree(
+            TreeNode.read(os.path.join(path_to_data, 'create', 'sulfitereductase.ben.tree')))
+        self.assertEquals([u'Aanerobic sulfite reductase asrC',
+                           u'Anaerobic sulfite reductase asrC Group 3',
+                           u'Unknown alpha and beta subunits',
+                           u'0.856_PFAM_NIR_SIR,NIR_SIR_ferr'], # number is actually in the clade name
+                          taxes['T506DRAFT_scaffold00010.10_60~2561511230'])
         
 
 if __name__ == "__main__":

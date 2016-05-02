@@ -821,6 +821,18 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
         logging.info("Cleaning up")
         self._cleanup(self.the_trash)
 
+        # Test out the gpkg just to be sure.
+        #
+        # TODO: Use graftM through internal means rather than via extern. This
+        # requires some refactoring so that graft() can be called easily with
+        # sane defaults.
+        logging.info("Testing gpkg package works")
+        temp_output = tempdir.TempDir()
+        cmd = "graftM graft --forward '%s' --graftm_package '%s' --output '%s'" %(
+            sequences, output_gpkg_path, temp_output)
+        extern.run(cmd)
+        temp_output.dissolve()
+
         logging.info("Finished\n")
 
     def update(self, input_sequence_path, input_taxonomy_path,

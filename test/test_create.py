@@ -253,7 +253,33 @@ r6\td__Archaea;p__Euryarchaeota;c__Methanomicrobia;o__Halobacteriales;f__Halobac
                 for record in SeqIO.parse(open(pkg.alignment_fasta_path()), 'fasta'):
                     self.assertEqual(str(record.seq).replace('R','N'), str(record.seq))
                     break
-        
+
+    def test_for_duplicate_sequence_names(self):
+        with tempfile.NamedTemporaryFile(suffix='.fa') as bad_alignment:
+            with tempdir.TempDir() as tmp:
+                with self.assertRaises(Exception) as context:
+                    Create(prerequisites).main(
+                        alignment=os.path.join(path_to_data,'create','homologs.trimmed.aligned.duplicate.faa'),
+                        taxonomy=os.path.join(path_to_data,'create','homologs.tax2tree.rerooted.decorated.tree-consensus-strings'),
+                        sequences=os.path.join(path_to_data,'create','homologs.trimmed.unaligned.faa'),
+                        rerooted_tree=os.path.join(path_to_data,'create','decorated.tree'),
+                        min_aligned_percent=0.5,
+                        prefix=tmp+".gpkg",
+                        threads=5)
+
+    def test_for_duplicate_alignment_names(self):
+        with tempfile.NamedTemporaryFile(suffix='.fa') as bad_alignment:
+            with tempdir.TempDir() as tmp:
+                with self.assertRaises(Exception) as context:
+                    Create(prerequisites).main(
+                        alignment=os.path.join(path_to_data,'create','homologs.trimmed.aligned.faa'),
+                        taxonomy=os.path.join(path_to_data,'create','homologs.tax2tree.rerooted.decorated.tree-consensus-strings'),
+                        sequences=os.path.join(path_to_data,'create','homologs.trimmed.unaligned.duplicate.faa'),
+                        rerooted_tree=os.path.join(path_to_data,'create','decorated.tree'),
+                        min_aligned_percent=0.5,
+                        prefix=tmp+".gpkg",
+                        threads=5)
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.ERROR)

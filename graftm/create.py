@@ -404,22 +404,21 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
                     seen_taxons = set()
                     prefix_re = re.compile(r'^[a-zA-Z]__$')
                     for sequence_id, taxonomy in taxonomy_definition.iteritems():
-                        
                         try:
                             taxon = taxonomy[dereplication_index]
                         except IndexError:
-                            continue
-    
-                        if taxon == "":
-                            continue
-                        if prefix_re.match(taxon):
-                            continue
+                            taxon = None
+                        if taxon is None or \
+                           taxon == "" or \
+                           prefix_re.match(taxon):
+                            pass
+                        
                         elif taxon in seen_taxons:
                             logging.debug("Sequence %s redundant at %i rank in the taxonomy file level: %s" % (sequence_id, dereplication_level, taxon) )
                             dereplicated_sequence_ids.append(sequence_id)
                         else:
                             seen_taxons.add(taxon)
-                    if len(seen_taxons) < 2:
+                    if len(taxonomy_definition) - len(dereplicated_sequence_ids) < 2:
                         raise Exception("Insufficient sequences available after dereplication to create a HMM. One solution might be to modify the dereplication level to do less dereplication.")
                     logging.info("Removing %i sequences from the search HMM that are redundant at the %i rank in the taxonomy file" \
                                             % (len(dereplicated_sequence_ids),
@@ -503,6 +502,30 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
                 m = search_re.search(newseq)
             s.seq = newseq
 
+    def _check_for_duplicate_sequence_names(self, fasta_file_path):
+        """Test if the given fasta file contains sequences with duplicate
+        sequence names.
+
+        Parameters
+        ----------
+        fasta_file_path: string
+            path to file that is to be checked
+
+        Returns
+        -------
+        The name of the first duplicate sequence found, else False.
+
+        """
+        found_sequence_names = set()
+        for record in SeqIO.parse(fasta_file_path, 'fasta'):
+            name = record.name
+            if name in found_sequence_names:
+                return name
+            found_sequence_names.add(name)
+        return False
+
+
+
     def main(self, **kwargs):
         alignment = kwargs.pop('alignment',None)
         sequences = kwargs.pop('sequences',None)
@@ -561,6 +584,16 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
                  open(taxtastic_seqinfo))
         else:
             raise Exception("Taxonomy is required somehow e.g. by --taxonomy or --rerooted_annotated_tree")
+
+        # Check for duplicates
+        if sequences:
+            dup = self._check_for_duplicate_sequence_names(sequences)
+            if dup:
+                raise Exception("Found duplicate sequence name '%s' in sequences input file" % dup)
+        if alignment:
+            dup = self._check_for_duplicate_sequence_names(alignment)
+            if dup:
+                raise Exception("Found duplicate sequence name '%s' in alignment input file" % dup)
 
         output_alignment = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa').name
         align_hmm = (user_hmm if user_hmm else tempfile.NamedTemporaryFile(prefix='graftm', suffix='_align.hmm').name)

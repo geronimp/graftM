@@ -30,21 +30,49 @@ sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.
 from graftm.unpack_sequences import UnpackRawReads
 
 class Tests(unittest.TestCase):
-    def test__guess_sequence_type(self):
+    def test__guess_sequence_type_string(self):
+        self.assertEqual('aminoacid', UnpackRawReads._guess_sequence_type_from_string('P'*10))
+        self.assertEqual('aminoacid', UnpackRawReads._guess_sequence_type_from_string('P'*10+'T'*89))
+        self.assertEqual('nucleotide', UnpackRawReads._guess_sequence_type_from_string('P'*10+'T'*90))
+        self.assertEqual('nucleotide', UnpackRawReads._guess_sequence_type_from_string('A'*300+'E'*999)) #only look at the first 300bp
+        self.assertEqual('nucleotide', UnpackRawReads._guess_sequence_type_from_string('a'*10+'T'*89)) #lowercase
+    
+    
+    def test__guess_sequence_type_file(self):
         
-        test_read=""">HWI-ST1243:121:D1AF9ACXX:8:1101:12684:12444
-GTCAACAACCCCGCAATGCAACAGATGTGGGATGAGATCAGACGTACAGTTATCGTCGGTCTCGACCAGGCCCACGAGACGCTGACCAGAAGACTCGGTAAGGAAGTTACCCCTGAGACCATCAACGGCTATCTTGAGGCGTTGAACCAC"""
-        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
-            fasta.write(test_read)
-            fasta.flush()
 
-            urr = UnpackRawReads(fasta.name)
-            
-            self.assertEqual('aminoacid', urr._guess_sequence_type_from_string('P'*10))
-            self.assertEqual('aminoacid', urr._guess_sequence_type_from_string('P'*10+'T'*89))
-            self.assertEqual('nucleotide', urr._guess_sequence_type_from_string('P'*10+'T'*90))
-            self.assertEqual('nucleotide', urr._guess_sequence_type_from_string('A'*300+'E'*999)) #only look at the first 300bp
-            self.assertEqual('nucleotide', urr._guess_sequence_type_from_string('a'*10+'T'*89)) #lowercase
+        test_read_amino_acid1=">test_read_aa\nPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP\n"
+        test_read_amino_acid2=">test_read_aa\nPPPPPPPPPPTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT\n"
+        test_read_nucleotide1=">test_read_nt\nPPPPPPPPPPTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT\n"
+        test_read_nucleotide2=""">test_read_nt
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEEEEEEEEEEEEEEEEEEEEE
+EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+EEEEEEEEEEEEEEE
+"""
+        test_read_nucleotide3=">test_read_nt\naaaaaaaaaaTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT\n"
+        
+        for test_list in [[test_read_amino_acid1, "aminoacid"],
+                          [test_read_amino_acid2, "aminoacid"],
+                          [test_read_nucleotide1, "nucleotide"],
+                          [test_read_nucleotide2, "nucleotide"],
+                          [test_read_nucleotide3, "nucleotide"]]:
+            test_read = test_list[0]
+            expected_type = test_list[1]
+            with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+                fasta.write(test_read)
+                fasta.flush()
+                urr = UnpackRawReads(fasta.name)
+                self.assertEqual(expected_type, urr.type)
 
 if __name__ == "__main__":
     unittest.main()

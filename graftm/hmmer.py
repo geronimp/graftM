@@ -5,7 +5,6 @@ import itertools
 import logging
 import tempfile
 import subprocess
-import re
 
 from Bio import SeqIO
 from collections import OrderedDict
@@ -211,14 +210,14 @@ class Hmmer:
         hmmtables = [HMMSearchResult.import_from_hmmsearch_table(x) for x in output_table_list]
         return hmmtables
 
-    def merge_forev_aln(self, slash_endings,
+    def merge_forev_aln(self, has_slash_endings,
                         forward_aln_list, reverse_aln_list, outputs):
         '''
         merge_forev_aln - Merges forward and reverse alignments for a given run
 
         Parameters
         ----------
-        slash_endings : bool
+        has_slash_endings : bool
             True/False: whether the sequence headers contain the old style 
             '/1' and '/2' headers to denote forward and reverse reads.
         for_aln_list : array
@@ -244,7 +243,7 @@ class Hmmer:
             new_dict = {}
 
             for key, record in records.iteritems():
-                if slash_endings:
+                if has_slash_endings:
                     key = key[:-2]
                 
                 orfmregex = orfm_regex.match(key)
@@ -949,11 +948,11 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                )
 
             hit_reads_fasta = hit_reads_orfs_fasta
-        slash_endings=self._check_for_slash_endings(hit_readnames)
+        has_slash_endings=self._check_for_slash_endings(hit_readnames)
         result = DBSearchResult(hit_reads_fasta,
                                 search_result,
                                 [0, len([itertools.chain(*hits.values())])],  # array of hits [euk hits, true hits]. Euk hits alway 0 unless searching from 16S
-                                slash_endings)  # Any reads that end in /1 or /2     
+                                has_slash_endings)  # Any reads that end in /1 or /2     
 
         if maximum_range:
             n_hits = sum([len(x["strand"]) for x in hits.values()])
@@ -1097,11 +1096,11 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                   hit_read_count,
                                   None)
         else:
-            slash_endings=self._check_for_slash_endings(hit_readnames)
+            has_slash_endings=self._check_for_slash_endings(hit_readnames)
             result = DBSearchResult(hit_reads_fasta,
                                     search_result,
                                     hit_read_count,
-                                    slash_endings)
+                                    has_slash_endings)
 
         if maximum_range:
             n_hits = sum([len(x["strand"]) for x in hits.values()])

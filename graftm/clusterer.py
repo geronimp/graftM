@@ -7,11 +7,11 @@ import re
 
 class Clusterer:
 
-    def __init__(self, slash_endings):
+    def __init__(self, has_slash_endings):
         '''
         Parameters
         ----------
-        slash_endings : bool
+        has_slash_endings : bool
             True false as to whether reads follow the /1 /2 pattern for 
             distinguishing forward and reverse reads. 
         
@@ -21,7 +21,7 @@ class Clusterer:
         
         self.seq_library = {}
         
-        self.slash_endings = slash_endings
+        self.has_slash_endings = has_slash_endings
         self.orfm_regex = OrfM.regular_expression()
 
 
@@ -63,7 +63,7 @@ class Clusterer:
             output_annotations[placed_alignment_base] = {}
             for rep_read_name, rep_read_taxonomy in cluster_classifications.iteritems():
                 if merge_reads:
-                    if self.slash_endings:
+                    if self.has_slash_endings:
                         rep_read_name=rep_read_name[:-2]
                 if reverse_pipe:
                     orfm_regex = OrfM.regular_expression()
@@ -110,7 +110,7 @@ class Clusterer:
                                         output_path
                                         ) # Choose the first sequence to write to file as representative (all the same anyway)
             for cluster in clusters:
-                if self.slash_endings:
+                if self.has_slash_endings:
                     name = cluster[0].name[:-2]
                 else:
                     name = cluster[0].name                    

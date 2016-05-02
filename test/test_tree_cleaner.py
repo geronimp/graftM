@@ -39,33 +39,33 @@ class Tests(unittest.TestCase):
                                     names, TreeNode.read(StringIO(tree)))
 
     def test_match_alignment_and_tree_sequence_ids(self):
-        self.match('(a,(b,c));',_('a b c'))
+        self.match(u'(a,(b,c));',_('a b c'))
         
     def test_match_alignment_and_tree_sequence_ids_tree_not_align(self):
-        self.assertRaises(Exception, self.match, '(a,(b,c));',_('a b'))
+        self.assertRaises(Exception, self.match, u'(a,(b,c));',_('a b'))
         
     def test_match_alignment_and_tree_sequence_ids_align_not_tree(self):
-        self.assertRaises(Exception, self.match, '(a,(b,c));',_('a b c d'))
+        self.assertRaises(Exception, self.match, u'(a,(b,c));',_('a b c d'))
         
     def test_match_alignment_and_tree_sequence_ids_underscores(self):
-        self.match('(\'a_2\',(b,c));',_('a_2 b c'))
+        self.match(u'(\'a_2\',(b,c));',_('a_2 b c'))
         
     def test_remove_sequences_easy(self):
         tc  = TreeCleaner()
-        tree = TreeNode.read(StringIO('(((a,b)F,c)d);'))
+        tree = TreeNode.read(StringIO(u'(((a,b)F,c)d);'))
         tc.remove_sequences(tree, ['b'])
         self.assertEqual('((c,a)d);\n', str(tree))
         
     def test_remove_sequences_underscores(self):
         tc  = TreeCleaner()
-        tree = TreeNode.read(StringIO("(((a,b),(c_yeh,L))d);"))
+        tree = TreeNode.read(StringIO(u"(((a,b),(c_yeh,L))d);"))
         tc.remove_sequences(tree, ['c_yeh'])
         self.assertEqual('(((a,b),L)d);\n', str(tree))
         
         
     def test_remove_sequences_with_named_internal_nodes(self):
         tc  = TreeCleaner()
-        tree = TreeNode.read(StringIO("('Asulf_Archaeoglobus.1_2280~2522125074':7.17,(('Afulgi_764~2528311132':0.0,'CP006577_764~2588253768':0.0):0.0,'AE000782_746~638154502':0.0)'s__Archaeoglobus fulgidus':7.555):1.461;\n"))
+        tree = TreeNode.read(StringIO(u"('Asulf_Archaeoglobus.1_2280~2522125074':7.17,(('Afulgi_764~2528311132':0.0,'CP006577_764~2588253768':0.0):0.0,'AE000782_746~638154502':0.0)'s__Archaeoglobus fulgidus':7.555):1.461;\n"))
         tc.remove_sequences(tree, 
                             ['CP006577_764~2588253768',
                              'Afulgi_764~2528311132'])

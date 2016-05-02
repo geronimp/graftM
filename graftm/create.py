@@ -573,7 +573,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         if rerooted_annotated_tree:
             logging.info("Building seqinfo and taxonomy file from input annotated tree")
             taxonomy_definition = TaxonomyExtractor().taxonomy_from_annotated_tree(\
-                    TreeNode.read(open(rerooted_annotated_tree)))
+                    TreeNode.read(rerooted_annotated_tree))
         elif taxonomy:
             logging.info("Building seqinfo and taxonomy file from input taxonomy")
             taxonomy_definition = GreenGenesTaxonomy.read_file(taxonomy).taxonomy
@@ -725,7 +725,7 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
 
             # Remove any sequences from the tree that are duplicates
             cleaner = TreeCleaner()
-            tree = TreeNode.read(open(tre_file))
+            tree = TreeNode.read(tre_file)
             for group in deduplicated_arrays:
                 [removed_sequence_names.append(s.name) for s in group[1:]]
             cleaner.remove_sequences(tree, removed_sequence_names)
@@ -747,8 +747,7 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
                 tre_file_tempfile = tempfile.NamedTemporaryFile(suffix='.tree', prefix='graftm')
                 tre_file = tre_file_tempfile.name
                 with tempfile.NamedTemporaryFile(suffix='.tree', prefix='graftm') as f:
-                    tree.write(f)
-                    f.flush()
+                    tree.write(f.name)
                     self._generate_tree_log_file(f.name, deduplicated_alignment_file,
                                             tre_file, log_file, ptype, self.fasttree)
 
@@ -773,7 +772,7 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
             if rerooted_annotated_tree:
                 logging.info("Building seqinfo and taxonomy file from input annotated tree")
                 taxonomy_definition = TaxonomyExtractor().taxonomy_from_annotated_tree(\
-                        TreeNode.read(open(rerooted_annotated_tree)))
+                        TreeNode.read(rerooted_annotated_tree))
             elif taxonomy:
                 logging.info("Building seqinfo and taxonomy file from input taxonomy")
                 taxonomy_definition = GreenGenesTaxonomy.read_file(taxonomy).taxonomy

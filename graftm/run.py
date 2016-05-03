@@ -428,6 +428,7 @@ class Run:
 
         if self.args.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
             # Classification steps        
+            import IPython ; IPython.embed()
             if not self.args.no_clustering:
                 C=Clusterer(unpack.has_slash_endings)
                 seqs_list=C.cluster(seqs_list, REVERSE_PIPE)

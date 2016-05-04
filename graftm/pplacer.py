@@ -101,14 +101,21 @@ class Pplacer:
             nm_dict = {}
             p = placement['p']
             for nm in placement['nm']:
-                read_alias_idx = nm[0].split('_')[-1] # Split the alias 
+                nm_list = []
+                placement_read_name, plval = nm
+                read_alias_idx = placement_read_name.split('_')[-1] # Split the alias 
                                     # index out of the read name, which 
                                     # corresponds to the input file from 
                                     # which the read originated.
+                read_name = '_'.join(placement_read_name.split('_')[:-1])
+                read_cluster = cluster_dict[read_alias_idx][read_name]
+                for read in read_cluster:
+                    nm_list.append([read.name, plval])
                 if read_alias_idx not in nm_dict:
-                    nm_dict[read_alias_idx] = [nm]
+                    nm_dict[read_alias_idx] = nm_list
                 else:
-                    nm_dict[read_alias_idx].append(nm)
+                    nm_dict[read_alias_idx] += nm
+                
             for alias_idx, nm_list in nm_dict.iteritems():
                 placement_hash = {'p': p,
                                   'nm': nm_list}                

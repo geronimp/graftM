@@ -432,11 +432,11 @@ class Run:
         self.gmf = GraftMFiles('',
                                self.args.output_directory,
                                False)
-
+        
         if self.args.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
+            clusterer=Clusterer()
             # Classification steps        
             if not self.args.no_clustering:
-                clusterer=Clusterer()
                 seqs_list=clusterer.cluster(seqs_list, REVERSE_PIPE)
             logging.info("Placing reads into phylogenetic tree")
             taxonomic_assignment_time, assignments=self.p.place(REVERSE_PIPE,

@@ -44,16 +44,12 @@ class Pplacer:
                 file_number += 1
         return alias_hash
 
-    def jplace_split(self, jplace_file, alias_hash):
+    def jplace_split(self, original_jplace, alias_hash):
         ## Split the jplace file into their respective directories
-
-        # Load the placement file
-        placement_file = json.load(open(jplace_file))
         
         # Parse the placements based on unique identifies appended to the end
         # of each read
-        for placement in placement_file['placements']: # for each placement
-            
+        for placement in original_jplace['placements']: # for each placement
             for alias_idx in alias_hash.keys(): # For each alias, append to the 'place' list each read that identifier
                 alias_placements_list = []
                 nm_list = []
@@ -68,23 +64,21 @@ class Pplacer:
                 if any(nm_list):
                     placement_hash = {'p': p,
                                       'nm': nm_list}
-                    alias_placements_list.append(placement_hash)
-                    
+                    alias_placements_list.append(placement_hash)                
                 alias_hash[alias_idx]['place'] = alias_placements_list
-
+        return alias_hash
+    
+    def write_jplace(self, original_jplace, alias_hash):
         # Write the jplace file to their respective file paths.
-        jplace_path_list = []
         for alias_idx in alias_hash.keys():
-            output = {'fields'     : placement_file['fields'],
-                      'version'    : placement_file['version'],
-                      'tree'       : placement_file['tree'],
+            output = {'fields'     : original_jplace['fields'],
+                      'version'    : original_jplace['version'],
+                      'tree'       : original_jplace['tree'],
                       'placements' : alias_hash[alias_idx]['place'],
-                      'metadata'   : placement_file['metadata']}
+                      'metadata'   : original_jplace['metadata']}
             with open(alias_hash[alias_idx]['output_path'], 'w') as output_io:
                 json.dump(output, output_io, ensure_ascii=False, indent=3, separators=(',', ': '))
-            jplace_path_list.append(alias_hash[alias_idx]['output_path'])
-        return jplace_path_list
-    
+
     @T.timeit
     def place(self, reverse_pipe, seqs_list, resolve_placements, files, args,
               slash_endings, tax_descr):
@@ -124,8 +118,13 @@ class Pplacer:
         jplace = self.pplacer(files.jplace_output_path(), args.output_directory, files.comb_aln_fa(), args.threads)
         logging.info("Placements finished")
 
-        # Split the jplace file
-        self.jplace_split(jplace, alias_hash)
+        # Split the original jplace file
+        # and write split jplaces to separate file directories
+        jplace_json = json.load(open(jplace))
+        alias_hash_with_placements = self.jplace_split(jplace_json, 
+                                                       alias_hash)
+        self.write_jplace(jplace_json, 
+                          alias_hash_with_placements)
         
         #Read the json of refpkg
         logging.info("Reading classifications")

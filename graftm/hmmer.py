@@ -216,15 +216,12 @@ class Hmmer:
 
         Parameters
         ----------
-        has_slash_endings : bool
-            True/False: whether the sequence headers contain the old style 
-            '/1' and '/2' headers to denote forward and reverse reads.
-        for_aln_list : array
-            List of the forward alignments for each of the runs
-            given to graftM. 
-        rev_aln_list : array
-            List of the reverse alignments for each of the runs
-            given to graftM.
+        forward_unpacks : array
+            list of UnpackRawReads objects, each a corresponding a forward 
+            pair of the input sequence pairs 
+        reverse_unpacks : array
+            list of UnpackRawReads objects, each a corresponding a reverse 
+            pair of the input sequence pairs
         outputs : array
             List of paths to output file to which the merged alignments from the
             aln_list will go into. Must be exactly half the size of the aln_list
@@ -238,7 +235,21 @@ class Hmmer:
         orfm_regex = OrfM.regular_expression()
         
         def clean_read_headers(records, has_slash_endings):
-
+            '''
+            Remove slash endings from reads if present, and remove OrfM style 
+            suffixes. 
+            
+            Parameters
+            ----------
+            records : object
+                SeqIO read object, the read name of which is cleaned in this 
+                function 
+                
+            has_slash_endings : bool
+                True/False, whether /1 and /2 endings that distinguish paired reads
+                are present in the read name
+            '''
+            
             new_dict = {}
 
             for key, record in records.iteritems():

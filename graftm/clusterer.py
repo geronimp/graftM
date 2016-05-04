@@ -74,8 +74,9 @@ class Clusterer:
 
         Parameters
         ----------
-        input_fasta_list : list
-            list of strings, each a path to input fasta files to be clustered.
+        unpacks_list : list
+            list of UnpackRawReads objects, each a corresponding to an input 
+            sequence file to be clustered.
         reverse_pipe : bool
             True/False, whether the reverse reads pipeline is being followed.
 

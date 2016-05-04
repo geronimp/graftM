@@ -19,6 +19,3 @@ class DBSearchResult:
     def hit_count(self): # Return the number of hits found
         return self.hit_count  
     
-    def has_slash_endings(self): # Return True if sequence headers end in /1 or /2, False if not
-        return self.has_slash_endings
-    

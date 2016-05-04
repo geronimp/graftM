@@ -121,14 +121,6 @@ class Pplacer:
         # Run pplacer on merged file
         jplace = self.pplacer(files.jplace_output_path(), args.output_directory, files.comb_aln_fa(), args.threads)
         logging.info("Placements finished")
-
-        # Split the original jplace file
-        # and write split jplaces to separate file directories
-        jplace_json = json.load(open(jplace))
-        alias_hash_with_placements = self.jplace_split(jplace_json, 
-                                                       alias_hash)
-        self.write_jplace(jplace_json, 
-                          alias_hash_with_placements)
         
         #Read the json of refpkg
         logging.info("Reading classifications")
@@ -162,6 +154,14 @@ class Pplacer:
                 trusted_placements[base_file]={}
                 for read, entry in classifications[str(idx)].iteritems():
                     trusted_placements[base_file][read] = entry['placement']
+        
+        # Split the original jplace file
+        # and write split jplaces to separate file directories
+        jplace_json = json.load(open(jplace))
+        alias_hash_with_placements = self.jplace_split(jplace_json, 
+                                                       alias_hash)
+        self.write_jplace(jplace_json, 
+                          alias_hash_with_placements)
         
         return trusted_placements
 

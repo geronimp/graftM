@@ -40,7 +40,7 @@ class Pplacer:
                 for record in alignments: # For each record in the read list
                     record.id = record.id + '_' + str(file_number) # append the unique identifier to the record id
                 SeqIO.write(alignments, output, "fasta") # And write the reads to the file
-                alias_hash[str(file_number)] = {'output_path': os.path.join(os.path.dirname(alignment_file),'placements.jplace'),
+                alias_hash[str(file_number)] = {'output_path': os.path.join(os.path.dirname(alignment_file), 'placements.jplace'),
                                                 'place': []}
                 file_number += 1
         return alias_hash
@@ -69,6 +69,7 @@ class Pplacer:
                 placement_hash = {'p': p,
                                   'nm': nm_list}                
                 alias_hash[alias_idx]['place'].append(placement_hash)
+
         return alias_hash
     
     def write_jplace(self, original_jplace, alias_hash):

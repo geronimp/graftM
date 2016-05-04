@@ -7,21 +7,11 @@ import re
 
 class Clusterer:
 
-    def __init__(self, has_slash_endings):
-        '''
-        Parameters
-        ----------
-        has_slash_endings : bool
-            True false as to whether reads follow the /1 /2 pattern for 
-            distinguishing forward and reverse reads. 
-        
-        '''
+    def __init__(self):
         self.clust = Deduplicator()
         self.seqio = SequenceIO()
         
         self.seq_library = {}
-        
-        self.has_slash_endings = has_slash_endings
         self.orfm_regex = OrfM.regular_expression()
 
 
@@ -50,9 +40,12 @@ class Clusterer:
             each cluster
         '''
         output_annotations = {}
-        for placed_alignment_file_path, clusters in self.seq_library.iteritems():
+        for placed_alignment_file_path, cluster_information in self.seq_library.iteritems():
+            clusters, has_slash_endings  = cluster_information
+            
+            if reverse_pipe and placed_alignment_file_path.endswith("_reverse_clustered.fa"):
+                continue
 
-            if reverse_pipe and placed_alignment_file_path.endswith("_reverse_clustered.fa"): continue
             placed_alignment_file = os.path.basename(placed_alignment_file_path)
             cluster_classifications = input_annotations[placed_alignment_file]
 
@@ -63,7 +56,7 @@ class Clusterer:
             output_annotations[placed_alignment_base] = {}
             for rep_read_name, rep_read_taxonomy in cluster_classifications.iteritems():
                 if merge_reads:
-                    if self.has_slash_endings:
+                    if has_slash_endings:
                         rep_read_name=rep_read_name[:-2]
                 if reverse_pipe:
                     orfm_regex = OrfM.regular_expression()
@@ -73,7 +66,7 @@ class Clusterer:
 
         return output_annotations
 
-    def cluster(self, input_fasta_list, reverse_pipe):
+    def cluster(self, unpacks_list, reverse_pipe):
         '''
         cluster - Clusters reads at 100% identity level and  writes them to
         file. Resets the input_fasta variable as the FASTA file containing the
@@ -92,9 +85,10 @@ class Clusterer:
             list of strings, each a path to the output fasta file to which
             clusters were written to.
         '''
-        
+
         output_fasta_list = []
-        for input_fasta in input_fasta_list:
+        for unpack in unpacks_list:
+            input_fasta = unpack.alignment_path
             output_path  = input_fasta.replace('_hits.aln.fa', '_clustered.fa')
             cluster_dict = {}
 
@@ -110,15 +104,15 @@ class Clusterer:
                                         output_path
                                         ) # Choose the first sequence to write to file as representative (all the same anyway)
             for cluster in clusters:
-                if self.has_slash_endings:
+                if unpack.has_slash_endings:
                     name = cluster[0].name[:-2]
                 else:
                     name = cluster[0].name                    
                 cluster_dict[name]=cluster # assign the cluster to the dictionary
-            self.seq_library[output_path]= cluster_dict
-
-            output_fasta_list.append(output_path)
-
-        return output_fasta_list
+            self.seq_library[output_path]= [cluster_dict, unpack.has_slash_endings]
+            setattr(unpack, "placement_sequences", output_path)
+        
+            
+        return unpacks_list
 
 

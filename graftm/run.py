@@ -182,8 +182,8 @@ class Run:
             gpkg = None
       
         REVERSE_PIPE        = (True if self.args.reverse else False)
-        base_list           = []
-        seqs_list           = []
+        base_list           = [] 
+        unpack_list         = []
         search_results      = []
         clusters_list       = []
         hit_read_count_list = []
@@ -381,7 +381,8 @@ class Run:
                                                         filter_minimum
                                                         )
                     if aln_result:
-                        seqs_list.append(hit_aligned_reads)
+                        setattr(unpack, 'alignment_path', hit_aligned_reads)
+                        unpack_list.append(unpack)
                     else:
                         logging.info("No more aligned sequences to place!")
                         continue
@@ -407,10 +408,15 @@ class Run:
             base_list=base_list[0::2]
             merged_output=[GraftMFiles(base, self.args.output_directory, False).aligned_fasta_output_path(base) \
                            for base in base_list]
-            self.h.merge_forev_aln(unpack.has_slash_endings,
-                                   seqs_list[0::2], seqs_list[1::2], 
+            forward_unpacks = unpack_list[0::2]
+            reverse_unpacks = unpack_list[1::2]
+            self.h.merge_forev_aln(forward_unpacks,
+                                   reverse_unpacks,
                                    merged_output)
-            seqs_list=merged_output
+            unpack_list = []
+            for merged_file_path, forward_unpack in zip(merged_output, forward_unpacks):
+                setattr(forward_unpack, "alignment_path", merged_file_path)
+                unpack_list.append(forward_unpack)
             REVERSE_PIPE = False
         elif REVERSE_PIPE:
             base_list=base_list[0::2]
@@ -428,13 +434,12 @@ class Run:
 
         if self.args.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
             # Classification steps        
-            import IPython ; IPython.embed()
             if not self.args.no_clustering:
-                C=Clusterer(unpack.has_slash_endings)
-                seqs_list=C.cluster(seqs_list, REVERSE_PIPE)
+                C=Clusterer()
+                unpack_list=C.cluster(unpack_list, REVERSE_PIPE)
             logging.info("Placing reads into phylogenetic tree")
             taxonomic_assignment_time, assignments=self.p.place(REVERSE_PIPE,
-                                                                seqs_list,
+                                                                [unpack.placement_sequences for unpack in unpack_list],
                                                                 self.args.resolve_placements,
                                                                 self.gmf,
                                                                 self.args,
@@ -452,7 +457,8 @@ class Run:
                         gpkg,
                         self.gmf)
             aln_time = 'n/a'
-        else: raise Exception("Unexpected assignment method encountered: %s" % self.args.placement_method)
+        else:
+            raise Exception("Unexpected assignment method encountered: %s" % self.args.placement_method)
         self.summarise(base_list, assignments, REVERSE_PIPE,
                        [search_time,aln_time,taxonomic_assignment_time],
                        hit_read_count_list)

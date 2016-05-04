@@ -210,8 +210,7 @@ class Hmmer:
         hmmtables = [HMMSearchResult.import_from_hmmsearch_table(x) for x in output_table_list]
         return hmmtables
 
-    def merge_forev_aln(self, has_slash_endings,
-                        forward_aln_list, reverse_aln_list, outputs):
+    def merge_forev_aln(self, forward_unpacks, reverse_unpacks, outputs):
         '''
         merge_forev_aln - Merges forward and reverse alignments for a given run
 
@@ -238,7 +237,7 @@ class Hmmer:
 
         orfm_regex = OrfM.regular_expression()
         
-        def clean_read_headers(records):
+        def clean_read_headers(records, has_slash_endings):
 
             new_dict = {}
 
@@ -253,14 +252,16 @@ class Hmmer:
                 new_dict[key] = record
             
             return new_dict
-
-
-        for idx, (forward_path, reverse_path) in enumerate(zip(forward_aln_list, reverse_aln_list)):
+        
+        for idx, (forward_unpack, reverse_unpack) in enumerate(zip(forward_unpacks, reverse_unpacks)):
             
+            forward_path = forward_unpack.alignment_path
+            reverse_path = reverse_unpack.alignment_path
             output_path = outputs[idx]
+            
             logging.info('Merging pair %s, %s' % (os.path.basename(forward_path), os.path.basename(reverse_path)))
-            forward_reads = clean_read_headers(SeqIO.to_dict(SeqIO.parse(forward_path, 'fasta')))
-            reverse_reads = clean_read_headers(SeqIO.to_dict(SeqIO.parse(reverse_path, 'fasta')))
+            forward_reads = clean_read_headers(SeqIO.to_dict(SeqIO.parse(forward_path, 'fasta')), forward_unpack.has_slash_endings)
+            reverse_reads = clean_read_headers(SeqIO.to_dict(SeqIO.parse(reverse_path, 'fasta')), reverse_unpack.has_slash_endings)
             
             with open(output_path, 'w') as out:
                 for key, forward_record in forward_reads.iteritems():

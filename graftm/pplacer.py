@@ -45,11 +45,27 @@ class Pplacer:
                 file_number += 1
         return alias_hash
 
-    def jplace_split(self, original_jplace, alias_hash):
-        ## Split the jplace file into their respective directories
+    def jplace_split(self, original_jplace, alias_hash, clusterer):
+        '''
+        To make GraftM more efficient, reads are dereplicated and merged into
+        one file prior to placement using pplacer. This function separates the
+        single jplace file produced by this process into the separate jplace 
+        files, one per input file (if multiple were provided) and backfills 
+        abundance (re-replicates?) into the placement file so analyses can be 
+        done using the placement files. 
         
-        # Parse the placements based on unique identifies appended to the end
-        # of each read
+        Parameters
+        ----------
+        original_jplace : dict (json)
+            json .jplace file from the pplacer step.
+        alias_hash : dict
+            Stores information on each input read file given to GraftM, the
+            corresponding reads found within each file, and their taxonomy
+        clusterer : object
+            Clusterer object that stores information on pre-placement 
+            clustering  
+        '''
+        import IPython ; IPython.embed()
         for placement in original_jplace['placements']: # for each placement
             
             alias_placements_list = []
@@ -85,7 +101,7 @@ class Pplacer:
 
     @T.timeit
     def place(self, reverse_pipe, seqs_list, resolve_placements, files, args,
-              slash_endings, tax_descr):
+              slash_endings, tax_descr, clusterer):
         '''
         placement - This is the placement pipeline in GraftM, in aligned reads 
                     are placed into phylogenetic trees, and the results interpreted.
@@ -129,7 +145,6 @@ class Pplacer:
                                                            args.placements_cutoff, 
                                                            resolve_placements
                                                            )
-        self.hk.delete([jplace])# Remove combined split, not really useful
         logging.info("Reads classified")
         # If the reverse pipe has been specified, run the comparisons between the two pipelines. If not then just return.
         
@@ -154,15 +169,17 @@ class Pplacer:
                 trusted_placements[base_file]={}
                 for read, entry in classifications[str(idx)].iteritems():
                     trusted_placements[base_file][read] = entry['placement']
-        
         # Split the original jplace file
         # and write split jplaces to separate file directories
         jplace_json = json.load(open(jplace))
         alias_hash_with_placements = self.jplace_split(jplace_json, 
-                                                       alias_hash)
+                                                       alias_hash,
+                                                       clusterer)
         self.write_jplace(jplace_json, 
                           alias_hash_with_placements)
         
+        self.hk.delete([jplace])# Remove combined split, not really useful
+
         return trusted_placements
 
 class Compare:

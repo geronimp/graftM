@@ -40,8 +40,7 @@ class Pplacer:
                 for record in alignments: # For each record in the read list
                     record.id = record.id + '_' + str(file_number) # append the unique identifier to the record id
                 SeqIO.write(alignments, output, "fasta") # And write the reads to the file
-                alias_hash[str(file_number)] = {'output_path': os.path.join(os.path.dirname(alignment_file),'placements.jplace'),
-                                                'place': []}
+                alias_hash[str(file_number)] = {'output_path': os.path.join(os.path.dirname(alignment_file),'placements.jplace')}
                 file_number += 1
         return alias_hash
 
@@ -54,30 +53,36 @@ class Pplacer:
         # Parse the placements based on unique identifies appended to the end
         # of each read
         for placement in placement_file['placements']: # for each placement
-            hash = {} # create an empty hash
-            for alias in alias_hash: # For each alias, append to the 'place' list each read that identifier
+            
+            for alias_idx in alias_hash.keys(): # For each alias, append to the 'place' list each read that identifier
+                alias_placements_list = []
                 nm_list = []
                 p = placement['p']
                 for nm in placement['nm']:
-                    if nm[0].split('_')[-1] == alias:
+                    read_alias_idx = nm[0].split('_')[-1] # Split the alias 
+                                        # index out of the read name, which 
+                                        # corresponds to the input file from 
+                                        # which the read originated.
+                    if read_alias_idx == alias_idx:
                         nm_list.append(nm)
                 if any(nm_list):
-                    hash = {'p': p,
-                            'nm': nm_list}
-                    alias_hash[alias]['place'].append(hash)
-                else:
-                    continue
+                    placement_hash = {'p': p,
+                                      'nm': nm_list}
+                    alias_placements_list.append(placement_hash)
+                    
+                alias_hash[alias_idx]['place'] = alias_placements_list
+
         # Write the jplace file to their respective file paths.
         jplace_path_list = []
-        for alias in alias_hash:
+        for alias_idx in alias_hash.keys():
             output = {'fields'     : placement_file['fields'],
                       'version'    : placement_file['version'],
                       'tree'       : placement_file['tree'],
-                      'placements' : alias_hash[alias]['place'],
+                      'placements' : alias_hash[alias_idx]['place'],
                       'metadata'   : placement_file['metadata']}
-            with open(alias_hash[alias]['output_path'], 'w') as output_path:
-                json.dump(output, output_path, ensure_ascii=False, indent=3, separators=(',', ': '))
-            jplace_path_list.append(alias_hash[alias]['output_path'])
+            with open(alias_hash[alias_idx]['output_path'], 'w') as output_io:
+                json.dump(output, output_io, ensure_ascii=False, indent=3, separators=(',', ': '))
+            jplace_path_list.append(alias_hash[alias_idx]['output_path'])
         return jplace_path_list
     
     @T.timeit

@@ -116,10 +116,9 @@ CATGACGTCAGTCCCGGAGACGTTGTACGGCATAAGTTGCCGCTGACCAAGCGTCATACCGCCGAGGTGCACGTTGACGT
                 placements_file = os.path.join(tmp, sample_name, "placements.jplace")
                 open_placements_file = json.load(open(placements_file))
                 self.assertEqual(len(open_placements_file["placements"]), 3)
-              
-                placements = sorted((u'HWI-ST1243:121:D1AF9ACXX:8:1101:4414:35570_2_2_3_0', 
-                                     u'HWI-ST1243:121:D1AF9ACXX:8:1101:14973:25766_1_4_3_0', 
-                                     u'HWI-ST1243:121:D1AF9ACXX:8:1101:12684:12444_2_1_1_2_0'))
+                placements = sorted((u'HWI-ST1243:121:D1AF9ACXX:8:1101:4414:35570_2_2_3', 
+                                     u'HWI-ST1243:121:D1AF9ACXX:8:1101:12684:12444_2_1_1_2',
+                                     u'HWI-ST1243:121:D1AF9ACXX:8:1101:14973:25766_1_4_3'))
                 for idx, placed_read_name in enumerate(sorted(tuple([y[0] for y in [x['nm'][0] for x in open_placements_file["placements"]]]))):
                     self.assertEqual(placements[idx], placed_read_name)
                                                 

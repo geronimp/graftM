@@ -327,4 +327,3 @@ class Compare:
                     raise Exception('Programming Error: Comparison of placement resolution')               
              
         return comparison_hash # Return the hash
-

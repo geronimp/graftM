@@ -44,8 +44,33 @@ class Pplacer:
                                                 'place': []}
                 file_number += 1
         return alias_hash
-
-    def jplace_split(self, original_jplace, alias_hash, clusterer):
+    
+    def convert_cluster_dict_keys_to_aliases(self, cluster_dict, alias_hash):
+        '''
+        Parameters
+        ----------
+        cluster_dict : dict
+            dictionary stores information on pre-placement clustering  
+        alias_hash : dict
+            Stores information on each input read file given to GraftM, the
+            corresponding reads found within each file, and their taxonomy
+    
+        Returns
+        --------
+        updated cluster_dict dict containing alias indexes for keys.
+        '''
+        output_dict = {}
+        directory_to_index_dict = {os.path.split(item["output_path"])[0] : key 
+                            for key, item in alias_hash.iteritems()}
+        for key, item in cluster_dict.iteritems():
+            cluster_file_directory = os.path.split(key)[0]
+            cluster_idx = directory_to_index_dict[cluster_file_directory]
+            output_dict[cluster_idx] = item
+        return output_dict
+            
+    
+    
+    def jplace_split(self, original_jplace, alias_hash, cluster_dict):
         '''
         To make GraftM more efficient, reads are dereplicated and merged into
         one file prior to placement using pplacer. This function separates the
@@ -61,11 +86,15 @@ class Pplacer:
         alias_hash : dict
             Stores information on each input read file given to GraftM, the
             corresponding reads found within each file, and their taxonomy
-        clusterer : object
-            Clusterer object that stores information on pre-placement 
-            clustering  
-        '''
-        import IPython ; IPython.embed()
+        cluster_dict : dict
+            dictionary stores information on pre-placement clustering  
+        
+        Returns
+        -------
+        Updated alias_hash dict containing placement hashes to write to 
+        new jplace file.
+        '''       
+        
         for placement in original_jplace['placements']: # for each placement
             
             alias_placements_list = []
@@ -76,7 +105,6 @@ class Pplacer:
                                     # index out of the read name, which 
                                     # corresponds to the input file from 
                                     # which the read originated.
-                
                 if read_alias_idx not in nm_dict:
                     nm_dict[read_alias_idx] = [nm]
                 else:
@@ -172,9 +200,11 @@ class Pplacer:
         # Split the original jplace file
         # and write split jplaces to separate file directories
         jplace_json = json.load(open(jplace))
+        cluster_dict = self.convert_cluster_dict_keys_to_aliases(clusterer.seq_library, 
+                                                                 alias_hash)
         alias_hash_with_placements = self.jplace_split(jplace_json, 
                                                        alias_hash,
-                                                       clusterer)
+                                                       cluster_dict)
         self.write_jplace(jplace_json, 
                           alias_hash_with_placements)
         

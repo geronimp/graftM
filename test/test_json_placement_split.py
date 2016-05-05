@@ -29,12 +29,12 @@ from graftm.sequence_io import Sequence
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 
-class HmmsearcherTests(unittest.TestCase):
+class Tests(unittest.TestCase):
     path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
     
     def test_basic_split(self):
         input_alias_hash = {'0':{'place':[]}, '1':{'place':[]}}
-        placement=['p__Proteobacteria', 'k__Bacteria', 'p__Proteobacteria']
+        expected_placement=['p__Proteobacteria', 'k__Bacteria', 'p__Proteobacteria']
         mock_cluster_hash = {'0':  {"test_read1": [Sequence("test_read1", "SEQUENCE")]},
                              '1':  {"test_read2": [Sequence("test_read2", "SEQUENCE")]}}
         test_json = {"fields":
@@ -70,26 +70,27 @@ class HmmsearcherTests(unittest.TestCase):
         
         output_alias_hash = pplacer.jplace_split(test_json, input_alias_hash, mock_cluster_hash)
         
-        for alias_idx, alias_placement_entry in output_alias_hash.iteritems():
-            
+        expected_placement = ['p__Proteobacteria', 'k__Bacteria', 'p__Proteobacteria']
+        expected_number_of_placements = 1
+        
+        for alias_idx, alias_placement_entry in output_alias_hash.items():
             placement_dict = alias_placement_entry['place']
-            self.assertEqual(len(placement_dict), 1)
-            self.assertEqual([x[0] for x in placement_dict[0]['p']],
-                             placement)
+            observed_number_of_placements = len(placement_dict)
+            observed_placement = [x[0] for x in placement_dict[0]['p']]
+            self.assertEqual(expected_number_of_placements, 
+                             observed_number_of_placements)
+            self.assertEqual(expected_placement,
+                             observed_placement)
         
     def test_basic_split_with_different_placements(self):
         input_alias_hash = {'0':{'place':[]}, '1':{'place':[]}}
-        placements1=[['p__Crenarchaeota', 'k__Archaea', 'p__Crenarchaeota'],
-                     ['p__Proteobacteria', 'k__Bacteria', 'c__Alphaproteobacteria']]
-        placements2=[['p__Crenarchaeota', 'k__Archaea', 'p__Crenarchaeota'],
-                     ['k__Bacteria', 'p__Cyanobacteria', 'c__Chloroplast']]
         mock_cluster_hash = {
                              '0':  {"test_read1": [Sequence("test_read1", "SEQUENCE")],
                                     "test_read3": [Sequence("test_read3", "SEQUENCE")]},
                              '1':  {"test_read2": [Sequence("test_read2", "SEQUENCE")],
                                     "test_read4": [Sequence("test_read4", "SEQUENCE")]}
                              }
-        placement_results = {'0': placements1, '1':placements2}
+        
         test_json = {"fields":
                       ["classification", "distal_length", "edge_num", "like_weight_ratio",
                         "likelihood", "pendant_length"
@@ -149,17 +150,35 @@ class HmmsearcherTests(unittest.TestCase):
         
         pplacer = Pplacer("refpkg_decoy")
         output_alias_hash = pplacer.jplace_split(test_json, input_alias_hash, mock_cluster_hash)
-        for alias_idx, alias_placement_entry in output_alias_hash.iteritems():
-            placement_dict = alias_placement_entry['place']
-            self.assertEqual(len(placement_dict), 2)
-            self.assertEqual([x[0] for x in placement_dict[0]['p']],
-                             placement_results[alias_idx][0])
-            self.assertEqual([x[0] for x in placement_dict[1]['p']],
-                             placement_results[alias_idx][1])
+        
+        expected_number_of_placements   = 2
+        expected_placements_for_alias_0 = [['p__Crenarchaeota', 'k__Archaea', 'p__Crenarchaeota'],
+                                           ['p__Proteobacteria', 'k__Bacteria', 'c__Alphaproteobacteria']]
+        expected_placements_for_alias_1 = [['p__Crenarchaeota', 'k__Archaea', 'p__Crenarchaeota'],
+                                           ['k__Bacteria', 'p__Cyanobacteria', 'c__Chloroplast']]
+        placement_results               = {'0': expected_placements_for_alias_0, 
+                                           '1': expected_placements_for_alias_1}
+        
+        for alias_idx, alias_placement_entry in output_alias_hash.items():
+            
+            placement_dict                   = alias_placement_entry['place']
+            expected_placement_results       = placement_results[alias_idx]
+            expected_placement_results_read1 = expected_placement_results[0]
+            expected_placement_results_read2 = expected_placement_results[1]
+            
+            observed_number_of_placements    = len(placement_dict)
+            observed_placement_resilt_read1  = [x[0] for x in placement_dict[0]['p']]
+            observed_placement_resilt_read2  = [x[0] for x in placement_dict[1]['p']]
 
+            self.assertEqual(expected_number_of_placements, 
+                             observed_number_of_placements)
+            self.assertEqual(expected_placement_results_read1,
+                             observed_placement_resilt_read1)
+            self.assertEqual(expected_placement_results_read2,
+                             observed_placement_resilt_read2)
+            
     def test_rereplicating_json_file(self):
         input_alias_hash = {'0':{'place':[]}}
-        placement=['p__Proteobacteria', 'k__Bacteria', 'p__Proteobacteria']
         mock_cluster_hash = {
                              '0':  {"test_read1": [Sequence("test_read1", "SEQUENCE"),
                                                    Sequence("test_read2", "SEQUENCES")]}
@@ -194,14 +213,22 @@ class HmmsearcherTests(unittest.TestCase):
         pplacer = Pplacer("refpkg_decoy")
         
         output_alias_hash = pplacer.jplace_split(test_json, input_alias_hash, mock_cluster_hash)
-        
-        for alias_idx, alias_placement_entry in output_alias_hash.iteritems():
-            
+        expected_placement_results = ['p__Proteobacteria', 'k__Bacteria', 'p__Proteobacteria']
+        execeted_number_of_placements = 1
+        expected_number_of_reads_in_placement = 2
+        for alias_placement_entry in output_alias_hash.values():
             placement_dict = alias_placement_entry['place']
-            self.assertEqual(len(placement_dict), 1)
-            self.assertEqual(len(placement_dict[0]['nm']), 2)
-            self.assertEqual([x[0] for x in placement_dict[0]['p']],
-                             placement)
+
+            observed_placement_results             = [x[0] for x in placement_dict[0]['p']]
+            observed_number_of_placements          = len(placement_dict)
+            observed_number_of_reads_in_placement  = len(placement_dict[0]['nm'])
+            
+            self.assertEqual(execeted_number_of_placements,
+                             execeted_number_of_placements)
+            self.assertEqual(expected_number_of_reads_in_placement,
+                             expected_number_of_reads_in_placement)
+            self.assertEqual(expected_placement_results,
+                             observed_placement_results)
 
 if __name__ == "__main__":
     unittest.main()

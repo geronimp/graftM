@@ -640,7 +640,8 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
                 else:
                     logging.info("Reconstructing the alignment and HMM from remaining sequences")
                     output_alignment = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa').name
-                    align_hmm = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.hmm').name
+                    if not user_hmm:
+                        align_hmm = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.hmm').name
                     ptype, output_alignment= self._align_and_create_hmm(sequences, alignment, user_hmm,
                                                        align_hmm, output_alignment, threads)
                     logging.info("Checking for incorrect or fragmented reads")
@@ -813,10 +814,10 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
 
         # Compile the gpkg
         logging.info("Compiling gpkg")
-
+        
         GraftMPackageVersion3.compile(output_gpkg_path, refpkg, align_hmm, diamondb,
                                       max_range, sequences, search_hmm_files=search_hmm_files)
-
+        
         logging.info("Cleaning up")
         self._cleanup(self.the_trash)
 
@@ -827,10 +828,12 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
         # sane defaults.
         logging.info("Testing gpkg package works")
         temp_output = tempdir.TempDir()
-        cmd = "graftM graft --forward '%s' --graftm_package '%s' --output '%s'" %(
-            sequences, output_gpkg_path, temp_output)
-        extern.run(cmd)
+        graftM_graft_test_dir_name = temp_output.name
         temp_output.dissolve()
+        cmd = "graftM graft --forward %s --graftm_package %s --output_directory %s" %(
+            sequences, output_gpkg_path, graftM_graft_test_dir_name)
+        extern.run(cmd)
+        
 
         logging.info("Finished\n")
 

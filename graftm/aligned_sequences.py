@@ -1,4 +1,3 @@
-import logging
 
 class AlignedReads:
     def __init__(self):

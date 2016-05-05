@@ -3,7 +3,6 @@ from graftm.sequence_io import SequenceIO
 from graftm.orfm import OrfM
 import logging
 import os
-import re
 
 class Clusterer:
 

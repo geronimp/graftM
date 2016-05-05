@@ -30,8 +30,7 @@ class UnpackRawReads:
                                '.fa.gz': FORMAT_FASTA_GZ,
                                '.faa.gz': FORMAT_FASTA_GZ,
                                '.fna.gz': FORMAT_FASTA_GZ,
-                               '.fasta.gz': FORMAT_FASTA_GZ,
-                               }
+                               '.fasta.gz': FORMAT_FASTA_GZ}
     
     def __init__(self, read_file):
         self.read_file   = read_file

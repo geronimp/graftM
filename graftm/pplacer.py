@@ -86,6 +86,21 @@ class Pplacer:
         alias_hash : dict
             Stores information on each input read file given to GraftM, the
             corresponding reads found within each file, and their taxonomy
+            e.g.
+                {'0': {'output_path': 'GraftM_output/pair_slash.1/placements.jplace',
+                       'place': []}}
+                
+                Each key (alias) in this dictionary is a unique identifier for 
+                an input sequence provided to GraftM. The "output path" key of 
+                the file's alias entry is the file to which the placements 
+                extracted from that input file will be written to. The "place"
+                key is filled out by this function and will store a list of read
+                placements (in jplace v3 format) for that file, for example:
+                [{'nm': [['example_read_name', 1]],
+                  'p': [[u'f__mitochondria',0.0338801262607,4,1,-1208.68889811,0.0491111604489]]},
+                  ...,
+                  ...]
+                  and so on.
         cluster_dict : dict
             dictionary stores information on pre-placement clustering  
         
@@ -94,7 +109,7 @@ class Pplacer:
         Updated alias_hash dict containing placement hashes to write to 
         new jplace file.
         '''       
-        
+
         for placement in original_jplace['placements']: # for each placement
             
             alias_placements_list = []
@@ -120,7 +135,6 @@ class Pplacer:
                 placement_hash = {'p': p,
                                   'nm': nm_list}                
                 alias_hash[alias_idx]['place'].append(placement_hash)
-
         return alias_hash
     
     def write_jplace(self, original_jplace, alias_hash):

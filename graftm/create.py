@@ -828,10 +828,12 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
         # sane defaults.
         logging.info("Testing gpkg package works")
         temp_output = tempdir.TempDir()
-        cmd = "graftM graft --forward '%s' --graftm_package '%s' --output '%s'" %(
-            sequences, output_gpkg_path, temp_output)
-        extern.run(cmd)
+        graftM_graft_test_dir_name = temp_output.name
         temp_output.dissolve()
+        cmd = "graftM graft --forward %s --graftm_package %s --output_directory %s" %(
+            sequences, output_gpkg_path, graftM_graft_test_dir_name)
+        extern.run(cmd)
+        
 
         logging.info("Finished\n")
 

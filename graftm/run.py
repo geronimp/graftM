@@ -11,6 +11,7 @@ from graftm.housekeeping import HouseKeeping
 from graftm.summarise import Stats_And_Summary
 from graftm.pplacer import Pplacer
 from graftm.create import Create
+from graftm.update import Update
 from graftm.unpack_sequences import UnpackRawReads
 from graftm.graftm_package import GraftMPackage
 from graftm.bootstrapper import Bootstrapper
@@ -571,8 +572,8 @@ class Run:
                             self.args.output = self.args.graftm_package.replace(".gpkg", "-updated.gpkg")
                         else:
                             raise UnrecognisedSuffixError("Unrecognised suffix on GraftM package %s. Please provide a graftM package with the correct suffix (.gpkg)" % (self.args.graftm_package))
-                    self.create.update(self.args.sequences, self.args.taxonomy, self.args.graftm_package,
-                                       self.args.output)
+                    Update().update(self.args.sequences, self.args.taxonomy, self.args.graftm_package,
+                                    self.args.output)
 
                 else:
                     if self.args.taxonomy:

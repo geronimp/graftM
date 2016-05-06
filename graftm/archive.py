@@ -75,10 +75,10 @@ class Archive:
         
         with tempdir.in_tempdir():
             with tarfile.open(archive) as tar:
+                tar.extractall()
                 for tarinfo in tar:
                     folder = os.path.dirname(tarinfo.name)
                     break
-                tar.extractall()
 
             # recreate diamond file
             gpkg = GraftMPackage.acquire(folder)

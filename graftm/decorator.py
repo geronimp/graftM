@@ -66,7 +66,7 @@ class Decorator:
             Path to file to which the decorated taxonomy will be written to.
         seqinfo: str
             path to taxtastic seqinfo file to be used with taxonomy to annotate
-            the tree.'''        
+            the tree.'''
         # Reroot
         if self.reference_tree:
             self._reroot()

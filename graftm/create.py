@@ -30,14 +30,6 @@ class InsufficientGraftMPackageVersion(Exception):
 class Create:
     _PROTEIN_PACKAGE_TYPE = 'protein_package_type'
     _NUCLEOTIDE_PACKAGE_TYPE = 'nucleotide_package_type'
-    _PREFIX_LIST = ["d__",
-                    "p__",
-                    "c__",
-                    "o__",
-                    "f__",
-                    "g__",
-                    "s__"]
-
 
     def __init__(self, commands):
         '''
@@ -50,6 +42,7 @@ class Create:
             fasttree:
                 commands.fasttree = "FastTreeMP" or "fasttree" depending on
                 what is installed.
+
         '''
         self.h=Hmmer(None, None)
         self.the_trash=[]
@@ -283,26 +276,6 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
                 exit_gracefully(base)
 
         return refpkg
-
-    def _concatenate_file(self, file_list, output):
-        '''
-        Call unix "cat" to concatenate a list of files
-
-        Parameters
-        ----------
-        file_list: list
-            List of strings, each leading to a file. These files are the ones to
-            be concatenate together. E.g.:
-                ["/path/to/file1", "/path/to/file2"]
-        output: str
-            Path to file to which to the files in file_list will be concatenated
-            into.
-
-        '''
-        to_cat = ' '.join(file_list)
-        logging.debug("Concatenating files: %s" % (to_cat))
-        cmd = "cat %s > %s" % (to_cat, output)
-        extern.run(cmd)
 
     def _cleanup(self, the_trashcan):
         for every_piece_of_junk in the_trashcan:

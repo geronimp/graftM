@@ -4,6 +4,8 @@ import shutil
 import logging
 import extern
 
+from graftm.getaxnseq import Getaxnseq
+
 class InsufficientGraftMPackageException(Exception): pass
 
 class GraftMPackage:
@@ -248,7 +250,7 @@ class GraftMPackageVersion3(GraftMPackageVersion2):
 
         Returns
         -------
-        path to the created diamond db e.g. 'my_seuqences.dmnd'
+        path to the created diamond db e.g. 'my_sequences.dmnd'
         '''
         base = self.unaligned_sequence_database_path()
         cmd = "diamond makedb --in '%s' -d '%s'" % (self.unaligned_sequence_database_path(), base)
@@ -259,6 +261,16 @@ class GraftMPackageVersion3(GraftMPackageVersion2):
         # test/data/mcrA.gpkg which is slightly different.
         os.rename(diamondb, self.diamond_database_path())
         return diamondb
+
+    def taxonomy_hash(self):
+        '''Read in the taxonomy and return as a hash of name: taxonomy,
+        where taxonomy is an array of strings.'''
+        gtns = Getaxnseq()
+        with open(self.taxtastic_taxonomy_path()) as tax:
+            with open(self.taxtastic_seqinfo_path()) as seqinfo:
+                return gtns.read_taxtastic_taxonomy_and_seqinfo(
+                    tax, seqinfo)
+        
         
     @staticmethod
     def compile(output_package_path, refpkg_path, hmm_path, diamond_database_file, 

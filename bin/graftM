@@ -262,7 +262,7 @@ that are redundant at the 3rd rank (from left to right in the taxonomy file) fro
 
 
     #############################################################
-    # Create - Create a gpkg from a sequence database and a hmm #
+    # Update                                                    #
     #############################################################
     update_parser = subparsers.add_parser('update',
                                           description='Update a GraftM package with new sequences',
@@ -282,7 +282,7 @@ that are redundant at the 3rd rank (from left to right in the taxonomy file) fro
 
     update = update_parser.add_argument_group('Common options')
     update.add_argument('--graftm_package', help='GraftM package to update', required=True)
-    update.add_argument('--taxonomy', metavar='TAX', help='File containing two tab separated columns, the first with the ID of the sequences, the second with the taxonomy string (required unless --rerooted_annotated_tree or --taxtastic_taxonomy and --taxtastic_seqinfo are specified)', required=True)
+    update.add_argument('--taxonomy', metavar='TAX', help='File containing two tab separated columns, the first with the ID of the sequences, the second with the taxonomy string (required unless --rerooted_annotated_tree or --taxtastic_taxonomy and --taxtastic_seqinfo are specified)', default=None)
     update.add_argument('--sequences', metavar='FASTA', help='Unaligned sequences (required)', required=True)
     update.add_argument('--output', metavar='PATH', help='Name of output GraftM package (default: use name derived from alignment)')
 

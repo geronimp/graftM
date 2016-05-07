@@ -87,7 +87,33 @@ SAYTGIVAAAHSARGDAWALSPHVKVAFADRSLPFDFANITKEFGRGAMREFVPAGERDLIIP
                     self.assertEqual(
                         len(seqio.read_fasta_file(prev.unaligned_sequence_database_path()))+1,
                         len(seqio.read_fasta_file(up.unaligned_sequence_database_path())))
-
+                    
+    def test_autodecorate(self):
+        with tempdir.in_tempdir():
+            with tempfile.NamedTemporaryFile() as fasta:
+                fasta.write(Tests.extra_mcra_fasta)
+                fasta.flush()
+                update = Update(prerequisites)
+                update.update(
+                    input_sequence_path = fasta.name,
+                    input_graftm_package_path = os.path.join(
+                        path_to_data, 'mcrA.gpkg'),
+                    output_graftm_package_path = 'updated.gpkg')
+                prev = GraftMPackage.acquire(prev_path)
+                up = GraftMPackage.acquire('updated.gpkg')
+                prevhash = prev.taxonomy_hash()
+                taxhash = up.taxonomy_hash()
+                self.assertEqual(len(prevhash)+1,
+                                 len(taxhash))
+                self.assertEqual(['Root','mcrA','Euryarchaeota_mcrA','Methanofastidiosa'],
+                                 taxhash['KYC55281.1'])
+                self.assertEqual(prevhash['639699575'],
+                                 taxhash['639699575'])
+                seqio = SequenceIO()
+                self.assertEqual(
+                    len(seqio.read_fasta_file(prev.unaligned_sequence_database_path()))+1,
+                    len(seqio.read_fasta_file(up.unaligned_sequence_database_path())))
+                
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.ERROR)
+    logging.basicConfig(level=logging.DEBUG)
     unittest.main()

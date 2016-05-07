@@ -21,7 +21,7 @@ class Decorator:
         reference_tree_path: str
             Path to the file containing the reference tree, which is used to
             retroot the tree tree provided to tree
-        old_tree_path: str
+        tree_path: str
             Path to the file containing the tree to be re-rooted. This tree will
             be rerooted at the same position as the tree porovided to the 
             reference_tree

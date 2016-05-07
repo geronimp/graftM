@@ -1,12 +1,14 @@
 import logging
 import extern
 import tempfile
+from skbio.tree._tree import TreeNode
 
 from graftm.create import Create
 from graftm.graftm_package import GraftMPackageVersion3, GraftMPackage
 from graftm.greengenes_taxonomy import GreenGenesTaxonomy
 from graftm.decorator import Decorator
 from graftm.getaxnseq import Getaxnseq
+from graftm.reannotator import Reannotator
 
 class UpdateDefaultOptions:
     threads=5
@@ -49,7 +51,9 @@ class Update(Create):
             Path to FASTA file containing sequences to add to the update GraftM
             package
         input_taxonomy_path: str
-            Taxonomy corresponding to the sequences within input_sequence_path
+            Taxonomy corresponding to the sequences in input_sequence_path. If None,
+            then attempt to assign taxonomy by decorating the tree made out of all
+            sequences.
         input_graftm_package_path: str
             Path to the directory of the GraftM package that is to be updated
         output_graftm_package_path: str
@@ -57,7 +61,7 @@ class Update(Create):
             written to
         '''
         input_sequence_path = kwargs.pop('input_sequence_path')
-        input_taxonomy_path = kwargs.pop('input_taxonomy_path')
+        input_taxonomy_path = kwargs.pop('input_taxonomy_path', None)
         input_graftm_package_path = kwargs.pop('input_graftm_package_path')
         output_graftm_package_path = kwargs.pop('output_graftm_package_path')
         threads = kwargs.pop('threads', UpdateDefaultOptions.threads) #TODO: add to user options
@@ -80,24 +84,25 @@ class Update(Create):
         #######################################
         ### Collect all unaligned sequences ###
         logging.info("Concatenating unaligned sequence files")
-        new_gpkg.unaligned_sequences = "%s_sequences.fa" % (new_gpkg.name)
+        new_gpkg.unaligned_sequences = "%s_sequences.fa" % (new_gpkg.name) #TODO: replace hard-coded paths like this with tempfiles
         self._concatenate_file([old_gpkg.unaligned_sequence_database_path(),
                                 input_sequence_path],
                                new_gpkg.unaligned_sequences)
 
         #########################################################
         ### Parse taxonomy info up front so errors come early ###
-        logging.info("Reading new taxonomy information")
-        input_taxonomy = GreenGenesTaxonomy.read_file(input_taxonomy_path)
-        original_taxonomy_hash = old_gpkg.taxonomy_hash()
-        total_taxonomy_hash = original_taxonomy_hash.copy()
-        total_taxonomy_hash.update(input_taxonomy.taxonomy)
-        num_duplicate_taxonomies = len(total_taxonomy_hash) - \
-                                   len(input_taxonomy.taxonomy) - \
-                                   len(original_taxonomy_hash)
-        logging.debug("Found %i taxonomic definitions in common between the previous and updated taxonomies" % num_duplicate_taxonomies)
-        if num_duplicate_taxonomies > 0:
-            logging.warn("Found %i taxonomic definitions in common between the previous and updated taxonomies. Using the updated taxonomy in each case." % num_duplicate_taxonomies)
+        if input_taxonomy_path:
+            logging.info("Reading new taxonomy information")
+            input_taxonomy = GreenGenesTaxonomy.read_file(input_taxonomy_path)
+            original_taxonomy_hash = old_gpkg.taxonomy_hash()
+            total_taxonomy_hash = original_taxonomy_hash.copy()
+            total_taxonomy_hash.update(input_taxonomy.taxonomy)
+            num_duplicate_taxonomies = len(total_taxonomy_hash) - \
+                                       len(input_taxonomy.taxonomy) - \
+                                       len(original_taxonomy_hash)
+            logging.debug("Found %i taxonomic definitions in common between the previous and updated taxonomies" % num_duplicate_taxonomies)
+            if num_duplicate_taxonomies > 0:
+                logging.warn("Found %i taxonomic definitions in common between the previous and updated taxonomies. Using the updated taxonomy in each case." % num_duplicate_taxonomies)
 
         ###############################
         ### Re-construct alignments ###
@@ -118,59 +123,45 @@ class Update(Create):
         new_gpkg.unrooted_tree = "%s.tre" % (new_gpkg.name)
         new_gpkg.unrooted_tree_log = "%s.tre.log" % (new_gpkg.name)
         new_gpkg.package_type, new_gpkg.hmm_length = self._pipe_type(old_gpkg.alignment_hmm_path())
-        new_gpkg.gpkg_tree_log, new_gpkg.gpkg_tree = \
+        new_gpkg.unrooted_gpkg_tree_log, new_gpkg.unrooted_gpkg_tree = \
             self._build_tree(new_gpkg.hmm_alignment, new_gpkg.name,
                              new_gpkg.package_type, self.fasttree)
 
-        #################################
-        ### Re-root and decorate tree ###
-        #
-        # Commented this region because for the moment all the taxonomy is
-        # provided, so just use that to do the rerooting, rather than rerooting
-        # using the old reference tree.
-        
-        # new_gpkg.rooted_tree = "%s_rooted.tre" % (new_gpkg.name)
-        # new_gpkg.decorate_tax = "%s_decorate_tax.tsv" % (new_gpkg.name)
-        # new_gpkg.gg_taxonomy = "%s_greengenes_taxonomy.tsv" % (new_gpkg.name)
-        # reference_tree = old_gpkg.reference_package_tree_path()
-        
-        # decorator = Decorator(reference_tree_path = reference_tree,
-        #               tree_path = new_gpkg.unrooted_tree)
-        # if input_taxonomy_path:
-        #     with open(new_gpkg.gg_taxonomy, "w") as decoration_taxonomy:
-        #         input_taxonomy.write(decoration_taxonomy)
-        #         original_gg_tax = GreenGenesTaxonomy(old_gpkg.taxonomy_hash())
-        #         original_gg_tax.write(decoration_taxonomy)
-        #         decoration_taxonomy.flush()
+        ##############################################
+        ### Re-root and decorate tree if necessary ###
+        if input_taxonomy_path:
+            new_gpkg.gpkg_tree_log = new_gpkg.unrooted_tree_log
+            new_gpkg.gpkg_tree = new_gpkg.unrooted_gpkg_tree
+        else:
+            logging.info("Finding taxonomy for new sequences")
+            with tempfile.NamedTemporaryFile() as out_taxonomy:
+                reannotator = Reannotator()
+                #TODO: Shouldn't call an underscore method
+                rerooted_tree = reannotator._reroot_tree_by_old_root(
+                    TreeNode.read(old_gpkg.reference_package_tree_path()),
+                    TreeNode.read(new_gpkg.unrooted_gpkg_tree))
+                td = TreeDecorator(
+                    rerooted_tree,
+                    old_gpkg.taxtastic_taxonomy_path(),
+                    old_gpkg.taxtastic_seqinfo_path())
+                td.decorate(
+                    new_gpkg.rooted_tree,
+                    out_taxonomy.name, #TODO: do not write out to file only to read it back in
+                    True) #TODO: expose this parameter to the user
+                total_taxonomy_hash = GreenGenesTaxonomy.read_file(
+                    out_taxonomy.name).taxonomy
 
-        #         decorator.main(decoration_taxonomy.name,
-        #                        new_gpkg.rooted_tree,
-        #                        new_gpkg.decorate_tax,
-        #                        False,
-        #                        False,
-        #                        None)
-        # else:
-        #     raise Exception("Untested code here")
-        #     decorator.main(old_gpkg.taxtastic_taxonomy_path,
-        #                      new_gpkg.rooted_tree,
-        #                      new_gpkg.decorate_tax,
-        #                      False,
-        #                      False,
-        #                      old_gpkg.taxtastic_seqinfo_path)
-
-        ################################
-        ### Generating tree log file ###
-        # Commented out for the moment because the log info doesn't change from
-        # the unrooted tree
-        # logging.info("Generating phylogenetic tree log file")
-        # new_gpkg.gpkg_tree = "%s_gpkg.tree" % new_gpkg.name
-        # new_gpkg.gpkg_tree_log = "%s_gpkg.tree.log" % new_gpkg.name
-        # self._generate_tree_log_file(new_gpkg.unrooted_tree,
-        #                              new_gpkg.hmm_alignment,
-        #                              new_gpkg.gpkg_tree,
-        #                              new_gpkg.gpkg_tree_log,
-        #                              new_gpkg.package_type,
-        #                              self.fasttree)
+            ################################
+            ### Generating tree log file ###
+            logging.info("Generating phylogenetic tree log file")
+            new_gpkg.gpkg_tree = "%s_gpkg.tree" % new_gpkg.name
+            new_gpkg.gpkg_tree_log = "%s_gpkg.tree.log" % new_gpkg.name
+            self._generate_tree_log_file(new_gpkg.unrooted_tree,
+                                         new_gpkg.hmm_alignment,
+                                         new_gpkg.gpkg_tree,
+                                         new_gpkg.gpkg_tree_log,
+                                         new_gpkg.package_type,
+                                         self.fasttree)
 
         ################################
         ### Creating taxtastic files ###

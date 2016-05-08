@@ -202,4 +202,11 @@ class Update(Create):
                                       self._define_range(new_gpkg.unaligned_sequences),
                                       new_gpkg.unaligned_sequences,
                                       search_hmm_files=old_gpkg.search_hmm_paths())
+
+        ###################
+        ### Test it out ###
+        logging.info("Testing newly updated GraftM package works")
+        self._test_package(new_gpkg.name)
+
+        logging.info("Finished")
     

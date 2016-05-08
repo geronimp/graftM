@@ -62,7 +62,7 @@ SAYTGIVAAAHSARGDAWALSPHVKVAFADRSLPFDFANITKEFGRGAMREFVPAGERDLIIP
                 with tempfile.NamedTemporaryFile() as tax:
                     fasta.write(Tests.extra_mcra_fasta)
                     fasta.flush()
-                    tax.write("KYC55281.1\tRoot; mcrA; Euryarchaeota_mcrA; Methanofastidiosa\n")
+                    tax.write("KYC55281.1\tmcrA; Euryarchaeota_mcrA; Methanofastidiosa\n")
                     tax.flush()
                     prev_path = os.path.join(path_to_data,'mcrA.gpkg')
                     cmd1 = "%s update --graftm_package %s --sequences %s --taxonomy %s --output %s" %(
@@ -79,7 +79,7 @@ SAYTGIVAAAHSARGDAWALSPHVKVAFADRSLPFDFANITKEFGRGAMREFVPAGERDLIIP
                     taxhash = up.taxonomy_hash()
                     self.assertEqual(len(prevhash)+1,
                                      len(taxhash))
-                    self.assertEqual(['Root','mcrA','Euryarchaeota_mcrA','Methanofastidiosa'],
+                    self.assertEqual(['mcrA','Euryarchaeota_mcrA','Methanofastidiosa'],
                                      taxhash['KYC55281.1'])
                     self.assertEqual(prevhash['639699575'],
                                      taxhash['639699575'])

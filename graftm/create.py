@@ -494,6 +494,22 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
             found_sequence_names.add(name)
         return False
 
+    def _test_package(self, package_path):
+        '''Give a GraftM package a spin, and see if it works in reality with default
+        parameters (i.e. pplacer). If it does not work, then raise an error.
+
+        Parameters
+        ----------
+        package_path: str
+            path to graftm_package to be tested
+        '''
+        pkg = GraftMPackage.acquire(package_path)
+        temp_output = tempdir.TempDir()
+        graftM_graft_test_dir_name = temp_output.name
+        temp_output.dissolve()
+        cmd = "graftM graft --forward %s --graftm_package %s --output_directory %s" %(
+            pkg.unaligned_sequence_database_path(), package_path, graftM_graft_test_dir_name)
+        extern.run(cmd)
 
 
     def main(self, **kwargs):
@@ -797,12 +813,7 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
         # requires some refactoring so that graft() can be called easily with
         # sane defaults.
         logging.info("Testing gpkg package works")
-        temp_output = tempdir.TempDir()
-        graftM_graft_test_dir_name = temp_output.name
-        temp_output.dissolve()
-        cmd = "graftM graft --forward %s --graftm_package %s --output_directory %s" %(
-            sequences, output_gpkg_path, graftM_graft_test_dir_name)
-        extern.run(cmd)
+        self._test_package(output_gpkg_path)
         
 
         logging.info("Finished\n")

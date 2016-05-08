@@ -50,28 +50,19 @@ class Tests(unittest.TestCase):
         
         pplacer = Pplacer("refpkg_decoy")
         
-        output_alias_hash = pplacer.jplace_split(test_json, input_alias_hash, mock_cluster_hash)
+        observed_placement = pplacer.jplace_split(test_json, mock_cluster_hash)
         
-        expected_placements = [{"p": [["p__Proteobacteria", 0.107586583111, 1, 0.970420466541, -614.032176075, 0.22226616471],
-                                       ["k__Bacteria", 0.220493270874, 0, 0.0147918928965, -618.21582627, 0.248671444337],
-                                       ["p__Proteobacteria", 8.77624511719e-06, 2, 0.0147876405626, -618.216113788, 0.248672441848]], 
-                                "nm":[["test_read1", 1]]},
-                               {"p": [["p__Proteobacteria", 0.107586583111, 1, 0.970420466541, -614.032176075, 0.22226616471],
-                                       ["k__Bacteria", 0.220493270874, 0, 0.0147918928965, -618.21582627, 0.248671444337],
-                                       ["p__Proteobacteria", 8.77624511719e-06, 2, 0.0147876405626, -618.216113788, 0.248672441848]], 
-                                "nm": [["test_read2", 1]]}]
-                                
-        expected_number_of_placements = 1
-        
-        for alias_idx, alias_placement_entry in output_alias_hash.items():
-            expected_placement = expected_placements.pop()
-            placement_dict = alias_placement_entry['place']
-            observed_number_of_placements = len(placement_dict)
-            observed_placement = placement_dict[0]
-            self.assertEqual(expected_number_of_placements, 
-                             observed_number_of_placements)
-            self.assertEqual(expected_placement,
-                             observed_placement)
+        expected_placement = {'0':[{"p": [["p__Proteobacteria", 0.107586583111, 1, 0.970420466541, -614.032176075, 0.22226616471],
+                                           ["k__Bacteria", 0.220493270874, 0, 0.0147918928965, -618.21582627, 0.248671444337],
+                                           ["p__Proteobacteria", 8.77624511719e-06, 2, 0.0147876405626, -618.216113788, 0.248672441848]], 
+                                     "nm":[["test_read1", 1]]}],
+                               '1': [{"p": [["p__Proteobacteria", 0.107586583111, 1, 0.970420466541, -614.032176075, 0.22226616471],
+                                           ["k__Bacteria", 0.220493270874, 0, 0.0147918928965, -618.21582627, 0.248671444337],
+                                           ["p__Proteobacteria", 8.77624511719e-06, 2, 0.0147876405626, -618.216113788, 0.248672441848]], 
+                                     "nm": [["test_read2", 1]]}]}
+
+        self.assertEqual(expected_placement,
+                         observed_placement)
         
     def test_basic_split_with_different_placements(self):
         input_alias_hash = {'0':{'place':[]}, '1':{'place':[]}}
@@ -140,40 +131,35 @@ class Tests(unittest.TestCase):
                     }
         
         pplacer = Pplacer("refpkg_decoy")
-        output_alias_hash = pplacer.jplace_split(test_json, input_alias_hash, mock_cluster_hash)
+        observed_placement_results = pplacer.jplace_split(test_json, mock_cluster_hash)
         
-        expected_number_of_placements   = 2
-        expected_placements_for_alias_0 = [{"p":[["p__Crenarchaeota", 0.107586583111, 1, 0.970420466541, -614.032176075, 0.22226616471],
+        expected_placement_results = {'0': [{"p":[["p__Crenarchaeota", 0.107586583111, 1, 0.970420466541, -614.032176075, 0.22226616471],
                                                  ["k__Archaea", 0.220493270874, 0, 0.0147918928965, -618.21582627, 0.248671444337], 
                                                  ["p__Crenarchaeota", 8.77624511719e-06, 2, 0.0147876405626, -618.216113788, 0.248672441848]], 
                                             "nm": [["test_read1", 1]]},
-                                           {"p":[["p__Proteobacteria", 0.107586583111, 1, 0.970420466541, -614.032176075, 0.22226616471],
+                                           {
+                                            "p":[["p__Proteobacteria", 0.107586583111, 1, 0.970420466541, -614.032176075, 0.22226616471],
                                                  ["k__Bacteria", 0.220493270874, 0, 0.0147918928965, -618.21582627, 0.248671444337],
                                                  ["c__Alphaproteobacteria", 8.77624511719e-06, 2, 0.0147876405626, -618.216113788, 0.248672441848]],
-                                            "nm":[["test_read3", 1]]}]
-        
-        expected_placements_for_alias_1 = [{"p":[["p__Crenarchaeota", 0.107586583111, 1, 0.970420466541, -614.032176075, 0.22226616471],
+                                            "nm":[["test_read3", 1]]
+                                            }],
+                               '1':  
+                                            [{
+                                             "p":[["p__Crenarchaeota", 0.107586583111, 1, 0.970420466541, -614.032176075, 0.22226616471],
                                                  ["k__Archaea", 0.220493270874, 0, 0.0147918928965, -618.21582627, 0.248671444337], 
                                                  ["p__Crenarchaeota", 8.77624511719e-06, 2, 0.0147876405626, -618.216113788, 0.248672441848]], 
-                                            "nm": [["test_read2", 1]]},
-                                           {"p":[["k__Bacteria", 0.107586583111, 1, 0.970420466541, -614.032176075, 0.22226616471],
+                                            "nm": [["test_read2", 1]]
+                                            },
+                                            {
+                                             "p":[["k__Bacteria", 0.107586583111, 1, 0.970420466541, -614.032176075, 0.22226616471],
                                                  ["p__Cyanobacteria", 0.220493270874, 0, 0.0147918928965, -618.21582627, 0.248671444337],
                                                  ["c__Chloroplast", 8.77624511719e-06, 2, 0.0147876405626, -618.216113788, 0.248672441848]],
-                                            "nm":[["test_read4", 1]]}]     
-        
-        placement_results               = {'0': expected_placements_for_alias_0, 
-                                           '1': expected_placements_for_alias_1}
-        
-        for alias_idx, alias_placement_entry in output_alias_hash.items():
-            
-            expected_placement_results       = placement_results[alias_idx]
-            observed_placement_results       = alias_placement_entry['place']
-            observed_number_of_placements    = len(observed_placement_results)
+                                             "nm":[["test_read4", 1]]
+                                             }]
+                                      
+                               }
 
-            self.assertEqual(expected_number_of_placements, 
-                             observed_number_of_placements)
-            self.assertEqual(expected_placement_results,
-                             observed_placement_results)
+        self.assertEqual(expected_placement_results, observed_placement_results)
             
     def test_rereplicating_json_file(self):
         input_alias_hash = {'0':{'place':[]}}
@@ -210,22 +196,17 @@ class Tests(unittest.TestCase):
         
         pplacer = Pplacer("refpkg_decoy")
         
-        output_alias_hash = pplacer.jplace_split(test_json, input_alias_hash, mock_cluster_hash)
+        observed_placement_results = pplacer.jplace_split(test_json, mock_cluster_hash)
         
-        expected_placement_results = {
-                                      "p":[["p__Proteobacteria", 0.107586583111, 1, 0.970420466541, -614.032176075, 0.22226616471],
+        expected_placement_results = {'0': 
+                                      [{"p":[["p__Proteobacteria", 0.107586583111, 1, 0.970420466541, -614.032176075, 0.22226616471],
                                            ["k__Bacteria", 0.220493270874, 0, 0.0147918928965, -618.21582627, 0.248671444337],
                                            ["p__Proteobacteria", 8.77624511719e-06, 2, 0.0147876405626, -618.216113788, 0.248672441848]],
                                       "nm":[["test_read1", 1],
-                                            ["test_read2", 1]]
-                                      }
+                                            ["test_read2", 1]]}]}
         
-        for alias_placement_entry in output_alias_hash.values():
-            placement_dict = alias_placement_entry['place']
-            observed_placement_results             = placement_dict[0]
-            observed_number_of_placements          = len(placement_dict)
-            self.assertEqual(expected_placement_results,
-                             observed_placement_results)
+        self.assertEqual(expected_placement_results,
+                        observed_placement_results)
 
 if __name__ == "__main__":
     unittest.main()

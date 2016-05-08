@@ -40,42 +40,109 @@ class Pplacer:
                 for record in alignments: # For each record in the read list
                     record.id = record.id + '_' + str(file_number) # append the unique identifier to the record id
                 SeqIO.write(alignments, output, "fasta") # And write the reads to the file
-                alias_hash[str(file_number)] = {'output_path': os.path.join(os.path.dirname(alignment_file),'placements.jplace'),
-                                                'place': []}
+                alias_hash[str(file_number)] = {'output_path': os.path.join(os.path.dirname(alignment_file), 'placements.jplace')}
                 file_number += 1
         return alias_hash
-
-    def jplace_split(self, jplace_file, alias_hash):
-        ## Split the jplace file into their respective directories
-
-        # Load the placement file
-        placement_file = json.load(open(jplace_file))
-
-        # Parse the placements based on unique identifies appended to the end
-        # of each read
-        for placement in placement_file['placements']: # for each placement
-            hash = {} # create an empty hash
-            for alias in alias_hash: # For each alias, append to the 'place' list each read that identifier
-                hash = {'p': placement['p'],
-                        'nm': [nm for nm in placement['nm'] if nm[0].split('_')[-1] == alias]}
-                alias_hash[alias]['place'].append(hash)
-
-        # Write the jplace file to their respective file paths.
-        jplace_path_list = []
-        for alias in alias_hash:
-            output = {'fields'     : placement_file['fields'],
-                      'version'    : placement_file['version'],
-                      'tree'       : placement_file['tree'],
-                      'placements' : alias_hash[alias]['place'],
-                      'metadata'   : placement_file['metadata']}
-            with open(alias_hash[alias]['output_path'], 'w') as output_path:
-                json.dump(output, output_path, ensure_ascii=False)
-            jplace_path_list.append(alias_hash[alias]['output_path'])
-        return jplace_path_list
     
+    def convert_cluster_dict_keys_to_aliases(self, cluster_dict, alias_hash):
+        '''
+        Parameters
+        ----------
+        cluster_dict : dict
+            dictionary stores information on pre-placement clustering  
+        alias_hash : dict
+            Stores information on each input read file given to GraftM, the
+            corresponding reads found within each file, and their taxonomy
+    
+        Returns
+        --------
+        updated cluster_dict dict containing alias indexes for keys.
+        '''
+        output_dict = {}
+        directory_to_index_dict = {os.path.split(item["output_path"])[0] : key 
+                            for key, item in alias_hash.iteritems()}
+        for key, item in cluster_dict.iteritems():
+            cluster_file_directory = os.path.split(key)[0]
+            cluster_idx = directory_to_index_dict[cluster_file_directory]
+            output_dict[cluster_idx] = item
+        return output_dict
+            
+    
+    
+    def jplace_split(self, original_jplace, cluster_dict):
+        '''
+        To make GraftM more efficient, reads are dereplicated and merged into
+        one file prior to placement using pplacer. This function separates the
+        single jplace file produced by this process into the separate jplace 
+        files, one per input file (if multiple were provided) and backfills 
+        abundance (re-replicates?) into the placement file so analyses can be 
+        done using the placement files. 
+        
+        Parameters
+        ----------
+        original_jplace : dict (json)
+            json .jplace file from the pplacer step.
+        cluster_dict : dict
+            dictionary stores information on pre-placement clustering  
+        
+        Returns
+        -------
+        A dict containing placement hashes to write to 
+        new jplace file. Each key represents a file alias  
+        '''       
+        output_hash = {}
+
+        for placement in original_jplace['placements']: # for each placement
+            alias_placements_list = []
+            nm_dict = {}
+            
+            p = placement['p']
+            if 'nm' in placement.keys():
+                nm = placement['nm']
+            elif 'n' in placement.keys():
+                nm = placement['n']
+            else:
+                raise Exception("Unexpected jplace format: Either 'nm' or 'n' are expected as keys in placement jplace .JSON file")
+            
+            for nm_entry in nm:
+                nm_list = []
+                placement_read_name, plval = nm_entry
+                read_alias_idx = placement_read_name.split('_')[-1] # Split the alias 
+                                    # index out of the read name, which 
+                                    # corresponds to the input file from 
+                                    # which the read originated.
+                read_name = '_'.join(placement_read_name.split('_')[:-1])
+                read_cluster = cluster_dict[read_alias_idx][read_name]
+                for read in read_cluster:
+                    nm_list.append([read.name, plval])
+                if read_alias_idx not in nm_dict:
+                    nm_dict[read_alias_idx] = nm_list
+                else:
+                    nm_dict[read_alias_idx] += nm_entry
+                
+            for alias_idx, nm_list in nm_dict.iteritems():
+                placement_hash = {'p': p,
+                                  'nm': nm_list}                
+                if alias_idx not in output_hash:
+                    output_hash[alias_idx] = [placement_hash]
+                else:
+                    output_hash[alias_idx].append(placement_hash)
+        return output_hash
+    
+    def write_jplace(self, original_jplace, alias_hash):
+        # Write the jplace file to their respective file paths.
+        for alias_idx in alias_hash.keys():
+            output = {'fields'     : original_jplace['fields'],
+                      'version'    : original_jplace['version'],
+                      'tree'       : original_jplace['tree'],
+                      'placements' : alias_hash[alias_idx]['place'],
+                      'metadata'   : original_jplace['metadata']}
+            with open(alias_hash[alias_idx]['output_path'], 'w') as output_io:
+                json.dump(output, output_io, ensure_ascii=False, indent=3, separators=(',', ': '))
+
     @T.timeit
     def place(self, reverse_pipe, seqs_list, resolve_placements, files, args,
-              slash_endings, tax_descr):
+              slash_endings, tax_descr, clusterer):
         '''
         placement - This is the placement pipeline in GraftM, in aligned reads 
                     are placed into phylogenetic trees, and the results interpreted.
@@ -111,9 +178,6 @@ class Pplacer:
         # Run pplacer on merged file
         jplace = self.pplacer(files.jplace_output_path(), args.output_directory, files.comb_aln_fa(), args.threads)
         logging.info("Placements finished")
-
-        # Split the jplace file
-        self.jplace_split(jplace, alias_hash)
         
         #Read the json of refpkg
         logging.info("Reading classifications")
@@ -122,7 +186,6 @@ class Pplacer:
                                                            args.placements_cutoff, 
                                                            resolve_placements
                                                            )
-        self.hk.delete([jplace])# Remove combined split, not really useful
         logging.info("Reads classified")
         # If the reverse pipe has been specified, run the comparisons between the two pipelines. If not then just return.
         
@@ -147,7 +210,22 @@ class Pplacer:
                 trusted_placements[base_file]={}
                 for read, entry in classifications[str(idx)].iteritems():
                     trusted_placements[base_file][read] = entry['placement']
+        # Split the original jplace file
+        # and write split jplaces to separate file directories
+        with open(jplace) as f: jplace_json = json.load(f)
+        cluster_dict = self.convert_cluster_dict_keys_to_aliases(clusterer.seq_library, 
+                                                                 alias_hash)
+        hash_with_placements = self.jplace_split(jplace_json, 
+                                                 cluster_dict)
         
+        for file_alias, placement_entries_list in hash_with_placements.items():
+            alias_hash[file_alias]['place'] = placement_entries_list
+            
+        self.write_jplace(jplace_json, 
+                          alias_hash)
+        
+        self.hk.delete([jplace])# Remove combined split, not really useful
+
         return trusted_placements
 
 class Compare:
@@ -258,4 +336,3 @@ class Compare:
                     raise Exception('Programming Error: Comparison of placement resolution')               
              
         return comparison_hash # Return the hash
-

@@ -608,7 +608,6 @@ class Run:
                               hmm = self.args.hmm,
                               search_hmm_files = self.args.search_hmm_files,
                               force = self.args.force,
-                              graftm_package = self.args.graftm_package,
                               threads = self.args.threads                              
                               )
                 

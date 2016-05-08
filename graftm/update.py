@@ -9,6 +9,7 @@ from graftm.greengenes_taxonomy import GreenGenesTaxonomy
 from graftm.decorator import Decorator
 from graftm.getaxnseq import Getaxnseq
 from graftm.reannotator import Reannotator
+from graftm.tree_decorator import TreeDecorator
 
 class UpdateDefaultOptions:
     threads=5

@@ -97,7 +97,7 @@ SAYTGIVAAAHSARGDAWALSPHVKVAFADRSLPFDFANITKEFGRGAMREFVPAGERDLIIP
                 update.update(
                     input_sequence_path = fasta.name,
                     input_graftm_package_path = os.path.join(
-                        path_to_data, 'mcrA.gpkg'),
+                        path_to_data, 'mcrA.10seqs.gpkg'),
                     output_graftm_package_path = 'updated.gpkg')
                 prev = GraftMPackage.acquire(prev_path)
                 up = GraftMPackage.acquire('updated.gpkg')

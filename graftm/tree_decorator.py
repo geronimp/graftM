@@ -7,10 +7,7 @@ from graftm.rerooter import Rerooter
 from graftm.greengenes_taxonomy import GreenGenesTaxonomy
 # System imports
 from skbio import TreeNode
-import argparse
 import logging
-import os
-import sys
 
 ################################################################################
 ################################ - Statics - ###################################

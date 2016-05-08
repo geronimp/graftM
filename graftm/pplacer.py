@@ -75,7 +75,7 @@ class Pplacer:
     
     @T.timeit
     def place(self, reverse_pipe, seqs_list, resolve_placements, files, args,
-              slash_endings, tax_descr):
+              has_slash_endings, tax_descr):
         '''
         placement - This is the placement pipeline in GraftM, in aligned reads 
                     are placed into phylogenetic trees, and the results interpreted.
@@ -98,6 +98,9 @@ class Pplacer:
             graftM output file name object
         args : obj
             argparse object
+        has_slash_endings : bool
+            Boolean, whether forward and reverse pairs of paired end reads are 
+            distinguished by a /1 and /2
         Returns
         ------- 
         trusted_placements : dict
@@ -137,7 +140,7 @@ class Pplacer:
                                                                forward_gup,
                                                                reverse_gup,
                                                                args.placements_cutoff,
-                                                               slash_endings,
+                                                               has_slash_endings,
                                                                base_file
                                                                )
                 trusted_placements[base_file]=placements_hash['trusted_placements']
@@ -155,30 +158,30 @@ class Compare:
 
     def __init__(self): pass
 
-    def _compare_hits(self, forward_reads, reverse_reads, file_name, slash_endings):
+    def _compare_hits(self, forward_reads, reverse_reads, file_name, has_slash_endings):
         ## Take a paired read run, and compare hits between the two, report the
         ## number of hits each, the crossover, and a
         
-        def remove_endings(read_list, slash_endings):
+        def remove_endings(read_list, has_slash_endings):
             orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
             d = {}
             for read in read_list:
                 orfm_match=orfm_regex.match(read)
                 
                 if orfm_match:
-                    if slash_endings:
+                    if has_slash_endings:
                         new_read=orfm_match.groups(0)[0][:-2]
                     else:
                         new_read=orfm_match.groups(0)[0]
-                elif slash_endings:
+                elif has_slash_endings:
                     new_read=read[:-2]
                 else:
                     new_read=read
                 d[new_read]=read
             return d
         
-        forward_reads=remove_endings(forward_reads, slash_endings)
-        reverse_reads=remove_endings(reverse_reads, slash_endings)
+        forward_reads=remove_endings(forward_reads, has_slash_endings)
+        reverse_reads=remove_endings(reverse_reads, has_slash_endings)
         # Report and record the crossover
         crossover_hits = [x for x in forward_reads.keys() if x in reverse_reads.keys()]
 
@@ -195,7 +198,7 @@ class Compare:
 
         return crossover_hits, forward_reads, reverse_reads
 
-    def compare_placements(self, forward_gup, reverse_gup, placement_cutoff, slash_endings, base_file):
+    def compare_placements(self, forward_gup, reverse_gup, placement_cutoff, has_slash_endings, base_file):
         ## Take guppy placement file for the forward and reverse reads, compare
         ## the placement, and make a call as to which is to be trusted. Return
         ## a list of trusted reads for use by the summary step in GraftM
@@ -203,7 +206,7 @@ class Compare:
         crossover, for_dict, rev_dict = self._compare_hits(forward_gup.keys(), 
                                                            reverse_gup.keys(), 
                                                            base_file, 
-                                                           slash_endings)
+                                                           has_slash_endings)
         
         comparison_hash = {'trusted_placements': {}} # Set up a hash that will record info on each placement
         for read in crossover:

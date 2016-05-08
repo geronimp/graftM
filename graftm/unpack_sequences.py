@@ -1,21 +1,21 @@
 import logging
 import subprocess
-from signal import signal, SIGPIPE, SIG_DFL
 import os
 import itertools
+import re
 from string import lower
+from signal import signal, SIGPIPE, SIG_DFL
 
 class UnpackRawReads:
+    
     class UnexpectedFileFormatException(Exception): pass
     
     FORMAT_FASTA    = "FORMAT_FASTA"
     FORMAT_FASTQ    = "FORMAT_FASTQ"
     FORMAT_FASTQ_GZ = "FORMAT_FASTQ_GZ"
     FORMAT_FASTA_GZ = "FORMAT_FASTA_GZ"
-    
     PROTEIN_SEQUENCE_TYPE = 'aminoacid'
     NUCLEOTIDE_SEQUENCE_TYPE = 'nucleotide'
-    
     _EXTENSION_TO_FILE_TYPE = {'.fa': FORMAT_FASTA,
                                '.faa': FORMAT_FASTA,
                                '.fna': FORMAT_FASTA,
@@ -30,16 +30,18 @@ class UnpackRawReads:
                                '.fa.gz': FORMAT_FASTA_GZ,
                                '.faa.gz': FORMAT_FASTA_GZ,
                                '.fna.gz': FORMAT_FASTA_GZ,
-                               '.fasta.gz': FORMAT_FASTA_GZ,
-                               }
+                               '.fasta.gz': FORMAT_FASTA_GZ}
     
     def __init__(self, read_file):
         self.read_file   = read_file
-    
-    def _guess_sequence_type_from_string(self, seq):
+        self.sequence_type()
+        
+    @staticmethod
+    def _guess_sequence_type_from_string(seq):
         '''Return 'protein' if there is >10% amino acid residues in the 
         (string) seq parameter, else 'nucleotide'. Raise Exception if a
         non-standard character is encountered'''
+
         # Define expected residues for each sequence type
         aa_chars = ['P','V','L','I','M','F','Y','W','H','K','R','Q','N','E','D','S','X']
         aas = set(itertools.chain(aa_chars, [lower(a) for a in aa_chars]))
@@ -58,14 +60,16 @@ class UnpackRawReads:
                 raise Exception('Encountered unexpected character when attempting to guess sequence type: %s' % (residue))
             count += 1
             if count >300: break
+
         if float(num_protein) / (num_protein+num_nucleotide) > 0.1:
-            return self.PROTEIN_SEQUENCE_TYPE
+            return UnpackRawReads.PROTEIN_SEQUENCE_TYPE
         else:
-            return self.NUCLEOTIDE_SEQUENCE_TYPE
-    
+            return UnpackRawReads.NUCLEOTIDE_SEQUENCE_TYPE
+        
     def sequence_type(self):
         '''Guess the type of input sequence provided to graftM (i.e. nucleotide
         or amino acid) and return'''
+        slash_ending_regex = re.compile('.*/[12]$')
         if hasattr(self, "type"):
             return self.type
         else:
@@ -77,9 +81,17 @@ class UnpackRawReads:
                                                 shell=True,
                                                 preexec_fn=lambda:signal(SIGPIPE, SIG_DFL)
                                                 )
-            _, seq = tuple(first_seq.strip().split('\n'))
+            header, seq = tuple(first_seq.strip().split('\n'))
             self.type = self._guess_sequence_type_from_string(seq)
             logging.debug("Detected sequence type as %s" % self.type)
+            
+            slashendingregex = slash_ending_regex.match(header)
+            if slashendingregex:
+                logging.debug("Detected '/1' '/2' style headers.")
+                self.has_slash_endings = True
+            else:
+                self.has_slash_endings = False
+            
             return self.type
 
     def guess_sequence_input_file_format(self, sequence_file_path):

@@ -1195,6 +1195,55 @@ CGGGGTATCTAATCCCGTTCGCTCCCCTAGCTTTCGTGCCTCAGCGTCAGAAAAGACCCAGTGAGCCGCTTTCGCCCCCG
 +
 \a_ccO_ceceeehdgaffZ^degfggfdefggib^ef^cecRafeefgdZecf_dd`gbcZ___b]aUZaa`aa__aaX__TT[]_bY]Y`]RG]`b_b
 '''
+        expected_aln = """>FCC0WM1ACXX:2:2208:12709:74426#GTCCAGAA/1_0 FCC0WM1ACXX:2:2208:12709:74426#GTCCAGAA/1
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+-----------------------ACACTGCCCAGACACCTACGGGTGGCTGCAGTCGAGG
+ATCTTCGGCAATGGGCGAAAGCCTGACCGAGCGACGCCGCGTGTGGGATGAAGGCCCTCG
+GG----------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+---------------------------------
+>FCC0WM1ACXX:2:2208:12709:74426#GTCCAGAA/2_1 FCC0WM1ACXX:2:2208:12709:74426#GTCCAGAA/2
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+-----TTGATATCCTAAGGAACACCGGGGGCGAAAGCGGCTCACTGGGTCTTCTGACGCT
+GAGGCACGAAAGCTAGGGGAGCGAACGGGATTAGATACCCC-------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+---------------------------------""".split('\n')
+
         with tempfile.NamedTemporaryFile(suffix='.fq') as fwd_f:
             fwd_f.write(fwd)
             fwd_f.flush()
@@ -1209,9 +1258,71 @@ CGGGGTATCTAATCCCGTTCGCTCCCCTAGCTTTCGTGCCTCAGCGTCAGAAAAGACCCAGTGAGCCGCTTTCGCCCCCG
                                                                                                                      tmp,
                                                                                                                      os.path.join(path_to_data,'61_otus.gpkg'))
                     extern.run(cmd)
-                    raise Exception("At least it runs, but nt sure what is expected for this test. Before it didn't even run")
-    
-        
+                    expected = [['#ID',os.path.basename(fwd_f.name)[:-3],'ConsensusLineage'],
+                                ['1','1','Root; k__Bacteria']]
+                    for idx, line in enumerate(open(os.path.join(tmp,'combined_count_table.txt')).readlines()):
+                        self.assertEqual(expected[idx], line.strip().split('\t'))
+                    for idx, line in enumerate(open(os.path.join(tmp,'combined_alignment.aln.fa')).readlines()):
+                        self.assertEqual(expected_aln[idx], line.strip())
+
+    def test_forward_and_reverse_slash_type_fastq_merge_reads(self):
+        fwd = '''@FCC0WM1ACXX:2:2208:12709:74426#GTCCAGAA/1
+ACACTGCCCAGACACCTACGGGTGGCTGCAGTCGAGGATCTTCGGCAATGGGCGAAAGCCTGACCGAGCGACGCCGCGTGTGGGATGAAGGCCCTCGGGT
++
+^^_cccacgeecafgfghhhhheYea_c^efaff`eggfhhhhf]`_d]]X^aa\]^Y^a`[^bbaZaaaa]]a]_[]HTX`[[[_[]`_][`^^`]__a
+'''
+        rev = '''@FCC0WM1ACXX:2:2208:12709:74426#GTCCAGAA/2
+CGGGGTATCTAATCCCGTTCGCTCCCCTAGCTTTCGTGCCTCAGCGTCAGAAAAGACCCAGTGAGCCGCTTTCGCCCCCGGTGTTCCTTAGGATATCAAC
++
+\a_ccO_ceceeehdgaffZ^degfggfdefggib^ef^cecRafeefgdZecf_dd`gbcZ___b]aUZaa`aa__aaX__TT[]_bY]Y`]RG]`b_b
+'''
+        expected_aln = """>FCC0WM1ACXX:2:2208:12709:74426#GTCCAGAA/1_0 FCC0WM1ACXX:2:2208:12709:74426#GTCCAGAA/1
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+-----------------------ACACTGCCCAGACACCTACGGGTGGCTGCAGTCGAGG
+ATCTTCGGCAATGGGCGAAAGCCTGACCGAGCGACGCCGCGTGTGGGATGAAGGCCCTCG
+GG----------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+-----TTGATATCCTAAGGAACACCGGGGGCGAAAGCGGCTCACTGGGTCTTCTGACGCT
+GAGGCACGAAAGCTAGGGGAGCGAACGGGATTAGATACCCC-------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+---------------------------------""".split('\n')
+
+        with tempfile.NamedTemporaryFile(suffix='.fq') as fwd_f:
+            fwd_f.write(fwd)
+            fwd_f.flush()
+            with tempfile.NamedTemporaryFile(suffix='.fq') as rev_f:
+                rev_f.write(rev)
+                rev_f.flush()
+
+                with tempdir.TempDir() as tmp:
+                    cmd = '%s graft --merge_reads --verbosity 5 --forward %s --reverse %s --output_directory %s --force --graftm_package %s' % (path_to_script,
+                                                                                                                     fwd_f.name,
+                                                                                                                     rev_f.name,
+                                                                                                                     tmp,
+                                                                                                                     os.path.join(path_to_data,'61_otus.gpkg'))
+                    extern.run(cmd)
+                    expected = [['#ID',os.path.basename(fwd_f.name)[:-3],'ConsensusLineage'],
+                                ['1','1','Root; k__Bacteria']]
+                    for idx, line in enumerate(open(os.path.join(tmp,'combined_count_table.txt')).readlines()):
+                        self.assertEqual(expected[idx], line.strip().split('\t'))
+                    for idx, line in enumerate(open(os.path.join(tmp,'combined_alignment.aln.fa')).readlines()):
+                        self.assertEqual(expected_aln[idx], line.strip())
+
+
     def test_filter_minimum(self):
         testing = '''>NS500333:6:H1124BGXX:1:23310:10768:12778 1:N:0:GATCAG
 CGGGAGGAACACCAGTGGCGAAGGCGGCTTCCTGGCCTGTTCTTGACGCTGAGGCGCGAA

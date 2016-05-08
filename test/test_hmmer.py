@@ -28,9 +28,12 @@ import sys
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 from graftm.hmmer import Hmmer
+from graftm.unpack_sequences import UnpackRawReads
 
 class Tests(unittest.TestCase):
     def test_merg_aln(self):
+        mock_read = '''>mock
+ATGCGTATGCAACCTACCTTCGTATGCAACCTACCTTCGTATGCAACCTACCTT'''
         forward_reads='''>no_overlap
 -------CGTATGCAACCTACCTT---------------------------------------
 >overlap_all_match
@@ -55,31 +58,42 @@ class Tests(unittest.TestCase):
 -------CGTATGCAACCTACCTT---------------------------------------
 >complete_overlap_mismatch
 -------CGTTTGCAAGCTACCTT---------------------------------------'''
-        expected_aln='''>no_overlap
--------CGTATGCAACCTACCTT---------------CGTATGCAACCTACCTT-------
->overlap_all_match
--------CGTATGCAACCTACCTTCAACCTACCTT----------------------------
->overlap_mismatch_in_reverse
--------CGTATGCAACCTACCTTCAACCTACCTT----------------------------
->overlap_mismatch_in_forward
--------CGTATGCAACCTTCCTTCAACCTACCTT----------------------------
->complete_overlap_all_match
+        expected_aln='''>complete_overlap_all_match
 -------CGTATGCAACCTACCTT---------------------------------------
 >complete_overlap_mismatch
--------CGTATGCATCCTACCTT---------------------------------------'''.split()
-        with tempfile.NamedTemporaryFile(suffix='_forward.fa') as forward_file:
-            with tempfile.NamedTemporaryFile(suffix='_reverse.fa') as reverse_file:
-                with tempfile.NamedTemporaryFile(suffix='.fa') as output_file:
-                    forward_file.write(forward_reads)
-                    reverse_file.write(reverse_reads)
-                    forward_file.flush()
-                    reverse_file.flush()
-                    Hmmer(None).merge_forev_aln([forward_file.name],[reverse_file.name],[output_file.name])
-                    count = 0
-                    for line in open(output_file.name):
-                        self.assertEqual(expected_aln[count], line.strip())
-                        count += 1
-                    self.assertEqual(count, len(open(output_file.name).readlines()))
+-------CGTATGCATCCTACCTT---------------------------------------
+>overlap_all_match
+-------CGTATGCAACCTACCTTCAACCTACCTT----------------------------
+>no_overlap
+-------CGTATGCAACCTACCTT---------------CGTATGCAACCTACCTT-------
+>overlap_mismatch_in_forward
+-------CGTATGCAACCTTCCTTCAACCTACCTT----------------------------
+>overlap_mismatch_in_reverse
+-------CGTATGCAACCTACCTTCAACCTACCTT----------------------------'''.split()
+        with tempfile.NamedTemporaryFile(suffix='_mock.fa') as mock:
+            with tempfile.NamedTemporaryFile(suffix='_forward.fa') as forward_file:
+                with tempfile.NamedTemporaryFile(suffix='_reverse.fa') as reverse_file:
+                    with tempfile.NamedTemporaryFile(suffix='.fa') as output_file:
+                        mock.write(mock_read)
+                        forward_file.write(forward_reads)
+                        reverse_file.write(reverse_reads)
+                        forward_file.flush()
+                        reverse_file.flush()
+                        mock.flush()
+                        
+                        forward_unpack = UnpackRawReads(mock.name)
+                        reverse_unpack = UnpackRawReads(mock.name)
+                        
+                        setattr(forward_unpack, "alignment_path", forward_file.name)
+                        setattr(reverse_unpack, "alignment_path", reverse_file.name)
+                        Hmmer(None).merge_forev_aln([forward_unpack],
+                                                    [reverse_unpack], 
+                                                    [output_file.name])
+                        count = 0
+                        for line in open(output_file.name):
+                            self.assertEqual(expected_aln[count], line.strip())
+                            count += 1
+                        self.assertEqual(count, len(open(output_file.name).readlines()))
 
 if __name__ == "__main__":
     unittest.main()

@@ -1209,7 +1209,55 @@ CGGGGTATCTAATCCCGTTCGCTCCCCTAGCTTTCGTGCCTCAGCGTCAGAAAAGACCCAGTGAGCCGCTTTCGCCCCCG
                                                                                                                      os.path.join(path_to_data,'61_otus.gpkg'))
                     extern.run(cmd)
                     raise Exception("At least it runs, but nt sure what is expected for this test. Before it didn't even run")
-    
+
+    @unittest.skip("known failure")
+    def test_input_sequence_near_duplication(self):
+        testing = '''>Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040
+ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGACGACCTATAAGCGCGAGGGGTGGACTCAGTCCAAGGACAAGCGCGAGTTCCAGGAATGGGGCGCAAAAATCGCCAAGGACCGTGGAATACCGGCGTACAACGTCAACGTCCACCTCGGCGGTATGACCCT
+CGGCCAGCGGCAACTCATGCCGTACAATGTCTCTGGGACCGACGTGATGTGTGAAGGCGATGACCTCCACTACGTCAACAACCCCGCAATGCAACAGATGTGGGATGAGATCAGGCGTACGGTTATCGTAGGTCTTGACACCGCTCACGAGACGCTGACCAGGAGACTCGGCAAGGAGGTTACCCCCGAGACCATCAACGGCTATCTCGA
+GGCATTGAACCACACGATGCCCGGTGCGGCCATTGTCCAAGAACACATGGTGGAAACCCACCCTGCGCTCGTTGAAGACTGCTTCGTAAAAGTCTTCACCGGCGACGATGACCTCGCC
+>another_Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040
+ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGACGACCTATAAGCGCGAGGGGTGGACTCAGTCCAAGGACAAGCGCGAGTTCCAGGAATGGGGCGCAAAAATCGCCAAGGACCGTGGAATACCGGCGTACAACGTCAACGTCCACCTCGGCGGTATGACCCT
+CGGCCAGCGGCAACTCATGCCGTACAATGTCTCTGGGACCGACGTGATGTGTGAAGGCGATGACCTCCACTACGTCAACAACCCCGCAATGCAACAGATGTGGGATGAGATCAGGCGTACGGTTATCGTAGGTCTTGACACCGCTCACGAGACGCTGACCAGGAGACTCGGCAAGGAGGTTACCCCCGAGACCATCAACGGCTATCTCGA
+GGCATTGAACCACACGATGCCCGGTGCGGCCATTGTCCAAGAACACATGGTGGAAACCCACCCTGCGCTCGTTGAAGACTGCTTCGTAAAAGTCTTCACCGGCGACGATGACCTCGCC
+'''
+        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+            fasta.write(testing)
+            fasta.flush()
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --verbosity 5 --forward %s --output_directory %s --force --graftm_package %s' % (path_to_script,
+                                                                                                                 fasta.name,
+                                                                                                                 tmp,
+                                                                                                                 os.path.join(path_to_data,'mcrA.gpkg'))
+                extern.run(cmd)
+                expected = '''
+>Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040_1_1_7_0 Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040_1_1_7
+MATEKTQKMFLEAMKKKFAEDPTSNKTTYKR-EGWTQSKDKREFQEWGAKIAKDRGIPAY
+NVNVHLGMTLGQRQLMPYNVSGTDVMCEGDDLHYVNNPAMQQMWDEIRRTVIVGLDTAHE
+TLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA-
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+-----------------
+>another_Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040_1_1_7_0 Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040_1_1_7
+MATEKTQKMFLEAMKKKFAEDPTSNKTTYKR-EGWTQSKDKREFQEWGAKIAKDRGIPAY
+NVNVHLGMTLGQRQLMPYNVSGTDVMCEGDDLHYVNNPAMQQMWDEIRRTVIVGLDTAHE
+TLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA-
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+-----------------
+'''
+                self.assertEqual(expected, open(os.path.join(tmp, "combined_alignment.aln.fa")).read())
+                
+                jplace = json.load(open(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "placements.jplace")))
+                self.assertEqual(2, len(jplace['placements']))
         
     def test_filter_minimum(self):
         testing = '''>NS500333:6:H1124BGXX:1:23310:10768:12778 1:N:0:GATCAG

@@ -303,8 +303,6 @@ is the greatest distance to the root.")
         if output_tax:
             self._write_consensus_strings(output_tax)
 
-        return output_tree, output_tax
-
 ################################################################################
 ################################################################################
         

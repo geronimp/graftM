@@ -151,11 +151,13 @@ class Update(Create):
                 rerooted_tree,
                 old_gpkg.taxtastic_taxonomy_path(),
                 old_gpkg.taxtastic_seqinfo_path())
-            _, total_taxonomy_hash = td.decorate(
+            td.decorate(
                 new_gpkg.gpkg_tree,
-                None, #do not write taxonomy file
+                '/tmp/a.taxonomy', #TODO: remove this reference to tempfile, use 
                 False) #TODO: no_unique_names: expose this parameter to the user
             import IPython; IPython.embed()
+            total_taxonomy_hash = GreenGenesTaxonomy.read_file(
+                '/tmp/a.taxonomy').taxonomy
 
             ################################
             ### Generating tree log file ###

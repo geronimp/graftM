@@ -64,7 +64,7 @@ SAYTGIVAAAHSARGDAWALSPHVKVAFADRSLPFDFANITKEFGRGAMREFVPAGERDLIIP
                     fasta.flush()
                     tax.write("KYC55281.1\tmcrA; Euryarchaeota_mcrA; Methanofastidiosa\n")
                     tax.flush()
-                    prev_path = os.path.join(path_to_data,'mcrA.gpkg')
+                    prev_path = os.path.join(path_to_data,'mcrA.10seqs.gpkg')
                     cmd1 = "%s update --graftm_package %s --sequences %s --taxonomy %s --output %s" %(
                         path_to_script,
                         prev_path,
@@ -93,18 +93,18 @@ SAYTGIVAAAHSARGDAWALSPHVKVAFADRSLPFDFANITKEFGRGAMREFVPAGERDLIIP
             with tempfile.NamedTemporaryFile() as fasta:
                 fasta.write(Tests.extra_mcra_fasta)
                 fasta.flush()
+                prev_path = os.path.join(path_to_data,'mcrA.10seqs.gpkg')
                 update = Update(prerequisites)
                 update.update(
                     input_sequence_path = fasta.name,
-                    input_graftm_package_path = os.path.join(
-                        path_to_data, 'mcrA.10seqs.gpkg'),
+                    input_graftm_package_path = prev_path,
                     output_graftm_package_path = 'updated.gpkg')
                 prev = GraftMPackage.acquire(prev_path)
                 up = GraftMPackage.acquire('updated.gpkg')
                 prevhash = prev.taxonomy_hash()
                 taxhash = up.taxonomy_hash()
-                self.assertEqual(len(prevhash)+1,
-                                 len(taxhash))
+                self.assertEqual(11, len(taxhash)) #hard-code 11 because of
+                                                   #https://github.com/geronimp/graftM/issues/204
                 self.assertEqual(['Root','mcrA','Euryarchaeota_mcrA','Methanofastidiosa'],
                                  taxhash['KYC55281.1'])
                 self.assertEqual(prevhash['639699575'],

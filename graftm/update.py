@@ -9,6 +9,7 @@ from graftm.greengenes_taxonomy import GreenGenesTaxonomy
 from graftm.decorator import Decorator
 from graftm.getaxnseq import Getaxnseq
 from graftm.reannotator import Reannotator
+from graftm.rerooter import Rerooter
 from graftm.tree_decorator import TreeDecorator
 
 class UpdateDefaultOptions:
@@ -135,22 +136,26 @@ class Update(Create):
             new_gpkg.gpkg_tree = new_gpkg.unrooted_gpkg_tree
         else:
             logging.info("Finding taxonomy for new sequences")
-            with tempfile.NamedTemporaryFile() as out_taxonomy:
-                reannotator = Reannotator()
-                #TODO: Shouldn't call an underscore method
-                rerooted_tree = reannotator._reroot_tree_by_old_root(
-                    TreeNode.read(old_gpkg.reference_package_tree_path()),
-                    TreeNode.read(new_gpkg.unrooted_gpkg_tree))
-                td = TreeDecorator(
-                    rerooted_tree,
-                    old_gpkg.taxtastic_taxonomy_path(),
-                    old_gpkg.taxtastic_seqinfo_path())
-                td.decorate(
-                    new_gpkg.rooted_tree,
-                    out_taxonomy.name, #TODO: do not write out to file only to read it back in
-                    True) #TODO: expose this parameter to the user
-                total_taxonomy_hash = GreenGenesTaxonomy.read_file(
-                    out_taxonomy.name).taxonomy
+            reannotator = Reannotator()
+            rerooter = Rerooter()
+            old_tree = TreeNode.read(old_gpkg.reference_package_tree_path())
+            new_tree = TreeNode.read(new_gpkg.unrooted_gpkg_tree)
+            old_tree = rerooter.reroot(old_tree)
+            new_tree = rerooter.reroot(new_tree)
+            # TODO: Shouldn't call an underscore method, eventually use
+            # Rerooter instead.
+            rerooted_tree = reannotator._reroot_tree_by_old_root(
+                old_tree, new_tree)
+            new_gpkg.gpkg_tree = "%s_gpkg.tree" % new_gpkg.name
+            td = TreeDecorator(
+                rerooted_tree,
+                old_gpkg.taxtastic_taxonomy_path(),
+                old_gpkg.taxtastic_seqinfo_path())
+            _, total_taxonomy_hash = td.decorate(
+                new_gpkg.gpkg_tree,
+                None, #do not write taxonomy file
+                False) #TODO: no_unique_names: expose this parameter to the user
+            import IPython; IPython.embed()
 
             ################################
             ### Generating tree log file ###

@@ -134,7 +134,7 @@ class Create:
         -------
         Nothing
         '''
-        logging.debug("Building HMM from alignment")
+        logging.info("Building HMM from alignment")
 
         sto = tempfile.NamedTemporaryFile(suffix='.sto',prefix='graftm')
         tempaln = tempfile.NamedTemporaryFile(suffix='.fasta',prefix='graftm')
@@ -586,6 +586,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
             raise Exception("Taxonomy is required somehow e.g. by --taxonomy or --rerooted_annotated_tree")
 
         # Check for duplicates
+        logging.info("Checking for duplicate sequences")
         if sequences:
             dup = self._check_for_duplicate_sequence_names(sequences)
             if dup:
@@ -603,6 +604,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
                                                      align_hmm,
                                                      output_alignment)
             else:
+                logging.info("Aligning sequences to create aligned FASTA file")
                 ptype, output_alignment = self._align_and_create_hmm(sequences, alignment, user_hmm,
                                                    align_hmm, output_alignment, threads)
 

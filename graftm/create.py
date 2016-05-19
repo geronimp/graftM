@@ -532,6 +532,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         sequences = kwargs.pop('sequences',None)
         taxonomy = kwargs.pop('taxonomy',None)
         rerooted_tree = kwargs.pop('rerooted_tree',None)
+        unrooted_tree = kwargs.pop('unrooted_tree',None)
         tree_log = kwargs.pop('tree_log', None)
         prefix = kwargs.pop('prefix', None)
         rerooted_annotated_tree = kwargs.pop('rerooted_annotated_tree', None)
@@ -543,7 +544,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         force_overwrite = kwargs.pop('force',False)
         graftm_package = kwargs.pop('graftm_package',False)
         dereplication_level = kwargs.pop('dereplication_level',False)
-        threads = kwargs.pop('threads',False)
+        threads = kwargs.pop('threads',5)
 
         if len(kwargs) > 0:
             raise Exception("Unexpected arguments detected: %s" % kwargs)
@@ -708,7 +709,7 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
 
 
         # Create tree unless one was provided
-        if not rerooted_tree and not rerooted_annotated_tree:
+        if not rerooted_tree and not rerooted_annotated_tree and not unrooted_tree:
             logging.debug("No tree provided")
             logging.info("Building tree")
             log_file, tre_file = self._build_tree(deduplicated_alignment_file, 
@@ -719,12 +720,17 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
             if rerooted_tree:
                 logging.debug("Found unannotated pre-rerooted tree file %s" % rerooted_tree)
                 tre_file=rerooted_tree
+                no_reroot = True
             elif rerooted_annotated_tree:
                 logging.debug("Found annotated pre-rerooted tree file %s" % rerooted_tree)
                 tre_file=rerooted_annotated_tree
+                no_reroot = True
+            elif unrooted_tree:
+                logging.info("Using input unrooted tree")
+                tre_file = unrooted_tree
+                no_reroot = False
             else:
                 raise
-            no_reroot = True
 
 
             # Remove any sequences from the tree that are duplicates

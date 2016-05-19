@@ -239,6 +239,7 @@ if __name__ == '__main__':
     
     create_lesser_options=create_parser.add_argument_group('Lesser used options')
     create_lesser_options.add_argument('--rerooted_annotated_tree', metavar='newick_tree', help='Define taxonomy through this annotated newick file. (default: use taxonomy from --taxonomy)')
+    create_lesser_options.add_argument('--tree', metavar='newick_tree', help='Specify an unrooted tree, GraftM will attempt to reroot it.')
     create_lesser_options.add_argument('--hmm', metavar='.hmm file', help='Use this HMM for alignment, and search unless --search_hmm_files is specified. (default: use HMM build automatically from alignment)')
     create_lesser_options.add_argument('--dereplication_level', metavar='.hmm file', type = int, help='taxonomic rank at which \
 to dereplicate the sequences to create the HMM. Provide an integer that corresponds to the rank (from left to right) will be dereplicated. For example --dereplication_level 3 will omit all sequences \

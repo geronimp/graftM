@@ -30,6 +30,7 @@ import logging
 import tempfile
 from Bio import SeqIO
 from Bio.Seq import Seq
+from skbio.tree import TreeNode
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 from graftm.create import Create
@@ -279,6 +280,23 @@ r6\td__Archaea;p__Euryarchaeota;c__Methanomicrobia;o__Halobacteriales;f__Halobac
                         min_aligned_percent=0.5,
                         prefix=tmp+".gpkg",
                         threads=5)
+
+    def test_input_unrooted_tree(self):
+        otu61 = os.path.join(path_to_data, '61_otus.gpkg','61_otus.refpkg')
+        with tempfile.NamedTemporaryFile(suffix='.fa') as bad_alignment:
+            with tempdir.TempDir() as tmp:
+                Create(prerequisites).main(
+                    taxtastic_taxonomy=os.path.join(otu61,'61_otus_taxonomy.csv'),
+                    taxtastic_seqinfo=os.path.join(otu61,'61_otus_seqinfo.csv'),
+                    # created with newick_utils:
+                    # nw_prune test/data/61_otus.gpkg/61_otus.refpkg/61_otus.tre 4459468 >test/data/61_otus.without_4459468.tre
+                    unrooted_tree=os.path.join(path_to_data,'create','61_otus.without_4459468.tre'),
+                    sequences=os.path.join(path_to_data,'create','61_otus.without_4459468.fasta'),
+                    alignment=os.path.join(path_to_data,'create','61_otus.without_4459468.aln.fasta'),
+                    prefix=tmp, force=True)
+                gpkg = GraftMPackage.acquire(tmp)
+                tree = TreeNode.read(gpkg.reference_package_tree_path())
+                self.assertEqual(21, len(list(tree.tips())))
 
 
 if __name__ == "__main__":

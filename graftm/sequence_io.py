@@ -47,10 +47,12 @@ class SequenceIO:
     
     def write_fasta_file(self, sequence_objects, path_to_fasta_file):
         with open(path_to_fasta_file,'w') as f:
-            for s in sequence_objects:
-                f.write(">")
-                f.write(s.name)
-                f.write("\n")
-                f.write(s.seq)
-                f.write("\n")
-            
+            self.write_fasta(sequence_objects, f)
+
+    def write_fasta(self, sequence_objects, io):
+        for s in sequence_objects:
+            f.write(">")
+            f.write(s.name)
+            f.write("\n")
+            f.write(s.seq)
+            f.write("\n")

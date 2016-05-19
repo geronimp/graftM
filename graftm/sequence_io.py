@@ -39,6 +39,11 @@ class SequenceIO:
                     yield name, seq, None # yield a fasta record instead
                     break
 
+    def each_sequence(self, fp):
+        '''Like each except iterate over Sequence objects'''
+        for name, seq, _ in self.each(fp):
+            yield Sequence(name, seq)
+
     def read_fasta_file(self, path_to_fasta_file):
         seqs = []
         for name, seq, _ in self.each(open(path_to_fasta_file)):
@@ -47,10 +52,12 @@ class SequenceIO:
     
     def write_fasta_file(self, sequence_objects, path_to_fasta_file):
         with open(path_to_fasta_file,'w') as f:
-            for s in sequence_objects:
-                f.write(">")
-                f.write(s.name)
-                f.write("\n")
-                f.write(s.seq)
-                f.write("\n")
-            
+            self.write_fasta(sequence_objects, f)
+
+    def write_fasta(self, sequence_objects, io):
+        for s in sequence_objects:
+            io.write(">")
+            io.write(s.name)
+            io.write("\n")
+            io.write(s.seq)
+            io.write("\n")

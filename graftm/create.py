@@ -10,6 +10,7 @@ import tempdir
 import json
 import signal
 import re
+import itertools
 
 from Bio import SeqIO
 
@@ -832,9 +833,16 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
         temp_output = tempdir.TempDir()
         graftM_graft_test_dir_name = temp_output.name
         temp_output.dissolve()
-        cmd = "graftM graft --forward %s --graftm_package %s --output_directory %s" %(
-            sequences, output_gpkg_path, graftM_graft_test_dir_name)
-        extern.run(cmd)
+        # Take a subset of sequences for testing
+        with tempfile.NamedTemporaryFile(suffix=".fa") as tf:
+            seqio = SequenceIO()
+            seqio.write_fasta(
+                itertools.islice(seqio.each_sequence(open(sequences)), 10),
+                tf)
+            tf.flush()
+            cmd = "graftM graft --forward %s --graftm_package %s --output_directory %s" %(
+                sequences, output_gpkg_path, graftM_graft_test_dir_name)
+            extern.run(cmd)
         
 
         logging.info("Finished\n")

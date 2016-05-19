@@ -588,97 +588,80 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
 
         # Check for duplicates
         logging.info("Checking for duplicate sequences")
-        if sequences:
-            dup = self._check_for_duplicate_sequence_names(sequences)
-            if dup:
-                raise Exception("Found duplicate sequence name '%s' in sequences input file" % dup)
+        dup = self._check_for_duplicate_sequence_names(sequences)
+        if dup:
+            raise Exception("Found duplicate sequence name '%s' in sequences input file" % dup)
+        output_alignment = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa').name
+        align_hmm = (user_hmm if user_hmm else tempfile.NamedTemporaryFile(prefix='graftm', suffix='_align.hmm').name)
+
         if alignment:
             dup = self._check_for_duplicate_sequence_names(alignment)
             if dup:
                 raise Exception("Found duplicate sequence name '%s' in alignment input file" % dup)
-
-        output_alignment = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa').name
-        align_hmm = (user_hmm if user_hmm else tempfile.NamedTemporaryFile(prefix='graftm', suffix='_align.hmm').name)
-        if sequences:
-            if alignment:
-                ptype = self._get_hmm_from_alignment(alignment,
-                                                     align_hmm,
-                                                     output_alignment)
-            else:
-                logging.info("Aligning sequences to create aligned FASTA file")
-                ptype, output_alignment = self._align_and_create_hmm(sequences, alignment, user_hmm,
-                                                   align_hmm, output_alignment, threads)
-
-            logging.info("Checking for incorrect or fragmented reads")
-            insufficiently_aligned_sequences = self._check_reads_hit(open(output_alignment),
-                                                                     min_aligned_percent)
-            while len(insufficiently_aligned_sequences) > 0:
-                logging.warn("One or more alignments do not span > %.2f %% of HMM" % (min_aligned_percent*100))
-                for s in insufficiently_aligned_sequences:
-                    logging.warn("Insufficient alignment of %s, not including this sequence" % s)
-
-                _, sequences2 = tempfile.mkstemp(prefix='graftm', suffix='.faa')
-                num_sequences = self._remove_sequences_from_alignment(insufficiently_aligned_sequences,
-                                                                      sequences,
-                                                                      sequences2)
-                sequences = sequences2
-                if alignment:
-
-                    _, alignment2 = tempfile.mkstemp(prefix='graftm', suffix='.aln.faa')
-
-                    num_sequences = self._remove_sequences_from_alignment(insufficiently_aligned_sequences,
-                                                                          alignment,
-                                                                          alignment2)
-                    alignment = alignment2
-                    for name in insufficiently_aligned_sequences:
-                        if rerooted_tree or rerooted_annotated_tree:
-                            logging.warning('''Sequence %s in provided alignment does not meet the --min_aligned_percent cutoff. This sequence will be removed from the tree
-in the final GraftM package. If you are sure these sequences are correct, turn off the --min_aligned_percent cutoff, provide it with a 0 (e.g. --min_aligned_percent 0) ''' % name)
-                        removed_sequence_names.append(name)
-
-
-                logging.info("After removing %i insufficiently aligned sequences, left with %i sequences" % (len(insufficiently_aligned_sequences), num_sequences))
-                if num_sequences < 4:
-                    raise Exception("Too few sequences remaining in alignment after removing insufficiently aligned sequences: %i" % num_sequences)
-                else:
-                    logging.info("Reconstructing the alignment and HMM from remaining sequences")
-                    output_alignment = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa').name
-                    if not user_hmm:
-                        align_hmm = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.hmm').name
-                    ptype, output_alignment= self._align_and_create_hmm(sequences, alignment, user_hmm,
-                                                       align_hmm, output_alignment, threads)
-                    logging.info("Checking for incorrect or fragmented reads")
-                    insufficiently_aligned_sequences = self._check_reads_hit(open(output_alignment),
-                                                                             min_aligned_percent)
-            if not search_hmm_files:
-                search_hmm = tempfile.NamedTemporaryFile(prefix='graftm', suffix='_search.hmm').name
-                self._create_search_hmm(sequences, taxonomy_definition, search_hmm, dereplication_level, threads)
-                search_hmm_files = [search_hmm]
-
-            # Make sure each sequence has been assigned a taxonomy:
-            aligned_sequence_objects = seqio.read_fasta_file(output_alignment)
-            unannotated = []
-            for s in aligned_sequence_objects:
-                if s.name not in taxonomy_definition:
-                    unannotated.append(s.name)
-            if len(unannotated) > 0:
-                for s in unannotated:
-                    logging.error("Unable to find sequence '%s' in the taxonomy definition" % s)
-                raise Exception("All sequences must be assigned a taxonomy, cannot continue")
-        else:
             ptype = self._get_hmm_from_alignment(alignment,
                                                  align_hmm,
                                                  output_alignment)
+        else:
+            logging.info("Aligning sequences to create aligned FASTA file")
+            ptype, output_alignment = self._align_and_create_hmm(sequences, alignment, user_hmm,
+                                               align_hmm, output_alignment, threads)
 
-            aligned_sequence_objects = seqio.read_fasta_file(output_alignment)
-            unannotated = []
-            for s in aligned_sequence_objects:
-                if s.name not in taxonomy_definition:
-                    unannotated.append(s.name)
-            if len(unannotated) > 0:
-                for s in unannotated:
-                    logging.error("Unable to find sequence '%s' in the taxonomy definition" % s)
-                raise Exception("All sequences must be assigned a taxonomy, cannot continue")
+        logging.info("Checking for incorrect or fragmented reads")
+        insufficiently_aligned_sequences = self._check_reads_hit(open(output_alignment),
+                                                                 min_aligned_percent)
+        while len(insufficiently_aligned_sequences) > 0:
+            logging.warn("One or more alignments do not span > %.2f %% of HMM" % (min_aligned_percent*100))
+            for s in insufficiently_aligned_sequences:
+                logging.warn("Insufficient alignment of %s, not including this sequence" % s)
+
+            _, sequences2 = tempfile.mkstemp(prefix='graftm', suffix='.faa')
+            num_sequences = self._remove_sequences_from_alignment(insufficiently_aligned_sequences,
+                                                                  sequences,
+                                                                  sequences2)
+            sequences = sequences2
+
+            if alignment:
+                _, alignment2 = tempfile.mkstemp(prefix='graftm', suffix='.aln.faa')
+                num_sequences = self._remove_sequences_from_alignment(insufficiently_aligned_sequences,
+                                                                      alignment,
+                                                                      alignment2)
+                alignment = alignment2
+                for name in insufficiently_aligned_sequences:
+                    if rerooted_tree or rerooted_annotated_tree:
+                        logging.warning('''Sequence %s in provided alignment does not meet the --min_aligned_percent cutoff. This sequence will be removed from the tree
+in the final GraftM package. If you are sure these sequences are correct, turn off the --min_aligned_percent cutoff, provide it with a 0 (e.g. --min_aligned_percent 0) ''' % name)
+                    removed_sequence_names.append(name)
+
+
+            logging.info("After removing %i insufficiently aligned sequences, left with %i sequences" % (len(insufficiently_aligned_sequences), num_sequences))
+            if num_sequences < 4:
+                raise Exception("Too few sequences remaining in alignment after removing insufficiently aligned sequences: %i" % num_sequences)
+            else:
+                logging.info("Reconstructing the alignment and HMM from remaining sequences")
+                output_alignment = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa').name
+                if not user_hmm:
+                    align_hmm = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.hmm').name
+                ptype, output_alignment= self._align_and_create_hmm(sequences, alignment, user_hmm,
+                                                   align_hmm, output_alignment, threads)
+                logging.info("Checking for incorrect or fragmented reads")
+                insufficiently_aligned_sequences = self._check_reads_hit(open(output_alignment),
+                                                                         min_aligned_percent)
+        if not search_hmm_files:
+            search_hmm = tempfile.NamedTemporaryFile(prefix='graftm', suffix='_search.hmm').name
+            self._create_search_hmm(sequences, taxonomy_definition, search_hmm, dereplication_level, threads)
+            search_hmm_files = [search_hmm]
+
+        # Make sure each sequence has been assigned a taxonomy:
+        aligned_sequence_objects = seqio.read_fasta_file(output_alignment)
+        unannotated = []
+        for s in aligned_sequence_objects:
+            if s.name not in taxonomy_definition:
+                unannotated.append(s.name)
+        if len(unannotated) > 0:
+            for s in unannotated:
+                logging.error("Unable to find sequence '%s' in the taxonomy definition" % s)
+            raise Exception("All sequences must be assigned a taxonomy, cannot continue")
+
             
         logging.debug("Looking for non-standard characters in aligned sequences")
         self._mask_strange_sequence_letters(aligned_sequence_objects, ptype)

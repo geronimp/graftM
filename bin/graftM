@@ -118,9 +118,9 @@ if __name__ == '__main__':
     subparsers = parser.add_subparsers(help="--", dest='subparser_name')
     
     
-    ########################################################################
-    # Graft pipeline - Create phylogeentically informed community profiles #
-    ########################################################################
+    #######################################################################
+    # Graft pipeline - Create phylogentically informed community profiles #
+    #######################################################################
     graft_parser = subparsers.add_parser('graft',
                                         description='Search and classify marker genes to construct community profiles',
                                         formatter_class=CustomHelpFormatter,

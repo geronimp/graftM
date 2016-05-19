@@ -608,7 +608,11 @@ class Run:
                 if self.args.alignment and self.args.hmm:
                     logging.error("--alignment and --hmm cannot both be set")
                     exit(1)
-                
+                if len(filter(None, [self.args.rerooted_tree,
+                                     self.args.rerooted_annotated_tree,
+                                     self.args.tree])) > 1:
+                    logging.error("Only 1 input tree can be specified")
+                    exit(1)
     
                 self.create.main(
                               dereplication_level = self.args.dereplication_level,
@@ -616,6 +620,7 @@ class Run:
                               alignment = self.args.alignment,
                               taxonomy = self.args.taxonomy,
                               rerooted_tree = self.args.rerooted_tree,
+                              unrooted_tree = self.args.tree,
                               tree_log = self.args.tree_log,
                               prefix = self.args.output,
                               rerooted_annotated_tree = self.args.rerooted_annotated_tree,

@@ -830,7 +830,7 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
                 tf)
             tf.flush()
             cmd = "graftM graft --forward %s --graftm_package %s --output_directory %s" %(
-                sequences, output_gpkg_path, graftM_graft_test_dir_name)
+                tf.name, output_gpkg_path, graftM_graft_test_dir_name)
             extern.run(cmd)
         
 

@@ -45,5 +45,14 @@ class Tests(unittest.TestCase):
         self.assertEqual(os.path.join(path_to_data, 'mcrA.gpkg','mcrA.faa'),
                          pkg.unaligned_sequence_database_path())
 
+    def test_is_protein_package(self):
+        pkg = GraftMPackage.acquire(os.path.join(path_to_data, 'mcrA.gpkg'))
+        self.assertEqual(True, pkg.is_protein_package())
+        self.assertEqual(True, pkg.is_protein_package())
+        pkg = GraftMPackage.acquire(os.path.join(path_to_data, '61_otus.gpkg'))
+        self.assertEqual(False, pkg.is_protein_package())
+        self.assertEqual(False, pkg.is_protein_package())
+        
+
 if __name__ == "__main__":
     unittest.main()

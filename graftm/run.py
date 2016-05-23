@@ -447,7 +447,8 @@ class Run:
                                                                 self.args,
                                                                 result.slash_endings,
                                                                 gpkg.taxtastic_taxonomy_path(),
-                                                                clusterer)
+                                                                clusterer,
+                                                                self.args.no_clustering)
             if not self.args.no_clustering:
                 assignments = clusterer.uncluster_annotations(assignments, REVERSE_PIPE)
         

@@ -69,7 +69,7 @@ class Pplacer:
             
     
     
-    def jplace_split(self, original_jplace, cluster_dict):
+    def jplace_split(self, original_jplace, cluster_dict, no_clustering):
         '''
         To make GraftM more efficient, reads are dereplicated and merged into
         one file prior to placement using pplacer. This function separates the
@@ -84,7 +84,9 @@ class Pplacer:
             json .jplace file from the pplacer step.
         cluster_dict : dict
             dictionary stores information on pre-placement clustering  
-        
+        no_clustering : bool
+            True or False whether sequences were clustered at 100% identity
+            before classification. 
         Returns
         -------
         A dict containing placement hashes to write to 
@@ -112,14 +114,18 @@ class Pplacer:
                                     # corresponds to the input file from 
                                     # which the read originated.
                 read_name = '_'.join(placement_read_name.split('_')[:-1])
-                read_cluster = cluster_dict[read_alias_idx][read_name]
-                for read in read_cluster:
-                    nm_list.append([read.name, plval])
+                if no_clustering:
+                    nm_list.append([read_name, plval])
+                else:
+                    read_cluster = cluster_dict[read_alias_idx][read_name]
+                    for read in read_cluster:
+                        nm_list.append([read.name, plval])
+                
                 if read_alias_idx not in nm_dict:
                     nm_dict[read_alias_idx] = nm_list
                 else:
                     nm_dict[read_alias_idx] += nm_entry
-                
+                    
             for alias_idx, nm_list in nm_dict.iteritems():
                 placement_hash = {'p': p,
                                   'nm': nm_list}                
@@ -142,7 +148,7 @@ class Pplacer:
 
     @T.timeit
     def place(self, reverse_pipe, seqs_list, resolve_placements, files, args,
-              slash_endings, tax_descr, clusterer):
+              slash_endings, tax_descr, clusterer, no_clustering):
         '''
         placement - This is the placement pipeline in GraftM, in aligned reads 
                     are placed into phylogenetic trees, and the results interpreted.
@@ -165,6 +171,9 @@ class Pplacer:
             graftM output file name object
         args : obj
             argparse object
+        no_clustering : bool
+            True or False whether sequences were clustered at 100% identity
+            before classification. 
         Returns
         ------- 
         trusted_placements : dict
@@ -212,11 +221,13 @@ class Pplacer:
                     trusted_placements[base_file][read] = entry['placement']
         # Split the original jplace file
         # and write split jplaces to separate file directories
-        with open(jplace) as f: jplace_json = json.load(f)
+        jplace_json = json.load(open(jplace))
+        
         cluster_dict = self.convert_cluster_dict_keys_to_aliases(clusterer.seq_library, 
                                                                  alias_hash)
         hash_with_placements = self.jplace_split(jplace_json, 
-                                                 cluster_dict)
+                                                 cluster_dict,
+                                                 no_clustering)
         
         for file_alias, placement_entries_list in hash_with_placements.items():
             alias_hash[file_alias]['place'] = placement_entries_list

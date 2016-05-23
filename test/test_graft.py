@@ -1202,6 +1202,7 @@ CGGGGTATCTAATCCCGTTCGCTCCCCTAGCTTTCGTGCCTCAGCGTCAGAAAAGACCCAGTGAGCCGCTTTCGCCCCCG
                 rev_f.flush()
 
                 with tempdir.TempDir() as tmp:
+                    
                     cmd = '%s graft --verbosity 5 --forward %s --reverse %s --output_directory %s --force --graftm_package %s' % (path_to_script,
                                                                                                                      fwd_f.name,
                                                                                                                      rev_f.name,
@@ -1334,6 +1335,7 @@ CGGGAGGAACACCAGTGGCGAAGGCGGCTTCCTGGCCTGTTCTTGACGCTGAGGCGCGAA
                 reads_1,
                 gpkg,
                 tmp)
+
             extern.run(cmd)
             self.assertTrue(os.path.exists(os.path.join(tmp, "combined_count_table.txt")))
         

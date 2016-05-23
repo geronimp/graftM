@@ -1324,6 +1324,18 @@ CGGGAGGAACACCAGTGGCGAAGGCGGCTTCCTGGCCTGTTCTTGACGCTGAGGCGCGAA
             self.assertTrue(os.path.exists(os.path.join(tmp, "combined_count_table.txt")))
             self.assertFalse(os.path.exists(os.path.join(tmp, "krona.html")))
 
+    def test_no_clustering(self):
+        reads_1=os.path.join(path_to_samples, "sample_16S_1.1.fa")
+        gpkg=os.path.join(path_to_data, "61_otus.gpkg")
+        
+        with tempdir.TempDir() as tmp:
+            cmd = '%s graft --verbosity 5  --forward %s --graftm_package %s --output_directory %s --force --no_clustering' % (
+                path_to_script,
+                reads_1,
+                gpkg,
+                tmp)
+            extern.run(cmd)
+            self.assertTrue(os.path.exists(os.path.join(tmp, "combined_count_table.txt")))
         
                     
 if __name__ == "__main__":

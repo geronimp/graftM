@@ -448,7 +448,7 @@ class Run:
                                                                 gpkg.taxtastic_taxonomy_path(),
                                                                 clusterer)
             assignments = clusterer.uncluster_annotations(assignments, REVERSE_PIPE)
-        
+            
         elif self.args.assignment_method == Run.DIAMOND_TAXONOMIC_ASSIGNMENT:
             logging.info("Assigning taxonomy with diamond")
             taxonomic_assignment_time, assignments = self._assign_taxonomy_with_diamond(\

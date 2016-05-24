@@ -12,7 +12,8 @@ class Clusterer:
         self.seq_library = {}
 
         self.orfm_regex = OrfM.regular_expression()
-
+    
+    def uncluster_alignment(self): pass
 
     def uncluster_annotations(self, input_annotations, reverse_pipe):
         '''

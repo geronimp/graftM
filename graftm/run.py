@@ -437,8 +437,7 @@ class Run:
         if self.args.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
             clusterer=Clusterer()
             # Classification steps        
-            if not self.args.no_clustering:
-                seqs_list=clusterer.cluster(seqs_list, REVERSE_PIPE)
+            seqs_list=clusterer.cluster(seqs_list, REVERSE_PIPE)
             logging.info("Placing reads into phylogenetic tree")
             taxonomic_assignment_time, assignments=self.p.place(REVERSE_PIPE,
                                                                 seqs_list,
@@ -448,8 +447,7 @@ class Run:
                                                                 result.slash_endings,
                                                                 gpkg.taxtastic_taxonomy_path(),
                                                                 clusterer)
-            if not self.args.no_clustering:
-                assignments = clusterer.uncluster_annotations(assignments, REVERSE_PIPE)
+            assignments = clusterer.uncluster_annotations(assignments, REVERSE_PIPE)
         
         elif self.args.assignment_method == Run.DIAMOND_TAXONOMIC_ASSIGNMENT:
             logging.info("Assigning taxonomy with diamond")

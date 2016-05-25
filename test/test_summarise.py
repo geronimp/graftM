@@ -108,8 +108,7 @@ class Tests(unittest.TestCase):
                 self.assertEqual('''# Constructed from biom file
 #OTU ID\tsample1\tsample2\ttaxonomy
 1\t1.0\t0.0\tab; d
-2\t1.0\t1.0\tab; c
-''', observed)
+2\t1.0\t1.0\tab; c''', observed)
         
         
 

@@ -171,12 +171,15 @@ class Pplacer:
             dictionary of reads and their trusted placements
         '''
         trusted_placements = {}
-        
+        files_to_delete = []
         # Merge the alignments so they can all be placed at once.
         alias_hash = self.alignment_merger(seqs_list, files.comb_aln_fa())
+        files_to_delete += seqs_list
+        files_to_delete.append(files.comb_aln_fa())
         
         # Run pplacer on merged file
         jplace = self.pplacer(files.jplace_output_path(), args.output_directory, files.comb_aln_fa(), args.threads)
+        files_to_delete.append(jplace)
         logging.info("Placements finished")
         
         #Read the json of refpkg
@@ -223,8 +226,8 @@ class Pplacer:
             
         self.write_jplace(jplace_json, 
                           alias_hash)
-        
-        self.hk.delete([jplace])# Remove combined split, not really useful
+
+        self.hk.delete(files_to_delete)# Remove combined split, not really useful
 
         return trusted_placements
 

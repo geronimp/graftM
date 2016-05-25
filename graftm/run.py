@@ -458,6 +458,7 @@ class Run:
                         self.gmf)
             aln_time = 'n/a'
         else: raise Exception("Unexpected assignment method encountered: %s" % self.args.placement_method)
+        
         self.summarise(base_list, assignments, REVERSE_PIPE,
                        [search_time,aln_time,taxonomic_assignment_time],
                        hit_read_count_list, self.args.max_samples_for_krona)

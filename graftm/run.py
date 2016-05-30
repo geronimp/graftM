@@ -13,7 +13,7 @@ from graftm.pplacer import Pplacer
 from graftm.create import Create
 from graftm.unpack_sequences import UnpackRawReads
 from graftm.graftm_package import GraftMPackage
-from graftm.bootstrapper import Bootstrapper
+from graftm.expand_searcher import ExpandSearcher
 from graftm.diamond import Diamond
 from graftm.getaxnseq import Getaxnseq
 from graftm.sequence_io import SequenceIO
@@ -268,13 +268,13 @@ class Run:
             else:
                 filter_minimum = Run.MIN_ALIGNED_FILTER_FOR_AMINO_ACID_PACKAGES
             
-        # Generate bootstrap database if required
-        if self.args.bootstrap_contigs:
+        # Generate expand_search database if required
+        if self.args.expand_search_contigs:
             if self.args.graftm_package:
                 pkg = GraftMPackage.acquire(self.args.graftm_package)
             else:
                 pkg = None
-            boots = Bootstrapper(
+            boots = ExpandSearcher(
                 search_hmm_files = self.args.search_hmm_files,
                 maximum_range = self.args.maximum_range,
                 threads = self.args.threads,
@@ -283,13 +283,13 @@ class Run:
                 graftm_package = pkg)
             
             # this is a hack, it should really use GraftMFiles but that class isn't currently flexible enough
-            new_database = (os.path.join(self.args.output_directory, "bootstrap.hmm") \
+            new_database = (os.path.join(self.args.output_directory, "expand_search.hmm") \
                             if self.args.search_method == "hmmsearch" \
-                            else os.path.join(self.args.output_directory, "bootstrap")
+                            else os.path.join(self.args.output_directory, "expand_search")
                             )
             
-            if boots.generate_bootstrap_database_from_contigs(
-                                     self.args.bootstrap_contigs,
+            if boots.generate_expand_search_database_from_contigs(
+                                     self.args.expand_search_contigs,
                                      new_database,
                                      self.args.search_method):
                 if self.args.search_method == "hmmsearch":
@@ -633,10 +633,10 @@ class Run:
                               threads = self.args.threads                              
                               )
         
-        elif self.args.subparser_name == 'bootstrap':
+        elif self.args.subparser_name == 'expand_search':
             args = self.args
             if not args.graftm_package and not args.search_hmm_files:
-                logging.error("bootstrap mode requires either --graftm_package or --search_hmm_files")
+                logging.error("expand_search mode requires either --graftm_package or --search_hmm_files")
                 exit(1)
 
             if args.graftm_package:
@@ -644,15 +644,15 @@ class Run:
             else:
                 pkg = None
 
-            strapper = Bootstrapper(search_hmm_files = args.search_hmm_files,
+            expandsearcher = ExpandSearcher(search_hmm_files = args.search_hmm_files,
                 maximum_range = args.maximum_range,
                 threads = args.threads,
                 evalue = args.evalue,
                 min_orf_length = args.min_orf_length,
                 graftm_package = pkg)
-            strapper.generate_bootstrap_database_from_contigs(args.contigs,
+            expandsearcher.generate_expand_search_database_from_contigs(args.contigs,
                                                               args.output_hmm,
-                                                              search_method=Bootstrapper.HMM_SEARCH_METHOD)
+                                                              search_method=ExpandSearcher.HMM_SEARCH_METHOD)
 
         
         

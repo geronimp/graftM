@@ -95,8 +95,8 @@ class GraftMFiles:
     def combined_summary_table_output_path(self):
         return os.path.join(self.outdir, "combined_count_table.txt")
     
-    def bootstrap_hmm_path(self):
-        return os.path.join(self.outdir, "bootstrap.hmm")
+    def expand_search_hmm_path(self):
+        return os.path.join(self.outdir, "expand_search.hmm")
       
     def base(self, out_path):
         return os.path.join(self.outdir, out_path, "%s" % self.basename)

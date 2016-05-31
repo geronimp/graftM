@@ -30,6 +30,7 @@ class Classify:
         
         def reduceTaxString(placement_hashes, threshold, resolve_placements):
             confidences=[x['c'] for x in placement_hashes]
+            normalised_confidences =  [x/sum(confidences) for x in confidences]
             tax_that_meets_threshold={'placement':[],
                                       'confidence':[]}
 
@@ -38,9 +39,9 @@ class Classify:
                 for idx, item in enumerate(getIndex(i, placement_hashes)):
                     if item:
                         if item in cumil_confidence.keys():
-                            cumil_confidence[item]+=confidences[idx]
+                            cumil_confidence[item]+=normalised_confidences[idx]
                         else:
-                            cumil_confidence[item]=confidences[idx]
+                            cumil_confidence[item]=normalised_confidences[idx]
                     else:
                         continue
                 if resolve_placements:
@@ -65,7 +66,7 @@ class Classify:
                                     continue
                         except IndexError:
                             break
-                else:
+                else:    
                     best_place=max([(value, key) for key, value in cumil_confidence.items()])
                     if best_place[0]>threshold:
                         tax_that_meets_threshold['placement'].append(best_place[1])
@@ -74,6 +75,7 @@ class Classify:
             if tax_that_meets_threshold['placement']:                
                 return tax_that_meets_threshold
             else:
+                import IPython ; IPython.embed()
                 raise Exception("Programming error.")
                 
         
@@ -98,8 +100,9 @@ class Classify:
                 else:
                     seen[rank]['c']+=confidence
             
-            if len(seen)==1 and seen.items()[0][1]['c']>=0.98: # If there is one entry in seen, and that entry has full confidence.
-                return {'placement': seen.items()[0][1]['p'], 'confidence': [seen.items()[0][1]['c']]*len(seen.items()[0][1]['p'])} # Return that tax            
+            if len(seen)==1 and seen.items()[0][1]['c']>=0.75: # If there is one entry in seen, and that entry has full confidence.
+                return {'placement': seen.items()[0][1]['p'], 
+                        'confidence': [seen.items()[0][1]['c']]*len(seen.items()[0][1]['p'])} # Return that tax            
             elif len(seen)>1: # If there is more than one entry
                 return reduceTaxString(seen.values(), cutoff, resolve_placements)
             else:

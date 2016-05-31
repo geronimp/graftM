@@ -225,7 +225,9 @@ class Create:
         if no_reroot:
             cmd += ' --no-reroot'
             logging.debug("Calling command assuming pre-rerooting: %s" % cmd)
+            
             extern.run(cmd)
+            
         else:
             logging.debug("Calling command: %s" % cmd)
             logging.info("Attempting to run taxit create with rerooting capabilities")

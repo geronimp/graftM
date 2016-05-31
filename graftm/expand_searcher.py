@@ -7,7 +7,7 @@ from graftm.hmmer import Hmmer
 from graftm.unpack_sequences import UnpackRawReads
 from graftm.sequence_io import SequenceIO
 
-class Bootstrapper:
+class ExpandSearcher:
     
     # Define constants.
     DIAMOND_SEARCH_METHOD = "diamond"
@@ -52,7 +52,7 @@ class Bootstrapper:
             raise Exception("Unexpected arguments detected: %s" % kwargs)
                     
         
-    def generate_bootstrap_database_from_contigs(self, contig_files, output_database_file, 
+    def generate_expand_search_database_from_contigs(self, contig_files, output_database_file, 
                                                  search_method):
         '''Given a collection of search_hmm_files, search the contigs in 
         contig_files, and generate an HMM from the resulting hits, outputting
@@ -76,21 +76,21 @@ class Bootstrapper:
         seqio = SequenceIO()
         if search_method == self.DIAMOND_SEARCH_METHOD:
             if self.diamond_database == None or self.unaligned_sequence_database == None:
-                logging.warning("Cannot bootstrap continue with no diamond database or unaligned sequences.") 
+                logging.warning("Cannot expand_search continue with no diamond database or unaligned sequences.") 
                 return False
         
-        with tempfile.NamedTemporaryFile(prefix='graftm_bootstrap_orfs') as orfs:
-            logging.info("Finding bootstrap hits in provided contigs..")
+        with tempfile.NamedTemporaryFile(prefix='graftm_expand_search_orfs') as orfs:
+            logging.info("Finding expand_search hits in provided contigs..")
             for contig_file in contig_files:
-                logging.debug("Finding bootstrap hits in %s.." % contig_file)
+                logging.debug("Finding expand_search hits in %s.." % contig_file)
                 unpack = UnpackRawReads(contig_file)
                 
-                with tempfile.NamedTemporaryFile(prefix='graftm_bootstrap') as \
+                with tempfile.NamedTemporaryFile(prefix='graftm_expand_search') as \
                                                         hit_reads_orfs_fasta:
                     # search and extract matching ORFs
-                    with tempfile.NamedTemporaryFile(prefix='graftm_bootstrap2') as \
+                    with tempfile.NamedTemporaryFile(prefix='graftm_expand_search2') as \
                                                         hmmsearch_output_table:
-                        with tempfile.NamedTemporaryFile(prefix='graftm_bootstrap3') as \
+                        with tempfile.NamedTemporaryFile(prefix='graftm_expand_search3') as \
                                                         hit_reads_fasta:
                             hmmer.search_and_extract_orfs_matching_protein_database(\
                                     unpack,
@@ -113,7 +113,7 @@ class Bootstrapper:
             
 
             
-            with tempfile.NamedTemporaryFile(prefix="graftm_bootstrap_aln") as aln:
+            with tempfile.NamedTemporaryFile(prefix="graftm_expand_search_aln") as aln:
                     
                 if search_method == self.HMM_SEARCH_METHOD:
                     
@@ -121,17 +121,17 @@ class Bootstrapper:
                     if len(seqio.read_fasta_file(orfs.name)) <= 1:# Just to build on this, you need to check if there is > 1 hit
                                                                   # otherwise mafft will fail to align, causing a crash when hmmbuild is 
                                                                   # run on an empty file.
-                        logging.warn("Failed to find two or more matching ORFs in the bootstrap contigs")
+                        logging.warn("Failed to find two or more matching ORFs in the expand_search contigs")
                         return False
                     
                     # Run mafft to align them
                     cmd = "mafft --auto %s >%s" % (orfs.name, aln.name)
-                    logging.info("Aligning bootstrap hits..")
+                    logging.info("Aligning expand_search hits..")
                     extern.run(cmd)
                 
                     # Run hmmbuild to create an HMM
                     cmd = "hmmbuild --amino %s %s >/dev/null" % (output_database_file, aln.name)
-                    logging.info("Building HMM from bootstrap hits..")
+                    logging.info("Building HMM from expand_search hits..")
 
                     extern.run(cmd)
                 
@@ -146,7 +146,7 @@ class Bootstrapper:
                                 
                         # Run diamond make to create a diamond database
                         cmd = "diamond makedb --in '%s' -d '%s'" % (databasefile.name, output_database_file)
-                        logging.info("Building a diamond database from bootstrap hits..")
+                        logging.info("Building a diamond database from expand_search hits..")
                         extern.run(cmd)
                 
                 else:

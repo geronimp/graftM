@@ -1022,7 +1022,7 @@ DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
                         count += 1
                     self.assertEqual(count, len(open(alnFile).readlines()))
                     
-    def test_bootrap_contigs(self):
+    def test_expand_search_contigs(self):
         # this read is picked up by bootstrap but not regular graftm at the evalue
         testing_read = '''>196339_2
 AAGATGAGCGCCAGGCTCTTCCTCCCCTTGTTGTTGCAGGGGATCATGAAGTCGATGTAT
@@ -1046,13 +1046,13 @@ TAGTCTCGGGTCTACTACGAATAGCAAGTCTACCTCAAGG
                 sample_name = os.path.basename(fasta.name[:-3])
                 self.assertEqual('', open(os.path.join(tmp, sample_name, '%s_hits.fa' % sample_name)).read())
                 
-                cmd = "%s --bootstrap_contigs %s" % (cmd, 
+                cmd = "%s --expand_search_contigs %s" % (cmd, 
                                                      os.path.join(path_to_data,'bootstrapper','contigs.fna'))
 
                 subprocess.check_output(cmd, shell=True)
                 self.assertEqual(testing_read, open(os.path.join(tmp, sample_name, '%s_hits.fa' % sample_name)).read())
 
-                bootstrap_hmm_path = os.path.join(tmp, 'bootstrap.hmm')
+                bootstrap_hmm_path = os.path.join(tmp, 'expand_search.hmm')
                 self.assertTrue(os.path.isfile(bootstrap_hmm_path))
                 self.assertEqual('HMMER3/f [3.1b2 | February 2015]\n',
                                  open(bootstrap_hmm_path).readlines()[0])

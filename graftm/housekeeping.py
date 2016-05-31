@@ -145,6 +145,11 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
 
 
         # Read graftM package and assign HMM and refpkg file
+        if args.dont_merge_reads:
+            setattr(args, 'merge_reads', False)
+        else:
+            setattr(args, 'merge_reads', True)
+        
         if args.graftm_package:
             if not os.path.isdir(args.graftm_package):
                 raise Exception("%s does not exist. Are you sure you provided the correct path?" % args.graftm_package)

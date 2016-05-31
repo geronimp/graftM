@@ -145,7 +145,7 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
 
 
         # Read graftM package and assign HMM and refpkg file
-        if args.dont_merge_reads:
+        if args.no_merge_reads:
             setattr(args, 'merge_reads', False)
         else:
             if args.reverse:

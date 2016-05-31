@@ -241,8 +241,7 @@ class Run:
        
         # If merge reads is specified, check that there are reverse reads to merge with
         if self.args.merge_reads and not hasattr(self.args, 'reverse'):
-            logging.error("--merge requires --reverse to be specified")
-            exit(1)
+            raise Exception("Programming error")
 
         # Set the output directory if not specified and create that directory
         logging.debug('Creating working directory: %s' % self.args.output_directory)

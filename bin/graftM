@@ -172,7 +172,7 @@ if __name__ == '__main__':
     pplacer_options = graft_parser.add_argument_group('pplacer assignment options')
     pplacer_options.add_argument('--placements_cutoff', metavar='confidence', help='Cutoff of placement confidence level (0.5 - 1), default=0.75', default=0.75)
     pplacer_options.add_argument('--resolve_placements', action="store_true", help='Force taxonomy down to the best placement (default=False)', default=False)
-    pplacer_options.add_argument('--merge_reads', action="store_true", help='Merge forward and reverse read alignments for placement (default=False)', default=False)
+    pplacer_options.add_argument('--no_merge_reads', action="store_true", help='Merge forward and reverse read alignments for placement (default=False)', default=False)
 
     nucleotide_options = graft_parser.add_argument_group('nucleotide search-specific options')
     nucleotide_options.add_argument('--search_hmm_files', nargs='+', help='Specify .hmm files to use in search step', default=argparse.SUPPRESS)

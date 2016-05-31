@@ -75,7 +75,6 @@ class Classify:
             if tax_that_meets_threshold['placement']:                
                 return tax_that_meets_threshold
             else:
-                import IPython ; IPython.embed()
                 raise Exception("Programming error.")
                 
         

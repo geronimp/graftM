@@ -1112,7 +1112,7 @@ ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGAC
                             ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales; Methanoflorentaceae; Methanoflorens']]
                 expected = ['\t'.join(l) + '\n' for l in expected]
                 self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
-                self.assertTrue(os.path.exists(os.path.join(tmp, sample_name, '%s.hmmout.csv' % sample_name)), "should keep the hmmer search file")
+                self.assertTrue(os.path.exists(os.path.join(tmp, sample_name, '%s.hmmout.txt' % sample_name)), "should keep the hmmer search file")
                 
     def test_diamond_placement_method_protein_input(self):
         testing_read = '''>2518787893 METHANOFLORENS STORDALENMIRENSIS MCRA

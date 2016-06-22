@@ -60,9 +60,9 @@ class TreeDecorator:
         logging.info("Reading in taxonomy")
         if seqinfo:
             logging.info("Using taxtastic style taxonomy")
-            gtns = Getaxnseq()
+            self.gtns = Getaxnseq()
             self.taxonomy \
-                      = gtns.read_taxtastic_taxonomy_and_seqinfo(open(taxonomy), 
+                      = self.gtns.read_taxtastic_taxonomy_and_seqinfo(open(taxonomy), 
                                                                  open(seqinfo))
         else:
             try:
@@ -170,8 +170,6 @@ class TreeDecorator:
         '''
     
         encountered_taxonomies = {}
-        greengenes_prefixes = set(['d__', 'k__', 'o__', 'c__', 'o__', 'f__',
-                                   'g__', 's__'])
         
         for node in self.tree.preorder():
             if(node.is_tip()!=True):
@@ -193,7 +191,7 @@ class TreeDecorator:
                         tax=rank_tax.pop()
                         logging.debug("Consistent taxonomy found for node: %s" \
                                                                     % tax)
-                        if tax not in greengenes_prefixes:
+                        if tax not in self.gtns.meaningless_taxonomic_names:
                             if unique_names:
                                 if tax in encountered_taxonomies:
                                     encountered_taxonomies[tax]+=0

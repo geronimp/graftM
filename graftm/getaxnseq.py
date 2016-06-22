@@ -8,7 +8,7 @@ import logging
 class Getaxnseq:
     # Perhaps in the future allow this to be set programmatically
     _taxonomic_level_names = string.split('kingdom phylum class order family genus species')
-    
+    meaningless_taxonomic_names = sets.Set(['k__', 'd__', 'p__', 'c__', 'o__', 'f__', 'g__', 's__'])
     def _taxonomy_line(self, level_index, taxon_array):
         
         if level_index == 0:
@@ -100,7 +100,7 @@ class Getaxnseq:
             write taxtastic-compatible 'seqinfo' file here'''
         
         first_pass_id_and_taxonomies = []
-        meaningless_taxonomic_names = sets.Set(['k__', 'd__', 'p__', 'c__', 'o__', 'f__', 'g__', 's__'])
+        
 
         for taxon_id, tax_split in taxonomies.iteritems():
             # Replace spaces with underscores e.g. 'Candidatus my_genus'
@@ -108,7 +108,7 @@ class Getaxnseq:
                 tax_split[idx] = re.sub('\s+', '_', item.strip())
 
             # Remove 'empty' taxononomies e.g. 's__'
-            tax_split = [item for item in tax_split if item not in meaningless_taxonomic_names]
+            tax_split = [item for item in tax_split if item not in self.meaningless_taxonomic_names]
 
             # Add this fixed up list to the list
             first_pass_id_and_taxonomies.append([taxon_id]+tax_split)

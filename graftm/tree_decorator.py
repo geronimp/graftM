@@ -20,6 +20,7 @@
 # Local imports
 from graftm.getaxnseq import Getaxnseq
 from graftm.greengenes_taxonomy import GreenGenesTaxonomy
+from graftm.taxonomy_cleaner import TaxonomyCleaner
 
 # System imports
 from skbio import TreeNode
@@ -59,11 +60,10 @@ class TreeDecorator:
         # Read in taxonomy
         logging.info("Reading in taxonomy")
         if seqinfo:
-            logging.info("Using taxtastic style taxonomy")
-            self.gtns = Getaxnseq()
-            self.taxonomy \
-                      = self.gtns.read_taxtastic_taxonomy_and_seqinfo(open(taxonomy), 
-                                                                 open(seqinfo))
+            logging.info("Importing taxtastic taxonomy from files: %s and %s" % (taxonomy, seqinfo))
+            gtns = Getaxnseq()
+            self.taxonomy =  gtns.read_taxtastic_taxonomy_and_seqinfo(open(taxonomy), open(seqinfo))
+
         else:
             try:
                 logging.info("Reading Greengenes style taxonomy")
@@ -88,7 +88,7 @@ class TreeDecorator:
                 637960147    mcrA; Euryarchaeota_mcrA; Methanomicrobia
                 637699780    mcrA; Euryarchaeota_mcrA; Methanomicrobia
         '''
-        
+
         logging.info("Writing decorated taxonomy to file: %s" % (output))
         
         with open(output, 'w') as out:
@@ -170,6 +170,7 @@ class TreeDecorator:
         '''
     
         encountered_taxonomies = {}
+        tc = TaxonomyCleaner()
         
         for node in self.tree.preorder():
             if(node.is_tip()!=True):
@@ -178,6 +179,7 @@ class TreeDecorator:
                                              if tip.name in self.taxonomy])
                 logging.debug("Number of ranks found for node: %i" % max_tax_string_length)
                 tax_string_array = []
+
                 
                 for rank in range(max_tax_string_length):
                     rank_tax = set([self.taxonomy[tip.name\
@@ -191,7 +193,7 @@ class TreeDecorator:
                         tax=rank_tax.pop()
                         logging.debug("Consistent taxonomy found for node: %s" \
                                                                     % tax)
-                        if tax not in self.gtns.meaningless_taxonomic_names:
+                        if tax not in tc.meaningless_taxonomic_names:
                             if unique_names:
                                 if tax in encountered_taxonomies:
                                     encountered_taxonomies[tax]+=0

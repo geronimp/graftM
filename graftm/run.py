@@ -14,7 +14,7 @@ from graftm.create import Create
 from graftm.update import Update
 from graftm.unpack_sequences import UnpackRawReads
 from graftm.graftm_package import GraftMPackage
-from graftm.bootstrapper import Bootstrapper
+from graftm.expand_searcher import ExpandSearcher
 from graftm.diamond import Diamond
 from graftm.getaxnseq import Getaxnseq
 from graftm.sequence_io import SequenceIO
@@ -242,8 +242,7 @@ class Run:
        
         # If merge reads is specified, check that there are reverse reads to merge with
         if self.args.merge_reads and not hasattr(self.args, 'reverse'):
-            logging.error("--merge requires --reverse to be specified")
-            exit(1)
+            raise Exception("Programming error")
 
         # Set the output directory if not specified and create that directory
         logging.debug('Creating working directory: %s' % self.args.output_directory)
@@ -269,13 +268,13 @@ class Run:
             else:
                 filter_minimum = Run.MIN_ALIGNED_FILTER_FOR_AMINO_ACID_PACKAGES
             
-        # Generate bootstrap database if required
-        if self.args.bootstrap_contigs:
+        # Generate expand_search database if required
+        if self.args.expand_search_contigs:
             if self.args.graftm_package:
                 pkg = GraftMPackage.acquire(self.args.graftm_package)
             else:
                 pkg = None
-            boots = Bootstrapper(
+            boots = ExpandSearcher(
                 search_hmm_files = self.args.search_hmm_files,
                 maximum_range = self.args.maximum_range,
                 threads = self.args.threads,
@@ -284,13 +283,13 @@ class Run:
                 graftm_package = pkg)
             
             # this is a hack, it should really use GraftMFiles but that class isn't currently flexible enough
-            new_database = (os.path.join(self.args.output_directory, "bootstrap.hmm") \
+            new_database = (os.path.join(self.args.output_directory, "expand_search.hmm") \
                             if self.args.search_method == "hmmsearch" \
-                            else os.path.join(self.args.output_directory, "bootstrap")
+                            else os.path.join(self.args.output_directory, "expand_search")
                             )
             
-            if boots.generate_bootstrap_database_from_contigs(
-                                     self.args.bootstrap_contigs,
+            if boots.generate_expand_search_database_from_contigs(
+                                     self.args.expand_search_contigs,
                                      new_database,
                                      self.args.search_method):
                 if self.args.search_method == "hmmsearch":
@@ -438,8 +437,7 @@ class Run:
         if self.args.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
             clusterer=Clusterer()
             # Classification steps        
-            if not self.args.no_clustering:
-                seqs_list=clusterer.cluster(seqs_list, REVERSE_PIPE)
+            seqs_list=clusterer.cluster(seqs_list, REVERSE_PIPE)
             logging.info("Placing reads into phylogenetic tree")
             taxonomic_assignment_time, assignments=self.p.place(REVERSE_PIPE,
                                                                 seqs_list,
@@ -449,9 +447,8 @@ class Run:
                                                                 result.slash_endings,
                                                                 gpkg.taxtastic_taxonomy_path(),
                                                                 clusterer)
-            if not self.args.no_clustering:
-                assignments = clusterer.uncluster_annotations(assignments, REVERSE_PIPE)
-        
+            assignments = clusterer.uncluster_annotations(assignments, REVERSE_PIPE)
+            
         elif self.args.assignment_method == Run.DIAMOND_TAXONOMIC_ASSIGNMENT:
             logging.info("Assigning taxonomy with diamond")
             taxonomic_assignment_time, assignments = self._assign_taxonomy_with_diamond(\
@@ -461,6 +458,7 @@ class Run:
                         self.gmf)
             aln_time = 'n/a'
         else: raise Exception("Unexpected assignment method encountered: %s" % self.args.placement_method)
+        
         self.summarise(base_list, assignments, REVERSE_PIPE,
                        [search_time,aln_time,taxonomic_assignment_time],
                        hit_read_count_list, self.args.max_samples_for_krona)
@@ -591,7 +589,11 @@ class Run:
                 if self.args.alignment and self.args.hmm:
                     logging.error("--alignment and --hmm cannot both be set")
                     exit(1)
-                
+                if len(filter(None, [self.args.rerooted_tree,
+                                     self.args.rerooted_annotated_tree,
+                                     self.args.tree])) > 1:
+                    logging.error("Only 1 input tree can be specified")
+                    exit(1)
     
                 self.create.main(
                               dereplication_level = self.args.dereplication_level,
@@ -599,6 +601,7 @@ class Run:
                               alignment = self.args.alignment,
                               taxonomy = self.args.taxonomy,
                               rerooted_tree = self.args.rerooted_tree,
+                              unrooted_tree = self.args.tree,
                               tree_log = self.args.tree_log,
                               prefix = self.args.output,
                               rerooted_annotated_tree = self.args.rerooted_annotated_tree,
@@ -626,10 +629,10 @@ class Run:
                     input_graftm_package_path=self.args.graftm_package,
                     output_graftm_package_path=self.args.output)
         
-        elif self.args.subparser_name == 'bootstrap':
+        elif self.args.subparser_name == 'expand_search':
             args = self.args
             if not args.graftm_package and not args.search_hmm_files:
-                logging.error("bootstrap mode requires either --graftm_package or --search_hmm_files")
+                logging.error("expand_search mode requires either --graftm_package or --search_hmm_files")
                 exit(1)
 
             if args.graftm_package:
@@ -637,15 +640,15 @@ class Run:
             else:
                 pkg = None
 
-            strapper = Bootstrapper(search_hmm_files = args.search_hmm_files,
+            expandsearcher = ExpandSearcher(search_hmm_files = args.search_hmm_files,
                 maximum_range = args.maximum_range,
                 threads = args.threads,
                 evalue = args.evalue,
                 min_orf_length = args.min_orf_length,
                 graftm_package = pkg)
-            strapper.generate_bootstrap_database_from_contigs(args.contigs,
+            expandsearcher.generate_expand_search_database_from_contigs(args.contigs,
                                                               args.output_hmm,
-                                                              search_method=Bootstrapper.HMM_SEARCH_METHOD)
+                                                              search_method=ExpandSearcher.HMM_SEARCH_METHOD)
 
         
         

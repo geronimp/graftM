@@ -1022,7 +1022,7 @@ DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
                         count += 1
                     self.assertEqual(count, len(open(alnFile).readlines()))
                     
-    def test_bootrap_contigs(self):
+    def test_expand_search_contigs(self):
         # this read is picked up by bootstrap but not regular graftm at the evalue
         testing_read = '''>196339_2
 AAGATGAGCGCCAGGCTCTTCCTCCCCTTGTTGTTGCAGGGGATCATGAAGTCGATGTAT
@@ -1046,13 +1046,13 @@ TAGTCTCGGGTCTACTACGAATAGCAAGTCTACCTCAAGG
                 sample_name = os.path.basename(fasta.name[:-3])
                 self.assertEqual('', open(os.path.join(tmp, sample_name, '%s_hits.fa' % sample_name)).read())
                 
-                cmd = "%s --bootstrap_contigs %s" % (cmd, 
+                cmd = "%s --expand_search_contigs %s" % (cmd, 
                                                      os.path.join(path_to_data,'bootstrapper','contigs.fna'))
 
                 subprocess.check_output(cmd, shell=True)
                 self.assertEqual(testing_read, open(os.path.join(tmp, sample_name, '%s_hits.fa' % sample_name)).read())
 
-                bootstrap_hmm_path = os.path.join(tmp, 'bootstrap.hmm')
+                bootstrap_hmm_path = os.path.join(tmp, 'expand_search.hmm')
                 self.assertTrue(os.path.isfile(bootstrap_hmm_path))
                 self.assertEqual('HMMER3/f [3.1b2 | February 2015]\n',
                                  open(bootstrap_hmm_path).readlines()[0])
@@ -1112,7 +1112,7 @@ ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGAC
                             ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales; Methanoflorentaceae; Methanoflorens']]
                 expected = ['\t'.join(l) + '\n' for l in expected]
                 self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
-                self.assertTrue(os.path.exists(os.path.join(tmp, sample_name, '%s.hmmout.csv' % sample_name)), "should keep the hmmer search file")
+                self.assertTrue(os.path.exists(os.path.join(tmp, sample_name, '%s.hmmout.txt' % sample_name)), "should keep the hmmer search file")
                 
     def test_diamond_placement_method_protein_input(self):
         testing_read = '''>2518787893 METHANOFLORENS STORDALENMIRENSIS MCRA
@@ -1159,7 +1159,8 @@ ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGAC
                 
                 self.assertTrue(os.path.exists(os.path.join(tmp, sample_name, '%s_diamond_search.daa' % sample_name)), "should keep the diamond search file")
                 self.assertTrue(os.path.exists(os.path.join(tmp, sample_name, '%s_diamond_assignment.daa' % sample_name)), "should keep the diamond assign file")
-
+    
+    
     def test_hit_where_sequence_evalue_is_good_but_individuals_bad(self):
         # the first one is a real hit, the second has several hits better but none better than 1e-5
         testing = '''>2509711280 Pleur7313DRAFT_05268 ribosomal protein S19, bacterial/organelle [Pleurocapsa sp. PCC 7319]
@@ -1182,8 +1183,9 @@ MSRSLKKGPFIADSLLKKIEKLNANNKKEVIKTWSRASTILPQMVGHTIAVHNGRQHIPV
 FISDQMVGHKLGEFAPTRTFRGHAKSDKKGRR
 '''
                 self.assertEqual(expected, open(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "%s_hits.fa" % os.path.basename(fasta.name)[:-3])).read())
-    
-    @unittest.skip("known failure")        
+        
+
+    @unittest.skip("known failure")            
     def test_forward_and_reverse_slash_type_fastq(self):
         fwd = '''@FCC0WM1ACXX:2:2208:12709:74426#GTCCAGAA/1
 ACACTGCCCAGACACCTACGGGTGGCTGCAGTCGAGGATCTTCGGCAATGGGCGAAAGCCTGACCGAGCGACGCCGCGTGTGGGATGAAGGCCCTCGGGT
@@ -1210,7 +1212,55 @@ CGGGGTATCTAATCCCGTTCGCTCCCCTAGCTTTCGTGCCTCAGCGTCAGAAAAGACCCAGTGAGCCGCTTTCGCCCCCG
                                                                                                                      os.path.join(path_to_data,'61_otus.gpkg'))
                     extern.run(cmd)
                     raise Exception("At least it runs, but nt sure what is expected for this test. Before it didn't even run")
-    
+
+    @unittest.skip("known failure")
+    def test_input_sequence_near_duplication(self):
+        testing = '''>Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040
+ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGACGACCTATAAGCGCGAGGGGTGGACTCAGTCCAAGGACAAGCGCGAGTTCCAGGAATGGGGCGCAAAAATCGCCAAGGACCGTGGAATACCGGCGTACAACGTCAACGTCCACCTCGGCGGTATGACCCT
+CGGCCAGCGGCAACTCATGCCGTACAATGTCTCTGGGACCGACGTGATGTGTGAAGGCGATGACCTCCACTACGTCAACAACCCCGCAATGCAACAGATGTGGGATGAGATCAGGCGTACGGTTATCGTAGGTCTTGACACCGCTCACGAGACGCTGACCAGGAGACTCGGCAAGGAGGTTACCCCCGAGACCATCAACGGCTATCTCGA
+GGCATTGAACCACACGATGCCCGGTGCGGCCATTGTCCAAGAACACATGGTGGAAACCCACCCTGCGCTCGTTGAAGACTGCTTCGTAAAAGTCTTCACCGGCGACGATGACCTCGCC
+>another_Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040
+ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGACGACCTATAAGCGCGAGGGGTGGACTCAGTCCAAGGACAAGCGCGAGTTCCAGGAATGGGGCGCAAAAATCGCCAAGGACCGTGGAATACCGGCGTACAACGTCAACGTCCACCTCGGCGGTATGACCCT
+CGGCCAGCGGCAACTCATGCCGTACAATGTCTCTGGGACCGACGTGATGTGTGAAGGCGATGACCTCCACTACGTCAACAACCCCGCAATGCAACAGATGTGGGATGAGATCAGGCGTACGGTTATCGTAGGTCTTGACACCGCTCACGAGACGCTGACCAGGAGACTCGGCAAGGAGGTTACCCCCGAGACCATCAACGGCTATCTCGA
+GGCATTGAACCACACGATGCCCGGTGCGGCCATTGTCCAAGAACACATGGTGGAAACCCACCCTGCGCTCGTTGAAGACTGCTTCGTAAAAGTCTTCACCGGCGACGATGACCTCGCC
+'''
+        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+            fasta.write(testing)
+            fasta.flush()
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --verbosity 5 --forward %s --output_directory %s --force --graftm_package %s' % (path_to_script,
+                                                                                                                 fasta.name,
+                                                                                                                 tmp,
+                                                                                                                 os.path.join(path_to_data,'mcrA.gpkg'))
+                extern.run(cmd)
+                expected = '''
+>Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040_1_1_7_0 Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040_1_1_7
+MATEKTQKMFLEAMKKKFAEDPTSNKTTYKR-EGWTQSKDKREFQEWGAKIAKDRGIPAY
+NVNVHLGMTLGQRQLMPYNVSGTDVMCEGDDLHYVNNPAMQQMWDEIRRTVIVGLDTAHE
+TLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA-
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+-----------------
+>another_Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040_1_1_7_0 Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040_1_1_7
+MATEKTQKMFLEAMKKKFAEDPTSNKTTYKR-EGWTQSKDKREFQEWGAKIAKDRGIPAY
+NVNVHLGMTLGQRQLMPYNVSGTDVMCEGDDLHYVNNPAMQQMWDEIRRTVIVGLDTAHE
+TLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA-
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+-----------------
+'''
+                self.assertEqual(expected, open(os.path.join(tmp, "combined_alignment.aln.fa")).read())
+                
+                jplace = json.load(open(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "placements.jplace")))
+                self.assertEqual(2, len(jplace['placements']))
         
     def test_filter_minimum(self):
         testing = '''>NS500333:6:H1124BGXX:1:23310:10768:12778 1:N:0:GATCAG

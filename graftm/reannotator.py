@@ -22,4 +22,7 @@ class Reannotator:
             schema='newick')
 
     def dendropy_tree_to_skbio(self, dendropy_tree):
-        return TreeNode.read(StringIO(unicode(str(dendropy_tree)+';')))
+        return TreeNode.read(
+            StringIO(unicode((str(dendropy_tree)+';').\
+                             replace(' ','_'))),
+            'newick')

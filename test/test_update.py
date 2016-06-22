@@ -28,16 +28,19 @@ import sys
 import extern
 import logging
 import tempfile
+
 from Bio import SeqIO
 from Bio.Seq import Seq
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
+
 from graftm.create import Create
 from graftm.graftm_package import GraftMPackageVersion2, GraftMPackage
 from graftm.sequence_io import Sequence
 from graftm.external_program_suite import ExternalProgramSuite
 from graftm.sequence_io import SequenceIO
 from graftm.update import Update
+
 
 prerequisites = ExternalProgramSuite(['taxit', 'FastTreeMP', 'seqmagick', 'hmmalign', 'mafft'])
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')

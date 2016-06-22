@@ -22,6 +22,7 @@
 #=======================================================================
 
 from graftm.graftm_package import GraftMPackage
+from graftm.expand_searcher import ExpandSearcher
 
 
 import unittest
@@ -33,20 +34,19 @@ import logging
 import extern
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
-from graftm.bootstrapper import Bootstrapper
 
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
 
 class Tests(unittest.TestCase):
     def test_hello_world(self):
-        boots = Bootstrapper(search_hmm_files = [os.path.join(path_to_data,'bootstrapper','DNGNGWU00001.hmm')],
+        expandsearcher = ExpandSearcher(search_hmm_files = [os.path.join(path_to_data,'bootstrapper','DNGNGWU00001.hmm')],
                              evalue='1e-5',
                              maximum_range=1000,
                              threads=1)
         with tempfile.NamedTemporaryFile() as tf:
             self.assertEqual(True,
-                             boots.generate_bootstrap_database_from_contigs(\
+                             expandsearcher.generate_expand_search_database_from_contigs(\
                                 [os.path.join(path_to_data,'bootstrapper','contigs.fna')],
                                 tf.name,
                                 "hmmsearch"))
@@ -58,20 +58,20 @@ class Tests(unittest.TestCase):
 
     def test_hello_world_diamond(self):
         gpkg=os.path.join(path_to_data, "bootstrapper", "D1_gpkg_for_diamond.gpkg")
-        boots = Bootstrapper(search_hmm_files = [os.path.join(path_to_data,'bootstrapper','DNGNGWU00001.hmm')],
+        expandsearcher = ExpandSearcher(search_hmm_files = [os.path.join(path_to_data,'bootstrapper','DNGNGWU00001.hmm')],
                              evalue='1e-5',
                              maximum_range=1000,
                              threads=1,
                              graftm_package=GraftMPackage.acquire(gpkg))
         with tempfile.NamedTemporaryFile() as tf:
             self.assertEqual(True,
-                             boots.generate_bootstrap_database_from_contigs(\
+                             expandsearcher.generate_expand_search_database_from_contigs(\
                                 [os.path.join(path_to_data,'bootstrapper','diamond_bootstrap_contigs.fna')],
                                 tf.name,
                                 "diamond"))
 
     def test_no_hits(self):
-        boots = Bootstrapper(search_hmm_files = [os.path.join(path_to_data,'bootstrapper','DNGNGWU00001.hmm')],
+        expandsearcher = ExpandSearcher(search_hmm_files = [os.path.join(path_to_data,'bootstrapper','DNGNGWU00001.hmm')],
                              evalue='1e-5',
                              maximum_range=1000,
                              threads=1)
@@ -81,14 +81,14 @@ class Tests(unittest.TestCase):
             contigs.flush()
             with tempfile.NamedTemporaryFile() as tf:
                 self.assertEqual(False,
-                             boots.generate_bootstrap_database_from_contigs(\
+                             expandsearcher.generate_expand_search_database_from_contigs(\
                                 [contigs.name],
                                 tf.name,
                                 "hmmsearch"))
                 
     def test_bootstrap_executable(self):
         with tempfile.NamedTemporaryFile() as tf:
-            cmd = '%s bootstrap --verbosity 5 --contigs %s --output_hmm %s --search_hmm_files %s' % (path_to_script,
+            cmd = '%s expand_search --verbosity 5 --contigs %s --output_hmm %s --search_hmm_files %s' % (path_to_script,
                                                                                               os.path.join(path_to_data,'bootstrapper','contigs.fna'),
                                                                                               tf.name,
                                                                                               os.path.join(path_to_data,'bootstrapper','DNGNGWU00001.hmm'))

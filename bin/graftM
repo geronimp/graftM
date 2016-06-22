@@ -78,29 +78,29 @@ def phelp():
 =====================================================================================================
 COMMUNITY PROFILING
 
-    graft       -       Search for and phylogenetically classify reads associated with a single
-                        marker gene, and construct a community profile
-                        See graftM graft -h
+    graft         -       Search for and phylogenetically classify reads associated with a single
+                          marker gene, and construct a community profile
+                          See graftM graft -h
 
 
 =====================================================================================================
 UTILITIES
 
-    create      -       Create a graftM packages from sequence alignments and classifications. 
-                        See graftM create -h
+    create        -       Create a graftM packages from sequence alignments and classifications. 
+                          See graftM create -h
                         
-    update      -       Update an existing GraftM packages with new sequences.
-                        See graftM update -h
-                        
-    bootstrap   -       Create new HMMs from a base HMM and an assembly or genome. 
-                        See graftM bootstrap -h
-    
-    tree        -       Decorate a tree with provided taxonomy, re-root a tree using a reference
-                        rooted tree, or inspect the clades in a GraftM package.
-                        See graftM tree -h
+    update        -       Update an existing GraftM packages with new sequences.
+                          See graftM update -h
 
-    archive     -       Compress or uncompress a GraftM package.
-                        see graftM archive -h
+    expand_search -       Create new HMMs from a base HMM and an assembly or genome. 
+                          See graftM expand_search -h
+    
+    tree          -       Decorate a tree with provided taxonomy, re-root a tree using a reference
+                          rooted tree, or inspect the clades in a GraftM package.
+                          See graftM tree -h
+
+    archive       -       Compress or uncompress a GraftM package.
+                          see graftM archive -h
 
 =====================================================================================================
 """ % (graftm.__version__)
@@ -121,9 +121,9 @@ if __name__ == '__main__':
     subparsers = parser.add_subparsers(help="--", dest='subparser_name')
     
     
-    ########################################################################
-    # Graft pipeline - Create phylogeentically informed community profiles #
-    ########################################################################
+    #######################################################################
+    # Graft pipeline - Create phylogentically informed community profiles #
+    #######################################################################
     graft_parser = subparsers.add_parser('graft',
                                         description='Search and classify marker genes to construct community profiles',
                                         formatter_class=CustomHelpFormatter,
@@ -143,8 +143,8 @@ if __name__ == '__main__':
      For paired reads:
         $ graftM graft --forward my_forward_reads.fa --reverse my_reverse_reads.fa --graftm_package my_graftm_package.gpkg
         
-     Using an assembly to create a "bootstrap" database:
-        $ graftM graft --forward my_reads.fa --bootstrap_contigs my_assembly_of_my_reads.fa --graftm_package my_graftm_package.gpkg
+     Using an assembly to create a "expand_search" database:
+        $ graftM graft --forward my_reads.fa --expand_search_contigs my_assembly_of_my_reads.fa --graftm_package my_graftm_package.gpkg
 
 
         
@@ -167,7 +167,7 @@ if __name__ == '__main__':
     searching_options.add_argument('--euk_check', action="store_true", help='Search whole sample for 18S (default=False)', default=False)
     searching_options.add_argument('--search_method', choices=('hmmsearch','diamond'), help='Search method (default=hmmsearch)', default='hmmsearch')
     searching_options.add_argument('--maximum_range', type=int, help='maximum range to use when searching for potentially linked reads (when searching contigs)', default=None)
-    searching_options.add_argument('--bootstrap_contigs', nargs='+', help='generate an HMM for searching --forward data by first searching these contigs')
+    searching_options.add_argument('--expand_search_contigs', nargs='+', help='generate an HMM for searching --forward data by first searching these contigs')
     
     placement_options = graft_parser.add_argument_group('taxonomic assignment options')
     placement_options.add_argument('--assignment_method', help='Taxonomic assignment method used (default=pplacer)', default=Run.PPLACER_TAXONOMIC_ASSIGNMENT, choices=(Run.PPLACER_TAXONOMIC_ASSIGNMENT,Run.DIAMOND_TAXONOMIC_ASSIGNMENT))
@@ -175,8 +175,7 @@ if __name__ == '__main__':
     pplacer_options = graft_parser.add_argument_group('pplacer assignment options')
     pplacer_options.add_argument('--placements_cutoff', metavar='confidence', help='Cutoff of placement confidence level (0.5 - 1), default=0.75', default=0.75)
     pplacer_options.add_argument('--resolve_placements', action="store_true", help='Force taxonomy down to the best placement (default=False)', default=False)
-    pplacer_options.add_argument('--merge_reads', action="store_true", help='Merge forward and reverse read alignments for placement (default=False)', default=False)
-    pplacer_options.add_argument('--no_clustering', action="store_true", help='Cluster reads at 100%% before placement to reduce tree insertion time -- ONLY use with unassembled data (i.e. equal read length). Default = False.', default=False)
+    pplacer_options.add_argument('--no_merge_reads', action="store_true", help='Merge forward and reverse read alignments for placement (default=False)', default=False)
 
     nucleotide_options = graft_parser.add_argument_group('nucleotide search-specific options')
     nucleotide_options.add_argument('--search_hmm_files', nargs='+', help='Specify .hmm files to use in search step', default=argparse.SUPPRESS)
@@ -242,6 +241,7 @@ if __name__ == '__main__':
     
     create_lesser_options=create_parser.add_argument_group('Lesser used options')
     create_lesser_options.add_argument('--rerooted_annotated_tree', metavar='newick_tree', help='Define taxonomy through this annotated newick file. (default: use taxonomy from --taxonomy)')
+    create_lesser_options.add_argument('--tree', metavar='newick_tree', help='Specify an unrooted tree, GraftM will attempt to reroot it.')
     create_lesser_options.add_argument('--hmm', metavar='.hmm file', help='Use this HMM for alignment, and search unless --search_hmm_files is specified. (default: use HMM build automatically from alignment)')
     create_lesser_options.add_argument('--dereplication_level', metavar='.hmm file', type = int, help='taxonomic rank at which \
 to dereplicate the sequences to create the HMM. Provide an integer that corresponds to the rank (from left to right) will be dereplicated. For example --dereplication_level 3 will omit all sequences \
@@ -292,21 +292,21 @@ that are redundant at the 3rd rank (from left to right in the taxonomy file) fro
 
     
     #########################################################################
-    # Bootstrap                                                             #
+    # expand_search                                                         #
     #########################################################################    
-    bootstrap_parser = subparsers.add_parser('bootstrap',
+    expand_search_parser = subparsers.add_parser('expand_search',
                                             description='Generate a new HMM/database from the given contigs',
                                             epilog=__author__)
-    bootstrap_parser.add_argument('--contigs', nargs='+', help='contigs to search', required=True)
-    bootstrap_parser.add_argument('--output_hmm', help='output HMM file', required=True)
-    bootstrap_parser.add_argument('--graftm_package', help='find sequences with this graftm package')
-    bootstrap_parser.add_argument('--search_hmm_files', nargs='+', help='find sequences with this/these HMM(s)')
-    bootstrap_parser.add_argument('--maximum_range', type=int, help='maximum range to use when searching for potentially linked reads when searching contigs (default: from graftm_package or else 1000)', default=1000)
-    bootstrap_parser.add_argument('--evalue', help='evalue cutoff for the hmmsearch (default = 1e-5)', default= '1e-5')
-    bootstrap_parser.add_argument('--min_orf_length', help='Minimum number of nucleotides in an open reading frame (default: %s)' % min_orf_length_default, default=min_orf_length_default, type=int)
-    bootstrap_parser.add_argument('--threads', type=int, metavar='threads', help='Number of threads to use (default = 5)', default=5)
+    expand_search_parser.add_argument('--contigs', nargs='+', help='contigs to search', required=True)
+    expand_search_parser.add_argument('--output_hmm', help='output HMM file', required=True)
+    expand_search_parser.add_argument('--graftm_package', help='find sequences with this graftm package')
+    expand_search_parser.add_argument('--search_hmm_files', nargs='+', help='find sequences with this/these HMM(s)')
+    expand_search_parser.add_argument('--maximum_range', type=int, help='maximum range to use when searching for potentially linked reads when searching contigs (default: from graftm_package or else 1000)', default=1000)
+    expand_search_parser.add_argument('--evalue', help='evalue cutoff for the hmmsearch (default = 1e-5)', default= '1e-5')
+    expand_search_parser.add_argument('--min_orf_length', help='Minimum number of nucleotides in an open reading frame (default: %s)' % min_orf_length_default, default=min_orf_length_default, type=int)
+    expand_search_parser.add_argument('--threads', type=int, metavar='threads', help='Number of threads to use (default = 5)', default=5)
     
-    logging_options = bootstrap_parser.add_argument_group('logging options')
+    logging_options = expand_search_parser.add_argument_group('logging options')
     logging_options.add_argument('--verbosity', metavar='verbosity', help='1 - 5, 1 being silent, 5 being noisy indeed. Default = 4', type=int, default=4)
     logging_options.add_argument('--log', metavar='logfile', help='Output logging information to file', default=False)    
     

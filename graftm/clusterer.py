@@ -13,7 +13,6 @@ class Clusterer:
 
         self.orfm_regex = OrfM.regular_expression()
 
-
     def uncluster_annotations(self, input_annotations, reverse_pipe):
         '''
         Update the annotations hash provided by pplacer to include all

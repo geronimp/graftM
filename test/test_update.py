@@ -55,14 +55,14 @@ VYWGMEHVKDKYGSLAKQKPSVKLINDIGTDVAMYCLEQYELYPAVMETHFGGSQRATCISAAAGTSVSM
 ATGNAQAGLSAWYLACNVHKEQMGRFGFYGYDLQDQIGAANTFSYRSDEGLPFELRGGNYPSYAMNVGHQ
 SAYTGIVAAAHSARGDAWALSPHVKVAFADRSLPFDFANITKEFGRGAMREFVPAGERDLIIP
 '''
-
+    extra_mcra_taxonomy = "KYC55281.1\tmcrA; Euryarchaeota_mcrA; Methanofastidiosa\n"
     def test_hello_world(self):
         with tempdir.in_tempdir():
             with tempfile.NamedTemporaryFile() as fasta:
                 with tempfile.NamedTemporaryFile() as tax:
                     fasta.write(Tests.extra_mcra_fasta)
                     fasta.flush()
-                    tax.write("KYC55281.1\tmcrA; Euryarchaeota_mcrA; Methanofastidiosa\n")
+                    tax.write(Tests.extra_mcra_taxonomy)
                     tax.flush()
                     prev_path = os.path.join(path_to_data,'mcrA.10seqs.gpkg')
                     cmd1 = "%s update --graftm_package %s --sequences %s --taxonomy %s --output %s" %(
@@ -81,18 +81,19 @@ SAYTGIVAAAHSARGDAWALSPHVKVAFADRSLPFDFANITKEFGRGAMREFVPAGERDLIIP
                                      len(taxhash))
                     self.assertEqual(['mcrA','Euryarchaeota_mcrA','Methanofastidiosa'],
                                      taxhash['KYC55281.1'])
-                    self.assertEqual(prevhash['639699575'],
-                                     taxhash['639699575'])
+                    self.assertEqual(prevhash['638165755'],
+                                     taxhash['638165755'])
                     seqio = SequenceIO()
                     self.assertEqual(
                         len(seqio.read_fasta_file(prev.unaligned_sequence_database_path()))+1,
                         len(seqio.read_fasta_file(up.unaligned_sequence_database_path())))
-                    
+
     def test_autodecorate(self):
         with tempdir.in_tempdir():
             with tempfile.NamedTemporaryFile() as fasta:
                 fasta.write(Tests.extra_mcra_fasta)
                 fasta.flush()
+                
                 prev_path = os.path.join(path_to_data,'mcrA.10seqs.gpkg')
                 update = Update(prerequisites)
                 update.update(
@@ -105,10 +106,11 @@ SAYTGIVAAAHSARGDAWALSPHVKVAFADRSLPFDFANITKEFGRGAMREFVPAGERDLIIP
                 taxhash = up.taxonomy_hash()
                 self.assertEqual(11, len(taxhash)) #hard-code 11 because of
                                                    #https://github.com/geronimp/graftM/issues/204
-                self.assertEqual(['Root','mcrA','Euryarchaeota_mcrA','Methanofastidiosa'],
+                self.assertEqual(['mcrA','Euryarchaeota_mcrA', 'Methanomicrobia'],
                                  taxhash['KYC55281.1'])
-                self.assertEqual(prevhash['639699575'],
-                                 taxhash['639699575'])
+                
+                self.assertEqual(prevhash['638165755'],
+                                 taxhash['638165755'])
                 seqio = SequenceIO()
                 self.assertEqual(
                     len(seqio.read_fasta_file(prev.unaligned_sequence_database_path()))+1,

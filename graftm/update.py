@@ -43,7 +43,7 @@ class Update(Create):
 
     def update(self, **kwargs):
         '''
-        Update an existing GraftM pacakge with new sequences and taxonomy. If no
+        Update an existing GraftM package with new sequences and taxonomy. If no
         taxonomy is provided, attempt to decorate the new sequences with
         pre-existing taxonomy.
 
@@ -151,11 +151,11 @@ class Update(Create):
                 rerooted_tree,
                 old_gpkg.taxtastic_taxonomy_path(),
                 old_gpkg.taxtastic_seqinfo_path())
-            td.decorate(
-                new_gpkg.gpkg_tree,
-                '/tmp/a.taxonomy', #TODO: remove this reference to tempfile, use 
-                False) #TODO: no_unique_names: expose this parameter to the user
-            import IPython; IPython.embed()
+            
+            td.decorate(new_gpkg.gpkg_tree,
+                        '/tmp/a.taxonomy', #TODO: remove this reference to tempfile, use
+                        True) # NOTE: no_unique_names has been changed to unique_names
+            
             total_taxonomy_hash = GreenGenesTaxonomy.read_file(
                 '/tmp/a.taxonomy').taxonomy
 

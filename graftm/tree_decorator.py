@@ -22,7 +22,7 @@ from graftm.getaxnseq import Getaxnseq
 from graftm.greengenes_taxonomy import GreenGenesTaxonomy
 
 # System imports
-from skbio import TreeNode # TODO: change to dendropy
+from skbio import TreeNode
 import logging
 
 ################################################################################
@@ -33,7 +33,7 @@ class TreeDecorator:
     A class that conservatively decorates trees with taxonomy, or any other
     hierarchical annotation. If all tips descending from a node within the 
     provided tree have consistent taxonomy, it will be decorated with that 
-    taxonomy (or annotation of any type)
+    taxonomy (or annotation of any type).
     '''
     
     def __init__(self, tree, taxonomy, seqinfo=None):
@@ -41,7 +41,7 @@ class TreeDecorator:
         Parameters
         ----------
         tree        : object
-            Dendropy Tree object ( https://pythonhosted.org/DendroPy/ )
+            skbio.tree object
         taxonomy    : string
             Path to a file containing taxonomy information about the tree, 
             either in Greengenes or taxtastic format (seqinfo file must also
@@ -132,6 +132,7 @@ class TreeDecorator:
         Parameters 
         ----------
         node    : object
+            skbio.tree object
         name    : string
             Annotation to rename the node with.
         '''
@@ -161,7 +162,7 @@ class TreeDecorator:
         output_tax         : string
             File to which the taxonomy strings for each tip in the tree will be
             written.
-        unique_names    : boolean
+        unique_names       : boolean
             True indicating that a unique number will be appended to the end of
             a taxonomic rank if it is found more than once in the tree
             (i.e. it is paraphyletic in the tree). If false, multiple clades 
@@ -186,8 +187,7 @@ class TreeDecorator:
                                     for tip in node.tips()
                                     if tip.name in self.taxonomy])
                     
-                    consistent_taxonomy = (True if len(rank_tax) == 1 
-                                           else False)
+                    consistent_taxonomy = len(rank_tax) == 1 
                     
                     if consistent_taxonomy:
                         tax=rank_tax.pop()

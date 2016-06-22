@@ -1,7 +1,7 @@
 import logging
 import extern
 import tempfile
-from skbio.tree._tree import TreeNode
+from skbio import TreeNode
 
 from graftm.create import Create
 from graftm.graftm_package import GraftMPackageVersion3, GraftMPackage
@@ -152,12 +152,9 @@ class Update(Create):
                 old_gpkg.taxtastic_taxonomy_path(),
                 old_gpkg.taxtastic_seqinfo_path())
             
-            td.decorate(new_gpkg.gpkg_tree,
-                        '/tmp/a.taxonomy', #TODO: remove this reference to tempfile, use
-                        True) # NOTE: no_unique_names has been changed to unique_names
-            
-            total_taxonomy_hash = GreenGenesTaxonomy.read_file(
-                '/tmp/a.taxonomy').taxonomy
+            with tempfile.NamedTemporaryFile(suffix='tsv') as taxonomy:
+                td.decorate(new_gpkg.gpkg_tree, taxonomy.name, True) 
+                total_taxonomy_hash = GreenGenesTaxonomy.read_file(taxonomy.name).taxonomy
 
             ################################
             ### Generating tree log file ###

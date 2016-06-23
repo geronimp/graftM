@@ -11,6 +11,7 @@ from graftm.housekeeping import HouseKeeping
 from graftm.summarise import Stats_And_Summary
 from graftm.pplacer import Pplacer
 from graftm.create import Create
+from graftm.update import Update
 from graftm.unpack_sequences import UnpackRawReads
 from graftm.graftm_package import GraftMPackage
 from graftm.expand_searcher import ExpandSearcher
@@ -561,24 +562,6 @@ class Run:
                 logging.error("Invalid dereplication level selected! please enter an integer from 0 - 7")
                 exit(1)
             
-            if self.args.graftm_package:
-                if self.args.taxonomy and self.args.sequences:
-                    logging.info("GraftM package %s specified to update with sequences in %s" % (self.args.graftm_package, self.args.sequences))
-                    if not self.args.output:
-                        if self.args.graftm_package.endswith(".gpkg"):
-                            self.args.output = self.args.graftm_package.replace(".gpkg", "-updated.gpkg")
-                        else:
-                            raise UnrecognisedSuffixError("Unrecognised suffix on GraftM package %s. Please provide a graftM package with the correct suffix (.gpkg)" % (self.args.graftm_package))
-                    self.create.update(self.args.sequences, self.args.taxonomy, self.args.graftm_package,
-                                       self.args.output)
-
-                else:
-                    if self.args.taxonomy:
-                        logging.error("--sequences must be specified to update a GraftM package")
-                        exit(1)
-                    elif self.args.sequences:
-                        logging.error("--taxonomy must be specified to update a GraftM package")
-                        exit(1)
             else:
                 if not self.args.sequences:
                     if not self.args.alignment and not self.args.rerooted_annotated_tree \
@@ -628,9 +611,23 @@ class Run:
                               hmm = self.args.hmm,
                               search_hmm_files = self.args.search_hmm_files,
                               force = self.args.force,
-                              graftm_package = self.args.graftm_package,
                               threads = self.args.threads                              
                               )
+                
+        elif self.args.subparser_name == 'update':
+            logging.info("GraftM package %s specified to update with sequences in %s" % (self.args.graftm_package, self.args.sequences))
+            if not self.args.output:
+                if self.args.graftm_package.endswith(".gpkg"):
+                    self.args.output = self.args.graftm_package.replace(".gpkg", "-updated.gpkg")
+                else:
+                    self.args.output = self.args.graftm_package + '-update.gpkg'
+                    
+            Update(ExternalProgramSuite(
+                ['taxit', 'FastTreeMP', 'seqmagick', 'hmmalign', 'mafft'])).update(
+                    input_sequence_path=self.args.sequences,
+                    input_taxonomy_path=self.args.taxonomy,
+                    input_graftm_package_path=self.args.graftm_package,
+                    output_graftm_package_path=self.args.output)
         
         elif self.args.subparser_name == 'expand_search':
             args = self.args

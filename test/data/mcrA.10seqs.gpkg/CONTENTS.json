@@ -1,0 +1,1 @@
+{"unaligned_sequence_database": "mcra10.fa", "align_hmm": "graftmFWdYLV_align.hmm", "range": 840.0, "refpkg": "mcrA.10seqs.gpkg.refpkg", "trusted_cutoff": false, "diamond_database": "mcra10.dmnd", "graftm_package_version": 3, "search_hmms": ["graftmlTzkCs_search.hmm"]}

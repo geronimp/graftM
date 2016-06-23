@@ -50,3 +50,9 @@ class GreenGenesTaxonomy:
         with open(input_filename) as f:
             g = GreenGenesTaxonomy.read(f)
         return g
+
+    def write(self, output_io):
+        '''Write a taxonomy to an open stream out in GG format. Code calling this
+        function must open and close the io object.'''
+        for name, tax in self.taxonomy.items():
+            output_io.write("%s\t%s\n" % (name, '; '.join(tax)))

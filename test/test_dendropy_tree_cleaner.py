@@ -27,6 +27,7 @@ import sys
 import tempfile
 from StringIO import StringIO
 from dendropy import Tree
+from string import split as _
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 from graftm.dendropy_tree_cleaner import DendropyTreeCleaner
@@ -72,6 +73,23 @@ class Tests(unittest.TestCase):
         tc.write_fasttree_newick(tree, s)
         self.assertEqual("(Asulf_Archaeoglobus.1_2280~2522125074:7.17,((Afulgi_764~2528311132:0.0,CP006577_764~2588253768:0.0):0.0,AE000782_746~638154502:0.0):7.555):1.461;\n", s.getvalue())
         
+    def match(self, tree, names):
+        tc  = DendropyTreeCleaner()
+        return tc.match_alignment_and_tree_sequence_ids(
+            names, Tree.get(data=tree, schema='newick'))
+
+    def test_match_alignment_and_tree_sequence_ids(self):
+        self.match(u'(a,(b,c));',_('a b c'))
+        
+    def test_match_alignment_and_tree_sequence_ids_tree_not_align(self):
+        self.assertRaises(Exception, self.match, u'(a,(b,c));',_('a b'))
+        
+    def test_match_alignment_and_tree_sequence_ids_align_not_tree(self):
+        self.assertRaises(Exception, self.match, u'(a,(b,c));',_('a b c d'))
+        
+    def test_match_alignment_and_tree_sequence_ids_underscores(self):
+        self.match(u'(\'a_2\',(b,c));',_('a_2 b c'))
+
 
 if __name__ == "__main__":
     unittest.main()

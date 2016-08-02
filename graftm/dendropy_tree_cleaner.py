@@ -51,3 +51,19 @@ class DendropyTreeCleaner:
         for name, count in tip_names_count.iteritems():
             if count < 2:
                 raise Exception("Sequence '%s' was found in the tree but not the alignment" % name)
+
+    def remove_sequences(self, tree, sequence_names):
+        '''Remove sequences with in the given sequence_names array from the tree in
+        place. Assumes the sequences are found in the tree, and that they are
+        all unique.
+
+        Parameters
+        ----------
+        tree: dendropy.Tree
+            tree to remove from
+        sequence_names: list of str
+            list of tip names to remove
+
+        '''
+        tree.prune_taxa_with_labels(sequence_names)
+        tree.prune_taxa_with_labels([s.replace('_',' ') for s in sequence_names])

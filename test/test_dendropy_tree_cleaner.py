@@ -90,6 +90,21 @@ class Tests(unittest.TestCase):
     def test_match_alignment_and_tree_sequence_ids_underscores(self):
         self.match(u'(\'a_2\',(b,c));',_('a_2 b c'))
 
+    def test_remove_sequences_underscores(self):
+        tc  = DendropyTreeCleaner()
+        tree = Tree.get(data="(((a,b),(c_yeh,L))d);", schema='newick')
+        tc.remove_sequences(tree, ['c_yeh'])
+        self.assertEqual('((a,b),L)d', str(tree))
+        
+    def test_remove_sequences_with_named_internal_nodes(self):
+        tc  = DendropyTreeCleaner()
+        tree = Tree.get(data="('Asulf_Archaeoglobus.1_2280~2522125074':7.17,(('Afulgi_764~2528311132':0.0,'CP006577_764~2588253768':0.0):0.0,'AE000782_746~638154502':0.0)'s__Archaeoglobus fulgidus':7.555):1.461;\n",
+                        schema='newick')
+        tc.remove_sequences(tree,
+                            ['CP006577_764~2588253768',
+                             'Afulgi_764~2528311132'])
+        self.assertEqual("(Asulf_Archaeoglobus.1_2280~2522125074:7.17,AE000782_746~638154502:7.555):1.461",
+                         str(tree))
 
 if __name__ == "__main__":
     unittest.main()

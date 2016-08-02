@@ -25,7 +25,7 @@ import unittest
 import os.path
 import sys
 from io import StringIO
-from skbio.tree import TreeNode
+from dendropy import Tree
 
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
@@ -40,14 +40,14 @@ class Tests(unittest.TestCase):
                            u'b': [u't1'],
                            u'c': [u't1']},
                           TaxonomyExtractor().taxonomy_from_annotated_tree(\
-                            TreeNode.read(StringIO(u"(a,(b,c)'t1':0.9)root;"))))
+                            Tree.get(data="(a,(b,c)'t1':0.9)root;", schema='newick')))
         
     def test_bootstraps_in_annotated_tree(self):
         self.assertEquals({u'a': [],
                            u'b': [u't1'],
                            u'c': [u't1']},
                           TaxonomyExtractor().taxonomy_from_annotated_tree(\
-                            TreeNode.read(StringIO(u"(a,(b,c)'0.01973:t1':0.9)root;"))))
+                            Tree.get(data="(a,(b,c)'0.01973:t1':0.9)root;", schema='newick')))
         
         
     def test_bootstraps_in_annotated_tree_alongside_empty_taxa(self):
@@ -56,12 +56,12 @@ class Tests(unittest.TestCase):
                            u'c': ['tax'],
                            u'd': ['tax']},
                           TaxonomyExtractor().taxonomy_from_annotated_tree(\
-                            TreeNode.read(StringIO(u"(a,(b,(c,d:0.2)'0.2:tax')0.01973:0.9)root;"))))
+                            Tree.get(data="(a,(b,(c,d:0.2)'0.2:tax')0.01973:0.9)root;", schema='newick')))
         
     def test_branch_lengths(self):
         '''https://github.com/geronimp/graftM/issues/192'''
         taxes = TaxonomyExtractor().taxonomy_from_annotated_tree(
-            TreeNode.read(os.path.join(path_to_data, 'create', 'sulfitereductase.ben.tree')))
+            Tree.get(path=os.path.join(path_to_data, 'create', 'sulfitereductase.ben.tree'), schema='newick'))
         self.assertEquals([u'Aanerobic sulfite reductase asrC',
                            u'Anaerobic sulfite reductase asrC Group 3',
                            u'Unknown alpha and beta subunits',

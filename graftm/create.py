@@ -11,6 +11,7 @@ import json
 import signal
 import re
 import itertools
+from skbio.tree import TreeNode
 
 from Bio import SeqIO
 
@@ -19,7 +20,6 @@ from graftm.tree_cleaner import TreeCleaner
 from graftm.taxonomy_extractor import TaxonomyExtractor
 from graftm.getaxnseq import Getaxnseq
 from graftm.deduplicator import Deduplicator
-from skbio.tree import TreeNode
 from graftm.sequence_io import SequenceIO
 from graftm.graftm_package import GraftMPackageVersion3, GraftMPackage
 from graftm.decorator import Decorator
@@ -570,7 +570,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         if rerooted_annotated_tree:
             logging.info("Building seqinfo and taxonomy file from input annotated tree")
             taxonomy_definition = TaxonomyExtractor().taxonomy_from_annotated_tree(\
-                    TreeNode.read(rerooted_annotated_tree))
+                    Tree.get(path=rerooted_annotated_tree, schema='newick'))
         elif taxonomy:
             logging.info("Building seqinfo and taxonomy file from input taxonomy")
             taxonomy_definition = GreenGenesTaxonomy.read_file(taxonomy).taxonomy
@@ -759,8 +759,8 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
             self.the_trash += [seq, tax]
             if rerooted_annotated_tree:
                 logging.info("Building seqinfo and taxonomy file from input annotated tree")
-                taxonomy_definition = TaxonomyExtractor().taxonomy_from_annotated_tree(\
-                        TreeNode.read(rerooted_annotated_tree))
+                taxonomy_definition = TaxonomyExtractor().taxonomy_from_annotated_tree(
+                    Tree.get(path=rerooted_annotated_tree, schema='newick'))
             elif taxonomy:
                 logging.info("Building seqinfo and taxonomy file from input taxonomy")
                 taxonomy_definition = GreenGenesTaxonomy.read_file(taxonomy).taxonomy

@@ -23,7 +23,6 @@ from graftm.greengenes_taxonomy import GreenGenesTaxonomy
 from graftm.taxonomy_cleaner import TaxonomyCleaner
 
 # System imports
-from skbio import TreeNode
 import logging
 
 ################################################################################

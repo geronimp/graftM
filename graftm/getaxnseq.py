@@ -1,16 +1,33 @@
 #!/usr/bin/env python
+################################################################################
+#                                                                              #
+#     This program is free software: you can redistribute it and/or modify     #
+#     it under the terms of the GNU General Public License as published by     #
+#     the Free Software Foundation, either version 3 of the License, or        #
+#     (at your option) any later version.                                      #
+#                                                                              #
+#     This program is distributed in the hope that it will be useful,          #
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of           #
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            #
+#     GNU General Public License for more details.                             #
+#                                                                              #
+#     You should have received a copy of the GNU General Public License        #
+#     along with this program. If not, see <http://www.gnu.org/licenses/>.     #
+#                                                                              #
+################################################################################
 
 import re
 import sets
 import string
 import logging
 
+from graftm.taxonomy_cleaner import TaxonomyCleaner
+
 class Getaxnseq:
     # Perhaps in the future allow this to be set programmatically
     _taxonomic_level_names = string.split('kingdom phylum class order family genus species')
     
-    def _taxonomy_line(self, level_index, taxon_array):
-        
+    def _taxonomy_line(self, level_index, taxon_array):   
         if level_index == 0:
             return '%s,Root,%s,%s,%s,%s,,,,,,' % (taxon_array[level_index], self._taxonomic_level_names[level_index], taxon_array[level_index], 'Root', taxon_array[level_index])
         elif level_index == 1:
@@ -100,7 +117,7 @@ class Getaxnseq:
             write taxtastic-compatible 'seqinfo' file here'''
         
         first_pass_id_and_taxonomies = []
-        meaningless_taxonomic_names = sets.Set(['k__', 'd__', 'p__', 'c__', 'o__', 'f__', 'g__', 's__'])
+        tc=TaxonomyCleaner()
 
         for taxon_id, tax_split in taxonomies.iteritems():
             # Replace spaces with underscores e.g. 'Candidatus my_genus'
@@ -108,7 +125,7 @@ class Getaxnseq:
                 tax_split[idx] = re.sub('\s+', '_', item.strip())
 
             # Remove 'empty' taxononomies e.g. 's__'
-            tax_split = [item for item in tax_split if item not in meaningless_taxonomic_names]
+            tax_split = tc.remove_empty_ranks(tax_split)
 
             # Add this fixed up list to the list
             first_pass_id_and_taxonomies.append([taxon_id]+tax_split)

@@ -49,8 +49,8 @@ And you should be good to go!
 
 
 
-### Example
-As an example, we'll use GraftM to classify a single 16S sequence from GreenGenes. Saving the example file as `/tmp/eg.fasta` with the following contents:
+### Example: 'graft'
+We'll use GraftM to classify a single 16S sequence from GreenGenes. Save the example file as `/tmp/eg.fasta` with the following contents:
 ```
 >229854
 GAGTTTGATCCTGGCTCAGATTGAACGCTGGCGGCATGCTTAACACATGCAAGTCGAACGGCAGCATGACTTAGCTTGCT
@@ -92,6 +92,64 @@ $ graftM graft --forward /tmp/eg.fasta --graftm_package /path/to/4.01.2013_08_gr
 12/02/2015 09:52:07 AM INFO: Done, thanks for using graftM!
 ```
 This creates a folder `eg.graftm` which contains the results.
+
+### Example: 'create'
+
+We encourage you to create your own GraftM packages that suit your own analysis
+needs (e.g. new genes, more representatives, improved annotation of phylogenetic
+trees, etc.). Here we will create a 16S package out from a highly dereplicated
+collection provided by GreenGenes. The data here are provided in the
+[example_data/create](https://github.com/geronimp/graftM/tree/master/example_data/create)
+folder of GraftM.
+```
+$ graftM create --output /tmp/my.gpkg --sequences 61_otus.fasta --taxonomy 61_otu_taxonomy.txt
+                         
+                             GraftM 0.9.5
+
+                            CREATE
+
+                   Joel Boyd, Ben Woodcroft
+
+                                                    /
+              >a                                   /
+              -------------                       /
+              >b                        |        |
+              --------          >>>     |  GPKG  |
+              >c                        |________|
+              ----------
+
+08/02/2016 09:18:48 AM WARNING: Deleting previous directory /tmp/my.gpkg
+08/02/2016 09:18:48 AM INFO: Building gpkg for /tmp/my.gpkg
+08/02/2016 09:18:48 AM INFO: Building seqinfo and taxonomy file from input taxonomy
+08/02/2016 09:18:48 AM INFO: Checking for duplicate sequences
+08/02/2016 09:18:48 AM INFO: Aligning sequences to create aligned FASTA file
+08/02/2016 09:19:08 AM INFO: Building HMM from alignment
+08/02/2016 09:19:09 AM INFO: Filtered 0 short sequences from the alignment
+08/02/2016 09:19:09 AM INFO: 22 sequences remaining
+08/02/2016 09:19:09 AM INFO: Checking for incorrect or fragmented reads
+08/02/2016 09:19:09 AM INFO: Removing 0 sequences from the search HMM that are redundant at the 6 rank in the taxonomy file
+08/02/2016 09:19:26 AM INFO: Building HMM from alignment
+08/02/2016 09:19:28 AM INFO: Filtered 0 short sequences from the alignment
+08/02/2016 09:19:28 AM INFO: 22 sequences remaining
+08/02/2016 09:19:28 AM WARNING: Found a non-standard character in the sequence of 4363260: e.g. 'W'
+08/02/2016 09:19:28 AM INFO: Deduplicating sequences
+08/02/2016 09:19:28 AM INFO: Removed 0 sequences as duplicates, leaving 22 non-identical sequences
+08/02/2016 09:19:28 AM INFO: Building tree
+08/02/2016 09:19:29 AM INFO: Building seqinfo and taxonomy file from input taxonomy
+08/02/2016 09:19:29 AM INFO: Creating reference package
+08/02/2016 09:19:29 AM INFO: Attempting to run taxit create with rerooting capabilities
+08/02/2016 09:19:29 AM INFO: Creating diamond database
+08/02/2016 09:19:29 AM INFO: Compiling gpkg
+08/02/2016 09:19:29 AM INFO: Cleaning up
+08/02/2016 09:19:29 AM INFO: Testing gpkg package works
+08/02/2016 09:19:37 AM INFO: Finished
+```
+
+Then, the output package `/tmp/my.gpkg` can be provided to 'graft'. There are
+many optional arguments to 'create' which can be used to modify the process of
+making gpkgs.
+
+Happy grafting!
 
 ### Contact
 If you have any further comments, complaints or recomendations about GraftM, drop an email to the [SupportM](https://groups.google.com/forum/?hl=en#!forum/supportm) public help forum.

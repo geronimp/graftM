@@ -167,18 +167,18 @@ class TreeDecorator:
             (i.e. it is paraphyletic in the tree). If false, multiple clades 
             may be assigned with the same name.
         '''
-    
+        logging.info("Decorating tree")
         encountered_taxonomies = {}
         tc = TaxonomyCleaner()
-        
         for node in self.tree.preorder():
             if(node.is_tip()!=True):
-                max_tax_string_length = max([len(self.taxonomy[tip.name]) 
+
+                max_tax_string_length = max([len(self.taxonomy[tip.name.replace(' ', '_')]) 
                                              for tip in node.tips() 
-                                             if tip.name in self.taxonomy])
+                                             if tip.name.replace(' ', '_') in self.taxonomy])
+
                 logging.debug("Number of ranks found for node: %i" % max_tax_string_length)
                 tax_string_array = []
-
                 
                 for rank in range(max_tax_string_length):
                     rank_tax = set([self.taxonomy[tip.name\
@@ -215,9 +215,10 @@ class TreeDecorator:
                 if any(tax_string_array):
                     self._rename(node, '; '.join(tax_string_array))
                 node.tax = len(tax_string_array)
-        
+        logging.info("Writing decorated tree to file: %s" % output_tree)
         self.tree.write(output_tree, "newick")
-        self._write_consensus_strings(output_tax)
+        if output_tax:
+            self._write_consensus_strings(output_tax)
 
 ################################################################################
 ################################################################################

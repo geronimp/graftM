@@ -42,8 +42,6 @@ class Classify:
                             cumil_confidence[item]+=normalised_confidences[idx]
                         else:
                             cumil_confidence[item]=normalised_confidences[idx]
-                    else:
-                        continue
                 if resolve_placements:
                     best=False
                     items=sorted([(value, key) for key, value in cumil_confidence.items()], reverse=True)

@@ -66,7 +66,7 @@ class Classify:
                             break
                 else:    
                     best_place=max([(value, key) for key, value in cumil_confidence.items()])
-                    if best_place[0]>float(threshold):
+                    if best_place[0]>threshold:
                         tax_that_meets_threshold['placement'].append(best_place[1])
                         tax_that_meets_threshold['confidence'].append(best_place[0])
             

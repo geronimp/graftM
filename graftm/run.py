@@ -45,6 +45,7 @@ class Run:
     MIN_ALIGNED_FILTER_FOR_AMINO_ACID_PACKAGES = 30
     
     DEFAULT_MAX_SAMPLES_FOR_KRONA = 100
+    DECOYLESS_FILTER = 'filter_without_actual_decoys'
 
     def __init__(self, args):
         self.args = args
@@ -301,8 +302,10 @@ class Run:
                     diamond_db = new_database
             
         if self.args.decoy_database:
-            decoy_filter = DecoyFilter(self.args.decoy_database,
-                                       diamond_db)
+            if self.args.decoy_database == Run.DECOYLESS_FILTER:
+                decoy_filter = DecoyFilter(diamond_db)
+            else:
+                decoy_filter = DecoyFilter(diamond_db, self.args.decoy_database)
                     
         # For each pair (or single file passed to GraftM)
         logging.debug('Working with %i file(s)' % len(self.sequence_pair_list))

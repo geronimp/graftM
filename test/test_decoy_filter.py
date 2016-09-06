@@ -73,7 +73,7 @@ RCPAPLVPEAIERLLRQYLATRLRDENLRAWFSRHSNDELRAHLAGE
                     with tempfile.NamedTemporaryFile(prefix='graftm_decoy_test') as f4:
                         f3.write(self.eg1)
                         f3.flush()
-                        ret = DecoyFilter(f1.name+".dmnd", f2.name+".dmnd").filter(f1.name, f4.name)
+                        ret = DecoyFilter(f2.name+".dmnd", f1.name+".dmnd").filter(f1.name, f4.name)
                         self.assertEqual(True, ret)
                         seqs = SequenceIO().read_fasta_file(f4.name)
                         self.assertEqual(1, len(seqs))
@@ -81,7 +81,24 @@ RCPAPLVPEAIERLLRQYLATRLRDENLRAWFSRHSNDELRAHLAGE
                 # clean up
                 os.remove(f1.name+".dmnd")
                 os.remove(f2.name+".dmnd")
-                    
+
+    def test_no_decoys(self):
+        with tempfile.NamedTemporaryFile(prefix='graftm_decoy_test') as f1:
+            f1.write(self.eg1)
+            f1.flush()
+            extern.run("diamond makedb --in %s --db %s.dmnd" %\
+                       (f1.name, f1.name))
+            with tempfile.NamedTemporaryFile(prefix='graftm_decoy_test') as f3:
+                with tempfile.NamedTemporaryFile(prefix='graftm_decoy_test') as f4:
+                    f3.write(self.eg1)
+                    f3.flush()
+                    ret = DecoyFilter(f1.name+".dmnd").filter(f1.name, f4.name)
+                    self.assertEqual(True, ret)
+                    seqs = SequenceIO().read_fasta_file(f4.name)
+                    self.assertEqual(1, len(seqs))
+                self.assertEqual("PROKKA_03952", seqs[0].name)
+        # clean up
+        os.remove(f1.name+".dmnd")
         
 if __name__ == "__main__":
     unittest.main()

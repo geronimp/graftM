@@ -165,7 +165,7 @@ if __name__ == '__main__':
     searching_options.add_argument('--search_and_align_only', action="store_true", help='Stop after reads have been identified (default=False)', default=False)
     searching_options.add_argument('--search_only', action="store_true", help='Stop after reads searched (default=False)', default=False)
     searching_options.add_argument('--euk_check', action="store_true", help='Search whole sample for 18S (default=False)', default=False)
-    searching_options.add_argument('--decoy_database', help='Path to a diamond database. Sequences with better hits to these proteins will be excluded.')
+    searching_options.add_argument('--decoy_database', help='Path to a diamond database. Sequences with better hits to these proteins will be excluded. If no argument is supplied candidate ORFs are double checked by searching against a gpkg diamond db.', nargs='?', const=Run.DECOYLESS_FILTER)
     searching_options.add_argument('--search_method', choices=('hmmsearch','diamond'), help='Search method (default=hmmsearch)', default='hmmsearch')
     searching_options.add_argument('--maximum_range', type=int, help='maximum range to use when searching for potentially linked reads (when searching contigs)', default=None)
     searching_options.add_argument('--expand_search_contigs', nargs='+', help='generate an HMM for searching --forward data by first searching these contigs')

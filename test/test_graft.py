@@ -27,6 +27,7 @@ import tempdir
 import tempfile
 import extern
 import json
+import shutil
 
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
@@ -1327,7 +1328,44 @@ CGGGAGGAACACCAGTGGCGAAGGCGGCTTCCTGGCCTGTTCTTGACGCTGAGGCGCGAA
             self.assertTrue(os.path.exists(os.path.join(tmp, "combined_count_table.txt")))
             self.assertFalse(os.path.exists(os.path.join(tmp, "krona.html")))
 
-        
+    def test_decoy(self):
+        # Sequence mostly like McrA in file, but also some extra stuff so decoy
+        # bitscore is higher.
+        decoy_sequence = '''>637897753 Methanospirillum hungatei mcrA
+TTTHHHAAAHAAATTTTMAKIERAQKLFLKALKTKFEGDVADTKTGFYNFGGLNQSPRKKEFMEASKKVELRRGISMYDPNRCHLGGLPMGQRQLMTYEVSGTGTFVEGDDLHFVNNPAMQQMWDDIRRTIIVNMDLAHQTLQKRLGKEITPETINEYLHILNHAMPGGAV
+'''
+        gpkg=os.path.join(path_to_data, "mcrA.gpkg")
+        with tempfile.NamedTemporaryFile(prefix='graftmdec', suffix='.fa') as f:
+            f.write(decoy_sequence)
+            f.flush()
+            extern.run("diamond makedb --in %s --db %s.dmnd" %\
+                       (f.name, f.name))
+
+            with tempdir.TempDir() as tmp:
+                # without decoy
+                cmd = '%s graft --verbosity 5 --forward %s --graftm_package '\
+                      '%s --output_directory %s --force' %\
+                      (path_to_script,
+                       f.name,
+                       gpkg,
+                       tmp)
+                extern.run(cmd)
+                subdir = os.path.splitext(os.path.basename(f.name))[0]
+                hits_file = os.path.join(tmp, subdir, "%s_hits.fa" % subdir)
+                self.assertTrue(os.path.exists(hits_file))
+
+                # with decoy
+                cmd = '%s graft --verbosity 5 --forward %s --graftm_package '\
+                      '%s --output_directory %s --force --decoy_database %s' %\
+                      (path_to_script,
+                       f.name,
+                       gpkg,
+                       tmp,
+                       f.name+".dmnd")
+                extern.run(cmd)
+                self.assertFalse(os.path.exists(hits_file))
+        # clean up
+        os.remove(f.name+".dmnd")
                     
 if __name__ == "__main__":
     unittest.main()

@@ -16,6 +16,7 @@ from graftm.diamond import Diamond
 from graftm.sequence_search_results import SequenceSearchResult, HMMSearchResult
 from graftm.readHmmTable import HMMreader
 from graftm.db_search_results import DBSearchResult
+from graftm.filter_putative_seqs import FilterPutativeSeqs
 
 FORMAT_FASTA = "FORMAT_FASTA"
 FORMAT_FASTQ = "FORMAT_FASTQ"
@@ -747,7 +748,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
     @T.timeit
     def aa_db_search(self, files, base, unpack, search_method,
                      maximum_range, threads, evalue, min_orf_length,
-                     restrict_read_length, diamond_database):
+                     restrict_read_length, diamond_database, bit_score,
+                     minimum_percent_aligned):
         '''
         Amino acid database search pipeline - pipeline where reads are searched
         as amino acids, and hits are identified using hmmsearch or diamond
@@ -783,6 +785,14 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         diamond_database : str
             Path to diamond database to use when searching. Set to 'None' if not
             using diamond pipeline
+        bit_score: float
+            Minimum bit score to be awarded to a sequence to be considered a 
+            hit.
+        minimum_percent_aligned: float
+            Minimum percent of the HMM aligned that must align to the query 
+            sequence to be considered a hit.
+
+        
         Returns
         -------
         String path to amino acid fasta file of reads that hit
@@ -806,7 +816,9 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                                     diamond_database,
                                                     output_search_file,
                                                     hit_reads_fasta,
-                                                    hit_reads_orfs_fasta)
+                                                    hit_reads_orfs_fasta,
+                                                    bit_score,
+                                                    minimum_percent_aligned)
 
     def search_and_extract_orfs_matching_protein_database(self,
                                                       unpack,
@@ -819,7 +831,9 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                                       diamond_database,
                                                       output_search_file,
                                                       hit_reads_fasta,
-                                                      hit_reads_orfs_fasta):
+                                                      hit_reads_orfs_fasta,
+                                                      bit_score,
+                                                      minimum_percent_aligned):
         '''As per aa_db_search() except slightly lower level. Search an
         input read set (unpack) and then extract the proteins that hit together
         with their containing nucleotide sequences.
@@ -858,7 +872,9 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                      restrict_read_length=restrict_read_length)
         extracting_orfm = OrfM(min_orf_length=min_orf_length,
                       restrict_read_length=restrict_read_length)
-
+        filter_putative_seqs = FilterPutativeSeqs(minimum_percent_aligned, bit_score)
+        
+        
         if search_method == 'hmmsearch':
             # run hmmsearch
             search_result = self.hmmsearch(
@@ -886,9 +902,12 @@ deal with these, so please remove/rename sequences with duplicate keys.")
 
         else:  # if the search_method isn't recognised
             raise Exception("Programming error: unexpected search_method %s" % search_method)
-
-        orfm_regex = OrfM.regular_expression()
         
+        if(bit_score!=None or
+           minimum_percent_aligned!=None):
+            filter_putative_seqs.filter(search_result)
+        
+        orfm_regex = OrfM.regular_expression()
         if maximum_range:
             hits = self._get_read_names(
                                         search_result,  # define the span of hits
@@ -896,7 +915,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                         )
         else:   
             hits = self._get_sequence_directions(search_result)
-    
+
         orf_hit_readnames = hits.keys() # Orf read hit names
         if unpack.sequence_type() == 'nucleotide':
             hits={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) else key): item for key, item in hits.iteritems()}
@@ -957,7 +976,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
 
     @T.timeit
     def nt_db_search(self, files, base, unpack, euk_check,
-                     search_method, maximum_range, threads, evalue):
+                     search_method, maximum_range, threads, evalue, bit_score,
+                     minimum_percent_aligned):
         '''
         Nucleotide database search pipeline - pipeline where reads are searched
         as nucleotides, and hits are identified using nhmmer searches
@@ -984,6 +1004,12 @@ deal with these, so please remove/rename sequences with duplicate keys.")
             as 1.5 X the average length of all full length genes used in the
             search database. This is defined in the CONTENTS.json file within a
             gpkg.
+        bit_score: float
+            Minimum bit score to be awarded to a sequence to be considered a 
+            hit.
+        minimum_percent_aligned: float
+            Minimum percent of the HMM aligned that must align to the query 
+            sequence to be considered a hit.
         threads : str
             Number of threads for hmmer to use
         evalue : str
@@ -1005,7 +1031,9 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                                       threads,
                                                       evalue,
                                                       hmmsearch_output_table,
-                                                      hit_reads_fasta)
+                                                      hit_reads_fasta,
+                                                      bit_score,
+                                                      minimum_percent_aligned)
 
     def search_and_extract_nucleotides_matching_nucleotide_database(self,
                                                       unpack,
@@ -1015,7 +1043,9 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                                       threads,
                                                       evalue,
                                                       hmmsearch_output_table,
-                                                      hit_reads_fasta):
+                                                      hit_reads_fasta,
+                                                      bit_score,
+                                                      minimum_percent_aligned):
         '''As per nt_db_search() except slightly lower level. Search an
         input read set (unpack) and then extract the sequences that hit.
 
@@ -1040,6 +1070,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         result: DBSearchResult object containing file locations and hit 
         information
         '''
+        filter_putative_seqs = FilterPutativeSeqs(minimum_percent_aligned, bit_score)
 
         if search_method == "hmmsearch":
             # First search the reads using the HMM
@@ -1053,7 +1084,10 @@ deal with these, so please remove/rename sequences with duplicate keys.")
 
         elif search_method == 'diamond':
             raise Exception("Diamond searches not supported for nucelotide databases yet")
-
+        
+        if(bit_score!=None or
+           minimum_percent_aligned!=None):
+            filter_putative_seqs.filter(search_result)
         
         if maximum_range:  
             

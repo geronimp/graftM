@@ -8,6 +8,7 @@ class Timer:
         def timed(*args, **kw):
             ts = time.time()
             result = method(*args, **kw)
+
             te = time.time()
             return round(te-ts, 2), result
         return timed

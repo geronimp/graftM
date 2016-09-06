@@ -351,7 +351,9 @@ class Run:
                                                               self.args.evalue,
                                                               self.args.min_orf_length,
                                                               self.args.restrict_read_length,
-                                                              diamond_db
+                                                              diamond_db,
+                                                              self.args.bit_score,
+                                                              self.args.minimum_percent_aligned
                                                               )
 
 
@@ -366,7 +368,9 @@ class Run:
                                                               self.args.search_method,
                                                               maximum_range,
                                                               self.args.threads,
-                                                              self.args.evalue
+                                                              self.args.evalue,
+                                                              self.args.bit_score,
+                                                              self.args.minimum_percent_aligned
                                                               )
 
                 if not result.hit_fasta():

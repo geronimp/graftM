@@ -5,15 +5,18 @@ from graftm.sequence_search_results import SequenceSearchResult
 from graftm.sequence_extractor import SequenceExtractor
 
 class DecoyFilter:
-    def __init__(self, decoy_diamond_database, proper_hits_diamond_database):
+    def __init__(self, proper_hits_diamond_database, decoy_diamond_database=None):
         '''Create a new DecoyFilter.
 
         Parameters
         ----------
-        decoy_diamond_database: str
-            path to a diamond formatted 'dmnd' file containing decoy sequences.
         proper_hits_diamond_database: str
             path to a diamond formatted 'dmnd' file containing real sequences.
+        decoy_diamond_database: str or None.
+            path to a diamond formatted 'dmnd' file containing decoy
+            sequences. If None, no searching against a decoy database is carried
+            out.
+
         '''
         self._decoy_diamond_database = decoy_diamond_database
         self._proper_hits_diamond_database = proper_hits_diamond_database
@@ -52,23 +55,26 @@ class DecoyFilter:
         num_before_decoy_removal = len(seq_ids_and_bitscores)
         logging.info("Found %i sequences which hit the non-decoy sequences" %\
                      num_before_decoy_removal)
-        
-        # Run the query sequences against the decoy database, removing from the
-        # list any sequences which hit better the decoy DB.
-        logging.debug("Running diamond against decoy sequences")
-        pd = Diamond(self._decoy_diamond_database).run(
-            candidate_sequences_fasta_path,
-            UnpackRawReads.PROTEIN_SEQUENCE_TYPE)
-        for res in pd.each([SequenceSearchResult.QUERY_ID_FIELD,
-                            SequenceSearchResult.ALIGNMENT_BIT_SCORE]):
-            seq = res[0]
-            score = res[1]
-            if seq in seq_ids_and_bitscores and seq_ids_and_bitscores[seq] < score:
-                del seq_ids_and_bitscores[seq]
-        logging.info("Removed %i"
-                     " sequences which hit the decoy sequences better"
-                     " than the non-decoy sequences" %\
-                     (num_before_decoy_removal-len(seq_ids_and_bitscores)))
+
+        if self._decoy_diamond_database is None:
+            logging.debug("Not running against the decoy database")
+        else:
+            # Run the query sequences against the decoy database, removing from the
+            # list any sequences which hit better the decoy DB.
+            logging.debug("Running diamond against decoy sequences")
+            pd = Diamond(self._decoy_diamond_database).run(
+                candidate_sequences_fasta_path,
+                UnpackRawReads.PROTEIN_SEQUENCE_TYPE)
+            for res in pd.each([SequenceSearchResult.QUERY_ID_FIELD,
+                                SequenceSearchResult.ALIGNMENT_BIT_SCORE]):
+                seq = res[0]
+                score = res[1]
+                if seq in seq_ids_and_bitscores and seq_ids_and_bitscores[seq] < score:
+                    del seq_ids_and_bitscores[seq]
+                    logging.info("Removed %i"
+                                 " sequences which hit the decoy sequences better"
+                                 " than the non-decoy sequences" %\
+                                 (num_before_decoy_removal-len(seq_ids_and_bitscores)))
         if len(seq_ids_and_bitscores) == 0:
             return False
         

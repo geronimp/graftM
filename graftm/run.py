@@ -38,6 +38,9 @@ class UnrecognisedSuffixError(Exception):
 
 class Run:
     _MIN_VERBOSITY_FOR_ART = 3 # with 2 then, only errors are printed
+
+    HMMSEARCH_AND_DIAMOND_SEARCH_METHOD = 'hmmsearch+diamond'
+    
     PPLACER_TAXONOMIC_ASSIGNMENT = 'pplacer'
     DIAMOND_TAXONOMIC_ASSIGNMENT = 'diamond'
     
@@ -299,10 +302,17 @@ class Run:
                     self.h.search_hmm.append(new_database)
                 else:
                     diamond_db = new_database
-            
+             
+        first_search_method = self.args.search_method
         if self.args.decoy_database:
-            decoy_filter = DecoyFilter(self.args.decoy_database,
-                                       diamond_db)
+            decoy_filter = DecoyFilter(diamond_db, self.args.decoy_database)
+            doing_decoy_search = True
+        elif self.args.search_method == Run.HMMSEARCH_AND_DIAMOND_SEARCH_METHOD:
+            decoy_filter = DecoyFilter(diamond_db)
+            doing_decoy_search = True
+            first_search_method = 'hmmsearch'
+        else:
+            doing_decoy_search = False
                     
         # For each pair (or single file passed to GraftM)
         logging.debug('Working with %i file(s)' % len(self.sequence_pair_list))
@@ -351,7 +361,7 @@ class Run:
                                                               self.gmf,
                                                               base,
                                                               unpack,
-                                                              self.args.search_method,
+                                                              first_search_method,
                                                               maximum_range,
                                                               self.args.threads,
                                                               self.args.evalue,
@@ -387,7 +397,7 @@ class Run:
                     continue
 
                 # Filter out decoys if specified
-                if self.args.decoy_database:
+                if doing_decoy_search:
                     with tempfile.NamedTemporaryFile(prefix="graftm_decoy", suffix='.fa') as f:
                         tmpname = f.name
                     any_remaining = decoy_filter.filter(result.hit_fasta(),

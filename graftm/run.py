@@ -385,7 +385,7 @@ class Run:
                                                               self.args.evalue
                                                               )
 
-                if not result.hit_fasta():
+                if not result.hit_fasta() or os.path.getsize(result.hit_fasta()) == 0:
                     logging.info('No reads found in %s' % base)
                     continue
 

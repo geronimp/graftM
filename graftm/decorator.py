@@ -1,7 +1,6 @@
 
 # System imports
 import logging
-from skbio import TreeNode
 from dendropy import Tree
 
 from graftm.reannotator import Reannotator

@@ -42,8 +42,6 @@ class Classify:
                             cumil_confidence[item]+=normalised_confidences[idx]
                         else:
                             cumil_confidence[item]=normalised_confidences[idx]
-                    else:
-                        continue
                 if resolve_placements:
                     best=False
                     items=sorted([(value, key) for key, value in cumil_confidence.items()], reverse=True)
@@ -71,7 +69,7 @@ class Classify:
                     if best_place[0]>threshold:
                         tax_that_meets_threshold['placement'].append(best_place[1])
                         tax_that_meets_threshold['confidence'].append(best_place[0])
-
+            
             if tax_that_meets_threshold['placement']:                
                 return tax_that_meets_threshold
             else:

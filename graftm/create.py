@@ -11,15 +11,15 @@ import json
 import signal
 import re
 import itertools
+from dendropy import Tree
 
 from Bio import SeqIO
 
 from graftm.hmmer import Hmmer
-from graftm.tree_cleaner import TreeCleaner
+from graftm.dendropy_tree_cleaner import DendropyTreeCleaner
 from graftm.taxonomy_extractor import TaxonomyExtractor
 from graftm.getaxnseq import Getaxnseq
 from graftm.deduplicator import Deduplicator
-from skbio.tree import TreeNode
 from graftm.sequence_io import SequenceIO
 from graftm.graftm_package import GraftMPackageVersion3, GraftMPackage
 from graftm.decorator import Decorator
@@ -570,7 +570,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         if rerooted_annotated_tree:
             logging.info("Building seqinfo and taxonomy file from input annotated tree")
             taxonomy_definition = TaxonomyExtractor().taxonomy_from_annotated_tree(\
-                    TreeNode.read(rerooted_annotated_tree))
+                    Tree.get(path=rerooted_annotated_tree, schema='newick'))
         elif taxonomy:
             logging.info("Building seqinfo and taxonomy file from input taxonomy")
             taxonomy_definition = GreenGenesTaxonomy.read_file(taxonomy).taxonomy
@@ -712,8 +712,8 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
 
 
             # Remove any sequences from the tree that are duplicates
-            cleaner = TreeCleaner()
-            tree = TreeNode.read(tre_file)
+            cleaner = DendropyTreeCleaner()
+            tree = Tree.get(path=tre_file, schema='newick')
             for group in deduplicated_arrays:
                 [removed_sequence_names.append(s.name) for s in group[1:]]
             cleaner.remove_sequences(tree, removed_sequence_names)
@@ -730,14 +730,14 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
                 logging.info("Generating log file")
                 log_file_tempfile = tempfile.NamedTemporaryFile(suffix='.tree_log', prefix='graftm')
                 log_file = log_file_tempfile.name
-                # Make the newick file simple (ie. un-arb it) for fasttree
-                cleaner.clean_newick_file_for_fasttree_input(tree)
                 tre_file_tempfile = tempfile.NamedTemporaryFile(suffix='.tree', prefix='graftm')
                 tre_file = tre_file_tempfile.name
                 with tempfile.NamedTemporaryFile(suffix='.tree', prefix='graftm') as f:
-                    tree.write(f.name)
+                    # Make the newick file simple (ie. un-arb it) for fasttree.
+                    cleaner.write_fasttree_newick(tree, f)
+                    f.flush()
                     self._generate_tree_log_file(f.name, deduplicated_alignment_file,
-                                            tre_file, log_file, ptype, self.fasttree)
+                                                 tre_file, log_file, ptype, self.fasttree)
 
         # Create tax and seqinfo .csv files
         taxonomy_to_keep=[
@@ -759,8 +759,8 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
             self.the_trash += [seq, tax]
             if rerooted_annotated_tree:
                 logging.info("Building seqinfo and taxonomy file from input annotated tree")
-                taxonomy_definition = TaxonomyExtractor().taxonomy_from_annotated_tree(\
-                        TreeNode.read(rerooted_annotated_tree))
+                taxonomy_definition = TaxonomyExtractor().taxonomy_from_annotated_tree(
+                    Tree.get(path=rerooted_annotated_tree, schema='newick'))
             elif taxonomy:
                 logging.info("Building seqinfo and taxonomy file from input taxonomy")
                 taxonomy_definition = GreenGenesTaxonomy.read_file(taxonomy).taxonomy

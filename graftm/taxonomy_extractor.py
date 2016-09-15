@@ -1,8 +1,8 @@
 import re
 
 class TaxonomyExtractor:
-    def taxonomy_from_annotated_tree(self, tree_node):
-        '''Given an annotated tree, return the taxonomy of each tip
+    def taxonomy_from_annotated_tree(self, dendropy_tree):
+        '''Given an annotated dendropy tree, return the taxonomy of each tip
         
         Parameters
         ---------
@@ -12,15 +12,15 @@ class TaxonomyExtractor:
         -------
         dictionary of tip name to array of taxonomic affiliations'''
         tip_to_taxonomy = {}
-        for tip in tree_node.tips():
+        for tip in dendropy_tree.leaf_node_iter():
             tax = []
-            n = tip.parent
+            n = tip.parent_node
             while n:
-                node_taxonomy = self.taxonomy_from_node_name(n.name)
-                if node_taxonomy and n.parent:
+                node_taxonomy = self.taxonomy_from_node_name(n.label)
+                if node_taxonomy and n.parent_node:
                     tax = [node_taxonomy]+tax
-                n = n.parent
-            tip_name = tip.name.replace(' ','_')
+                n = n.parent_node
+            tip_name = tip.taxon.label.replace(' ','_')
             if tip_name in tip_to_taxonomy:
                 raise Exception("Found duplicate tip name '%s'" % tip_name)
             if len(tax)==0:
@@ -36,7 +36,7 @@ class TaxonomyExtractor:
         Parameters
         ----------
         node_name: str
-            a TreeNode.name
+            a node label.
             
         Returns
         -------

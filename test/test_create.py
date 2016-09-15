@@ -30,7 +30,7 @@ import logging
 import tempfile
 from Bio import SeqIO
 from Bio.Seq import Seq
-from skbio.tree import TreeNode
+from dendropy import Tree
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 from graftm.create import Create

@@ -180,6 +180,10 @@ Using an assembly to create a "expand_search" database:
     searching_options.add_argument('--search_method', choices=('hmmsearch','diamond'), help='Search method, either hmmsearch or DIAMOND', default='hmmsearch')
     searching_options.add_argument('--maximum_range', type=int, help='Maximum range to use when searching for potentially linked reads (when searching contigs)', default=None)
     searching_options.add_argument('--expand_search_contigs', nargs='+', help='Provide an alignment of the sample being searched. This alignment will initially be searched for full length genes, from which a sample specific HMM model will be created and used in the search step of graftM.')
+    searching_options.add_argument('--search_hmm_files', nargs='+', help='This flag is to specify the HMM(s) used to search the data with.', default=argparse.SUPPRESS)
+    searching_options.add_argument('--search_hmm_list_file', metavar='If you have many hmms you would wish to search with, put the path to each HMM file in a file, one per line and provide it to this flag.', default=argparse.SUPPRESS)
+    searching_options.add_argument('--search_diamond_file', nargs=1, help='Specify a DIAMOND database with which to search/classify the reads.', default=None)
+    searching_options.add_argument('--aln_hmm_file', help='Reads will be aligned to this HMM after identification. This option can only be used if no placement is required.', default=argparse.SUPPRESS)
     
     placement_options = graft_parser.add_argument_group('taxonomic assignment options')
     placement_options.add_argument('--assignment_method', help='Taxonomic assignment method, either pplacer (phylogenetic) or DIAMOND (pairwise). default = pplacer', default=Run.PPLACER_TAXONOMIC_ASSIGNMENT, choices=(Run.PPLACER_TAXONOMIC_ASSIGNMENT,Run.DIAMOND_TAXONOMIC_ASSIGNMENT))
@@ -190,15 +194,11 @@ Using an assembly to create a "expand_search" database:
     pplacer_options.add_argument('--no_merge_reads', action="store_true", help='When this flag is specified, The alignment of the forward and reverse reads will be merged before placement. This provides more information for phylogenetic placement, and the classifications provided by pplacer generally improve, so try to use this flag when you can.', default=False)
 
     nucleotide_options = graft_parser.add_argument_group('nucleotide search-specific options')
-    nucleotide_options.add_argument('--search_hmm_files', nargs='+', help='This flag is to specify the HMM(s) used to search the data with - note you cannot change the HMM that is used to align the sequences. This is because alignments must match the alignment length of the sequences used in the placement tree, otherwise the placement step will fail. If providing more than one HMM, separate with a space.', default=argparse.SUPPRESS)
-    nucleotide_options.add_argument('--search_hmm_list_file', metavar='If you have many hmms you would wish to search with, put the path to each HMM file in a file, one per line and provide it to this flag.', default=argparse.SUPPRESS)
-    nucleotide_options.add_argument('--search_diamond_file', nargs=1, help='Specify a DIAMOND database with which to search/classify the reads.', default=None)
-    nucleotide_options.add_argument('--aln_hmm_file', help='Reads will be aligned to this HMM after identification. This option can only be used if no placement is required.', default=argparse.SUPPRESS)
     nucleotide_options.add_argument('--euk_hmm_file', help='Use this flag to specify the HMM that is used in the Eukaryotic contamination screen', default=argparse.SUPPRESS)
     
     protein_options = graft_parser.add_argument_group('protein search-specific options')
     min_orf_length_default = 96
-    protein_options.add_argument('--min_orf_length', metavar='length', help='Minimum number of nucleotides in an open reading frame' % min_orf_length_default, default=min_orf_length_default, type=int)
+    protein_options.add_argument('--min_orf_length', metavar='length', help='Minimum number of nucleotides in an open reading frame', default=min_orf_length_default, type=int)
     protein_options.add_argument('--restrict_read_length', metavar='length', help='Only use this many base pairs at the start of each sequence searched', type=int)
     
     logging_options = graft_parser.add_argument_group('logging options')
@@ -323,7 +323,7 @@ With an alignment of sequences, and a taxonomy file specifying the taxonomy of e
     expand_search_parser.add_argument('--search_hmm_files', nargs='+', help='find sequences with this/these HMM(s)')
     expand_search_parser.add_argument('--maximum_range', type=int, help='maximum range to use when searching for potentially linked reads when searching contigs', default=1000)
     expand_search_parser.add_argument('--evalue', help='evalue cutoff for the hmmsearch', default= '1e-5')
-    expand_search_parser.add_argument('--min_orf_length', help='Minimum number of nucleotides in an open reading frame' % min_orf_length_default, default=min_orf_length_default, type=int)
+    expand_search_parser.add_argument('--min_orf_length', help='Minimum number of nucleotides in an open reading frame', default=min_orf_length_default, type=int)
     expand_search_parser.add_argument('--threads', type=int, metavar='threads', help='Number of threads to use', default=5)
     
     logging_options = expand_search_parser.add_argument_group('logging options')

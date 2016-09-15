@@ -202,15 +202,18 @@ class Run:
 
         if gpkg:
             maximum_range = gpkg.maximum_range()
-            diamond_db    = gpkg.diamond_database_path()
-            if self.args.search_method == 'diamond':                    
-                if self.args.search_diamond_file:
-                    diamond_db=self.args.search_diamond_file[0]
-                if not diamond_db:
-                    logging.error("%s search method selected, but no diamond database specified. \
-                    Please either provide a gpkg to the --graftm_package flag, or a diamond \
-                    database to the --search_diamond_file flag." % self.args.search_method)
-                    raise Exception()
+            
+            if self.args.search_diamond_file:
+                self.args.search_method = 'diamond'
+                diamond_db = self.args.search_diamond_file[0]
+            else:
+                diamond_db = gpkg.diamond_database_path()            
+                if self.args.search_method == 'diamond':                    
+                    if not diamond_db:
+                        logging.error("%s search method selected, but no diamond database specified. \
+                        Please either provide a gpkg to the --graftm_package flag, or a diamond \
+                        database to the --search_diamond_file flag." % self.args.search_method)
+                        raise Exception()
         else:
             # Get the maximum range, if none exists, make one from the HMM profile
             if self.args.maximum_range:

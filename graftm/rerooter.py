@@ -61,9 +61,9 @@ class Rerooter:
         
         Parameters
         ----------
-        tree: TreeNode object
-            TreeNode object (tree opened with skbio)
-            
+        tree: dendropy.Tree
+            Dendropy tree object            
+        
         Raises
         ------
         BinaryTreeError : If the input tree is already a binary tree

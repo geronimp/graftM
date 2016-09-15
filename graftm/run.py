@@ -2,6 +2,8 @@
 
 import os
 import logging
+import tempfile
+import shutil
 
 from graftm.sequence_search_results import SequenceSearchResult
 from graftm.graftm_output_paths import GraftMFiles
@@ -23,6 +25,7 @@ from graftm.clusterer import Clusterer
 from graftm.decorator import Decorator
 from graftm.external_program_suite import ExternalProgramSuite
 from graftm.archive import Archive
+from graftm.decoy_filter import DecoyFilter
 from biom.util import biom_open
 
 T=Timer()
@@ -35,6 +38,9 @@ class UnrecognisedSuffixError(Exception):
 
 class Run:
     _MIN_VERBOSITY_FOR_ART = 3 # with 2 then, only errors are printed
+
+    HMMSEARCH_AND_DIAMOND_SEARCH_METHOD = 'hmmsearch+diamond'
+    
     PPLACER_TAXONOMIC_ASSIGNMENT = 'pplacer'
     DIAMOND_TAXONOMIC_ASSIGNMENT = 'diamond'
     
@@ -299,8 +305,18 @@ class Run:
                     self.h.search_hmm.append(new_database)
                 else:
                     diamond_db = new_database
-            
-
+             
+        first_search_method = self.args.search_method
+        if self.args.decoy_database:
+            decoy_filter = DecoyFilter(diamond_db, self.args.decoy_database)
+            doing_decoy_search = True
+        elif self.args.search_method == Run.HMMSEARCH_AND_DIAMOND_SEARCH_METHOD:
+            decoy_filter = DecoyFilter(diamond_db)
+            doing_decoy_search = True
+            first_search_method = 'hmmsearch'
+        else:
+            doing_decoy_search = False
+                    
         # For each pair (or single file passed to GraftM)
         logging.debug('Working with %i file(s)' % len(self.sequence_pair_list))
         for pair in self.sequence_pair_list:
@@ -348,7 +364,7 @@ class Run:
                                                               self.gmf,
                                                               base,
                                                               unpack,
-                                                              self.args.search_method,
+                                                              first_search_method,
                                                               maximum_range,
                                                               self.args.threads,
                                                               self.args.evalue,
@@ -372,14 +388,29 @@ class Run:
                                                               self.args.evalue
                                                               )
 
-                if not result.hit_fasta():
+                if not result.hit_fasta() or os.path.getsize(result.hit_fasta()) == 0:
                     logging.info('No reads found in %s' % base)
                     continue
-                elif self.args.search_only:
+
+                    
+
+                if self.args.search_only:
                     db_search_results.append(result)
                     base_list.append(base)
-
                     continue
+
+                # Filter out decoys if specified
+                if doing_decoy_search:
+                    with tempfile.NamedTemporaryFile(prefix="graftm_decoy", suffix='.fa') as f:
+                        tmpname = f.name
+                    any_remaining = decoy_filter.filter(result.hit_fasta(),
+                                                        tmpname)
+                    if any_remaining:
+                        shutil.move(tmpname, result.hit_fasta())
+                    else:
+                        # No hits remain after decoy filtering.
+                        os.remove(result.hit_fasta())
+                        continue
                 
                 if self.args.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
                     logging.info('aligning reads to reference package database')
@@ -402,9 +433,8 @@ class Run:
                 base_list.append(base)
                 search_results.append(result.search_result)
                 hit_read_count_list.append(result.hit_count)
-        
-        # Write summary table
-        
+
+        # Write summary table        
         srchtw = SearchTableWriter()
         srchtw.build_search_otu_table([x.search_objects for x in db_search_results],
                                       base_list,

@@ -142,7 +142,7 @@ class TreeDecorator:
                 float(node.label)
                 new_label = "%s:%s" % (node.label,
                                        name)
-            except:
+            except ValueError:
                 new_label = "%s; %s" % (node.label,
                                         name)
             node.label = new_label

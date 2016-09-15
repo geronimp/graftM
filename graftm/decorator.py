@@ -2,6 +2,8 @@
 # System imports
 import logging
 from skbio import TreeNode
+from dendropy import Tree
+
 from graftm.reannotator import Reannotator
 from graftm.tree_decorator import TreeDecorator
 
@@ -31,12 +33,13 @@ class Decorator:
         
         logging.debug("Importing old tree from file: %s" 
                         % tree_path)
-        self.tree = TreeNode.read(tree_path)
-        
+        self.tree = Tree.get(path=tree_path,
+                            schema='newick')
         if reference_tree_path:
             logging.debug("Importing reference tree from file: %s" 
                             % reference_tree_path)
-            self.reference_tree = TreeNode.read(open(reference_tree_path, "r"))   
+            self.reference_tree = Tree.get(path=reference_tree_path,
+                                           schema='newick')
         else:
             self.reference_tree = reference_tree_path
         if len(kwargs) > 0:

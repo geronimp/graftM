@@ -118,7 +118,7 @@ class Getaxnseq:
         
         first_pass_id_and_taxonomies = []
         tc=TaxonomyCleaner()
-
+        
         for taxon_id, tax_split in taxonomies.iteritems():
             # Replace spaces with underscores e.g. 'Candidatus my_genus'
             for idx, item in enumerate(tax_split):

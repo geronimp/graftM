@@ -295,8 +295,8 @@ r6\td__Archaea;p__Euryarchaeota;c__Methanomicrobia;o__Halobacteriales;f__Halobac
                     alignment=os.path.join(path_to_data,'create','61_otus.without_4459468.aln.fasta'),
                     prefix=tmp, force=True)
                 gpkg = GraftMPackage.acquire(tmp)
-                tree = TreeNode.read(gpkg.reference_package_tree_path())
-                self.assertEqual(21, len(list(tree.tips())))
+                tree=Tree.get(schema='newick', data=open(gpkg.reference_package_tree_path()).readline())
+                self.assertEqual(21, len(tree.leaf_nodes()))
 
 
 if __name__ == "__main__":

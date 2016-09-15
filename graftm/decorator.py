@@ -1,8 +1,8 @@
-
 # System imports
 import logging
-from skbio import TreeNode
-from graftm.reannotator import Reannotator
+from dendropy import Tree
+
+from graftm.rerooter import Rerooter
 from graftm.tree_decorator import TreeDecorator
 
 class Decorator:
@@ -31,22 +31,23 @@ class Decorator:
         
         logging.debug("Importing old tree from file: %s" 
                         % tree_path)
-        self.tree = TreeNode.read(tree_path)
-        
+        self.tree = Tree.get(path=tree_path,
+                            schema='newick')
         if reference_tree_path:
             logging.debug("Importing reference tree from file: %s" 
                             % reference_tree_path)
-            self.reference_tree = TreeNode.read(open(reference_tree_path, "r"))   
+            self.reference_tree = Tree.get(path=reference_tree_path,
+                                           schema='newick')
         else:
             self.reference_tree = reference_tree_path
         if len(kwargs) > 0:
             raise Exception("Unexpected arguments provided to Decorator class: %s" % kwargs)
         
     def _reroot(self):
-        '''Run the re-rooting algorithm in the Reannotator class.'''
-        reannotator = Reannotator()
-        self.tree = reannotator._reroot_tree_by_old_root(self.reference_tree, 
-                                                         self.tree)
+        '''Run the re-rooting algorithm in the Rerooter class.'''
+        rerooter = Rerooter()
+        self.tree = rerooter.reroot_by_tree(self.reference_tree, 
+                                                self.tree)
         
     def main(self, taxonomy, output_tree, output_tax, no_unique_tax,
              decorate, seqinfo):

@@ -6,8 +6,8 @@ class TaxonomyExtractor:
         
         Parameters
         ---------
-        tree_node: skbio.tree.TreeNode
-        
+        tree: dendropy.Tree
+            Decorated tree to extract taxonomy from       
         Returns
         -------
         dictionary of tip name to array of taxonomic affiliations'''

@@ -1,7 +1,8 @@
+
 import logging
 import extern
 import tempfile
-from skbio import TreeNode
+from dendropy import Tree
 
 from graftm.create import Create
 from graftm.graftm_package import GraftMPackageVersion3, GraftMPackage
@@ -138,8 +139,11 @@ class Update(Create):
             logging.info("Finding taxonomy for new sequences")
             reannotator = Reannotator()
             rerooter = Rerooter()
-            old_tree = TreeNode.read(old_gpkg.reference_package_tree_path())
-            new_tree = TreeNode.read(new_gpkg.unrooted_gpkg_tree)
+            
+            old_tree = Tree.get(path=old_gpkg.reference_package_tree_path(),
+                                schema='newick')
+            new_tree = Tree.get(path=new_gpkg.unrooted_gpkg_tree,
+                                schema='newick')
             old_tree = rerooter.reroot(old_tree)
             new_tree = rerooter.reroot(new_tree)
             # TODO: Shouldn't call an underscore method, eventually use
@@ -174,6 +178,7 @@ class Update(Create):
         new_gpkg.tt_seqinfo = "%s_seqinfo.csv" % new_gpkg.name
         new_gpkg.tt_taxonomy = "%s_taxonomy.csv" % new_gpkg.name
         gtns = Getaxnseq()
+
         gtns.write_taxonomy_and_seqinfo_files(
             total_taxonomy_hash,
             new_gpkg.tt_taxonomy,

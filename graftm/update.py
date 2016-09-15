@@ -9,7 +9,6 @@ from graftm.graftm_package import GraftMPackageVersion3, GraftMPackage
 from graftm.greengenes_taxonomy import GreenGenesTaxonomy
 from graftm.decorator import Decorator
 from graftm.getaxnseq import Getaxnseq
-from graftm.reannotator import Reannotator
 from graftm.rerooter import Rerooter
 from graftm.tree_decorator import TreeDecorator
 
@@ -137,7 +136,6 @@ class Update(Create):
             new_gpkg.gpkg_tree = new_gpkg.unrooted_gpkg_tree
         else:
             logging.info("Finding taxonomy for new sequences")
-            reannotator = Reannotator()
             rerooter = Rerooter()
             
             old_tree = Tree.get(path=old_gpkg.reference_package_tree_path(),
@@ -148,8 +146,7 @@ class Update(Create):
             new_tree = rerooter.reroot(new_tree)
             # TODO: Shouldn't call an underscore method, eventually use
             # Rerooter instead.
-            rerooted_tree = reannotator._reroot_tree_by_old_root(
-                old_tree, new_tree)
+            rerooted_tree = rerooter.reroot_by_tree(old_tree, new_tree)
             new_gpkg.gpkg_tree = "%s_gpkg.tree" % new_gpkg.name
             td = TreeDecorator(
                 rerooted_tree,

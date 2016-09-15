@@ -29,16 +29,10 @@ import extern
 import logging
 import tempfile
 
-from Bio import SeqIO
-from Bio.Seq import Seq
-
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 
-from graftm.create import Create
-from graftm.graftm_package import GraftMPackageVersion2, GraftMPackage
-from graftm.sequence_io import Sequence
+from graftm.graftm_package import GraftMPackage
 from graftm.external_program_suite import ExternalProgramSuite
-from graftm.sequence_io import SequenceIO
 from graftm.update import Update
 
 
@@ -86,7 +80,6 @@ SAYTGIVAAAHSARGDAWALSPHVKVAFADRSLPFDFANITKEFGRGAMREFVPAGERDLIIP
                                      taxhash['KYC55281.1'])
                     self.assertEqual(prevhash['638165755'],
                                      taxhash['638165755'])
-                    seqio = SequenceIO()
                     self.assertEqual(
                         len(seqio.read_fasta_file(prev.unaligned_sequence_database_path()))+1,
                         len(seqio.read_fasta_file(up.unaligned_sequence_database_path())))
@@ -114,7 +107,6 @@ SAYTGIVAAAHSARGDAWALSPHVKVAFADRSLPFDFANITKEFGRGAMREFVPAGERDLIIP
                 
                 self.assertEqual(prevhash['638165755'],
                                  taxhash['638165755'])
-                seqio = SequenceIO()
                 self.assertEqual(
                     len(seqio.read_fasta_file(prev.unaligned_sequence_database_path()))+1,
                     len(seqio.read_fasta_file(up.unaligned_sequence_database_path())))

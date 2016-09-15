@@ -25,7 +25,6 @@
 import itertools
 import logging
 import heapq
-from skbio import TreeNode
 from dendropy import Tree
 
 ################################ - Statics - ##################################
@@ -61,8 +60,8 @@ class Rerooter:
         
         Parameters
         ----------
-        tree: TreeNode object
-            TreeNode object (tree opened with skbio)
+        tree: dendropy.Tree
+            Tree to be rerooted
             
         Raises
         ------
@@ -70,41 +69,15 @@ class Rerooter:
 
         '''
 
-        children = tree.children
-        no_found_root = True
+        children = {x.length:x for x in tree.seed_node.child_edges()}
+        tree.is_rooted=True
         
         if len(children) > 2:
-            
-            node_combinations = list(itertools\
-                                   .combinations([x for x in children], 
-                                                 2))
-
-            length_combination = list(itertools\
-                                   .combinations([x.length for x in children], 
-                                                 2))
-            
-            sums = [x[0] + x[1] for x in length_combination]
-            
-            while no_found_root:
-                
-                nodes = [node_combinations[sums.index(x)]
-                         for x in heapq.nlargest(2, sums)]
-                most_distant_node = [node for node in nodes[0] 
-                                     if node in nodes[1]]
-                if len(most_distant_node) > 0:
-                    most_distant_node = most_distant_node[0]
-                    no_found_root = False
-                
-            other_nodes = [node for node in children 
-                           if node != most_distant_node]
-            
-            dec_len = most_distant_node.length/2
-            
-            most_distant_node.length = dec_len
-            link_root = TreeNode(children=other_nodes, length = dec_len)
-            tree = TreeNode(children=[link_root, most_distant_node], 
-                            name = "root",
-                            length=0)
+            longest_edge_length = max(children.keys())
+            longest_edge = children[longest_edge_length]
+            tree.reroot_at_edge(longest_edge, 
+                                length1=(longest_edge_length/2), 
+                                length2=(longest_edge_length/2))
             return tree
         
         elif len(children) == 2:

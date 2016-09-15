@@ -40,8 +40,9 @@ class TreeDecorator:
         '''
         Parameters
         ----------
-        tree        : object
-            skbio.tree object
+        tree        : dendropy.Tree
+
+            dendropy.Tree object
         taxonomy    : string
             Path to a file containing taxonomy information about the tree, 
             either in Greengenes or taxtastic format (seqinfo file must also
@@ -91,16 +92,17 @@ class TreeDecorator:
         logging.info("Writing decorated taxonomy to file: %s" % (output))
         
         with open(output, 'w') as out:
-            for tip in self.tree.tips():
-                tax_name = tip.name.replace(" ", "_")
+            
+            for tip in self.tree.leaf_nodes():
+                tax_name = tip.taxon.label.replace(" ", "_")
                 
-                if tip.name in self.taxonomy:
+                if tip.taxon.label in self.taxonomy:
                     tax_string = '; '.join(self.taxonomy[tax_name])
                 else:
                     ancestor_list = []
-                    for ancestor in tip.ancestors():
-                        if ancestor.name:
-                            split_node_name = ancestor.name.split(':')
+                    for ancestor in tip.ancestor_iter():
+                        if ancestor.label:
+                            split_node_name = ancestor.label.split(':')
                             if len(split_node_name) == 2:
                                 ancestor_list+=list(reversed(split_node_name[1].split('; ')))
                             elif len(split_node_name) == 1:
@@ -109,7 +111,7 @@ class TreeDecorator:
                                 except ValueError:
                                     ancestor_list+=list(reversed(split_node_name[0].split('; ')))
                             else:
-                                raise Exception("Malformed node name: %s" % ancestor.name)
+                                raise Exception("Malformed node name: %s" % ancestor.label)
                     tax_list = list(reversed(ancestor_list))
                     
                     if len(tax_list) < 1:
@@ -130,21 +132,23 @@ class TreeDecorator:
         
         Parameters 
         ----------
-        node    : object
-            skbio.tree object
+        node: dendropy.Node
+            dendropy.Node object
         name    : string
             Annotation to rename the node with.
         '''
-        if node.name:
+        if node.label:
             try: 
-                float(node.name)
-                node.name = "%s:%s" % (node.name,
+                float(node.label)
+                new_label = "%s:%s" % (node.label,
                                        name)
             except:
-                node.name = "%s; %s" % (node.name,
+                new_label = "%s; %s" % (node.label,
                                         name)
+            node.label = new_label
         else:
-            node.name = name
+            node.label = name
+
 
     def decorate(self, output_tree, output_tax, unique_names):
         '''
@@ -167,46 +171,46 @@ class TreeDecorator:
             (i.e. it is paraphyletic in the tree). If false, multiple clades 
             may be assigned with the same name.
         '''
-    
+        logging.info("Decorating tree")
         encountered_taxonomies = {}
         tc = TaxonomyCleaner()
-        
-        for node in self.tree.preorder():
-            if(node.is_tip()!=True):
-                max_tax_string_length = max([len(self.taxonomy[tip.name]) 
-                                             for tip in node.tips() 
-                                             if tip.name in self.taxonomy])
-                logging.debug("Number of ranks found for node: %i" % max_tax_string_length)
-                tax_string_array = []
-
-                
-                for rank in range(max_tax_string_length):
-                    rank_tax = set([self.taxonomy[tip.name\
-                                                  .replace(' ','_')][rank] 
-                                    for tip in node.tips()
-                                    if tip.name in self.taxonomy])
-                    
-                    consistent_taxonomy = len(rank_tax) == 1 
-                    
-                    if consistent_taxonomy:
-                        tax=rank_tax.pop()
-                        logging.debug("Consistent taxonomy found for node: %s" \
-                                                                    % tax)
-                        if tax not in tc.meaningless_taxonomic_names:
-                            if unique_names:
-                                if tax in encountered_taxonomies:
-                                    encountered_taxonomies[tax]+=0
-                                    tax = "%s_%i" \
-                                            % (tax, encountered_taxonomies[tax])
-                                else:
-                                    encountered_taxonomies[tax]=0
-                            tax_string_array.append(tax)
-                    else:
-                        continue
+        for node in self.tree.preorder_internal_node_iter(exclude_seed_node=True):
             
+            max_tax_string_length = max([len(self.taxonomy[tip.taxon.label.replace(' ', '_')]) 
+                                         for tip in node.leaf_nodes() 
+                                         if tip.taxon.label.replace(' ', '_') in self.taxonomy])
+            logging.debug("Number of ranks found for node: %i" % max_tax_string_length)
+            tax_string_array = []
+            for rank in range(max_tax_string_length):
+                
+                rank_tax = []
+                for tip in node.leaf_nodes():
+                    if tip.taxon.label in self.taxonomy:
+                        tip_tax = self.taxonomy[tip.taxon.label]
+                        if len(tip_tax) > rank:
+                            tip_rank = tip_tax[rank]
+                            if tip_rank not in rank_tax:
+                                rank_tax.append(tip_rank)         
+                                
+                consistent_taxonomy = len(rank_tax) == 1 
+                
+                if consistent_taxonomy:
+                    tax=rank_tax.pop()
+                    logging.debug("Consistent taxonomy found for node: %s" \
+                                                                % tax)
+                    if tax not in tc.meaningless_taxonomic_names:
+                        if unique_names:
+                            if tax in encountered_taxonomies:
+                                encountered_taxonomies[tax]+=0
+                                tax = "%s_%i" \
+                                        % (tax, encountered_taxonomies[tax])
+                            else:
+                                encountered_taxonomies[tax]=0
+                        tax_string_array.append(tax)
+
             if any(tax_string_array):
                 index = 0
-                for anc in node.ancestors():
+                for anc in node.ancestor_iter():
                     try:
                         index+=anc.tax
                     except:
@@ -215,9 +219,11 @@ class TreeDecorator:
                 if any(tax_string_array):
                     self._rename(node, '; '.join(tax_string_array))
                 node.tax = len(tax_string_array)
-        
-        self.tree.write(output_tree, "newick")
-        self._write_consensus_strings(output_tax)
+        logging.info("Writing decorated tree to file: %s" % output_tree)
+        self.tree.write(path=output_tree, schema="newick")
+
+        if output_tax:  
+            self._write_consensus_strings(output_tax)
 
 ################################################################################
 ################################################################################

@@ -26,7 +26,6 @@ import unittest
 import os.path
 import sys
 
-from skbio.tree import TreeNode
 from dendropy import Tree
 from io import StringIO
 
@@ -37,33 +36,38 @@ from graftm.reannotator import Reannotator
 class Tests(unittest.TestCase):
     
     def test_reroot_trifurcated_tree_at_longest_child(self):
-        test_tree_1 =TreeNode.read(StringIO(u'(A:0.1,B:0.2,(C:0.3,D:0.4):0.5);'))
-        test_tree_2 =TreeNode.read(StringIO(u'(A:0.5,B:0.2,(C:0.3,D:0.4):0.1);'))
-        test_tree_3 =TreeNode.read(StringIO(u'(A:0.2,B:0.5,(C:0.3,D:0.4):0.1);'))
+        test_tree_1 =Tree.get(schema='newick', data=u'(A:0.1,B:0.2,(C:0.3,D:0.4):0.5);')
+        test_tree_2 =Tree.get(schema='newick', data=u'(A:0.5,B:0.2,(C:0.3,D:0.4):0.1);')
+        test_tree_3 =Tree.get(schema='newick', data=u'(A:0.2,B:0.5,(C:0.3,D:0.4):0.1);')
         
-        expected_test_tree_1 ="((A:0.1,B:0.2):0.25,(C:0.3,D:0.4):0.25)root:0;"
-        expected_test_tree_2 ="((B:0.2,(C:0.3,D:0.4):0.1):0.25,A:0.25)root:0;"
-        expected_test_tree_3 ="((A:0.2,(C:0.3,D:0.4):0.1):0.25,B:0.25)root:0;"
+        expected_test_tree_1 = str(Tree.get(schema='newick', data=u"((C:0.3,D:0.4):0.25,(A:0.1,B:0.2):0.25);"))
+        expected_test_tree_2 = str(Tree.get(schema='newick', data=u"(A:0.25,(B:0.2,(C:0.3,D:0.4):0.1):0.25);"))
+        expected_test_tree_3 = str(Tree.get(schema='newick', data=u"(B:0.25,(A:0.2,(C:0.3,D:0.4):0.1):0.25);"))
         
         rerooted_test_tree_1 = str(Rerooter().reroot(test_tree_1)).strip()
         rerooted_test_tree_2 = str(Rerooter().reroot(test_tree_2)).strip()
         rerooted_test_tree_3 = str(Rerooter().reroot(test_tree_3)).strip()
-        
+
         self.assertEqual(rerooted_test_tree_1, expected_test_tree_1)
         self.assertEqual(rerooted_test_tree_2, expected_test_tree_2)
         self.assertEqual(rerooted_test_tree_3, expected_test_tree_3)
 
     def assert_tree_equal_no_labels_deprecated(self, expected_newick, observed_tree):
-        expected = TreeNode.read(StringIO(expected_newick))
-        for n in expected.non_tips(): n.name = None
-        for n in observed_tree.non_tips(): n.name = None
+        expected = Tree.get(schema='newick', data=expected_newick)
+
+        for node in expected.nodes(): 
+            if not node.is_leaf():
+                node.label = None
+        for node in observed_tree.nodes(): 
+            if not node.is_leaf():
+                node.label = None
         self.assertEqual(str(expected), str(observed_tree))
         
     def test_hello_world_backwards_compatible(self):
         self.assert_tree_equal_no_labels_deprecated(u'((C,(D,E):2.0),(A,B):4.0);\n',
              Reannotator()._reroot_tree_by_old_root(\
-                TreeNode.read(StringIO(u'((A,B):1,(C,D):2);')),
-                TreeNode.read(StringIO(u'((A,B):1,(C,(D,E):2):3);'))))
+                Tree.get(schema='newick', data=u'((A,B):1,(C,D):2);'),
+                Tree.get(schema='newick', data=u'((A,B):1,(C,(D,E):2):3);')))
         
     def assert_tree_equal_no_labels(self, expected_newick, observed_tree):
         '''should include some tree ordering because ordering of children is not relevant, but eh for now'''
@@ -157,8 +161,8 @@ Thu Sep 10 15:56:18 2015: tree_67_otus saved to /srv/projects/graftm/testing_fil
         reann = Reannotator()
         
         new_tree = r.reroot_by_tree( 
-            reann.skbio_tree_to_dendropy(r.reroot(reann.dendropy_tree_to_skbio(old_tree))),
-            reann.skbio_tree_to_dendropy(r.reroot(reann.dendropy_tree_to_skbio(tree_to_reroot))))
+            r.reroot(old_tree),
+            r.reroot(tree_to_reroot))
         
         expected_lefts = old_tree.seed_node.child_nodes()[0].leaf_nodes()
         expected_rights = old_tree.seed_node.child_nodes()[1].leaf_nodes()

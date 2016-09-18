@@ -34,7 +34,7 @@ sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.
 from graftm.graftm_package import GraftMPackage
 from graftm.external_program_suite import ExternalProgramSuite
 from graftm.update import Update
-
+from graftm.sequence_io import SequenceIO
 
 prerequisites = ExternalProgramSuite(['taxit', 'FastTreeMP', 'seqmagick', 'hmmalign', 'mafft'])
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
@@ -80,6 +80,7 @@ SAYTGIVAAAHSARGDAWALSPHVKVAFADRSLPFDFANITKEFGRGAMREFVPAGERDLIIP
                                      taxhash['KYC55281.1'])
                     self.assertEqual(prevhash['638165755'],
                                      taxhash['638165755'])
+                    seqio = SequenceIO()
                     self.assertEqual(
                         len(seqio.read_fasta_file(prev.unaligned_sequence_database_path()))+1,
                         len(seqio.read_fasta_file(up.unaligned_sequence_database_path())))
@@ -107,6 +108,7 @@ SAYTGIVAAAHSARGDAWALSPHVKVAFADRSLPFDFANITKEFGRGAMREFVPAGERDLIIP
                 
                 self.assertEqual(prevhash['638165755'],
                                  taxhash['638165755'])
+                seqio = SequenceIO()
                 self.assertEqual(
                     len(seqio.read_fasta_file(prev.unaligned_sequence_database_path()))+1,
                     len(seqio.read_fasta_file(up.unaligned_sequence_database_path())))

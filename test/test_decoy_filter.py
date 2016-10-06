@@ -30,6 +30,7 @@ import extern
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 from graftm.decoy_filter import DecoyFilter
 from graftm.sequence_io import SequenceIO
+from graftm.diamond import Diamond
 
 class Tests(unittest.TestCase):
     eg1 = """>PROKKA_03952 Electron transfer flavoprotein-ubiquinone oxidoreductase
@@ -73,7 +74,9 @@ RCPAPLVPEAIERLLRQYLATRLRDENLRAWFSRHSNDELRAHLAGE
                     with tempfile.NamedTemporaryFile(prefix='graftm_decoy_test') as f4:
                         f3.write(self.eg1)
                         f3.flush()
-                        ret = DecoyFilter(f2.name+".dmnd", f1.name+".dmnd").filter(f1.name, f4.name)
+                        ret = DecoyFilter(
+                            Diamond(f2.name+".dmnd"),
+                            Diamond(f1.name+".dmnd")).filter(f1.name, f4.name)
                         self.assertEqual(True, ret)
                         seqs = SequenceIO().read_fasta_file(f4.name)
                         self.assertEqual(1, len(seqs))
@@ -92,7 +95,7 @@ RCPAPLVPEAIERLLRQYLATRLRDENLRAWFSRHSNDELRAHLAGE
                 with tempfile.NamedTemporaryFile(prefix='graftm_decoy_test') as f4:
                     f3.write(self.eg1)
                     f3.flush()
-                    ret = DecoyFilter(f1.name+".dmnd").filter(f1.name, f4.name)
+                    ret = DecoyFilter(Diamond(f1.name+".dmnd")).filter(f1.name, f4.name)
                     self.assertEqual(True, ret)
                     seqs = SequenceIO().read_fasta_file(f4.name)
                     self.assertEqual(1, len(seqs))

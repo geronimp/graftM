@@ -305,11 +305,12 @@ class Run:
              
         first_search_method = self.args.search_method
         if self.args.decoy_database:
-            decoy_filter = DecoyFilter(Diamond(diamond_db),
-                                       Diamond(self.args.decoy_database))
+            decoy_filter = DecoyFilter(Diamond(diamond_db, threads=self.args.threads),
+                                       Diamond(self.args.decoy_database,
+                                               threads=self.args.threads))
             doing_decoy_search = True
         elif self.args.search_method == Run.HMMSEARCH_AND_DIAMOND_SEARCH_METHOD:
-            decoy_filter = DecoyFilter(Diamond(diamond_db))
+            decoy_filter = DecoyFilter(Diamond(diamond_db, threads=self.args.threads))
             doing_decoy_search = True
             first_search_method = 'hmmsearch'
         else:

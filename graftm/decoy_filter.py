@@ -5,21 +5,20 @@ from graftm.sequence_search_results import SequenceSearchResult
 from graftm.sequence_extractor import SequenceExtractor
 
 class DecoyFilter:
-    def __init__(self, proper_hits_diamond_database, decoy_diamond_database=None):
+    def __init__(self, proper_hits_diamond, decoy_diamond=None):
         '''Create a new DecoyFilter.
 
         Parameters
         ----------
-        proper_hits_diamond_database: str
-            path to a diamond formatted 'dmnd' file containing real sequences.
-        decoy_diamond_database: str or None.
-            path to a diamond formatted 'dmnd' file containing decoy
-            sequences. If None, no searching against a decoy database is carried
-            out.
+        proper_hits_diamond: Diamond
+            Diamond object containing real sequences.
+        decoy_diamond: Diamond or None.
+            Diamond object with db containing decoy sequences. If None, no
+            searching against a decoy database is carried out.
 
         '''
-        self._decoy_diamond_database = decoy_diamond_database
-        self._proper_hits_diamond_database = proper_hits_diamond_database
+        self._decoy_diamond = decoy_diamond
+        self._proper_hits_diamond = proper_hits_diamond
         
     def filter(self, candidate_sequences_fasta_path, filtered_output_fasta_path):
         '''Filter the fasta file by only keeping sequences that hit a proper sequence
@@ -40,7 +39,7 @@ class DecoyFilter:
         # Run query sequences against the proper database
         seq_ids_and_bitscores = {}
         logging.debug("Running diamond against the non-decoy sequences")
-        pd = Diamond(self._proper_hits_diamond_database).run(
+        pd = self._proper_hits_diamond.run(
             candidate_sequences_fasta_path,
             UnpackRawReads.PROTEIN_SEQUENCE_TYPE)
         for res in pd.each([SequenceSearchResult.QUERY_ID_FIELD,
@@ -56,13 +55,13 @@ class DecoyFilter:
         logging.info("Found %i sequences which hit the non-decoy sequences" %\
                      num_before_decoy_removal)
 
-        if self._decoy_diamond_database is None:
+        if self._decoy_diamond is None:
             logging.debug("Not running against the decoy database")
         else:
             # Run the query sequences against the decoy database, removing from the
             # list any sequences which hit better the decoy DB.
             logging.debug("Running diamond against decoy sequences")
-            pd = Diamond(self._decoy_diamond_database).run(
+            pd = self._decoy_diamond.run(
                 candidate_sequences_fasta_path,
                 UnpackRawReads.PROTEIN_SEQUENCE_TYPE)
             for res in pd.each([SequenceSearchResult.QUERY_ID_FIELD,

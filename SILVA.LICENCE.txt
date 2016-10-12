@@ -1,0 +1,11 @@
+The SILVA database project employs a dual licensing model as follows:
+
+(1) SILVA is free for academic/non-commercial users. The SILVA webpage can be browsed and all downloads offered (data sets, subsets thereof, and analysis results) can be used and modified without any restrictions. Also redistribution of the downloads or derivatives thereof is permitted, but only as long as the SILVA Terms of Use/License Information are made transparent by linking/referring to www.arb-silva.de/silva-license-information.
+The group of academic/non-commercial users is represented by universities and non-commercial research institutes such as members of the German Helmholtz Association, Leibniz Association and Max-Planck Society, as well as US National Labs. In case of doubt, please contact Opens window for sending emaillicensing(at)arb-silva.de.
+
+(2) If you represent a NON-ACADEMIC/COMMERCIAL USER, you need to purchase a license as soon as you exploit any SILVA downloads (data sets, subsets thereof, and/or analysis results). Without a valid license, use of SILVA data downloads is only allowed for test purposes. All downloaded files must be deleted latest after 10 days and commercial exploitation of your results/outcome is never permitted.
+The SILVA Commercial Licenses are granted by the SILVA partner Ribocon GmbH, Bremen. Further information and contact data are available at Opens external link in new windowwww.ribocon.com/silva_licenses.
+For browsing/using the SILVA webpage without downloading any data, no restrictions for non-academic users apply (no commercial license is required).
+A non-academic environment is defined by a direct or indirect commercial interest in the data and includes all industrial research entities.
+
+Last updated: September 2016 (clarifications and extension of SILVA downloads test period for non-academic users)

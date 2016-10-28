@@ -157,4 +157,4 @@ Software by [Joel A. Boyd](http://ecogenomic.org/users/joel-boyd) (@geronimp) an
 Released under GPL3 - see LICENCE.txt for licencing details
 
 ### License
-GraftM is licensed under the GNU GPL v3. See LICENSE.txt for further details. GraftM makes use of 18S rRNA sequences sourced from the [SILVA database](https://www.arb-silva.de), which employs a dual licensing model. See SILVA.LICENCE.txt for further details.
+GraftM is licensed under the GNU GPL v3+. See LICENSE.txt for further details. GraftM makes use of 18S rRNA sequences sourced from the [SILVA database](https://www.arb-silva.de), which employs a dual licensing model. See SILVA.LICENCE.txt for further details.

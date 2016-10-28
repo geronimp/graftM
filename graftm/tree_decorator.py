@@ -228,7 +228,8 @@ class TreeDecorator:
                     self._rename(node, '; '.join(tax_string_array))
                 node.tax = len(tax_string_array)
         logging.info("Writing decorated tree to file: %s" % output_tree)
-        self.tree.write(path=output_tree, schema="newick")
+        if output_tree:
+            self.tree.write(path=output_tree, schema="newick")
         if output_tax:  
             self._write_consensus_strings(output_tax)
 

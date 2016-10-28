@@ -176,22 +176,30 @@ class TreeDecorator:
         tc = TaxonomyCleaner()
         for node in self.tree.preorder_internal_node_iter(exclude_seed_node=True):
             
-            max_tax_string_length = max([len(self.taxonomy[tip.taxon.label.replace(' ', '_')]) 
-                                         for tip in node.leaf_nodes() 
-                                         if tip.taxon.label.replace(' ', '_') in self.taxonomy])
+            max_tax_string_length = 0
+            for tip in node.leaf_nodes():
+                tip_label=tip.taxon.label.replace(' ', '_')
+                if tip_label in self.taxonomy:
+                    tax_string_length \
+                        = len(self.taxonomy[tip.taxon.label.replace(' ', '_')])
+                    if tax_string_length > max_tax_string_length:
+                        max_tax_string_length = tax_string_length
+            
             logging.debug("Number of ranks found for node: %i" % max_tax_string_length)
             tax_string_array = []
             for rank in range(max_tax_string_length):
                 
                 rank_tax = []
                 for tip in node.leaf_nodes():
-                    if tip.taxon.label in self.taxonomy:
-                        tip_tax = self.taxonomy[tip.taxon.label]
+                    
+                    tip_label = tip.taxon.label.replace(' ', '_')
+                    if tip_label in self.taxonomy:
+                        
+                        tip_tax = self.taxonomy[tip_label]
                         if len(tip_tax) > rank:
                             tip_rank = tip_tax[rank]
                             if tip_rank not in rank_tax:
                                 rank_tax.append(tip_rank)         
-                                
                 consistent_taxonomy = len(rank_tax) == 1 
                 
                 if consistent_taxonomy:
@@ -221,7 +229,6 @@ class TreeDecorator:
                 node.tax = len(tax_string_array)
         logging.info("Writing decorated tree to file: %s" % output_tree)
         self.tree.write(path=output_tree, schema="newick")
-
         if output_tax:  
             self._write_consensus_strings(output_tax)
 

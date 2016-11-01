@@ -1366,6 +1366,6 @@ TTTHHHAAAHAAATTTTMAKIERAQKLFLKALKTKFEGDVADTKTGFYNFGGLNQSPRKKEFMEASKKVELRRGISMYDP
                 self.assertFalse(os.path.exists(hits_file))
         # clean up
         os.remove(f.name+".dmnd")
-                    
+
 if __name__ == "__main__":
     unittest.main()

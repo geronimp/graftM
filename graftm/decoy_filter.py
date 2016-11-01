@@ -45,11 +45,11 @@ class DecoyFilter:
         for res in pd.each([SequenceSearchResult.QUERY_ID_FIELD,
                             SequenceSearchResult.ALIGNMENT_BIT_SCORE]):
             seq = res[0]
-            score = res[1]
+            score = float(res[1])
             # Possible a single sequence gets 2 split up hits (maybe), so take
             # the highest bitscore.
             if seq not in seq_ids_and_bitscores or seq_ids_and_bitscores[seq] < score:
-                seq_ids_and_bitscores[seq] = float(score)
+                seq_ids_and_bitscores[seq] = score
 
         num_before_decoy_removal = len(seq_ids_and_bitscores)
         logging.info("Found %i sequences which hit the non-decoy sequences" %\
@@ -68,15 +68,17 @@ class DecoyFilter:
                                 SequenceSearchResult.ALIGNMENT_BIT_SCORE]):
                 seq = res[0]
                 score = float(res[1])
-                if seq in seq_ids_and_bitscores and seq_ids_and_bitscores [seq] < score:
+                if seq in seq_ids_and_bitscores and seq_ids_and_bitscores[seq] < score:
                     logging.debug("Removing sequence with better hit to the decoy database: %s" % seq)
-                    logging.info("Removed %i"
-                                 " sequences which hit the decoy sequences better"
-                                 " than the non-decoy sequences" %\
-                                 (num_before_decoy_removal-len(seq_ids_and_bitscores)))
-        if len(seq_ids_and_bitscores) == 0:
-            return False
-        
+                    del seq_ids_and_bitscores[seq]
+
+            logging.info("Removed %i"
+                         " sequences which hit the decoy sequences better"
+                         " than the non-decoy sequences" %\
+                         (num_before_decoy_removal-len(seq_ids_and_bitscores)))
+            if len(seq_ids_and_bitscores) == 0:
+                return False
+
         # Extract the found sequences into the output file
         logging.debug("Extracting query sequences")
         SequenceExtractor().extract(seq_ids_and_bitscores.keys(),

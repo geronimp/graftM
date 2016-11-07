@@ -179,6 +179,11 @@ class Hmmer:
         -------
         output_table_list : array of HMMSearchResult
             Includes the name of the output domtblout table given by hmmer
+
+        Raises
+        ------
+        hmmsearcher.NoInputSequencesException
+            Raised if there are no sequences fed into the HMM.
         '''
 
         # Define the base hmmsearch command.
@@ -205,8 +210,9 @@ class Hmmer:
         if cutoff == "--cut_tc":
             searcher = HmmSearcher(threads, cutoff) 
         else:
-            searcher = HmmSearcher(threads, '--domE %s' % cutoff) 
+            searcher = HmmSearcher(threads, '--domE %s' % cutoff)
         searcher.hmmsearch(input_cmd, self.search_hmm, output_table_list)
+
         hmmtables = [HMMSearchResult.import_from_hmmsearch_table(x) for x in output_table_list]
         return hmmtables
 

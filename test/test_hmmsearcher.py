@@ -29,6 +29,7 @@ import sys
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 import graftm.hmmsearcher
+from graftm.hmmsearcher import NoInputSequencesException
 
 class HmmsearcherTests(unittest.TestCase):
     path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
@@ -96,7 +97,18 @@ example_partial_mcra8 -            162 mcrA.fasta           -            557    
         searcher = graftm.hmmsearcher.NhmmerSearcher(20)
         cmd = searcher._hmm_command('cat some', [(['hmm1','out1'],10)])
         self.assertEqual('cat some | nhmmer  --cpu 10 -o /dev/null --noali --tblout out1 hmm1 -', cmd)        
-        
+
+    def test_no_input_exception(self):
+        searcher = graftm.hmmsearcher.HmmSearcher(2)
+        fna_file = os.path.join(self.path_to_data, 'mcrA.gpkg/mcrA_1.1.fna')
+        hmm_file = os.path.join(self.path_to_data, 'mcrA.gpkg/mcrA.hmm')
+        with tempfile.NamedTemporaryFile(suffix='.fa') as output:
+            with self.assertRaises(NoInputSequencesException):
+                searcher.hmmsearch('orfm -m 3000 %s' % fna_file, 
+                               [hmm_file],
+                               [output.name])
+
+
 
 
 if __name__ == "__main__":

@@ -1,6 +1,8 @@
 import logging
 import extern
 
+class NoInputSequencesException(Exception): pass
+
 class HmmSearcher:
     r"""Runs hmmsearch given one or many HMMs in a scalable and fast way"""
 
@@ -55,7 +57,13 @@ class HmmSearcher:
             cmd = self._hmm_command(input_pipe, pairs_to_run)
             logging.debug("Running command: %s" % cmd)
 
-            extern.run(cmd)
+            try:
+                extern.run(cmd)
+            except extern.ExternCalledProcessError, e:
+                if e.stderr == '\nError: Sequence file - is empty or misformatted\n\n':
+                    raise NoInputSequencesException()
+                else:
+                    raise e
 
     def _munch_off_batch(self, queue):
         r"""Take a batch of sequences off the queue, and return pairs_to_run.

@@ -9,6 +9,7 @@ from graftm.sequence_search_results import SequenceSearchResult
 from graftm.graftm_output_paths import GraftMFiles
 from graftm.search_table import SearchTableWriter
 from graftm.hmmer import Hmmer
+from graftm.hmmsearcher import NoInputSequencesException
 from graftm.housekeeping import HouseKeeping
 from graftm.summarise import Stats_And_Summary
 from graftm.pplacer import Pplacer
@@ -48,6 +49,8 @@ class Run:
     MIN_ALIGNED_FILTER_FOR_AMINO_ACID_PACKAGES = 30
     
     DEFAULT_MAX_SAMPLES_FOR_KRONA = 100
+
+    NO_ORFS_EXITSTATUS = 128
 
     def __init__(self, args):
         self.args = args
@@ -360,35 +363,38 @@ class Run:
 
                 if self.args.type == PIPELINE_AA:
                     logging.debug("Running protein pipeline")
-
-                
-                    search_time, (result, complement_information) = self.h.aa_db_search(
-                                                              self.gmf,
-                                                              base,
-                                                              unpack,
-                                                              first_search_method,
-                                                              maximum_range,
-                                                              self.args.threads,
-                                                              self.args.evalue,
-                                                              self.args.min_orf_length,
-                                                              self.args.restrict_read_length,
-                                                              diamond_db
-                                                              )
-
+                    try:
+                        search_time, (result, complement_information) = self.h.aa_db_search(
+                            self.gmf,
+                            base,
+                            unpack,
+                            first_search_method,
+                            maximum_range,
+                            self.args.threads,
+                            self.args.evalue,
+                            self.args.min_orf_length,
+                            self.args.restrict_read_length,
+                            diamond_db
+                        )
+                    except NoInputSequencesException:
+                        logging.error("No sufficiently long open reading frames were found, indicating"
+                                      " either the input sequences are too short or the min orf length"
+                                      " cutoff is too high. Cannot continue sorry.")
+                        exit(Run.NO_ORFS_EXITSTATUS)
 
                 # Or the DNA pipeline
                 elif self.args.type == PIPELINE_NT:
                     logging.debug("Running nucleotide pipeline")
                     search_time, (result, complement_information)  = self.h.nt_db_search(
-                                                              self.gmf,
-                                                              base,
-                                                              unpack,
-                                                              self.args.euk_check,
-                                                              self.args.search_method,
-                                                              maximum_range,
-                                                              self.args.threads,
-                                                              self.args.evalue
-                                                              )
+                        self.gmf,
+                        base,
+                        unpack,
+                        self.args.euk_check,
+                        self.args.search_method,
+                        maximum_range,
+                        self.args.threads,
+                        self.args.evalue
+                    )
 
                 if not result.hit_fasta() or os.path.getsize(result.hit_fasta()) == 0:
                     logging.info('No reads found in %s' % base)

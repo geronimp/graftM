@@ -1367,5 +1367,22 @@ TTTHHHAAAHAAATTTTMAKIERAQKLFLKALKTKFEGDVADTKTGFYNFGGLNQSPRKKEFMEASKKVELRRGISMYDP
         # clean up
         os.remove(f.name+".dmnd")
 
+    def test_too_short_orfs(self):
+        fna_file = os.path.join(path_to_data, 'mcrA.gpkg/mcrA_1.1.fna')
+        gpkg=os.path.join(path_to_data, "mcrA.gpkg")
+        with tempdir.TempDir() as tmp:
+            cmd = '%s graft --verbosity 5 --forward %s --graftm_package '\
+                  '%s --output_directory %s --force --min_orf_length 900' %\
+                  (path_to_script,
+                   fna_file,
+                   gpkg,
+                   tmp)
+            with self.assertRaises(extern.ExternCalledProcessError):
+                try:
+                    extern.run(cmd)
+                except extern.ExternCalledProcessError, e:
+                    self.assertEqual(128, e.returncode)
+                    raise e
+
 if __name__ == "__main__":
     unittest.main()

@@ -376,10 +376,12 @@ class Run:
                             self.args.restrict_read_length,
                             diamond_db
                         )
-                    except NoInputSequencesException:
+                    except NoInputSequencesException, e:
                         logging.error("No sufficiently long open reading frames were found, indicating"
                                       " either the input sequences are too short or the min orf length"
-                                      " cutoff is too high. Cannot continue sorry.")
+                                      " cutoff is too high. Cannot continue sorry. Alternatively, there"
+                                      " is something amiss with the installation of OrfM. The specific"
+                                      " command that failed was: %s" % e.command)
                         exit(Run.NO_ORFS_EXITSTATUS)
 
                 # Or the DNA pipeline

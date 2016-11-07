@@ -1,7 +1,10 @@
 import logging
 import extern
 
-class NoInputSequencesException(Exception): pass
+class NoInputSequencesException(Exception):
+    def __init__(self, command):
+        """Instantiate with the command used that went amiss"""
+        self.command = command
 
 class HmmSearcher:
     r"""Runs hmmsearch given one or many HMMs in a scalable and fast way"""
@@ -61,7 +64,7 @@ class HmmSearcher:
                 extern.run(cmd)
             except extern.ExternCalledProcessError, e:
                 if e.stderr == '\nError: Sequence file - is empty or misformatted\n\n':
-                    raise NoInputSequencesException()
+                    raise NoInputSequencesException(cmd)
                 else:
                     raise e
 

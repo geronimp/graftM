@@ -34,6 +34,16 @@ class Clusterer:
             An updated version of the above, which includes all reads from
             each cluster
         '''
+        
+        def _clean_readnames(read_name):
+            orfmregex = self.orfm_regex.match(read_name)
+            if orfmregex:
+                read_name = orfmregex.groups(0)[0]
+            slashregex = self.slash_regex.match(read_name)
+            if slashregex:
+                read_name = slashregex.group()[:slashregex.regs[-1][-1]]
+            return read_name
+
         output_annotations = {}
         for placed_alignment_file_path, clusters in self.seq_library.iteritems():
 
@@ -48,20 +58,11 @@ class Clusterer:
             output_annotations[placed_alignment_base] = {}
             for rep_read_name, rep_read_taxonomy in cluster_classifications.iteritems():
                     
-                if reverse_pipe:
-                    
-                    for key, item in clusters.iteritems():  
-                        new_key = ''
-                        orfmregex = self.orfm_regex.match(key)
-                        if orfmregex:
-                            new_key = orfmregex.groups(0)[0]
-                        slashregex = self.slash_regex.match(key)
-                        if slashregex:
-                            new_key = slashregex.group()[:slashregex.regs[-1][-1]]
-                        if new_key:
-                            clusters[new_key] = clusters.pop(key)
+                if reverse_pipe:                    
+                    for key, item in clusters.iteritems(): 
+                        clusters[_clean_readnames(key)] = clusters.pop(key)
                 for read in clusters[rep_read_name]:
-                    output_annotations[placed_alignment_base][read.name] = rep_read_taxonomy
+                    output_annotations[placed_alignment_base][_clean_readnames(read.name)] = rep_read_taxonomy
 
         return output_annotations
 

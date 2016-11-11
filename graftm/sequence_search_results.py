@@ -20,8 +20,6 @@ class SequenceSearchResult:
     MISMATCH_FIELD = "mismatch"
     EVALUE_FIELD = "evalue"
     
-    
-    
     def __init__(self):
         self.fields = []
         self.results = []
@@ -48,7 +46,6 @@ class SequenceSearchResult:
             # below raises error if the field name is not found, so
             # don't need to account for that.
             field_ids.append(self.fields.index(f))
-        
         for r in self.results:
             yield([r[i] for i in field_ids])
         

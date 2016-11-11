@@ -1,4 +1,4 @@
-
+import re
 import extern
 import os
 import itertools
@@ -231,6 +231,7 @@ class Hmmer:
         '''
 
         orfm_regex = OrfM.regular_expression()
+        slash_regex = re.compile('^(\S+):(\d):(\d+):(\d+):(\d+)#(\S+)/[1-2]$')
         def remove_orfm_end(records):
 
             new_dict = {}
@@ -238,25 +239,25 @@ class Hmmer:
             for key, record in records.iteritems():
                 orfmregex = orfm_regex.match(key)
                 if orfmregex:
-                    new_dict[orfmregex.groups(0)[0]] = record
-                else:
-                    new_dict[key] = record
+                    key = orfmregex.groups(0)[0]    
+                
+                slashregex = slash_regex.match(key)
+                if slashregex:
+                    key = slashregex.group()[:slashregex.regs[-1][-1]]
+                
+                new_dict[key] = record
             return new_dict
 
 
         for idx, (forward_path, reverse_path) in enumerate(zip(forward_aln_list, reverse_aln_list)):
             output_path = outputs[idx]
             logging.info('Merging pair %s, %s' % (os.path.basename(forward_path), os.path.basename(reverse_path)))
-            forward_reads = SeqIO.parse(forward_path, 'fasta')
+            forward_reads = remove_orfm_end(SeqIO.to_dict(SeqIO.parse(forward_path, 'fasta')))
             reverse_reads = remove_orfm_end(SeqIO.to_dict(SeqIO.parse(reverse_path, 'fasta')))
 
             with open(output_path, 'w') as out:
-                for forward_record in forward_reads:
+                for id, forward_record in forward_reads.items():
                     regex_match = orfm_regex.match(forward_record.id)
-                    if regex_match:
-                        id = regex_match.groups(0)[0]
-                    else:
-                        id = forward_record.id
                     forward_sequence = str(forward_record.seq)
                     try:
                         reverse_sequence = str(reverse_reads[id].seq)
@@ -277,12 +278,11 @@ class Hmmer:
                         else:
                             logging.error('Alignments do not match')
                             raise Exception('Merging alignments failed: Alignments do not match')
-                        out.write('>%s\n' % forward_record.id)
+                        out.write('>%s\n' % id)
                         out.write('%s\n' % (new_seq))
                         del reverse_reads[id]
                     except:
-
-                        out.write('>%s\n' % forward_record.id)
+                        out.write('>%s\n' % id)
                         out.write('%s\n' % (forward_sequence))
                 for record_id, record in reverse_reads.iteritems():
                     out.write('>%s\n' % record_id)

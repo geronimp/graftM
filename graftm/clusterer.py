@@ -3,6 +3,7 @@ from graftm.sequence_io import SequenceIO
 from graftm.orfm import OrfM
 import logging
 import os
+import re
 
 class Clusterer:
 
@@ -10,7 +11,7 @@ class Clusterer:
         self.clust = Deduplicator()
         self.seqio = SequenceIO()
         self.seq_library = {}
-
+        self.slash_regex = re.compile('^(\S+):(\d):(\d+):(\d+):(\d+)#(\S+)/[1-2]$')
         self.orfm_regex = OrfM.regular_expression()
 
     def uncluster_annotations(self, input_annotations, reverse_pipe):
@@ -46,13 +47,22 @@ class Clusterer:
                 placed_alignment_base = placed_alignment_file.replace('_clustered.fa', '')
             output_annotations[placed_alignment_base] = {}
             for rep_read_name, rep_read_taxonomy in cluster_classifications.iteritems():
-                #import IPython ; IPython.embed()    
+                    
                 if reverse_pipe:
-                    orfm_regex = OrfM.regular_expression()
-                    clusters={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) else key): item for key, item in clusters.iteritems()}
+                    
+                    for key, item in clusters.iteritems():  
+                        new_key = ''
+                        orfmregex = self.orfm_regex.match(key)
+                        if orfmregex:
+                            new_key = orfmregex.groups(0)[0]
+                        slashregex = self.slash_regex.match(key)
+                        if slashregex:
+                            new_key = slashregex.group()[:slashregex.regs[-1][-1]]
+                        if new_key:
+                            clusters[new_key] = clusters.pop(key)
                 for read in clusters[rep_read_name]:
                     output_annotations[placed_alignment_base][read.name] = rep_read_taxonomy
-                        
+
         return output_annotations
 
     def cluster(self, input_fasta_list, reverse_pipe):
@@ -77,7 +87,6 @@ class Clusterer:
         for input_fasta in input_fasta_list:
             output_path  = input_fasta.replace('_hits.aln.fa', '_clustered.fa')
             cluster_dict = {}
-
             logging.debug('Clustering reads')
             reads=self.seqio.read_fasta_file(input_fasta) # Read in FASTA records
             logging.debug('Found %i reads' % len(reads)) # Report number found
@@ -90,6 +99,7 @@ class Clusterer:
                                         output_path
                                         ) # Choose the first sequence to write to file as representative (all the same anyway)
             for cluster in clusters:
+                
                 cluster_dict[cluster[0].name]=cluster # assign the cluster to the dictionary
             self.seq_library[output_path]= cluster_dict
 

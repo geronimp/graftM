@@ -197,7 +197,7 @@ Using an assembly to create a "expand_search" database:
     pplacer_options = graft_parser.add_argument_group('pplacer assignment options')
     pplacer_options.add_argument('--placements_cutoff', metavar='confidence', help='This flag allows you to change the likelihood cutoff for phylogenetic placement of reads.',  default=0.75, type=float)
     pplacer_options.add_argument('--resolve_placements', action="store_true", help='Ignore the placements cutoff and simply use the best placement assigned to the read.', default=False)
-    pplacer_options.add_argument('--no_merge_reads',  action="store_true", help='When this flag is specified, The alignment of the forward and reverse reads will be merged before placement. This provides more information for phylogenetic placement, and the classifications provided by pplacer generally improve, so try to use this flag when you can.', default=False)
+    pplacer_options.add_argument('--no_merge_reads',  action="store_true", help='When this flag is specified, the alignment of the forward and reverse reads will not be merged before placement. If specified, the forward and reverse read will be placed and classified separately, using the annotation with the best score as the read annotation.', default=False)
 
     nucleotide_options = graft_parser.add_argument_group('nucleotide search-specific options')
     nucleotide_options.add_argument('--euk_hmm_file', help='Use this flag to specify the HMM that is used in the Eukaryotic contamination screen', default=argparse.SUPPRESS)

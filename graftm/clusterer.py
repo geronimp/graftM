@@ -46,13 +46,13 @@ class Clusterer:
                 placed_alignment_base = placed_alignment_file.replace('_clustered.fa', '')
             output_annotations[placed_alignment_base] = {}
             for rep_read_name, rep_read_taxonomy in cluster_classifications.iteritems():
-
+                #import IPython ; IPython.embed()    
                 if reverse_pipe:
                     orfm_regex = OrfM.regular_expression()
                     clusters={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) else key): item for key, item in clusters.iteritems()}
                 for read in clusters[rep_read_name]:
                     output_annotations[placed_alignment_base][read.name] = rep_read_taxonomy
-
+                        
         return output_annotations
 
     def cluster(self, input_fasta_list, reverse_pipe):

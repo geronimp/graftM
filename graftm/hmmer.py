@@ -348,7 +348,6 @@ class Hmmer:
         euk_reads : set
             Non-redundant set of all read names deemed to be eukaryotic
         '''
-        
         euk_hit_table = HMMreader(hmm_hit_tables.pop(-1))
         other_hit_tables = [HMMreader(x) for x in hmm_hit_tables]
         reads_unique_to_eukaryotes = []

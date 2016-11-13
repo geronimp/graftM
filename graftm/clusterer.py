@@ -62,7 +62,7 @@ class Clusterer:
                     for key, item in clusters.iteritems(): 
                         clusters[_clean_readnames(key)] = clusters.pop(key)
                 for read in clusters[rep_read_name]:
-                    output_annotations[placed_alignment_base][_clean_readnames(read.name)] = rep_read_taxonomy
+                    output_annotations[placed_alignment_base][read.name] = rep_read_taxonomy
 
         return output_annotations
 

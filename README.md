@@ -38,7 +38,7 @@ We have a starter pack of graftM packages available including:
 * 15 single copy ribosomal protein marker genes
 * The methanogenesis marker mcrA
 
-All are available at the [GraftM package database store](https://drive.google.com/open?id=0BwJ4AwdqUiTzfndmRXowX3MydkM5bG1PYmxRUjNmMUNnazdFaUJaWjJFSkh1UEFDSkpReU0).
+All are available at the [ACE ftp GraftM package database store](https://data.ace.uq.edu.au/public/graftm).
 
 Once you have downloaded the package you want, just decompress it as follows:
 

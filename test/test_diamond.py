@@ -65,11 +65,11 @@ VAFATGNSNAGINGWYLSQILHKEYHSRLGFYGYDLQDQCGAANSLSIRSDEGLLHECRG'''
             # seq2    638201361    100.0    472    0    0    1    472    1    472    2.9e-283    963.0
             self.assertEqual(
 
-                             [['seq1', '637699780', '100.0', '548', '0', 1, 548, 1, 548, '0.0e+00', '1111.3', True],
-                              ['seq2', '638201361', '100.0', '472', '0', 1, 472, 1, 472, '2.9e-283', '963.0', True]],
+                             [['seq1', '637699780', '100.0', '548', '0', 1, 548, 1, 548, '0.0e+00', '1103.6', True],
+                              ['seq2', '638201361', '100.0', '472', '0', 1, 472, 1, 472, '1.1e-282', '961.1', True]],
                              list([x[:-1] for x in res.each(res.fields)])
                              )
-            
+
     def test_basename(self):
         with tempfile.NamedTemporaryFile() as f:
             f.write(self._protein_query)
@@ -83,8 +83,8 @@ VAFATGNSNAGINGWYLSQILHKEYHSRLGFYGYDLQDQCGAANSLSIRSDEGLLHECRG'''
             # seq2    638201361    100.0    472    0    0    1    472    1    472    2.9e-283    963.0
 
             self.assertEqual(
-                             [['seq1', '637699780', '100.0', '548', '0', 1, 548, 1, 548, '0.0e+00', '1111.3', True],
-                              ['seq2', '638201361', '100.0', '472', '0', 1, 472, 1, 472, '2.9e-283', '963.0', True]],
+                             [['seq1', '637699780', '100.0', '548', '0', 1, 548, 1, 548, '0.0e+00', '1103.6', True],
+                              ['seq2', '638201361', '100.0', '472', '0', 1, 472, 1, 472, '1.1e-282', '961.1', True]],
                              list([x[:-1] for x in res.each(res.fields)])
                              )
             self.assertTrue(os.path.exists(daa))

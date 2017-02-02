@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 
 #=======================================================================
@@ -47,7 +48,8 @@ class Tests(unittest.TestCase):
             out = 'reconstituted.gpkg'
             archiver.create(ingpkg, arc)
             archiver.extract(arc, out)
-            file_list = ['CONTENTS.json', 'mcrA.faa', 'mcra.faa.dmnd', 'mcrA.hmm']
+            file_list = ['CONTENTS.json', 'mcrA.faa', 'mcrA.hmm']
+            dmnd = 'mcra.faa.dmnd'
             refpkg = 'mcrA.refpkg'
             for f in file_list:
                 self.assertTrue(filecmp.cmp(
@@ -56,8 +58,11 @@ class Tests(unittest.TestCase):
             self.assertTrue(filecmp.dircmp(
                 os.path.join(ingpkg, refpkg),
                 os.path.join(out, refpkg)))
+            # Do not test actual equality of diamond DB because this changes
+            # dependant on diamond version.
+            self.assertTrue(os.path.exists(os.path.join(out, dmnd)))
             self.assertEquals(
-                sorted(file_list+[refpkg]),
+                sorted(file_list+[dmnd, refpkg]),
                 sorted(os.listdir(out)))
 
 if __name__ == "__main__":

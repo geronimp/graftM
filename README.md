@@ -28,6 +28,13 @@ To create new GraftM packages, you'll also need
 #### Docker images
 Versions of graftM on pip now have matching docker images as of GraftM v0.9.2. GraftM docker images are portable containers that contain the graftM code and all its python and non-python dependancies, allowing GraftM to be run on any platform with docker installed. Details on how to download and run a GraftM docker image can be found on the [graftm-docker](https://github.com/geronimp/graftM-docker) GitHub page or the [docker hub page](https://hub.docker.com/u/geronimp/).
 
+#### GNU Guix
+GraftM and all its Python and non-Python dependencies can be installed using the ACE package repository. After installing [GNU Guix](https://www.gnu.org/software/guix/)
+```
+git clone https://github.com/Ecogenomics/ace-guix
+GUIX_PACKAGE_PATH=ace-guix guix package --install graftm
+```
+
 ### Manual
 A [manual](https://github.com/geronimp/graftM/wiki) is available in the form of the wiki here on GitHub.
 

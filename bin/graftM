@@ -248,7 +248,7 @@ the purposes of using graftm. The prefixes e.g. 'k__' are also not required.
     create_lesser_options.add_argument('--hmm', metavar='.hmm file', help='Use this HMM for alignment, and search unless --search_hmm_files is specified.')
     create_lesser_options.add_argument('--dereplication_level', metavar='.hmm file', type = int, help='taxonomic rank at which \
 to dereplicate the sequences to create the HMM. Provide an integer that corresponds to the rank (from left to right) will be dereplicated. For example --dereplication_level 3 will omit all sequences \
-that are redundant at the 3rd rank (from left to right in the taxonomy file) from the search HMM.  (0 == No dereplication)', default = 6)
+that are redundant at the 3rd rank (from left to right in the taxonomy file) from the search HMM.  (0 == No dereplication)', default = 0)
     create_lesser_options.add_argument('--search_hmm_files', metavar='.hmm files', nargs='+', help='Use these HMM(s) for search.')
     create_lesser_options.add_argument('--min_aligned_percent', type=int, metavar='percent', help='Remove sequences from the alignment which do not cover at least this percentage of the HMM', default=30)
     create_lesser_options.add_argument('--output', metavar='PATH', help='Name of output GraftM package.')

@@ -20,7 +20,7 @@ However, to use all features of GraftM a few extra binary applications are requi
 * pplacer v. >= 2.6.32 (http://matsen.fhcrc.org/pplacer/)
 * krona v. >= 2.4 (http://sourceforge.net/p/krona/home/krona/)
 * mafft v. >= 7.22 (http://mafft.cbrc.jp/)
-* diamond v. >= 0.7.9 (https://github.com/bbuchfink/diamond)
+* diamond v. >= 0.9 (https://github.com/bbuchfink/diamond) The version of diamond used must be matched with that used to generate gpkgs.
 
 To create new GraftM packages, you'll also need
 * FastTreeMP (http://www.microbesonline.org/fasttree/)

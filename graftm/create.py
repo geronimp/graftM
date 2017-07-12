@@ -123,7 +123,7 @@ class Create:
 
         Returns
         -------
-        Nothing
+        Return the pipeline type of the HMM.
         '''
         logging.info("Building HMM from alignment")
 

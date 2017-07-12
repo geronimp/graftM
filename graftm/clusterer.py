@@ -50,7 +50,6 @@ class Clusterer:
                 if reverse_pipe:
                     orfm_regex = OrfM.regular_expression()
                     clusters={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) else key): item for key, item in clusters.iteritems()}
-                import IPython ; IPython.embed()
                 for read in clusters[rep_read_name]:
                     output_annotations[placed_alignment_base][read.name] = rep_read_taxonomy
 

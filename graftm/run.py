@@ -8,7 +8,7 @@ import shutil
 from graftm.sequence_search_results import SequenceSearchResult
 from graftm.graftm_output_paths import GraftMFiles
 from graftm.search_table import SearchTableWriter
-from graftm.hmmer import Hmmer
+from graftm.sequence_searcher import SequenceSearcher
 from graftm.hmmsearcher import NoInputSequencesException
 from graftm.housekeeping import HouseKeeping
 from graftm.summarise import Stats_And_Summary
@@ -71,9 +71,8 @@ class Run:
             self.hk.set_attributes(self.args)
             self.hk.set_euk_hmm(self.args)
             if args.euk_check:self.args.search_hmm_files.append(self.args.euk_hmm_file)
-            if not(args.search_only and args.search_method == Run.DIAMOND_SEARCH_METHOD):
-                self.h = Hmmer(self.args.search_hmm_files, 
-                               (None if self.args.search_only else self.args.aln_hmm_file))
+            self.ss = SequenceSearcher(self.args.search_hmm_files, 
+                           (None if self.args.search_only else self.args.aln_hmm_file))
             self.sequence_pair_list = self.hk.parameter_checks(args)
             if hasattr(args, 'reference_package'):
                 self.p = Pplacer(self.args.reference_package)
@@ -312,7 +311,7 @@ class Run:
                                      new_database,
                                      self.args.search_method):
                 if self.args.search_method == Run.HMMSEARCH_SEARCH_METHOD:
-                    self.h.search_hmm.append(new_database)
+                    self.ss.search_hmm.append(new_database)
                 else:
                     diamond_db = new_database
              
@@ -371,7 +370,7 @@ class Run:
                 if self.args.type == PIPELINE_AA:
                     logging.debug("Running protein pipeline")
                     try:
-                        search_time, (result, complement_information) = self.h.aa_db_search(
+                        search_time, (result, complement_information) = self.ss.aa_db_search(
                             self.gmf,
                             base,
                             unpack,
@@ -394,7 +393,7 @@ class Run:
                 # Or the DNA pipeline
                 elif self.args.type == PIPELINE_NT:
                     logging.debug("Running nucleotide pipeline")
-                    search_time, (result, complement_information)  = self.h.nt_db_search(
+                    search_time, (result, complement_information)  = self.ss.nt_db_search(
                         self.gmf,
                         base,
                         unpack,
@@ -433,7 +432,7 @@ class Run:
                     logging.info('aligning reads to reference package database')
                     hit_aligned_reads = self.gmf.aligned_fasta_output_path(base)
 
-                    aln_time, aln_result = self.h.align(
+                    aln_time, aln_result = self.ss.align(
                                                         result.hit_fasta(),
                                                         hit_aligned_reads,
                                                         complement_information,
@@ -466,7 +465,7 @@ class Run:
             base_list=base_list[0::2]
             merged_output=[GraftMFiles(base, self.args.output_directory, False).aligned_fasta_output_path(base) \
                            for base in base_list]
-            self.h.merge_forev_aln(seqs_list[0::2], seqs_list[1::2], merged_output)
+            self.ss.merge_forev_aln(seqs_list[0::2], seqs_list[1::2], merged_output)
             seqs_list=merged_output
             REVERSE_PIPE = False
 

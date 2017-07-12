@@ -27,7 +27,7 @@ import os
 import sys
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
-from graftm.hmmer import Hmmer
+from graftm.sequence_searcher import SequenceSearcher
 
 class Tests(unittest.TestCase):
     def test_merg_aln(self):
@@ -74,7 +74,7 @@ class Tests(unittest.TestCase):
                     reverse_file.write(reverse_reads)
                     forward_file.flush()
                     reverse_file.flush()
-                    Hmmer(None).merge_forev_aln([forward_file.name],[reverse_file.name],[output_file.name])
+                    SequenceSearcher(None).merge_forev_aln([forward_file.name],[reverse_file.name],[output_file.name])
                     count = 0
                     for line in open(output_file.name):
                         self.assertEqual(expected_aln[count], line.strip())

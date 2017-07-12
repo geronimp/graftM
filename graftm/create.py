@@ -35,7 +35,7 @@ class Create:
     def __init__(self, commands):
         '''
         Class for managing the creation of GraftM packages.
-        
+
         Parameters
         ----------
         commands: ExternalProgramSuite object
@@ -123,29 +123,29 @@ class Create:
 
         Returns
         -------
-        Nothing
+        Return the pipeline type of the HMM.
         '''
         logging.info("Building HMM from alignment")
 
-        sto = tempfile.NamedTemporaryFile(suffix='.sto',prefix='graftm')
-        tempaln = tempfile.NamedTemporaryFile(suffix='.fasta',prefix='graftm')
-        cmd = "hmmbuild -O %s '%s' '%s'" % (sto.name,
-                                              hmm_filename,
-                                              alignment)
-        out = extern.run(cmd)
-        logging.debug("Got STDOUT from hmmbuild: %s" % out)
+        with tempfile.NamedTemporaryFile(suffix='.sto',prefix='graftm') as sto:
+            with tempfile.NamedTemporaryFile(suffix='.fasta',prefix='graftm') as tempaln:
+                cmd = "hmmbuild -O %s '%s' '%s'" % (sto.name,
+                                                      hmm_filename,
+                                                      alignment)
+                out = extern.run(cmd)
+                logging.debug("Got STDOUT from hmmbuild: %s" % out)
 
-        cmd = "seqmagick convert --input-format stockholm %s %s" % (sto.name,
-                                                              tempaln.name)
-        out = extern.run(cmd)
-        logging.debug("Got STDOUT from seqmagick: %s" % out)
-        ptype, _ = self._pipe_type(hmm_filename)
-        Hmmer(hmm_filename).alignment_correcter([tempaln.name],
-                                                output_alignment_filename)
-        return ptype
+                cmd = "seqmagick convert --input-format stockholm %s %s" %\
+                      (sto.name, tempaln.name)
+                out = extern.run(cmd)
+                logging.debug("Got STDOUT from seqmagick: %s" % out)
+                ptype, _ = self._pipe_type(hmm_filename)
+                Hmmer(hmm_filename).alignment_correcter([tempaln.name],
+                                                        output_alignment_filename)
+                return ptype
 
     def _align_sequences_to_hmm(self, hmm_file, sequences_file, output_alignment_file):
-        '''Align sequences to an HMM, and return a path to an alignment of
+        '''Align sequences to an HMM, and write an alignment of
         these proteins after cleanup so that they can be used for tree-making
 
         Parameters
@@ -162,9 +162,9 @@ class Create:
         nothing
         '''
         hmmer = Hmmer(hmm_file)
-        tempalign = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.fasta')
-        hmmer.hmmalign_sequences(hmm_file, sequences_file, tempalign.name)
-        hmmer.alignment_correcter([tempalign.name], output_alignment_file)
+        with tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.fasta') as tempalign:
+            hmmer.hmmalign_sequences(hmm_file, sequences_file, tempalign.name)
+            hmmer.alignment_correcter([tempalign.name], output_alignment_file)
 
     def _pipe_type(self, hmm):
         logging.debug("Setting pipeline type.")
@@ -193,14 +193,14 @@ class Create:
         tre_file = base + ".tre"
         if ptype == Create._NUCLEOTIDE_PACKAGE_TYPE: # If it's a nucleotide sequence
             cmd = "%s -quiet -gtr -nt -log %s -out %s %s" % (fasttree,
-                                                             log_file, 
-                                                             tre_file, 
+                                                             log_file,
+                                                             tre_file,
                                                              alignment)
             extern.run(cmd)
         else: # Or if its an amino acid sequence
             cmd = "%s -quiet -log %s -out %s %s" % (fasttree,
-                                                    log_file, 
-                                                    tre_file, 
+                                                    log_file,
+                                                    tre_file,
                                                     alignment)
             extern.run(cmd)
 
@@ -215,9 +215,9 @@ class Create:
         if no_reroot:
             cmd += ' --no-reroot'
             logging.debug("Calling command assuming pre-rerooting: %s" % cmd)
-            
+
             extern.run(cmd)
-            
+
         else:
             logging.debug("Calling command: %s" % cmd)
             logging.info("Attempting to run taxit create with rerooting capabilities")
@@ -256,8 +256,8 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
        )
                               )
                 exit(2)
-                
-                
+
+
             try:
                 process = subprocess32.Popen(['bash','-c',cmd],
                                            stdout=subprocess32.PIPE,
@@ -385,7 +385,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
                            taxon == "" or \
                            prefix_re.match(taxon):
                             pass
-                        
+
                         elif taxon in seen_taxons:
                             logging.debug("Sequence %s redundant at %i rank in the taxonomy file level: %s" % (sequence_id, dereplication_level, taxon) )
                             dereplicated_sequence_ids.append(sequence_id)
@@ -438,19 +438,19 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
                                                  output_align_hmm,
                                                  output_alignment)
         return ptype, output_alignment
-    
+
     def _mask_strange_sequence_letters(self, sequences, package_type):
         '''Replace strange characters like selenocysteine (U) with X or N for
-        protein and nucleotide sequences, respectively. Sequences are 
+        protein and nucleotide sequences, respectively. Sequences are
         modified in place.
-        
+
         Parameters
         ----------
         aligned_sequences: array of Sequence objects
             sequences to mask
         package_type: _PROTEIN_PACKAGE_TYPE or _NUCLEOTIDE_PACKAGE_TYPE
             type of sequences these are
-        
+
         Returns
         -------
         None
@@ -461,7 +461,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         elif package_type == Create._NUCLEOTIDE_PACKAGE_TYPE:
             search_re = re.compile(r'([^ATGC\-N])',re.IGNORECASE)
             replace_char = 'N'
-        
+
         for s in sequences:
             if package_type == Create._NUCLEOTIDE_PACKAGE_TYPE:
                 s.seq = s.seq.replace('U','T')
@@ -505,21 +505,19 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         ----------
         package_path: str
             path to graftm_package to be tested
-        ''' 
+        '''
         pkg = GraftMPackage.acquire(package_path)
-        temp_output = tempdir.TempDir()
-        graftM_graft_test_dir_name = temp_output.name
-        temp_output.dissolve()
-        # Take a subset of sequences for testing
-        with tempfile.NamedTemporaryFile(suffix=".fa") as tf:
-            seqio = SequenceIO()
-            seqio.write_fasta(
-                itertools.islice(seqio.each_sequence(open(pkg.unaligned_sequence_database_path())), 10),
-                tf)
-            tf.flush()
-            cmd = "graftM graft --forward %s --graftm_package %s --output_directory %s" %(
-                tf.name, package_path, graftM_graft_test_dir_name)
-            extern.run(cmd)
+        with tempdir.TempDir() as graftM_graft_test_dir_name:
+            # Take a subset of sequences for testing
+            with tempfile.NamedTemporaryFile(suffix=".fa") as tf:
+                seqio = SequenceIO()
+                seqio.write_fasta(
+                    itertools.islice(seqio.each_sequence(open(pkg.unaligned_sequence_database_path())), 10),
+                    tf)
+                tf.flush()
+                cmd = "graftM graft --forward %s --graftm_package %s --output_directory %s --force" %(
+                    tf.name, package_path, graftM_graft_test_dir_name)
+                extern.run(cmd)
 
 
     def main(self, **kwargs):
@@ -551,6 +549,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         base = os.path.join(tmp.name, locus_name)
         insufficiently_aligned_sequences = [None]
         removed_sequence_names = []
+        tempfiles_to_close = []
 
         if prefix:
             output_gpkg_path = prefix
@@ -587,8 +586,15 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         dup = self._check_for_duplicate_sequence_names(sequences)
         if dup:
             raise Exception("Found duplicate sequence name '%s' in sequences input file" % dup)
-        output_alignment = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa').name
-        align_hmm = (user_hmm if user_hmm else tempfile.NamedTemporaryFile(prefix='graftm', suffix='_align.hmm').name)
+        output_alignment_fh = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa')
+        tempfiles_to_close.append(output_alignment_fh)
+        output_alignment = output_alignment_fh.name
+        if user_hmm:
+            align_hmm = user_hmm
+        else:
+            align_hmm_fh = tempfile.NamedTemporaryFile(prefix='graftm', suffix='_align.hmm')
+            tempfiles_to_close.append(align_hmm_fh)
+            align_hmm = align_hmm_fh.name
 
         if alignment:
             dup = self._check_for_duplicate_sequence_names(alignment)
@@ -610,14 +616,18 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
             for s in insufficiently_aligned_sequences:
                 logging.warn("Insufficient alignment of %s, not including this sequence" % s)
 
-            _, sequences2 = tempfile.mkstemp(prefix='graftm', suffix='.faa')
+            sequences2_fh = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.faa')
+            tempfiles_to_close.append(sequences2_fh)
+            sequences2 = sequences2_fh.name
             num_sequences = self._remove_sequences_from_alignment(insufficiently_aligned_sequences,
                                                                   sequences,
                                                                   sequences2)
             sequences = sequences2
 
             if alignment:
-                _, alignment2 = tempfile.mkstemp(prefix='graftm', suffix='.aln.faa')
+                alignment2_fh = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa')
+                tempfiles_to_close.append(alignment2_fh)
+                alignment2 = alignment2_fh.name
                 num_sequences = self._remove_sequences_from_alignment(insufficiently_aligned_sequences,
                                                                       alignment,
                                                                       alignment2)
@@ -634,16 +644,22 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
                 raise Exception("Too few sequences remaining in alignment after removing insufficiently aligned sequences: %i" % num_sequences)
             else:
                 logging.info("Reconstructing the alignment and HMM from remaining sequences")
-                output_alignment = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa').name
+                output_alignment_fh = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa')
+                tempfiles_to_close.append(output_alignment_fh)
+                output_alignment = output_alignment_fh.name
                 if not user_hmm:
-                    align_hmm = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.hmm').name
+                    align_hmm_fh = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.hmm')
+                    tempfiles_to_close.append(align_hmm_fh)
+                    align_hmm = align_hmm_fh.name
                 ptype, output_alignment= self._align_and_create_hmm(sequences, alignment, user_hmm,
                                                    align_hmm, output_alignment, threads)
                 logging.info("Checking for incorrect or fragmented reads")
                 insufficiently_aligned_sequences = self._check_reads_hit(open(output_alignment),
                                                                          min_aligned_percent)
         if not search_hmm_files:
-            search_hmm = tempfile.NamedTemporaryFile(prefix='graftm', suffix='_search.hmm').name
+            search_hmm_fh = tempfile.NamedTemporaryFile(prefix='graftm', suffix='_search.hmm')
+            tempfiles_to_close.append(search_hmm_fh)
+            search_hmm = search_hmm_fh.name
             self._create_search_hmm(sequences, taxonomy_definition, search_hmm, dereplication_level, threads)
             search_hmm_files = [search_hmm]
 
@@ -658,7 +674,7 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
                 logging.error("Unable to find sequence '%s' in the taxonomy definition" % s)
             raise Exception("All sequences must be assigned a taxonomy, cannot continue")
 
-            
+
         logging.debug("Looking for non-standard characters in aligned sequences")
         self._mask_strange_sequence_letters(aligned_sequence_objects, ptype)
 
@@ -683,15 +699,17 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
         for list in [x for x in [x[1:] for x in deduplicated_arrays] if x]:
             for seq in list:
                 filtered_names.append(seq.name)
-        _, sequences2 = tempfile.mkstemp(prefix='graftm', suffix='.faa')
+        sequences2_fh = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.faa')
+        tempfiles_to_close.append(sequences2_fh)
+        sequences2 = sequences2_fh.name
 
 
         # Create tree unless one was provided
         if not rerooted_tree and not rerooted_annotated_tree and not unrooted_tree:
             logging.debug("No tree provided")
             logging.info("Building tree")
-            log_file, tre_file = self._build_tree(deduplicated_alignment_file, 
-                                                  base, ptype, 
+            log_file, tre_file = self._build_tree(deduplicated_alignment_file,
+                                                  base, ptype,
                                                   self.fasttree)
             no_reroot = False
         else:
@@ -729,8 +747,10 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
             else:
                 logging.info("Generating log file")
                 log_file_tempfile = tempfile.NamedTemporaryFile(suffix='.tree_log', prefix='graftm')
+                tempfiles_to_close.append(log_file_tempfile)
                 log_file = log_file_tempfile.name
                 tre_file_tempfile = tempfile.NamedTemporaryFile(suffix='.tree', prefix='graftm')
+                tempfiles_to_close.append(tre_file_tempfile)
                 tre_file = tre_file_tempfile.name
                 with tempfile.NamedTemporaryFile(suffix='.tree', prefix='graftm') as f:
                     # Make the newick file simple (ie. un-arb it) for fasttree.
@@ -801,12 +821,14 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
 
         # Compile the gpkg
         logging.info("Compiling gpkg")
-        
+
         GraftMPackageVersion3.compile(output_gpkg_path, refpkg, align_hmm, diamondb,
                                       max_range, sequences, search_hmm_files=search_hmm_files)
-        
+
         logging.info("Cleaning up")
         self._cleanup(self.the_trash)
+        for tf in tempfiles_to_close:
+            tf.close()
 
         # Test out the gpkg just to be sure.
         #
@@ -815,12 +837,5 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
         # sane defaults.
         logging.info("Testing gpkg package works")
         self._test_package(output_gpkg_path)
-        
+
         logging.info("Finished\n")
-
-
-
-
-
-
-

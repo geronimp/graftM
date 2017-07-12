@@ -507,19 +507,17 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
             path to graftm_package to be tested
         '''
         pkg = GraftMPackage.acquire(package_path)
-        temp_output = tempdir.TempDir()
-        graftM_graft_test_dir_name = temp_output.name
-        temp_output.dissolve()
-        # Take a subset of sequences for testing
-        with tempfile.NamedTemporaryFile(suffix=".fa") as tf:
-            seqio = SequenceIO()
-            seqio.write_fasta(
-                itertools.islice(seqio.each_sequence(open(pkg.unaligned_sequence_database_path())), 10),
-                tf)
-            tf.flush()
-            cmd = "graftM graft --forward %s --graftm_package %s --output_directory %s" %(
-                tf.name, package_path, graftM_graft_test_dir_name)
-            extern.run(cmd)
+        with tempdir.TempDir() as graftM_graft_test_dir_name:
+            # Take a subset of sequences for testing
+            with tempfile.NamedTemporaryFile(suffix=".fa") as tf:
+                seqio = SequenceIO()
+                seqio.write_fasta(
+                    itertools.islice(seqio.each_sequence(open(pkg.unaligned_sequence_database_path())), 10),
+                    tf)
+                tf.flush()
+                cmd = "graftM graft --forward %s --graftm_package %s --output_directory %s --force" %(
+                    tf.name, package_path, graftM_graft_test_dir_name)
+                extern.run(cmd)
 
 
     def main(self, **kwargs):

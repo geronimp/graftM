@@ -31,17 +31,16 @@ from biom.util import biom_open
 
 T=Timer()
 
-PIPELINE_AA = "P"
-PIPELINE_NT = "D"
-
 class UnrecognisedSuffixError(Exception): 
     pass
 
 class Run:
+
+    PIPELINE_AA             = "P"
+    PIPELINE_NT             = "D"
+    
     _MIN_VERBOSITY_FOR_ART = 3 # with 2 then, only errors are printed
 
-    HMMSEARCH_AND_DIAMOND_SEARCH_METHOD = 'hmmsearch+diamond'
-    
     PPLACER_TAXONOMIC_ASSIGNMENT = 'pplacer'
     DIAMOND_TAXONOMIC_ASSIGNMENT = 'diamond'
     
@@ -68,10 +67,8 @@ class Run:
             self.hk.set_attributes(self.args)
             self.hk.set_euk_hmm(self.args)
             if args.euk_check:self.args.search_hmm_files.append(self.args.euk_hmm_file)
-            self.h = Hmmer(
-                           self.args.search_hmm_files, 
-                           (None if self.args.search_only else self.args.aln_hmm_file)
-                           )
+            self.h = Hmmer(self.args.search_hmm_files, 
+                           (None if self.args.search_only else self.args.aln_hmm_file))
             self.sequence_pair_list = self.hk.parameter_checks(args)
             if hasattr(args, 'reference_package'):
                 self.p = Pplacer(self.args.reference_package)
@@ -195,7 +192,6 @@ class Run:
         # The Graft pipeline:
         # Searches for reads using hmmer, and places them in phylogenetic
         # trees to derive a community structure.
-
         if self.args.graftm_package:
             gpkg = GraftMPackage.acquire(self.args.graftm_package)
         else:
@@ -213,11 +209,11 @@ class Run:
             maximum_range = gpkg.maximum_range()
             
             if self.args.search_diamond_file:
-                self.args.search_method = 'diamond'
+                self.args.search_method = self.hk.DIAMOND_SEARCH_METHOD
                 diamond_db = self.args.search_diamond_file[0]
             else:
                 diamond_db = gpkg.diamond_database_path()            
-                if self.args.search_method == 'diamond':                    
+                if self.args.search_method == self.hk.DIAMOND_SEARCH_METHOD:                    
                     if not diamond_db:
                         logging.error("%s search method selected, but no diamond database specified. \
                         Please either provide a gpkg to the --graftm_package flag, or a diamond \
@@ -228,7 +224,7 @@ class Run:
             if self.args.maximum_range:
                 maximum_range = self.args.maximum_range
             else:
-                if self.args.search_method=='hmmsearch':
+                if self.args.search_method==self.hk.HMMSEARCH_SEARCH_METHOD:
                     if not self.args.search_only:
                         maximum_range = self.hk.get_maximum_range(self.args.aln_hmm_file)
                     else:
@@ -241,7 +237,7 @@ class Run:
             if self.args.search_diamond_file:
                 diamond_db = self.args.search_diamond_file
             else:
-                if self.args.search_method == 'hmmsearch':
+                if self.args.search_method == self.hk.HMMSEARCH_SEARCH_METHOD:
                     diamond_db = None
                 else:
                     logging.error("%s search method selected, but no gpkg or diamond database selected" % self.args.search_method)
@@ -263,19 +259,24 @@ class Run:
 
         # Set pipeline and evalue by checking HMM format
         if self.args.search_only:
-            hmm_type, hmm_tc = self.hk.setpipe(self.args.search_hmm_files[0])
-            logging.debug("HMM type: %s Trusted Cutoff: %s" % (hmm_type, hmm_tc))
+            if self.args.search_method == self.hk.HMMSEARCH_SEARCH_METHOD:
+                hmm_type, hmm_tc = self.hk.setpipe(self.args.search_hmm_files[0])
+                logging.debug("HMM type: %s Trusted Cutoff: %s" % (hmm_type, hmm_tc))
         else:
             hmm_type, hmm_tc = self.hk.setpipe(self.args.aln_hmm_file)
             logging.debug("HMM type: %s Trusted Cutoff: %s" % (hmm_type, hmm_tc))
-        setattr(self.args, 'type', hmm_type)
-        if hmm_tc:
-            setattr(self.args, 'evalue', '--cut_tc')
+        
+        if self.args.search_method == self.hk.HMMSEARCH_SEARCH_METHOD:
+            setattr(self.args, 'type', hmm_type)
+            if hmm_tc:
+                setattr(self.args, 'evalue', '--cut_tc')
+        else:
+            setattr(self.args, 'type', self.PIPELINE_AA)
                         
         if self.args.filter_minimum is not None:
             filter_minimum = self.args.filter_minimum
         else:
-            if self.args.type == PIPELINE_NT:
+            if self.args.type == self.PIPELINE_NT:
                 filter_minimum = Run.MIN_ALIGNED_FILTER_FOR_NUCLEOTIDE_PACKAGES
             else:
                 filter_minimum = Run.MIN_ALIGNED_FILTER_FOR_AMINO_ACID_PACKAGES
@@ -296,7 +297,7 @@ class Run:
             
             # this is a hack, it should really use GraftMFiles but that class isn't currently flexible enough
             new_database = (os.path.join(self.args.output_directory, "expand_search.hmm") \
-                            if self.args.search_method == "hmmsearch" \
+                            if self.args.search_method == self.hk.HMMSEARCH_SEARCH_METHOD \
                             else os.path.join(self.args.output_directory, "expand_search")
                             )
             
@@ -304,7 +305,7 @@ class Run:
                                      self.args.expand_search_contigs,
                                      new_database,
                                      self.args.search_method):
-                if self.args.search_method == "hmmsearch":
+                if self.args.search_method == self.hk.HMMSEARCH_SEARCH_METHOD:
                     self.h.search_hmm.append(new_database)
                 else:
                     diamond_db = new_database
@@ -315,10 +316,10 @@ class Run:
                                        Diamond(self.args.decoy_database,
                                                threads=self.args.threads))
             doing_decoy_search = True
-        elif self.args.search_method == Run.HMMSEARCH_AND_DIAMOND_SEARCH_METHOD:
+        elif self.args.search_method == self.hk.HMMSEARCH_AND_DIAMOND_SEARCH_METHOD:
             decoy_filter = DecoyFilter(Diamond(diamond_db, threads=self.args.threads))
             doing_decoy_search = True
-            first_search_method = 'hmmsearch'
+            first_search_method = self.hk.HMMSEARCH_SEARCH_METHOD
         else:
             doing_decoy_search = False
                     
@@ -361,7 +362,7 @@ class Run:
                                            self.args.output_directory,
                                            direction)
 
-                if self.args.type == PIPELINE_AA:
+                if self.args.type == self.PIPELINE_AA:
                     logging.debug("Running protein pipeline")
                     try:
                         search_time, (result, complement_information) = self.h.aa_db_search(
@@ -385,7 +386,7 @@ class Run:
                         exit(Run.NO_ORFS_EXITSTATUS)
 
                 # Or the DNA pipeline
-                elif self.args.type == PIPELINE_NT:
+                elif self.args.type == self.PIPELINE_NT:
                     logging.debug("Running nucleotide pipeline")
                     search_time, (result, complement_information)  = self.h.nt_db_search(
                         self.gmf,

@@ -1,11 +1,8 @@
 import os
 import shutil
 import logging
-from graftm.graftm_package import GraftMPackage
 import inspect
-
-PIPELINE_AA = "P"
-PIPELINE_NT = "D"
+from graftm.graftm_package import GraftMPackage
 
 class InvalidFileExtensionError(Exception):
     pass
@@ -17,6 +14,12 @@ class HouseKeeping:
     ### Functions for setting up the graftM pipeline to run correctly, and
     ### general housekeeping things like adding and removing directories and
     ### files.
+
+    HMMSEARCH_AND_DIAMOND_SEARCH_METHOD = 'hmmsearch+diamond'
+    
+    DIAMOND_SEARCH_METHOD   = 'diamond'
+    HMMSEARCH_SEARCH_METHOD = 'hmmsearch'
+
 
     def file_basename(self, file):
         '''
@@ -169,16 +172,16 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
                     setattr(args, 'reference_package', gpkg.reference_package_path())
 
         elif hasattr(args, 'search_diamond_files'):
-            if args.search_method == 'diamond':
+            if args.search_method == self.DIAMOND_SEARCH_METHOD:
                 if hasattr(args, 'aln_hmm_file'):
                     pass
                 else:
                     raise Exception("aln_hmm_file not specified")
             else:
-                raise Exception("Specified HMM databases when not using the diamond search pipeline. Using: %s" % (args.search_method))
+                raise Exception("Specified DIAMOND databases when not using the diamond search pipeline. Using: %s" % (args.search_method))
 
         elif hasattr(args, 'search_hmm_files'):
-            if args.search_method == 'hmmsearch':
+            if args.search_method == self.HMMSEARCH_SEARCH_METHOD:
                 if not hasattr(args, 'aln_hmm_file'):
                     if len(args.search_hmm_files) == 1:
                         if not args.search_only:
@@ -190,7 +193,7 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
                 raise Exception("Specified HMM search_hmm_files when not using the hmmsearch pipeline. Using: %s" % (args.search_method))
 
         elif hasattr(args, 'search_hmm_list_file'):
-            if args.search_method == 'hmmsearch':
+            if args.search_method == self.HMMSEARCH_SEARCH_METHOD:
                 setattr(args, 'search_hmm_files', [x.rstrip() for x in open(args.search_hmm_list_file).readlines()])
                 if not hasattr(args, 'aln_hmm_file'):
                     if not args.search_only:
@@ -201,8 +204,8 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
         else:
             if args.search_only:
                 if args.search_diamond_file:
-                    args.search_method = 'diamond'
+                    args.search_method = self.DIAMOND_SEARCH_METHOD
                     args.search_hmm_files = None
             else:
-                raise Exception('No refpkg or HMM specified: Do not know what to search with.')
+                raise Exception('No gpkg, HMM, or DIAMOND database was specified, so there is no reference database to search with.')
 

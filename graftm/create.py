@@ -618,14 +618,18 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
             for s in insufficiently_aligned_sequences:
                 logging.warn("Insufficient alignment of %s, not including this sequence" % s)
 
-            _, sequences2 = tempfile.mkstemp(prefix='graftm', suffix='.faa')
+            sequences2_fh = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.faa')
+            tempfiles_to_close.append(sequences2_fh)
+            sequences2 = sequences2_fh.name
             num_sequences = self._remove_sequences_from_alignment(insufficiently_aligned_sequences,
                                                                   sequences,
                                                                   sequences2)
             sequences = sequences2
 
             if alignment:
-                _, alignment2 = tempfile.mkstemp(prefix='graftm', suffix='.aln.faa')
+                alignment2_fh = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa')
+                tempfiles_to_close.append(alignment2_fh)
+                alignment2 = alignment2_fh.name
                 num_sequences = self._remove_sequences_from_alignment(insufficiently_aligned_sequences,
                                                                       alignment,
                                                                       alignment2)
@@ -697,7 +701,9 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
         for list in [x for x in [x[1:] for x in deduplicated_arrays] if x]:
             for seq in list:
                 filtered_names.append(seq.name)
-        _, sequences2 = tempfile.mkstemp(prefix='graftm', suffix='.faa')
+        sequences2_fh = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.faa')
+        tempfiles_to_close.append(sequences2_fh)
+        sequences2 = sequences2_fh.name
 
 
         # Create tree unless one was provided

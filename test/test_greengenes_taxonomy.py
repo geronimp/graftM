@@ -28,17 +28,18 @@ from StringIO import StringIO
 import tempfile
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
-from graftm.greengenes_taxonomy import GreenGenesTaxonomy, MalformedGreenGenesTaxonomyException
+from graftm.greengenes_taxonomy import GreenGenesTaxonomy,\
+    MalformedGreenGenesTaxonomyException, DuplicateTaxonomyException
 
 class Tests(unittest.TestCase):
     def test_read_hello_world(self):
         self.assertEqual({'seq1': ['bacteria','cyanobacteria']},\
-                          GreenGenesTaxonomy.read(StringIO('seq1\tbacteria; cyanobacteria')).taxonomy)        
+                          GreenGenesTaxonomy.read(StringIO('seq1\tbacteria; cyanobacteria')).taxonomy)
 
     def test_read_semicolon_no_space(self):
         self.assertEqual({'seq1': ['bacteria','cyanobacteria']},\
                           GreenGenesTaxonomy.read(StringIO('seq1\tbacteria;cyanobacteria')).taxonomy)
-        
+
     def test_raises_when_incorrect_num_fields(self):
         with self.assertRaises(MalformedGreenGenesTaxonomyException):
             GreenGenesTaxonomy.read(StringIO('seq1\tbacteria;cyanobacteria\n'\
@@ -50,38 +51,38 @@ class Tests(unittest.TestCase):
             GreenGenesTaxonomy.read(StringIO('seq1\tbacteria;cyanobacteria\n'\
                                            'seq2\t\n'
                                            )).taxonomy)
-        
+
     def test_raises_when_duplicate_names(self):
-        with self.assertRaises(MalformedGreenGenesTaxonomyException):
+        with self.assertRaises(DuplicateTaxonomyException):
             GreenGenesTaxonomy.read(StringIO('seq1\tbacteria;cyanobacteria\n'\
                                            'seq1\tbacteria;cyanobacteria\n'
                                            ))
-            
+
     def test_raises_when_missing_middle(self):
         with self.assertRaises(MalformedGreenGenesTaxonomyException):
             GreenGenesTaxonomy.read(StringIO('seq1\tbacteria;cyanobacteria\n'\
                                            'seq2\tbacteria;;cyanobacteria\n'
                                            ))
-            
+
     def test_removes_empties_at_end(self):
         self.assertEqual({'seq1': ['bacteria','cyanobacteria'], 'seq2': ['bacteria','bluebacteria']},\
             GreenGenesTaxonomy.read(StringIO('seq1\tbacteria;cyanobacteria;\n'\
                                            'seq2\tbacteria;bluebacteria;;\n'
                                            )).taxonomy)
-        
+
     def test_ignores_empty_lines(self):
         self.assertEqual({'seq1': ['bacteria','cyanobacteria'], 'seq2': ['bacteria','bluebacteria']},\
             GreenGenesTaxonomy.read(StringIO('seq1\tbacteria;cyanobacteria;\n'\
                                            'seq2\tbacteria;bluebacteria;;\n'\
                                            '\n'
                                            )).taxonomy)
-        
+
     def test_strip_identifier(self):
         self.assertEqual({'seq1': ['bacteria','cyanobacteria'], 'seq2': ['bacteria','bluebacteria']},\
             GreenGenesTaxonomy.read(StringIO('seq1 \tbacteria;cyanobacteria;\n'\
                                            'seq2\tbacteria;bluebacteria;;\n'
                                            )).taxonomy)
-            
+
     def test_input_file(self):
         with tempfile.NamedTemporaryFile(prefix='graftm_greengenes_tax_testing') as tf:
             tf.write('seq1\tbacteria;cyanobacteria')

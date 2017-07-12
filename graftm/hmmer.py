@@ -56,6 +56,8 @@ class Hmmer:
         directions : dict
             dictionary containing read names as keys, and complement
             as the entry (True=Forward, False=Reverse)
+        pipeline: str
+            either PIPELINE_AA = "P" or PIPELINE_NT = "D"
         forward_reads_output_fh: str
             Where to write aligned forward reads
         reverse_reads_output_fh: str

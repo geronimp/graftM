@@ -43,7 +43,8 @@ class Hmmer:
         return sequence_directions
 
 
-    def _hmmalign(self, input_path, directions, pipeline):
+    def _hmmalign(self, input_path, directions, pipeline,
+                  forward_reads_output_path, reverse_reads_output_path):
         '''
         Align reads to the aln_hmm. Receives unaligned sequences and
         aligns them.
@@ -55,14 +56,15 @@ class Hmmer:
         directions : dict
             dictionary containing read names as keys, and complement
             as the entry (True=Forward, False=Reverse)
+        forward_reads_output_fh: str
+            Where to write aligned forward reads
+        reverse_reads_output_fh: str
+            Where to write aligned reverse reads
         Returns
         -------
-        list of two strings, where each string is a path to an aligned FASTA
-        file (forward and reverse files respectively)
+        Nothing.
         '''
 
-        for_conv_file = tempfile.NamedTemporaryFile(prefix='for_conv_file', suffix='.fa').name
-        rev_conv_file = tempfile.NamedTemporaryFile(prefix='rev_conv_file', suffix='.fa').name
         if pipeline == PIPELINE_AA:
             reverse_direction_reads_present=False
         else:
@@ -101,9 +103,9 @@ class Hmmer:
                             for_aln.write(str(record.seq) + '\n')
                             # HMMalign and convert to fasta format
                     if any(forward):
-                        self.hmmalign_sequences(self.aln_hmm, for_file, for_conv_file)
+                        self.hmmalign_sequences(self.aln_hmm, for_file, forward_reads_output_path)
                     else:
-                        cmd = 'touch %s' % (for_conv_file)
+                        cmd = 'touch %s' % (forward_reads_output_path)
                         extern.run(cmd)
                     with open(rev_file, 'w') as rev_aln:
                         logging.debug("Writing reverse direction reads to %s" % rev_file)
@@ -111,13 +113,14 @@ class Hmmer:
                             if record.id and record.seq:
                                 rev_aln.write('>' + record.id + '\n')
                                 rev_aln.write(str(record.seq.reverse_complement()) + '\n')
-                    self.hmmalign_sequences(self.aln_hmm, rev_file, rev_conv_file)
-                    conv_files = [for_conv_file, rev_conv_file]
+                    self.hmmalign_sequences(self.aln_hmm, rev_file, reverse_reads_output_path)
+                    conv_files = [forward_reads_output_path, reverse_reads_output_path]
                     return conv_files
-                # If there are only forward reads, just hmmalign and be done with it.
+
                 else:
-                    self.hmmalign_sequences(self.aln_hmm, input_path, for_conv_file)
-                    conv_files = [for_conv_file]
+                    # If there are only forward reads, just hmmalign and be done with it.
+                    self.hmmalign_sequences(self.aln_hmm, input_path, forward_reads_output_path)
+                    conv_files = [forward_reads_output_path]
 
                     return conv_files
 
@@ -1134,15 +1137,17 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         '''
 
         # HMMalign the forward reads, and reverse complement reads.
-        alignments = self._hmmalign(input_path,
-                                    directions,
-                                    pipeline)
-        alignment_result = self.alignment_correcter(alignments,
-                                                    output_path,
-                                                    filter_minimum)
-        return alignment_result
-        
-
-
-
-
+        with tempfile.NamedTemporaryFile(prefix='for_conv_file', suffix='.fa') as fwd_fh:
+            fwd_conv_file = fwd_fh.name
+            with tempfile.NamedTemporaryFile(prefix='rev_conv_file', suffix='.fa') as rev_fh:
+                rev_conv_file = rev_fh.name
+                alignments = self._hmmalign(
+                    input_path,
+                    directions,
+                    pipeline,
+                    fwd_conv_file,
+                    rev_conv_file)
+                alignment_result = self.alignment_correcter(alignments,
+                                                            output_path,
+                                                            filter_minimum)
+                return alignment_result

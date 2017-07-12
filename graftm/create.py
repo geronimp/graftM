@@ -145,7 +145,7 @@ class Create:
                 return ptype
 
     def _align_sequences_to_hmm(self, hmm_file, sequences_file, output_alignment_file):
-        '''Align sequences to an HMM, and return a path to an alignment of
+        '''Align sequences to an HMM, and write an alignment of
         these proteins after cleanup so that they can be used for tree-making
 
         Parameters
@@ -162,9 +162,9 @@ class Create:
         nothing
         '''
         hmmer = Hmmer(hmm_file)
-        tempalign = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.fasta')
-        hmmer.hmmalign_sequences(hmm_file, sequences_file, tempalign.name)
-        hmmer.alignment_correcter([tempalign.name], output_alignment_file)
+        with tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.fasta') as tempalign:
+            hmmer.hmmalign_sequences(hmm_file, sequences_file, tempalign.name)
+            hmmer.alignment_correcter([tempalign.name], output_alignment_file)
 
     def _pipe_type(self, hmm):
         logging.debug("Setting pipeline type.")

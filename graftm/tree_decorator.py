@@ -19,7 +19,7 @@
 
 # Local imports
 from graftm.getaxnseq import Getaxnseq
-from graftm.greengenes_taxonomy import GreenGenesTaxonomy
+from graftm.greengenes_taxonomy import GreenGenesTaxonomy, MalformedGreenGenesTaxonomyException
 from graftm.taxonomy_cleaner import TaxonomyCleaner
 
 # System imports
@@ -31,11 +31,11 @@ import logging
 class TreeDecorator:
     '''
     A class that conservatively decorates trees with taxonomy, or any other
-    hierarchical annotation. If all tips descending from a node within the 
-    provided tree have consistent taxonomy, it will be decorated with that 
+    hierarchical annotation. If all tips descending from a node within the
+    provided tree have consistent taxonomy, it will be decorated with that
     taxonomy (or annotation of any type).
     '''
-    
+
     def __init__(self, tree, taxonomy, seqinfo=None):
         '''
         Parameters
@@ -44,19 +44,19 @@ class TreeDecorator:
 
             dendropy.Tree object
         taxonomy    : string
-            Path to a file containing taxonomy information about the tree, 
+            Path to a file containing taxonomy information about the tree,
             either in Greengenes or taxtastic format (seqinfo file must also
             be provided if taxonomy is in taxtastic format).
         seqinfo     : string
             Path to a seqinfo file. This is a .csv file with the first column
             denoting the sequence name, and the second column, its most resolved
-            taxonomic rank. 
-        '''     
+            taxonomic rank.
+        '''
 
         self.encountered_nodes = {}
         self.encountered_taxonomies = set()
         self.tree = tree
-        
+
         # Read in taxonomy
         logging.info("Reading in taxonomy")
         if seqinfo:
@@ -68,34 +68,34 @@ class TreeDecorator:
             try:
                 logging.info("Reading Greengenes style taxonomy")
                 self.taxonomy = GreenGenesTaxonomy.read_file(taxonomy).taxonomy
-            except:
+            except MalformedGreenGenesTaxonomyException:
                 raise Exception("Failed to read taxonomy as a Greengenes \
                                  formatted file. Was a taxtastic style \
                                  taxonomy provided with no seqinfo file?")
-            
+
     def _write_consensus_strings(self, output):
         '''
-        Writes the taxonomy of each leaf to a file. If the leaf has no 
-        taxonomy, a taxonomy string will be created using the annotations 
-        provided to the ancestor nodes of that leaf (meaning, it will be 
+        Writes the taxonomy of each leaf to a file. If the leaf has no
+        taxonomy, a taxonomy string will be created using the annotations
+        provided to the ancestor nodes of that leaf (meaning, it will be
         decorated).
-        
+
         Parameters
         ----------
         output    : string
-            File to which the taxonomy strings for each leaf in the tree will 
+            File to which the taxonomy strings for each leaf in the tree will
             be written in Greengenes format, e.g.
                 637960147    mcrA; Euryarchaeota_mcrA; Methanomicrobia
                 637699780    mcrA; Euryarchaeota_mcrA; Methanomicrobia
         '''
 
         logging.info("Writing decorated taxonomy to file: %s" % (output))
-        
+
         with open(output, 'w') as out:
-            
+
             for tip in self.tree.leaf_nodes():
                 tax_name = tip.taxon.label.replace(" ", "_")
-                
+
                 if tip.taxon.label in self.taxonomy:
                     tax_string = '; '.join(self.taxonomy[tax_name])
                 else:
@@ -113,24 +113,24 @@ class TreeDecorator:
                             else:
                                 raise Exception("Malformed node name: %s" % ancestor.label)
                     tax_list = list(reversed(ancestor_list))
-                    
+
                     if len(tax_list) < 1:
                         logging.warning("No taxonomy found for species %s!" % (tax_name))
                         tax_string = "Unknown"
                     else:
                         tax_string = '; '.join(tax_list)
-                        
+
                 output_line = "%s\t%s\n" % (tax_name, tax_string)
                 out.write(output_line)
-    
+
     def _rename(self, node, name):
         '''
         Rename an internal node of the tree. If an annotation is already
-        present, append the new annotation to the end of it. If a bootstrap 
+        present, append the new annotation to the end of it. If a bootstrap
         value is present, add annotations are added after a ":" as per standard
         newick format.
-        
-        Parameters 
+
+        Parameters
         ----------
         node: dendropy.Node
             dendropy.Node object
@@ -138,7 +138,7 @@ class TreeDecorator:
             Annotation to rename the node with.
         '''
         if node.label:
-            try: 
+            try:
                 float(node.label)
                 new_label = "%s:%s" % (node.label,
                                        name)
@@ -153,11 +153,11 @@ class TreeDecorator:
     def decorate(self, output_tree, output_tax, unique_names):
         '''
         Decorate a tree with taxonomy. This code does not allow inconsistent
-        taxonomy within a clade. If one sequence in a clade has a different 
-        annotation to the rest, it will split the clade. Paraphyletic group 
+        taxonomy within a clade. If one sequence in a clade has a different
+        annotation to the rest, it will split the clade. Paraphyletic group
         names are distinguished if unique_names = True using a simple tally of
         each group (see unique_names below).
-        
+
         Parameters
         ----------
         output_tree        : string
@@ -168,14 +168,14 @@ class TreeDecorator:
         unique_names       : boolean
             True indicating that a unique number will be appended to the end of
             a taxonomic rank if it is found more than once in the tree
-            (i.e. it is paraphyletic in the tree). If false, multiple clades 
+            (i.e. it is paraphyletic in the tree). If false, multiple clades
             may be assigned with the same name.
         '''
         logging.info("Decorating tree")
         encountered_taxonomies = {}
         tc = TaxonomyCleaner()
         for node in self.tree.preorder_internal_node_iter(exclude_seed_node=True):
-            
+
             max_tax_string_length = 0
             for tip in node.leaf_nodes():
                 tip_label=tip.taxon.label.replace(' ', '_')
@@ -184,24 +184,24 @@ class TreeDecorator:
                         = len(self.taxonomy[tip.taxon.label.replace(' ', '_')])
                     if tax_string_length > max_tax_string_length:
                         max_tax_string_length = tax_string_length
-            
+
             logging.debug("Number of ranks found for node: %i" % max_tax_string_length)
             tax_string_array = []
             for rank in range(max_tax_string_length):
-                
+
                 rank_tax = []
                 for tip in node.leaf_nodes():
-                    
+
                     tip_label = tip.taxon.label.replace(' ', '_')
                     if tip_label in self.taxonomy:
-                        
+
                         tip_tax = self.taxonomy[tip_label]
                         if len(tip_tax) > rank:
                             tip_rank = tip_tax[rank]
                             if tip_rank not in rank_tax:
-                                rank_tax.append(tip_rank)         
-                consistent_taxonomy = len(rank_tax) == 1 
-                
+                                rank_tax.append(tip_rank)
+                consistent_taxonomy = len(rank_tax) == 1
+
                 if consistent_taxonomy:
                     tax=rank_tax.pop()
                     logging.debug("Consistent taxonomy found for node: %s" \
@@ -230,10 +230,8 @@ class TreeDecorator:
         logging.info("Writing decorated tree to file: %s" % output_tree)
         if output_tree:
             self.tree.write(path=output_tree, schema="newick")
-        if output_tax:  
+        if output_tax:
             self._write_consensus_strings(output_tax)
 
 ################################################################################
 ################################################################################
-        
-        

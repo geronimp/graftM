@@ -37,6 +37,7 @@ sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.
 
 import graftm
 from graftm.run import Run
+from graftm.housekeeping import HouseKeeping
 from graftm.archive import ArchiveDefaultOptions
 
 class CustomHelpFormatter(argparse.HelpFormatter):
@@ -165,7 +166,7 @@ Using an assembly to create a "expand_search" database:
     searching_options.add_argument('--euk_check', action="store_true", help='Cross check identified reads using an 18S specific HMM to help filter out eukaryotic ribosomal reads', default=False)
     searching_options.add_argument('--search_method',
                                    choices=('hmmsearch','diamond',
-                                            Run.HMMSEARCH_AND_DIAMOND_SEARCH_METHOD),
+                                            HouseKeeping.HMMSEARCH_AND_DIAMOND_SEARCH_METHOD),
                                    help='Search method (default=hmmsearch)',
                                    default='hmmsearch')
     searching_options.add_argument('--decoy_database', help='Path to a diamond database. Sequences with better hits to these proteins will be excluded.')

@@ -202,7 +202,7 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
             if args.search_only:
                 if args.search_diamond_file:
                     args.search_method = 'diamond'
-                    args.search_hmm_files = [None]
+                    args.search_hmm_files = None
             else:
                 raise Exception('No refpkg or HMM specified: Do not know what to search with.')
 

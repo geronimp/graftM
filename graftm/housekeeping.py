@@ -199,5 +199,10 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
                 raise Exception("Specified HMM search_hmm_files when not using the hmmsearch pipeline. Using: %s" % (args.search_method))
 
         else:
-            raise Exception('No refpkg or HMM specified: Do not know what to search with.')
+            if args.search_only:
+                if args.search_diamond_file:
+                    args.search_method = 'diamond'
+                    args.search_hmm_files = [None]
+            else:
+                raise Exception('No refpkg or HMM specified: Do not know what to search with.')
 

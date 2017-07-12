@@ -173,7 +173,7 @@ Using an assembly to create a "expand_search" database:
     searching_options.add_argument('--expand_search_contigs', nargs='+', help='Provide an assembly of the sample being searched. This assembly will initially be searched for full length genes, from which a sample specific HMM model will be created and used in the search step of graftM.')
     searching_options.add_argument('--search_hmm_files', nargs='+', help='Specify a list of paths to custom HMM(s) to search the data with.', default=argparse.SUPPRESS)
     searching_options.add_argument('--search_hmm_list_file', metavar='Specify a file containing a list of paths to custom HMM(s) to search the data with (one per line).', default=argparse.SUPPRESS)
-    searching_options.add_argument('--search_diamond_file', nargs=1, help='Specify a DIAMOND database with which to search/classify the reads.', default=None)
+    searching_options.add_argument('--search_diamond_file', help='Specify a DIAMOND database with which to search/classify the reads.', default=None)
     searching_options.add_argument('--aln_hmm_file', help='Reads will be aligned to this HMM after identification. N.B. This option can only be used if no placement is required.', default=argparse.SUPPRESS)
     placement_options = graft_parser.add_argument_group('taxonomic assignment options')
     placement_options.add_argument('--assignment_method', help='Taxonomic assignment method, either pplacer (phylogenetic) or DIAMOND (pairwise). default = pplacer', default=Run.PPLACER_TAXONOMIC_ASSIGNMENT, choices=(Run.PPLACER_TAXONOMIC_ASSIGNMENT,Run.DIAMOND_TAXONOMIC_ASSIGNMENT))

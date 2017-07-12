@@ -35,7 +35,7 @@ class Create:
     def __init__(self, commands):
         '''
         Class for managing the creation of GraftM packages.
-        
+
         Parameters
         ----------
         commands: ExternalProgramSuite object
@@ -127,22 +127,22 @@ class Create:
         '''
         logging.info("Building HMM from alignment")
 
-        sto = tempfile.NamedTemporaryFile(suffix='.sto',prefix='graftm')
-        tempaln = tempfile.NamedTemporaryFile(suffix='.fasta',prefix='graftm')
-        cmd = "hmmbuild -O %s '%s' '%s'" % (sto.name,
-                                              hmm_filename,
-                                              alignment)
-        out = extern.run(cmd)
-        logging.debug("Got STDOUT from hmmbuild: %s" % out)
+        with tempfile.NamedTemporaryFile(suffix='.sto',prefix='graftm') as sto:
+            with tempfile.NamedTemporaryFile(suffix='.fasta',prefix='graftm') as tempaln:
+                cmd = "hmmbuild -O %s '%s' '%s'" % (sto.name,
+                                                      hmm_filename,
+                                                      alignment)
+                out = extern.run(cmd)
+                logging.debug("Got STDOUT from hmmbuild: %s" % out)
 
-        cmd = "seqmagick convert --input-format stockholm %s %s" % (sto.name,
-                                                              tempaln.name)
-        out = extern.run(cmd)
-        logging.debug("Got STDOUT from seqmagick: %s" % out)
-        ptype, _ = self._pipe_type(hmm_filename)
-        Hmmer(hmm_filename).alignment_correcter([tempaln.name],
-                                                output_alignment_filename)
-        return ptype
+                cmd = "seqmagick convert --input-format stockholm %s %s" %\
+                      (sto.name, tempaln.name)
+                out = extern.run(cmd)
+                logging.debug("Got STDOUT from seqmagick: %s" % out)
+                ptype, _ = self._pipe_type(hmm_filename)
+                Hmmer(hmm_filename).alignment_correcter([tempaln.name],
+                                                        output_alignment_filename)
+                return ptype
 
     def _align_sequences_to_hmm(self, hmm_file, sequences_file, output_alignment_file):
         '''Align sequences to an HMM, and return a path to an alignment of
@@ -193,14 +193,14 @@ class Create:
         tre_file = base + ".tre"
         if ptype == Create._NUCLEOTIDE_PACKAGE_TYPE: # If it's a nucleotide sequence
             cmd = "%s -quiet -gtr -nt -log %s -out %s %s" % (fasttree,
-                                                             log_file, 
-                                                             tre_file, 
+                                                             log_file,
+                                                             tre_file,
                                                              alignment)
             extern.run(cmd)
         else: # Or if its an amino acid sequence
             cmd = "%s -quiet -log %s -out %s %s" % (fasttree,
-                                                    log_file, 
-                                                    tre_file, 
+                                                    log_file,
+                                                    tre_file,
                                                     alignment)
             extern.run(cmd)
 
@@ -215,9 +215,9 @@ class Create:
         if no_reroot:
             cmd += ' --no-reroot'
             logging.debug("Calling command assuming pre-rerooting: %s" % cmd)
-            
+
             extern.run(cmd)
-            
+
         else:
             logging.debug("Calling command: %s" % cmd)
             logging.info("Attempting to run taxit create with rerooting capabilities")
@@ -256,8 +256,8 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
        )
                               )
                 exit(2)
-                
-                
+
+
             try:
                 process = subprocess32.Popen(['bash','-c',cmd],
                                            stdout=subprocess32.PIPE,
@@ -385,7 +385,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
                            taxon == "" or \
                            prefix_re.match(taxon):
                             pass
-                        
+
                         elif taxon in seen_taxons:
                             logging.debug("Sequence %s redundant at %i rank in the taxonomy file level: %s" % (sequence_id, dereplication_level, taxon) )
                             dereplicated_sequence_ids.append(sequence_id)
@@ -438,19 +438,19 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
                                                  output_align_hmm,
                                                  output_alignment)
         return ptype, output_alignment
-    
+
     def _mask_strange_sequence_letters(self, sequences, package_type):
         '''Replace strange characters like selenocysteine (U) with X or N for
-        protein and nucleotide sequences, respectively. Sequences are 
+        protein and nucleotide sequences, respectively. Sequences are
         modified in place.
-        
+
         Parameters
         ----------
         aligned_sequences: array of Sequence objects
             sequences to mask
         package_type: _PROTEIN_PACKAGE_TYPE or _NUCLEOTIDE_PACKAGE_TYPE
             type of sequences these are
-        
+
         Returns
         -------
         None
@@ -461,7 +461,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         elif package_type == Create._NUCLEOTIDE_PACKAGE_TYPE:
             search_re = re.compile(r'([^ATGC\-N])',re.IGNORECASE)
             replace_char = 'N'
-        
+
         for s in sequences:
             if package_type == Create._NUCLEOTIDE_PACKAGE_TYPE:
                 s.seq = s.seq.replace('U','T')
@@ -505,7 +505,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         ----------
         package_path: str
             path to graftm_package to be tested
-        ''' 
+        '''
         pkg = GraftMPackage.acquire(package_path)
         temp_output = tempdir.TempDir()
         graftM_graft_test_dir_name = temp_output.name
@@ -658,7 +658,7 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
                 logging.error("Unable to find sequence '%s' in the taxonomy definition" % s)
             raise Exception("All sequences must be assigned a taxonomy, cannot continue")
 
-            
+
         logging.debug("Looking for non-standard characters in aligned sequences")
         self._mask_strange_sequence_letters(aligned_sequence_objects, ptype)
 
@@ -690,8 +690,8 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
         if not rerooted_tree and not rerooted_annotated_tree and not unrooted_tree:
             logging.debug("No tree provided")
             logging.info("Building tree")
-            log_file, tre_file = self._build_tree(deduplicated_alignment_file, 
-                                                  base, ptype, 
+            log_file, tre_file = self._build_tree(deduplicated_alignment_file,
+                                                  base, ptype,
                                                   self.fasttree)
             no_reroot = False
         else:
@@ -801,10 +801,10 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
 
         # Compile the gpkg
         logging.info("Compiling gpkg")
-        
+
         GraftMPackageVersion3.compile(output_gpkg_path, refpkg, align_hmm, diamondb,
                                       max_range, sequences, search_hmm_files=search_hmm_files)
-        
+
         logging.info("Cleaning up")
         self._cleanup(self.the_trash)
 
@@ -815,12 +815,5 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
         # sane defaults.
         logging.info("Testing gpkg package works")
         self._test_package(output_gpkg_path)
-        
+
         logging.info("Finished\n")
-
-
-
-
-
-
-

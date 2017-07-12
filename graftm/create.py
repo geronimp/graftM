@@ -588,8 +588,15 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         dup = self._check_for_duplicate_sequence_names(sequences)
         if dup:
             raise Exception("Found duplicate sequence name '%s' in sequences input file" % dup)
-        output_alignment = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa').name
-        align_hmm = (user_hmm if user_hmm else tempfile.NamedTemporaryFile(prefix='graftm', suffix='_align.hmm').name)
+        output_alignment_fh = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.faa')
+        tempfiles_to_close.append(output_alignment_fh)
+        output_alignment = output_alignment_fh.name
+        if user_hmm:
+            align_hmm = user_hmm
+        else:
+            align_hmm_fh = tempfile.NamedTemporaryFile(prefix='graftm', suffix='_align.hmm')
+            tempfiles_to_close.append(align_hmm_fh)
+            align_hmm = align_hmm_fh.name
 
         if alignment:
             dup = self._check_for_duplicate_sequence_names(alignment)

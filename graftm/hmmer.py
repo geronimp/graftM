@@ -61,8 +61,6 @@ class Hmmer:
         file (forward and reverse files respectively)
         '''
 
-        for_file      = tempfile.NamedTemporaryFile(prefix='for_file', suffix='.fa').name
-        rev_file      = tempfile.NamedTemporaryFile(prefix='rev_file', suffix='.fa').name
         for_conv_file = tempfile.NamedTemporaryFile(prefix='for_conv_file', suffix='.fa').name
         rev_conv_file = tempfile.NamedTemporaryFile(prefix='rev_conv_file', suffix='.fa').name
         if pipeline == PIPELINE_AA:
@@ -70,54 +68,58 @@ class Hmmer:
         else:
             reverse_direction_reads_present=False in directions.values()
 
-        # Align input reads to a specified hmm.
-        if reverse_direction_reads_present:  # Any that are in the reverse direction would be True
-            reverse = []
-            forward = []
-            records = list(SeqIO.parse(open(input_path), 'fasta'))
+        with tempfile.NamedTemporaryFile(prefix='for_file', suffix='.fa') as for_file_fh:
+            for_file = for_file_fh.name
+            with tempfile.NamedTemporaryFile(prefix='rev_file', suffix='.fa') as rev_file_fh:
+                rev_file = rev_file_fh.name
+                # Align input reads to a specified hmm.
+                if reverse_direction_reads_present:  # Any that are in the reverse direction would be True
+                    reverse = []
+                    forward = []
+                    records = list(SeqIO.parse(open(input_path), 'fasta'))
 
-            # Split the reads into reverse and forward lists
-            for record in records:
-                read_id = record.id
+                    # Split the reads into reverse and forward lists
+                    for record in records:
+                        read_id = record.id
 
-                if directions[read_id] == True:
-                    forward.append(record)
-                elif directions[read_id] == False:
-                    reverse.append(record)
+                        if directions[read_id] == True:
+                            forward.append(record)
+                        elif directions[read_id] == False:
+                            reverse.append(record)
+                        else:
+                            raise Exception(logging.error('Programming error: hmmalign'))
+                            exit(1)
+
+                    logging.debug("Found %i forward direction reads" % len(forward))
+                    logging.debug("Found %i reverse direction reads" % len(reverse))
+
+                    # Write reverse complement and forward reads to files
+                    with open(for_file, 'w') as for_aln:
+                        logging.debug("Writing forward direction reads to %s" % for_file)
+                        for record in forward:
+                            for_aln.write('>' + record.id + '\n')
+                            for_aln.write(str(record.seq) + '\n')
+                            # HMMalign and convert to fasta format
+                    if any(forward):
+                        self.hmmalign_sequences(self.aln_hmm, for_file, for_conv_file)
+                    else:
+                        cmd = 'touch %s' % (for_conv_file)
+                        extern.run(cmd)
+                    with open(rev_file, 'w') as rev_aln:
+                        logging.debug("Writing reverse direction reads to %s" % rev_file)
+                        for record in reverse:
+                            if record.id and record.seq:
+                                rev_aln.write('>' + record.id + '\n')
+                                rev_aln.write(str(record.seq.reverse_complement()) + '\n')
+                    self.hmmalign_sequences(self.aln_hmm, rev_file, rev_conv_file)
+                    conv_files = [for_conv_file, rev_conv_file]
+                    return conv_files
+                # If there are only forward reads, just hmmalign and be done with it.
                 else:
-                    raise Exception(logging.error('Programming error: hmmalign'))
-                    exit(1)
+                    self.hmmalign_sequences(self.aln_hmm, input_path, for_conv_file)
+                    conv_files = [for_conv_file]
 
-            logging.debug("Found %i forward direction reads" % len(forward))
-            logging.debug("Found %i reverse direction reads" % len(reverse))
-
-            # Write reverse complement and forward reads to files
-            with open(for_file, 'w') as for_aln:
-                logging.debug("Writing forward direction reads to %s" % for_file)
-                for record in forward:
-                    for_aln.write('>' + record.id + '\n')
-                    for_aln.write(str(record.seq) + '\n')
-                    # HMMalign and convert to fasta format
-            if any(forward):
-                self.hmmalign_sequences(self.aln_hmm, for_file, for_conv_file)
-            else:
-                cmd = 'touch %s' % (for_conv_file)
-                extern.run(cmd)
-            with open(rev_file, 'w') as rev_aln:
-                logging.debug("Writing reverse direction reads to %s" % rev_file)
-                for record in reverse:
-                    if record.id and record.seq:
-                        rev_aln.write('>' + record.id + '\n')
-                        rev_aln.write(str(record.seq.reverse_complement()) + '\n')
-            self.hmmalign_sequences(self.aln_hmm, rev_file, rev_conv_file)
-            conv_files = [for_conv_file, rev_conv_file]
-            return conv_files
-        # If there are only forward reads, just hmmalign and be done with it.
-        else:
-            self.hmmalign_sequences(self.aln_hmm, input_path, for_conv_file)
-            conv_files = [for_conv_file]
-
-            return conv_files
+                    return conv_files
 
     def hmmalign_sequences(self, hmm, sequences, output_file):
         '''Run hmmalign and convert output to aligned fasta format

@@ -71,8 +71,9 @@ class Run:
             self.hk.set_attributes(self.args)
             self.hk.set_euk_hmm(self.args)
             if args.euk_check:self.args.search_hmm_files.append(self.args.euk_hmm_file)
-            self.h = Hmmer(self.args.search_hmm_files, 
-                           (None if self.args.search_only else self.args.aln_hmm_file))
+            if not(args.search_only and args.search_method == Run.DIAMOND_SEARCH_METHOD):
+                self.h = Hmmer(self.args.search_hmm_files, 
+                               (None if self.args.search_only else self.args.aln_hmm_file))
             self.sequence_pair_list = self.hk.parameter_checks(args)
             if hasattr(args, 'reference_package'):
                 self.p = Pplacer(self.args.reference_package)

@@ -1394,5 +1394,62 @@ FADPHLVFDFREPKMCIAKATLRQFMPAGERDPTLPPH
                     self.assertEqual(128, e.returncode)
                     raise e
 
+    def test_protein_input_for_pplacer(self):
+        testing_read = '''>Methanoflorens_stordalmirensis_v4.3.2_01362 Methyl-coenzyme M reductase subunit alpha
+MATEKTQKMFLEAMKKKFAEDPTSNKTTYKREGWTQSKDKREFQEWGAKIAKDRGIPAYN
+VNVHLGGMTLGQRQLMPYNVSGTDVMCEGDDLHYVNNPAMQQMWDEIRRTVIVGLDTAHE
+TLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLAA
+EIDKPFLVDINKLFPKAQAEQLKKAIGKTLWQGVHIPTIVSRTCDGGNTSRWSAMQIGMS
+FIAAYNMCAGEAAVADLAFAAKHASLVEMANFLPARRARGPNEPGGLSFGFMADMIQTDR
+IYPEDPVKSSLEVVAAGCMLYDQIWLGSYMSGGVGFTQYATAAYTDNILDDYSYYGNDYA
+KKYGEDGKAPSTMDVVNDLGTEVTLYGIEQYEKYPTTLEDHFGGSQRATVLAAASGVTVA
+IATGNSNAGLSGWYLSMLLHKDAWGRLGFYGYDLQDQCGSTNTFSVRSDEGAPDELRGAN
+YPNYAMNVGHQGGYAGIAKAAHVGRRDAFAVSPLVKVCFADPNLWFDFAAPRKEFARGAL
+REFQPAGERTIVSPGRKF*'''
+        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+            fasta.write(testing_read)
+            fasta.flush()
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --verbosity 5  --forward %s --output_directory %s --force\
+                --assignment_method pplacer --graftm_package %s --input_sequence_type aminoacid' % (
+                    path_to_script,
+                    fasta.name,
+                    tmp,
+                    os.path.join(path_to_data,'mcrA.gpkg'))
+                extern.run(cmd)
+                expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
+                            ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales']]
+                expected = ['\t'.join(l) + '\n' for l in expected]
+                self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
+
+    @unittest.skip("known failure")
+    def test_protein_input_for_pplacer_with_gaps(self):
+        testing_read = '''>Methanoflorens_stordalmirensis_v4.3.2_01362 Methyl-coenzyme M reductase subunit alpha
+MATEKTQKMFLEAMKKKFAEDPTSNKTTYKRE---GWTQSKDKREFQEWGAKIAKDRGIPAYN
+VNVHLGGMTLGQRQLMPYNVSGTDVMCEGDDLHYVNNPAMQQMWDEIRRTVIVGLDTAHE
+TLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLAA
+EIDKPFLVDINKLFPKAQAEQL---KKAIGKTLWQGVHIPTIVSRTCDGGNTSRWSAMQIGMS
+FIAAYNMCAGEAAVADLAFAAKHASLVEMANFLPARRARGPNEPGGLSFGFMADMIQTDR
+IYPEDPVKSSLEVVAAGCMLYDQIWLGSYMSGGVGFTQYATAAYTDNILDDYSYYGNDYA
+KKYGEDGKAPSTMDVVNDLGTEVTLYGIEQYEKYPTTLEDHFGGSQRATVLAAASGVTVA
+IATGNSNAGLSGWYLSMLLHKDAWGRLGFYGYDLQDQCGSTNTFSVRSDEGAPDELRGAN
+YPNYAMNVGHQGGYAGIAKAAHVGRRDAFAVSPLVKVCFADPNLWFDFAAPRKEFARGAL
+REFQPAGERTIVSPGRKF*'''
+        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+            fasta.write(testing_read)
+            fasta.flush()
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --verbosity 5  --forward %s --output_directory %s --force\
+                --assignment_method pplacer --graftm_package %s --input_sequence_type aminoacid' % (
+                    path_to_script,
+                    fasta.name,
+                    tmp,
+                    os.path.join(path_to_data,'mcrA.gpkg'))
+                extern.run(cmd)
+                expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
+                            ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales']]
+                expected = ['\t'.join(l) + '\n' for l in expected]
+                self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
+
 if __name__ == "__main__":
     unittest.main()

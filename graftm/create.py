@@ -15,7 +15,7 @@ from dendropy import Tree
 
 from Bio import SeqIO
 
-from graftm.hmmer import Hmmer
+from graftm.sequence_searcher import SequenceSearcher
 from graftm.dendropy_tree_cleaner import DendropyTreeCleaner
 from graftm.taxonomy_extractor import TaxonomyExtractor
 from graftm.getaxnseq import Getaxnseq
@@ -45,7 +45,6 @@ class Create:
                 what is installed.
 
         '''
-        self.h=Hmmer(None, None)
         self.the_trash=[]
         self.fasttree = commands.fasttree
 
@@ -140,7 +139,7 @@ class Create:
                 out = extern.run(cmd)
                 logging.debug("Got STDOUT from seqmagick: %s" % out)
                 ptype, _ = self._pipe_type(hmm_filename)
-                Hmmer(hmm_filename).alignment_correcter([tempaln.name],
+                SequenceSearcher(hmm_filename).alignment_correcter([tempaln.name],
                                                         output_alignment_filename)
                 return ptype
 
@@ -161,10 +160,11 @@ class Create:
         -------
         nothing
         '''
-        hmmer = Hmmer(hmm_file)
+
+        ss = Hmmer(hmm_file)
         with tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.fasta') as tempalign:
-            hmmer.hmmalign_sequences(hmm_file, sequences_file, tempalign.name)
-            hmmer.alignment_correcter([tempalign.name], output_alignment_file)
+            ss.hmmalign_sequences(hmm_file, sequences_file, tempalign.name)
+            ss.alignment_correcter([tempalign.name], output_alignment_file)
 
     def _pipe_type(self, hmm):
         logging.debug("Setting pipeline type.")

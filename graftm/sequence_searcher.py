@@ -29,7 +29,7 @@ T = Timer()
 class InterleavedFileError(Exception):
     pass
 
-class Hmmer:
+class SequenceSearcher:
 
     def __init__(self, search_hmm, aln_hmm=None):
         self.search_hmm = search_hmm

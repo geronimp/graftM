@@ -3,7 +3,7 @@ import tempfile
 import shutil
 import extern
 
-from graftm.hmmer import Hmmer
+from graftm.sequence_searcher import SequenceSearcher
 from graftm.unpack_sequences import UnpackRawReads
 from graftm.sequence_io import SequenceIO
 
@@ -72,7 +72,7 @@ class ExpandSearcher:
         -------
         True if genes were recovered, else False'''
         
-        hmmer = Hmmer(self.search_hmm_files)
+        ss = SequenceSearcher(self.search_hmm_files)
         seqio = SequenceIO()
         if search_method == self.DIAMOND_SEARCH_METHOD:
             if self.diamond_database == None or self.unaligned_sequence_database == None:
@@ -92,7 +92,7 @@ class ExpandSearcher:
                                                         hmmsearch_output_table:
                         with tempfile.NamedTemporaryFile(prefix='graftm_expand_search3') as \
                                                         hit_reads_fasta:
-                            hmmer.search_and_extract_orfs_matching_protein_database(\
+                            ss.search_and_extract_orfs_matching_protein_database(\
                                     unpack,
                                     search_method,
                                     self.maximum_range,

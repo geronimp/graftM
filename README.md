@@ -35,6 +35,9 @@ git clone https://github.com/Ecogenomics/ace-guix
 GUIX_PACKAGE_PATH=ace-guix guix package --install graftm
 ```
 
+#### Conda
+Although not officially supported as an installation method, GraftM can be installed through [conda / bioconda](https://anaconda.org/bioconda/graftm).
+
 ### Manual
 A [manual](https://github.com/geronimp/graftM/wiki) is available in the form of the wiki here on GitHub.
 

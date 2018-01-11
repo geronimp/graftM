@@ -14,7 +14,7 @@ setup(name='graftm',
       keywords="",
       packages=find_packages(exclude='docs'),
       install_requires=('biopython >=1.64',
-                        'seqmagick >=0.5.0',
+                        'seqmagick >=0.5.0, <0.7.0', # Seqmagick 0.7.0 is python-3 only.
                         'subprocess32 >=3.2.6',
                         'biom-format >=2.1.4',
                         'extern >=0.0.4',

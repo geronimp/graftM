@@ -24,6 +24,7 @@ from graftm.sequence_io import SequenceIO
 from graftm.graftm_package import GraftMPackageVersion3, GraftMPackage
 from graftm.decorator import Decorator
 from graftm.greengenes_taxonomy import GreenGenesTaxonomy
+from graftm.sequence_searcher import SequenceSearcher
 
 class InsufficientGraftMPackageVersion(Exception):
     pass
@@ -161,7 +162,7 @@ class Create:
         nothing
         '''
 
-        ss = Hmmer(hmm_file)
+        ss = SequenceSearcher(hmm_file)
         with tempfile.NamedTemporaryFile(prefix='graftm', suffix='.aln.fasta') as tempalign:
             ss.hmmalign_sequences(hmm_file, sequences_file, tempalign.name)
             ss.alignment_correcter([tempalign.name], output_alignment_file)
@@ -255,6 +256,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
        #nontemp_seq_file
        )
                               )
+
                 exit(2)
 
 

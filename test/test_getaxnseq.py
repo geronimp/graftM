@@ -44,10 +44,10 @@ class Tests(unittest.TestCase):
                     ['seq2','Root'],
                     ['seq1','p__you']]])+"\n"
                 self.assertEqual(expected, open(tmp_seq.name).read())
-                expected = '\n'.join(['tax_id,parent_id,rank,tax_name,root,kingdom,phylum,class,order,family,genus,species',
-                                      'Root,Root,root,Root,Root,,,,,,,',
-                                      'k__me,Root,kingdom,k__me,Root,k__me,,,,,,',
-                                      'p__you,k__me,phylum,p__you,Root,k__me,p__you,,,,,'])+"\n"
+                expected = '\n'.join(["tax_id,parent_id,rank,tax_name,root,rank_0,rank_1",
+                                      "Root,Root,root,Root,Root,,",
+                                      "k__me,Root,rank_0,k__me,Root,k__me,",
+                                      "p__you,k__me,rank_1,p__you,Root,k__me,p__you"])+"\n"
                 self.assertEqual(expected, open(tmp_tax.name).read())
 
                 
@@ -73,22 +73,23 @@ class Tests(unittest.TestCase):
                                                              tmp_seq.name)
                 expected = "\n".join([','.join(p) for p in [['seqname','tax_id'],
                     ['seq2','Root'],
-                    ['seq1','spaghetti'],
+                    ['seq1','extra'],
                     ['seq1.5','spaghetti']]])+"\n"
                 self.assertEqual(expected, open(tmp_seq.name).read())
-                expected = '\n'.join(['tax_id,parent_id,rank,tax_name,root,kingdom,phylum,class,order,family,genus,species',
-                                      'Root,Root,root,Root,Root,,,,,,,',
-                                      'k__me,Root,kingdom,k__me,Root,k__me,,,,,,',
-                                      'p__you,k__me,phylum,p__you,Root,k__me,p__you,,,,,',
-                                      'c__came,p__you,class,c__came,Root,k__me,p__you,c__came,,,,',
-                                      'over,c__came,order,over,Root,k__me,p__you,c__came,over,,,',
-                                      'for,over,family,for,Root,k__me,p__you,c__came,over,for,,',
-                                      'great,for,genus,great,Root,k__me,p__you,c__came,over,for,great,',
-                                      'spaghetti,great,species,spaghetti,Root,k__me,p__you,c__came,over,for,great,spaghetti',
-                                      ])+"\n"
+                expected = '\n'.join(["tax_id,parent_id,rank,tax_name,root,rank_0,rank_1,rank_2,rank_3,rank_4,rank_5,rank_6,rank_7",
+                                      "Root,Root,root,Root,Root,,,,,,,,",
+                                      "k__me,Root,rank_0,k__me,Root,k__me,,,,,,,",
+                                      "p__you,k__me,rank_1,p__you,Root,k__me,p__you,,,,,,",
+                                      "c__came,p__you,rank_2,c__came,Root,k__me,p__you,c__came,,,,,",
+                                      "over,c__came,rank_3,over,Root,k__me,p__you,c__came,over,,,,",
+                                      "for,over,rank_4,for,Root,k__me,p__you,c__came,over,for,,,",
+                                      "great,for,rank_5,great,Root,k__me,p__you,c__came,over,for,great,,",
+                                      "spaghetti,great,rank_6,spaghetti,Root,k__me,p__you,c__came,over,for,great,spaghetti,",
+                                      "extra,spaghetti,rank_7,extra,Root,k__me,p__you,c__came,over,for,great,spaghetti,extra"])+"\n"
+
                 self.assertEqual(expected, open(tmp_tax.name).read())
 
-        
+
 
 if __name__ == "__main__":
     unittest.main()

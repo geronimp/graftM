@@ -1,8 +1,4 @@
-""" graftm/__init__.py """
-
-# __all__ = []
-
-#from .graftm import *
+""" enrichm/__init__.py """
 
 from .version import __version__
 

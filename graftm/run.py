@@ -307,7 +307,7 @@ class Run:
                                      new_database,
                                      self.args.search_method):
                 if self.args.search_method == self.hk.HMMSEARCH_SEARCH_METHOD:
-                    self.h.search_hmm.append(new_database)
+                    self.ss.search_hmm.append(new_database)
                 else:
                     diamond_db = new_database
              

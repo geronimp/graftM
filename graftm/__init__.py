@@ -1,4 +1,4 @@
-""" enrichm/__init__.py """
+""" graftm/__init__.py """
 
 from .version import __version__
 

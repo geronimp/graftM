@@ -5,6 +5,7 @@ import shutil
 import tempfile
 import logging
 import subprocess32
+import subprocess
 import extern
 import tempdir
 import json
@@ -14,6 +15,7 @@ import itertools
 from dendropy import Tree
 
 from Bio import SeqIO
+from StringIO import StringIO
 
 from graftm.sequence_searcher import SequenceSearcher
 from graftm.dendropy_tree_cleaner import DendropyTreeCleaner
@@ -127,22 +129,20 @@ class Create:
         '''
         logging.info("Building HMM from alignment")
 
-        with tempfile.NamedTemporaryFile(suffix='.sto',prefix='graftm') as sto:
-            with tempfile.NamedTemporaryFile(suffix='.fasta',prefix='graftm') as tempaln:
-                cmd = "hmmbuild -O %s '%s' '%s'" % (sto.name,
-                                                      hmm_filename,
-                                                      alignment)
-                out = extern.run(cmd)
-                logging.debug("Got STDOUT from hmmbuild: %s" % out)
+        with tempfile.NamedTemporaryFile(suffix='.fasta',prefix='graftm') as tempaln:
+            cmd = "hmmbuild -O /dev/stdout -o /dev/null '%s' '%s'" % (
+                hmm_filename, alignment)
+            process = subprocess.Popen(["bash", "-c", cmd],
+                               stdout=subprocess.PIPE)
+            output, error = process.communicate()
 
-                cmd = "seqmagick convert --input-format stockholm %s %s" %\
-                      (sto.name, tempaln.name)
-                out = extern.run(cmd)
-                logging.debug("Got STDOUT from seqmagick: %s" % out)
-                ptype, _ = self._pipe_type(hmm_filename)
-                SequenceSearcher(hmm_filename).alignment_correcter([tempaln.name],
-                                                        output_alignment_filename)
-                return ptype
+            SeqIO.write(SeqIO.parse(StringIO(output), 'stockholm'), tempaln, 'fasta')
+            tempaln.flush()
+
+            ptype, _ = self._pipe_type(hmm_filename)
+            SequenceSearcher(hmm_filename).alignment_correcter([tempaln.name],
+                                                    output_alignment_filename)
+            return ptype
 
     def _align_sequences_to_hmm(self, hmm_file, sequences_file, output_alignment_file):
         '''Align sequences to an HMM, and write an alignment of

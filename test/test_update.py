@@ -36,7 +36,7 @@ from graftm.external_program_suite import ExternalProgramSuite
 from graftm.update import Update
 from graftm.sequence_io import SequenceIO
 
-prerequisites = ExternalProgramSuite(['taxit', 'FastTreeMP', 'seqmagick', 'hmmalign', 'mafft'])
+prerequisites = ExternalProgramSuite(['taxit', 'FastTreeMP', 'hmmalign', 'mafft'])
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
 

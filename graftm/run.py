@@ -31,22 +31,22 @@ from biom.util import biom_open
 
 T=Timer()
 
-class UnrecognisedSuffixError(Exception): 
+class UnrecognisedSuffixError(Exception):
     pass
 
 class Run:
 
     PIPELINE_AA             = "P"
     PIPELINE_NT             = "D"
-    
+
     _MIN_VERBOSITY_FOR_ART = 3 # with 2 then, only errors are printed
 
     PPLACER_TAXONOMIC_ASSIGNMENT = 'pplacer'
     DIAMOND_TAXONOMIC_ASSIGNMENT = 'diamond'
-    
+
     MIN_ALIGNED_FILTER_FOR_NUCLEOTIDE_PACKAGES = 95
     MIN_ALIGNED_FILTER_FOR_AMINO_ACID_PACKAGES = 30
-    
+
     DEFAULT_MAX_SAMPLES_FOR_KRONA = 100
 
     NO_ORFS_EXITSTATUS = 128
@@ -56,29 +56,27 @@ class Run:
         self.setattributes(self.args)
 
     def setattributes(self, args):
-        
+
         self.hk = HouseKeeping()
         self.s = Stats_And_Summary()
         if args.subparser_name == 'graft':
-            commands = ExternalProgramSuite(['orfm', 'nhmmer', 'hmmsearch', 
-                                                 'fxtract', 'pplacer', 
-                                                 'seqmagick', 'ktImportText', 
-                                                 'diamond'])
+            commands = ExternalProgramSuite(['orfm', 'nhmmer', 'hmmsearch',
+                                             'fxtract', 'pplacer',
+                                             'ktImportText', 'diamond'])
             self.hk.set_attributes(self.args)
             self.hk.set_euk_hmm(self.args)
             if args.euk_check:self.args.search_hmm_files.append(self.args.euk_hmm_file)
 
-            self.ss = SequenceSearcher(self.args.search_hmm_files, 
+            self.ss = SequenceSearcher(self.args.search_hmm_files,
                            (None if self.args.search_only else self.args.aln_hmm_file))
             self.sequence_pair_list = self.hk.parameter_checks(args)
             if hasattr(args, 'reference_package'):
                 self.p = Pplacer(self.args.reference_package)
-        
-        
+
+
         elif self.args.subparser_name == "create":
-            commands = ExternalProgramSuite(['taxit', 'FastTreeMP', 
-                                                 'seqmagick', 'hmmalign', 
-                                                 'mafft'])
+            commands = ExternalProgramSuite(['taxit', 'FastTreeMP',
+                                             'hmmalign', 'mafft'])
             self.create = Create(commands)
 
 
@@ -197,7 +195,7 @@ class Run:
             gpkg = GraftMPackage.acquire(self.args.graftm_package)
         else:
             gpkg = None
-      
+
         REVERSE_PIPE        = (True if self.args.reverse else False)
         base_list           = []
         seqs_list           = []
@@ -208,13 +206,13 @@ class Run:
 
         if gpkg:
             maximum_range = gpkg.maximum_range()
-            
+
             if self.args.search_diamond_file:
                 self.args.search_method = self.hk.DIAMOND_SEARCH_METHOD
                 diamond_db = self.args.search_diamond_file[0]
             else:
-                diamond_db = gpkg.diamond_database_path()            
-                if self.args.search_method == self.hk.DIAMOND_SEARCH_METHOD:                    
+                diamond_db = gpkg.diamond_database_path()
+                if self.args.search_method == self.hk.DIAMOND_SEARCH_METHOD:
                     if not diamond_db:
                         logging.error("%s search method selected, but no diamond database specified. \
                         Please either provide a gpkg to the --graftm_package flag, or a diamond \
@@ -248,7 +246,7 @@ class Run:
                 logging.warn("--reverse reads specified with --assignment_method diamond. Reverse reads will be ignored.")
                 self.args.reverse = None
 
-       
+
         # If merge reads is specified, check that there are reverse reads to merge with
         if self.args.merge_reads and not hasattr(self.args, 'reverse'):
             raise Exception("Programming error")
@@ -266,14 +264,14 @@ class Run:
         else:
             hmm_type, hmm_tc = self.hk.setpipe(self.args.aln_hmm_file)
             logging.debug("HMM type: %s Trusted Cutoff: %s" % (hmm_type, hmm_tc))
-        
+
         if self.args.search_method == self.hk.HMMSEARCH_SEARCH_METHOD:
             setattr(self.args, 'type', hmm_type)
             if hmm_tc:
                 setattr(self.args, 'evalue', '--cut_tc')
         else:
             setattr(self.args, 'type', self.PIPELINE_AA)
-                        
+
         if self.args.filter_minimum is not None:
             filter_minimum = self.args.filter_minimum
         else:
@@ -281,7 +279,7 @@ class Run:
                 filter_minimum = Run.MIN_ALIGNED_FILTER_FOR_NUCLEOTIDE_PACKAGES
             else:
                 filter_minimum = Run.MIN_ALIGNED_FILTER_FOR_AMINO_ACID_PACKAGES
-            
+
         # Generate expand_search database if required
         if self.args.expand_search_contigs:
             if self.args.graftm_package:
@@ -295,13 +293,13 @@ class Run:
                 evalue = self.args.evalue,
                 min_orf_length = self.args.min_orf_length,
                 graftm_package = pkg)
-            
+
             # this is a hack, it should really use GraftMFiles but that class isn't currently flexible enough
             new_database = (os.path.join(self.args.output_directory, "expand_search.hmm") \
                             if self.args.search_method == self.hk.HMMSEARCH_SEARCH_METHOD \
                             else os.path.join(self.args.output_directory, "expand_search")
                             )
-            
+
             if boots.generate_expand_search_database_from_contigs(
                                      self.args.expand_search_contigs,
                                      new_database,
@@ -310,7 +308,7 @@ class Run:
                     self.ss.search_hmm.append(new_database)
                 else:
                     diamond_db = new_database
-             
+
         first_search_method = self.args.search_method
         if self.args.decoy_database:
             decoy_filter = DecoyFilter(Diamond(diamond_db, threads=self.args.threads),
@@ -323,7 +321,7 @@ class Run:
             first_search_method = self.hk.HMMSEARCH_SEARCH_METHOD
         else:
             doing_decoy_search = False
-                    
+
         # For each pair (or single file passed to GraftM)
         logging.debug('Working with %i file(s)' % len(self.sequence_pair_list))
         for pair in self.sequence_pair_list:
@@ -404,7 +402,7 @@ class Run:
                     logging.info('No reads found in %s' % base)
                     continue
 
-                    
+
 
                 if self.args.search_only:
                     db_search_results.append(result)
@@ -423,7 +421,7 @@ class Run:
                         # No hits remain after decoy filtering.
                         os.remove(result.hit_fasta())
                         continue
-                
+
                 if self.args.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
                     logging.info('aligning reads to reference package database')
                     hit_aligned_reads = self.gmf.aligned_fasta_output_path(base)
@@ -440,23 +438,23 @@ class Run:
                     else:
                         logging.info("No more aligned sequences to place!")
                         continue
-                
+
                 db_search_results.append(result)
                 base_list.append(base)
                 search_results.append(result.search_result)
                 hit_read_count_list.append(result.hit_count)
 
-        # Write summary table        
+        # Write summary table
         srchtw = SearchTableWriter()
         srchtw.build_search_otu_table([x.search_objects for x in db_search_results],
                                       base_list,
                                       self.gmf.search_otu_table())
-        
+
         if self.args.search_only:
             logging.info('Stopping before alignment and taxonomic assignment phase\n')
             exit(0)
-        
-        
+
+
         if self.args.merge_reads: # not run when diamond is the assignment mode- enforced by argparse grokking
             base_list=base_list[0::2]
             merged_output=[GraftMFiles(base, self.args.output_directory, False).aligned_fasta_output_path(base) \
@@ -478,10 +476,10 @@ class Run:
         self.gmf = GraftMFiles('',
                                self.args.output_directory,
                                False)
-        
+
         if self.args.assignment_method == Run.PPLACER_TAXONOMIC_ASSIGNMENT:
             clusterer=Clusterer()
-            # Classification steps        
+            # Classification steps
             seqs_list=clusterer.cluster(seqs_list, REVERSE_PIPE)
             logging.info("Placing reads into phylogenetic tree")
             taxonomic_assignment_time, assignments=self.p.place(REVERSE_PIPE,
@@ -493,7 +491,7 @@ class Run:
                                                                 gpkg.taxtastic_taxonomy_path(),
                                                                 clusterer)
             assignments = clusterer.uncluster_annotations(assignments, REVERSE_PIPE)
-            
+
         elif self.args.assignment_method == Run.DIAMOND_TAXONOMIC_ASSIGNMENT:
             logging.info("Assigning taxonomy with diamond")
             taxonomic_assignment_time, assignments = self._assign_taxonomy_with_diamond(\
@@ -503,7 +501,7 @@ class Run:
                         self.gmf)
             aln_time = 'n/a'
         else: raise Exception("Unexpected assignment method encountered: %s" % self.args.placement_method)
-        
+
         self.summarise(base_list, assignments, REVERSE_PIPE,
                        [search_time,aln_time,taxonomic_assignment_time],
                        hit_read_count_list, self.args.max_samples_for_krona)
@@ -602,11 +600,11 @@ class Run:
               --------          >>>     |  GPKG  |
               >c                        |________|
               ----------
-'''            
+'''
             if self.args.dereplication_level not in range(0,8):
                 logging.error("Invalid dereplication level selected! please enter an integer from 0 - 7")
                 exit(1)
-            
+
             else:
                 if not self.args.sequences:
                     if not self.args.alignment and not self.args.rerooted_annotated_tree \
@@ -639,7 +637,7 @@ class Run:
                                      self.args.tree])) > 1:
                     logging.error("Only 1 input tree can be specified")
                     exit(1)
-    
+
                 self.create.main(
                               dereplication_level = self.args.dereplication_level,
                               sequences = self.args.sequences,
@@ -656,9 +654,9 @@ class Run:
                               hmm = self.args.hmm,
                               search_hmm_files = self.args.search_hmm_files,
                               force = self.args.force,
-                              threads = self.args.threads                              
+                              threads = self.args.threads
                               )
-                
+
         elif self.args.subparser_name == 'update':
             logging.info("GraftM package %s specified to update with sequences in %s" % (self.args.graftm_package, self.args.sequences))
             if not self.args.output:
@@ -666,14 +664,14 @@ class Run:
                     self.args.output = self.args.graftm_package.replace(".gpkg", "-updated.gpkg")
                 else:
                     self.args.output = self.args.graftm_package + '-update.gpkg'
-                    
+
             Update(ExternalProgramSuite(
-                ['taxit', 'FastTreeMP', 'seqmagick', 'hmmalign', 'mafft'])).update(
+                ['taxit', 'FastTreeMP', 'hmmalign', 'mafft'])).update(
                     input_sequence_path=self.args.sequences,
                     input_taxonomy_path=self.args.taxonomy,
                     input_graftm_package_path=self.args.graftm_package,
                     output_graftm_package_path=self.args.output)
-        
+
         elif self.args.subparser_name == 'expand_search':
             args = self.args
             if not args.graftm_package and not args.search_hmm_files:
@@ -695,9 +693,9 @@ class Run:
                                                               args.output_hmm,
                                                               search_method=ExpandSearcher.HMM_SEARCH_METHOD)
 
-        
-        
-        
+
+
+
         elif self.args.subparser_name == 'tree':
             if self.args.graftm_package:
                 # shim in the paths from the graftm package, not overwriting
@@ -709,7 +707,7 @@ class Run:
                         self.args.input_taxtastic_seqinfo = gpkg.taxtastic_seqinfo_path()
                     if not self.args.input_taxtastic_taxonomy:
                         self.args.input_taxtastic_taxonomy = gpkg.taxtastic_taxonomy_path()
-                        
+
             if self.args.rooted_tree:
                 if self.args.unrooted_tree:
                     logging.error("Both a rooted tree and an un-rooted tree were provided, so it's unclear what you are asking GraftM to do. \
@@ -719,22 +717,22 @@ If you're unsure see graftM tree -h")
                     logging.error("Both a rooted tree and reference tree were provided, so it's unclear what you are asking GraftM to do. \
 If you're unsure see graftM tree -h")
                     exit(1)
-                    
+
                 if not self.args.decorate:
                     logging.error("It seems a rooted tree has been provided, but --decorate has not been specified so it is unclear what you are asking graftM to do.")
                     exit(1)
-                
+
                 dec = Decorator(tree_path = self.args.rooted_tree)
-            
+
             elif self.args.unrooted_tree and self.args.reference_tree:
-                logging.debug("Using provided reference tree %s to reroot %s" % (self.args.reference_tree, 
+                logging.debug("Using provided reference tree %s to reroot %s" % (self.args.reference_tree,
                                                                                  self.args.unrooted_tree))
                 dec = Decorator(reference_tree_path = self.args.reference_tree,
                                 tree_path = self.args.unrooted_tree)
             else:
                 logging.error("Some tree(s) must be provided, either a rooted tree or both an unrooted tree and a reference tree")
                 exit(1)
-                
+
             if self.args.output_taxonomy is None and self.args.output_tree is None:
                 logging.error("Either an output tree or taxonomy must be provided")
                 exit(1)
@@ -743,18 +741,18 @@ If you're unsure see graftM tree -h")
                     logging.error("Both taxtastic and greengenes taxonomy were provided, so its unclear what taxonomy you want graftM to decorate with")
                     exit(1)
                 logging.debug("Using input GreenGenes style taxonomy file")
-                dec.main(self.args.input_greengenes_taxonomy, 
-                         self.args.output_tree, self.args.output_taxonomy, 
-                         self.args.no_unique_tax, self.args.decorate, None) 
+                dec.main(self.args.input_greengenes_taxonomy,
+                         self.args.output_tree, self.args.output_taxonomy,
+                         self.args.no_unique_tax, self.args.decorate, None)
             elif self.args.input_taxtastic_seqinfo and self.args.input_taxtastic_taxonomy:
                 logging.debug("Using input taxtastic style taxonomy/seqinfo")
-                dec.main(self.args.input_taxtastic_taxonomy, self.args.output_tree, 
-                         self.args.output_taxonomy, self.args.no_unique_tax, 
+                dec.main(self.args.input_taxtastic_taxonomy, self.args.output_tree,
+                         self.args.output_taxonomy, self.args.no_unique_tax,
                          self.args.decorate, self.args.input_taxtastic_seqinfo)
             else:
                 logging.error("Either a taxtastic taxonomy or seqinfo file was provided. GraftM cannot continue without both.")
                 exit(1)
-                
+
         elif self.args.subparser_name == 'archive':
             # Back slashes in the ASCII art are escaped.
             if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART: print """
@@ -811,13 +809,9 @@ If you're unsure see graftM tree -h")
             else:
                 logging.error("Please specify whether to either create or export a GraftM package")
                 exit(1)
-                
-                    
-                
+
+
+
 
         else:
             raise Exception("Unexpected subparser name %s" % self.args.subparser_name)
-            
-            
-            
-            

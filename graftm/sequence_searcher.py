@@ -8,6 +8,7 @@ import subprocess
 
 from Bio import SeqIO
 from collections import OrderedDict
+from StringIO import StringIO
 
 from graftm.timeit import Timer
 from graftm.hmmsearcher import HmmSearcher, NhmmerSearcher
@@ -143,11 +144,12 @@ class SequenceSearcher:
         nothing
         '''
 
-        cmd = 'hmmalign --trim %s %s | seqmagick convert --input-format stockholm --output-format fasta - %s' % (hmm,
-                                                                                           sequences,
-                                                                                           output_file)
-
-        extern.run(cmd)
+        cmd = 'hmmalign --trim %s %s' % (hmm, sequences)
+        process = subprocess.Popen(["bash", "-c", cmd],
+                                   stdout=subprocess.PIPE)
+        output, error = process.communicate()
+        with open(output_file, 'w') as f:
+            SeqIO.write(SeqIO.parse(StringIO(output), 'stockholm'), f, 'fasta')
 
     def makeSequenceBinary(self, sequences, fm):
         cmd = 'makehmmerdb %s %s' % (sequences, fm)

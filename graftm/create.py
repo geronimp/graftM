@@ -130,11 +130,17 @@ class Create:
         logging.info("Building HMM from alignment")
 
         with tempfile.NamedTemporaryFile(suffix='.fasta',prefix='graftm') as tempaln:
-            cmd = "hmmbuild -O /dev/stdout -o /dev/null '%s' '%s'" % (
+            cmd = "hmmbuild -O /dev/stdout -o /dev/stderr '%s' '%s'" % (
                 hmm_filename, alignment)
             process = subprocess.Popen(["bash", "-c", cmd],
                                stdout=subprocess.PIPE)
             output, error = process.communicate()
+            logging.debug("Got STDERR from hmmbuild: %s" % error)
+            if process.returncode != 0:
+                logging.error(
+                    "hmmbuild exitstatus was non-zero, likely indicating an error of "
+                    "some description")
+                logging.error("Got STDERR from hmmbuild: %s" % error)
 
             SeqIO.write(SeqIO.parse(StringIO(output), 'stockholm'), tempaln, 'fasta')
             tempaln.flush()

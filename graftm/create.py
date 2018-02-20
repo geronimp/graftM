@@ -133,7 +133,8 @@ class Create:
             cmd = "hmmbuild -O /dev/stdout -o /dev/stderr '%s' '%s'" % (
                 hmm_filename, alignment)
             process = subprocess.Popen(["bash", "-c", cmd],
-                               stdout=subprocess.PIPE)
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE)
             output, error = process.communicate()
             logging.debug("Got STDERR from hmmbuild: %s" % error)
             if process.returncode != 0:

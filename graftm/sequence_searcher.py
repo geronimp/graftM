@@ -145,9 +145,7 @@ class SequenceSearcher:
         '''
 
         cmd = 'hmmalign --trim %s %s' % (hmm, sequences)
-        process = subprocess.Popen(["bash", "-c", cmd],
-                                   stdout=subprocess.PIPE)
-        output, error = process.communicate()
+        output = extern.run(cmd)
         with open(output_file, 'w') as f:
             SeqIO.write(SeqIO.parse(StringIO(output), 'stockholm'), f, 'fasta')
 

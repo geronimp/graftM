@@ -1,4 +1,4 @@
-import subprocess
+import extern
 from Bio import SeqIO
 from StringIO import StringIO
 
@@ -22,10 +22,7 @@ class SequenceExtractor:
         cmd = "fxtract -XH -f /dev/stdin '%s' > %s" % (
             database_fasta_file, output_file)
 
-        process = subprocess.Popen(["bash", "-c", cmd],
-                                   stdin=subprocess.PIPE,
-                                   stdout=subprocess.PIPE)
-        process.communicate('\n'.join(reads_to_extract))
+        extern.run(cmd, stdin='\n'.join(reads_to_extract))
 
     def extract_forward_and_reverse_complement(
             self, forward_reads_to_extract, reverse_reads_to_extract, database_fasta_file,
@@ -34,10 +31,7 @@ class SequenceExtractor:
         self.extract(forward_reads_to_extract, database_fasta_file, output_file)
         cmd_rev = "fxtract -XH -f /dev/stdin '%s'" % database_fasta_file
 
-        process = subprocess.Popen(["bash", "-c", cmd_rev],
-                                   stdin=subprocess.PIPE,
-                                   stdout=subprocess.PIPE)
-        output, error = process.communicate('\n'.join(reverse_reads_to_extract))
+        output = extern.run(cmd_rev, stdin='\n'.join(reverse_reads_to_extract))
 
         with open(output_file, 'a') as f:
             for record in SeqIO.parse(StringIO(output), 'fasta'):

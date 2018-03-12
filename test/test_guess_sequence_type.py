@@ -37,5 +37,10 @@ class Tests(unittest.TestCase):
         self.assertEqual('nucleotide', urr._guess_sequence_type_from_string('A'*300+'E'*999)) #only look at the first 300bp
         self.assertEqual('nucleotide', urr._guess_sequence_type_from_string('a'*10+'T'*89)) #lowercase
 
+    def test_stars(self):
+        urr = UnpackRawReads(None)
+        self.assertEqual('aminoacid', urr._guess_sequence_type_from_string('P'*10+"*"))
+
+
 if __name__ == "__main__":
     unittest.main()

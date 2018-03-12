@@ -41,7 +41,7 @@ class UnpackRawReads:
         (string) seq parameter, else 'nucleotide'. Raise Exception if a
         non-standard character is encountered'''
         # Define expected residues for each sequence type
-        aa_chars = ['P','V','L','I','M','F','Y','W','H','K','R','Q','N','E','D','S','X']
+        aa_chars = ['P','V','L','I','M','F','Y','W','H','K','R','Q','N','E','D','S','X','*']
         aas = set(itertools.chain(aa_chars, [lower(a) for a in aa_chars]))
         na_chars = ['A', 'T', 'G', 'C', 'N', 'U']
         nas = set(itertools.chain(na_chars, [lower(a) for a in na_chars]))

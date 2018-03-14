@@ -367,6 +367,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
                 if s.name not in nameset:
                     SeqIO.write(s, f, "fasta")
                     num_written += 1
+        logging.debug("After removing sequences from alignment, %i remain" % num_written)
         return num_written
 
     def _create_search_hmm(self, sequences, taxonomy_definition,
@@ -385,7 +386,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
                     dereplicated_sequence_ids = []
                     seen_taxons = set()
                     prefix_re = re.compile(r'^[a-zA-Z]__$')
-                    for sequence_id, taxonomy in taxonomy_definition.iteritems():
+                    for sequence_id, taxonomy in taxonomy_definition.items():
                         try:
                             taxon = taxonomy[dereplication_index]
                         except IndexError:

@@ -106,10 +106,17 @@ class Create:
         Nothing
         '''
         logging.debug("Aligning sequences using mafft")
-        cmd = "mafft --anysymbol --thread %s --auto '%s' > %s" % (threads,
-                                                                  input_sequences_path,
-                                                                  output_alignment_path)
-        extern.run(cmd)
+        cmd = "mafft --anysymbol --thread %s --auto /dev/stdin > %s" % (
+            threads,
+            output_alignment_path)
+        inputs = []
+        with open(input_sequences_path) as f:
+            for name,seq,_ in SequenceIO().each(f):
+                inputs.append('>%s' % name)
+                # Do not include * characters in the HMM, as this means tree
+                # insertion fails.
+                inputs.append(seq.replace('*',''))
+        extern.run(cmd, stdin="\n".join(inputs))
 
     def _get_hmm_from_alignment(self, alignment, hmm_filename, output_alignment_filename):
         '''Return a HMM file and alignment of sequences to that HMM

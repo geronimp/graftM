@@ -601,8 +601,8 @@ class Run:
               >c                        |________|
               ----------
 '''
-            if self.args.dereplication_level not in range(0,8):
-                logging.error("Invalid dereplication level selected! please enter an integer from 0 - 7")
+            if self.args.dereplication_level < 0:
+                logging.error("Invalid dereplication level selected! please enter a positive integer")
                 exit(1)
 
             else:

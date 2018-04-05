@@ -168,7 +168,7 @@ Using an assembly to create a "expand_search" database:
     searching_options.add_argument('--search_method',
                                    choices=('hmmsearch','diamond',
                                             HouseKeeping.HMMSEARCH_AND_DIAMOND_SEARCH_METHOD),
-                                   help='Search method (default=hmmsearch)',
+                                   help='Search method',
                                    default='hmmsearch')
     searching_options.add_argument('--decoy_database', help='Path to a diamond database. Sequences with better hits to these proteins will be excluded.')
     searching_options.add_argument('--maximum_range', type=int, help='Maximum range to use when searching for potentially linked reads (when searching contigs)', default=None)

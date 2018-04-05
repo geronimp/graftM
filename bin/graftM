@@ -156,7 +156,7 @@ Using an assembly to create a "expand_search" database:
     input_options.add_argument('--graftm_package', metavar='reference_package', help='Path to the gene specific GraftM package (gpkg).')
     running_options = graft_parser.add_argument_group('running options')
     running_options.add_argument('--threads', type=int, metavar='threads', help='The number of threads to be used when running hmmsearch and pplacer', default=5)
-    running_options.add_argument('--input_sequence_type', help='Specify whether the input sequence is "nucleotide" or "aminoacid" sequence data [default: guess]', choices = [UnpackRawReads.PROTEIN_SEQUENCE_TYPE, UnpackRawReads.NUCLEOTIDE_SEQUENCE_TYPE],  default=None)
+    running_options.add_argument('--input_sequence_type', help='Specify whether the input sequence is "nucleotide" or "aminoacid" sequence data (default: guess)', choices = [UnpackRawReads.PROTEIN_SEQUENCE_TYPE, UnpackRawReads.NUCLEOTIDE_SEQUENCE_TYPE],  default=None)
     running_options.add_argument('--filter_minimum', type=int, metavar='filter_minimum', help='Minimum number of positions that must be aligned for a sequence to be placed in the phylogenetic tree (default: %sbp for nucleotide packages, %s aa for protein packages)' %
                                  (Run.MIN_ALIGNED_FILTER_FOR_NUCLEOTIDE_PACKAGES, Run.MIN_ALIGNED_FILTER_FOR_AMINO_ACID_PACKAGES))
 

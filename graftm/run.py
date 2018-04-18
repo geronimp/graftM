@@ -659,6 +659,16 @@ class Run:
 
         elif self.args.subparser_name == 'update':
             logging.info("GraftM package %s specified to update with sequences in %s" % (self.args.graftm_package, self.args.sequences))
+            if self.args.regenerate_diamond_db:
+                gpkg = GraftMPackage.acquire(self.args.graftm_package)
+                logging.info("Regenerating diamond DB..")
+                gpkg.create_diamond_db()
+                logging.info("Diamond database regenerated.")
+                return
+            elif not self.args.sequences:
+                logging.error("--sequences is required unless regenerating the diamond DB")
+                exit(1)
+
             if not self.args.output:
                 if self.args.graftm_package.endswith(".gpkg"):
                     self.args.output = self.args.graftm_package.replace(".gpkg", "-updated.gpkg")

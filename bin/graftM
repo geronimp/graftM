@@ -281,8 +281,9 @@ each:
 
     update = update_parser.add_argument_group('Common options')
     update.add_argument('--graftm_package', help='GraftM package to update', required=True)
+    update.add_argument('--regenerate_diamond_db', help='Recreate the diamond DB in the package', action='store_true', default=False)
     update.add_argument('--taxonomy', metavar='TAX', help='File containing two tab separated columns, the first with the ID of the sequences, the second with the taxonomy string (required unless --rerooted_annotated_tree or --taxtastic_taxonomy and --taxtastic_seqinfo are specified)', default=None)
-    update.add_argument('--sequences', metavar='FASTA', help='Unaligned sequences (required)', required=True)
+    update.add_argument('--sequences', metavar='FASTA', help='Unaligned sequences (required unless --regenerate_diamond_db is set)')
     update.add_argument('--output', metavar='PATH', help='Name of output GraftM package')
 
     update_logging_options=update_parser.add_argument_group('Logging options')

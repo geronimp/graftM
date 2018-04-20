@@ -41,7 +41,7 @@ class Archive:
                                          gpkg.alignment_hmm_path(),
                                          gpkg.reference_package_path(),
                                          gpkg.unaligned_sequence_database_path()],
-                                        gpkg.search_hmm_paths()):
+                                        [hmm for hmm in gpkg.search_hmm_paths() if hmm != gpkg.alignment_hmm_path()]):
                 logging.debug("Compressing '%s'" % path)
                 # Put the gpkg folder itself in the archive so as not to tar bomb.
                 tar.add(path,

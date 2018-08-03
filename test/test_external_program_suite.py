@@ -73,6 +73,7 @@ class Tests(unittest.TestCase):
                                                           'fasttreeMP',
                                                           'FastTree'])
                     cmd = commands.fasttree
+                    print(cmd)
                     extern.run(cmd)
                     os.environ["PATH"] = os.environ["PATH"].replace(tmp_file,
                                                                     fasttree_original_path)

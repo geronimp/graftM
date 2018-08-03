@@ -240,7 +240,7 @@ the purposes of using graftm. The prefixes e.g. 'k__' are also not required.
 
     create = create_parser.add_argument_group('Common options')
     create.add_argument('--taxonomy', metavar='TAX', help='File containing two tab separated columns, the first with the ID of the sequences, the second with the taxonomy string (required unless --rerooted_annotated_tree or --taxtastic_taxonomy and --taxtastic_seqinfo are specified)')
-    create.add_argument('--sequences', metavar='FASTA', help='Unaligned sequences (required)')
+    create.add_argument('--sequences', metavar='FASTA', help='Unaligned sequences (required)', required=True)
     create.add_argument('--rerooted_tree', help='A tree with which to build the reference package, appropriately rooted. (default: generate tree with FastTree and attempt reroot with taxtastic)')
 
     create_lesser_options=create_parser.add_argument_group('Lesser used options')

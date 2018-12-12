@@ -169,11 +169,9 @@ Released under GPL3 - see LICENCE.txt for licencing details
 ### Citation
 GraftM has been published - please cite us at
 
-*GraftM: a tool for scalable, phylogenetically informed classification of genes within metagenomes*.
-
-Joel A Boyd Ben J Woodcroft Gene W Tyson
-
-Nucleic Acids Research, Volume 46, Issue 10, 1 June 2018, Pages e59, https://doi.org/10.1093/nar/gky174
+> **GraftM: a tool for scalable, phylogenetically informed classification of genes within metagenomes**.
+> Joel A Boyd Ben J Woodcroft Gene W Tyson
+> Nucleic Acids Research, Volume 46, Issue 10, 1 June 2018, Pages e59, https://doi.org/10.1093/nar/gky174
 
 ### License
 GraftM is licensed under the GNU GPL v3+. See LICENSE.txt for further details. GraftM makes use of 18S rRNA sequences sourced from the [SILVA database](https://www.arb-silva.de), which employs a dual licensing model. See SILVA.LICENCE.txt for further details.

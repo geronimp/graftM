@@ -51,9 +51,10 @@ class Tests(unittest.TestCase):
                                 tf.name,
                                 "hmmsearch"))
 
-            self.assertEqual("HMMER3/f [3.1b2 | February 2015]\n",
-                             subprocess.check_output("head -n1 %s" % tf.name,
-                                                     shell=True))
+            self.assertTrue(subprocess.check_output("head -n1 %s" % tf.name,
+                                        shell=True) in
+                ["HMMER3/f [3.1b2 | February 2015]\n",
+                 "HMMER3/f [3.2.1 | June 2018]\n"])
             self.assertEqual('NSEQ  2\n', open(tf.name).readlines()[10])
 
     def test_hello_world_diamond(self):
@@ -85,7 +86,7 @@ class Tests(unittest.TestCase):
                                 [contigs.name],
                                 tf.name,
                                 "hmmsearch"))
-                
+
     def test_bootstrap_executable(self):
         with tempfile.NamedTemporaryFile() as tf:
             cmd = '%s expand_search --verbosity 5 --contigs %s --output_hmm %s --search_hmm_files %s' % (path_to_script,
@@ -93,9 +94,11 @@ class Tests(unittest.TestCase):
                                                                                               tf.name,
                                                                                               os.path.join(path_to_data,'bootstrapper','DNGNGWU00001.hmm'))
             extern.run(cmd)
-            self.assertEqual("HMMER3/f [3.1b2 | February 2015]\n",
-                             subprocess.check_output("head -n1 %s" % tf.name,
-                                                     shell=True))
+            self.assertTrue(
+                subprocess.check_output("head -n1 %s" % tf.name,
+                                        shell=True) in
+                ["HMMER3/f [3.1b2 | February 2015]\n",
+                 "HMMER3/f [3.2.1 | June 2018]\n"])
             self.assertEqual('NSEQ  2\n', open(tf.name).readlines()[10])
 
 

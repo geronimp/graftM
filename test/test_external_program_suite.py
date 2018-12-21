@@ -43,9 +43,9 @@ def which(file):
 class Tests(unittest.TestCase):
 
     def test_native_external_fasttree_command(self):
-                
+
         if which("FastTree"):
-        
+
             fasttree_original_path=which("FastTree")
             fasttree_possibilities = {'FastTreeMP':'fasttreeMP',
                                       'FastTree':'fasttree'}
@@ -55,18 +55,18 @@ class Tests(unittest.TestCase):
                                       'fasttree':'FastTree'}
         else:
             self.fail("No version of fasttree is installed that graftM can recognise!")
-            
+
         if fasttree_original_path:
-            for orig, possibility in fasttree_possibilities.iteritems():    
+            for orig, possibility in fasttree_possibilities.iteritems():
                 with tempdir.TempDir() as tmp_file:
                     os.symlink(os.path.join(fasttree_original_path,
-                                            orig), 
+                                            orig),
                                os.path.join(tmp_file,
                                             possibility))
-                    
+
                     os.environ["PATH"] = os.environ["PATH"].replace(fasttree_original_path,
                                                                     tmp_file)
-                    
+
                     commands = ExternalProgramSuite(['FastTreeMP'])
                     self.assertTrue(commands.fasttree in ['FastTreeMP',
                                                           'fasttree',
@@ -74,11 +74,15 @@ class Tests(unittest.TestCase):
                                                           'FastTree'])
                     cmd = commands.fasttree
                     print(cmd)
-                    extern.run(cmd)
+                    extern.run(cmd, stdin=
+                               ">r1\nAAAAAAAAAAAAA\n"+\
+                               ">r2\nTAAAAAAAAAAAA\n"+\
+                               ">r3\nAAATAAAAAAAAA\n"+\
+                               ">r4\nAAAAAAATAAAAA\n")
                     os.environ["PATH"] = os.environ["PATH"].replace(tmp_file,
                                                                     fasttree_original_path)
-            
-        
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.ERROR)
     unittest.main()

@@ -546,8 +546,8 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                                                                                                    tmp)
                 subprocess.check_output(cmd, shell=True)
                 otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
-                lines = ("\t".join(('#ID','mcrA_1.1','ConsensusLineage')),
-                         "\t".join(('1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
+                lines = ("\t".join(('#ID',os.path.basename(empty_fasta.name[:-3]),'mcrA_1.1','ConsensusLineage')),
+                         "\t".join(('1','0','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                          )
                 count = 0
                 for line in open(otuTableFile):
@@ -1279,32 +1279,42 @@ CGGGAGGAACACCAGTGGCGAAGGCGGCTTCCTGGCCTGTTCTTGACGCTGAGGCGCGAA
                 extern.run(cmd)
                 expected = '>NS500333:6:H1124BGXX:1:23310:10768:12778\n--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GGAGGAACACCAGTGGCGAAGGCGGCTTCCTGGCCTGCTTGACGCTGAGGCGCGAA-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n'
                 self.assertEqual(expected, open(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "%s_hits.aln.fa" % os.path.basename(fasta.name)[:-3])).read())
-                
+
             with tempdir.TempDir() as tmp:
-                cmd = '%s graft --verbosity 5 --forward %s --output_directory %s --force --graftm_package %s --filter_minimum 150' % (path_to_script,
-                                                                                                                 fasta.name,
-                                                                                                                 tmp,
-                                                                                                                 os.path.join(path_to_data,'61_otus.gpkg'))
+                cmd = '%s graft --verbosity 5 --forward %s --output_directory %s --force --graftm_package %s --filter_minimum 150' % (
+                    path_to_script,
+                    fasta.name,
+                    tmp,
+                    os.path.join(path_to_data,'61_otus.gpkg'))
                 extern.run(cmd)
-                self.assertFalse(os.path.exists(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "%s_hits.aln.fa" % os.path.basename(fasta.name)[:-3])))
-                
+                aln_file = os.path.join(
+                    tmp,
+                    os.path.basename(fasta.name)[:-3],
+                    "{}_hits.aln.fa".format(os.path.basename(fasta.name)[:-3]))
+                self.assertTrue(os.path.getsize(aln_file)==0)
+
             with tempdir.TempDir() as tmp:
-                cmd = '%s graft --verbosity 5 --forward %s --output_directory %s --force --graftm_package %s --filter_minimum 56' % (path_to_script,
-                                                                                                                 fasta.name,
-                                                                                                                 tmp,
-                                                                                                                 os.path.join(path_to_data,'61_otus.gpkg'))
+                cmd = '%s graft --verbosity 5 --forward %s --output_directory %s --force --graftm_package %s --filter_minimum 56' % (
+                    path_to_script,
+                    fasta.name,
+                    tmp,
+                    os.path.join(path_to_data,'61_otus.gpkg'))
                 extern.run(cmd)
                 self.assertTrue(os.path.exists(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "%s_hits.aln.fa" % os.path.basename(fasta.name)[:-3])))
-                
-            with tempdir.TempDir() as tmp:
-                cmd = '%s graft --verbosity 5 --forward %s --output_directory %s --force --graftm_package %s --filter_minimum 57' % (path_to_script,
-                                                                                                                 fasta.name,
-                                                                                                                 tmp,
-                                                                                                                 os.path.join(path_to_data,'61_otus.gpkg'))
-                extern.run(cmd)
-                self.assertFalse(os.path.exists(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "%s_hits.aln.fa" % os.path.basename(fasta.name)[:-3])))
 
-        
+            with tempdir.TempDir() as tmp:
+                cmd = '%s graft --verbosity 5 --forward %s --output_directory %s --force --graftm_package %s --filter_minimum 57' % (
+                    path_to_script,
+                    fasta.name,
+                    tmp,
+                    os.path.join(path_to_data,'61_otus.gpkg'))
+                extern.run(cmd)
+                aln_file = os.path.join(
+                    tmp,
+                    os.path.basename(fasta.name)[:-3],
+                    "{}_hits.aln.fa".format(os.path.basename(fasta.name)[:-3]))
+                self.assertTrue(os.path.getsize(aln_file)==0)
+
     def test_max_samples_for_krona(self):
         reads_1=os.path.join(path_to_samples, "sample_16S_1.1.fa")
         reads_2=os.path.join(path_to_samples, "sample_16S_2.1.fa")
@@ -1451,6 +1461,35 @@ REFQPAGERTIVSPGRKF*'''
                             ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales']]
                 expected = ['\t'.join(l) + '\n' for l in expected]
                 self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
+
+    def test_paired_bug(self):
+        mcr_read = '''>fwd
+ATCTCCAACTAAAATATCTCCTGCAATAATCATTGCATAAGAATCCTGAGCTAAAGTAGG
+ATTTATTGTCTTTCTATGTTCTTCATGCATTAAAGC
+'''
+        other_read = '''>rev
+TGCTACTGGGGCGCTGACTATGCACAGAAGAAGTACGGCAAGTTCGGAAGCGCAAAGCCG
+ACAGTCGAGACGGTCAAAGATATCGGTACAGAGGTA
+'''
+        with tempfile.NamedTemporaryFile(suffix='.fa') as r1:
+            with tempfile.NamedTemporaryFile(suffix='.fa') as r2:
+                r1.write(mcr_read)
+                r1.flush()
+                r2.write(other_read)
+                r2.flush()
+                with tempdir.TempDir() as tmp:
+                    cmd = '{} graft --verbosity 5  --forward {} --reverse {} --output_directory {} --force\
+                    --graftm_package {}'.format(
+                        path_to_script,
+                        r1.name,
+                        r2.name,
+                        tmp,
+                        os.path.join(path_to_data,'mcrA.gpkg'))
+
+                    extern.run(cmd)
+
+
+
 
 if __name__ == "__main__":
     unittest.main()

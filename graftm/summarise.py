@@ -131,6 +131,9 @@ class Stats_And_Summary:
             counts.append(count)
             observ_metadata.append({'taxonomy': tax})
             otu_ids.append(str(otu_id))
+        if len(counts) == 0:
+            logging.info("Not writing BIOM file since no sequences were assigned taxonomy")
+            return True
         table = Table(np.array(counts),
                       otu_ids, sample_names, observ_metadata,
                       [{}]*len(sample_names), table_id='GraftM Taxonomy Count Table')

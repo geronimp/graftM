@@ -79,11 +79,15 @@ class Clusterer:
             cluster_dict = {}
 
             logging.debug('Clustering reads')
-            reads=self.seqio.read_fasta_file(input_fasta) # Read in FASTA records
-            logging.debug('Found %i reads' % len(reads)) # Report number found
-            clusters=self.clust.deduplicate(reads) # Cluster redundant sequences
-            logging.debug('Clustered to %s groups' % len(clusters)) # Report number of clusters
-            logging.debug('Writing representative sequences of each cluster to: %s' % output_path) # Report the name of the file
+            if os.path.exists(input_fasta):
+                reads=self.seqio.read_fasta_file(input_fasta) # Read in FASTA records
+                logging.debug('Found %i reads' % len(reads)) # Report number found
+                clusters=self.clust.deduplicate(reads) # Cluster redundant sequences
+                logging.debug('Clustered to %s groups' % len(clusters)) # Report number of clusters
+                logging.debug('Writing representative sequences of each cluster to: %s' % output_path) # Report the name of the file
+            else:
+                logging.debug("Found no reads to be clustered")
+                clusters = []
 
             self.seqio.write_fasta_file(
                                         [x[0] for x in clusters],

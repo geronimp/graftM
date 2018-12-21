@@ -398,9 +398,10 @@ class Run:
                         self.args.evalue
                     )
 
+                reads_detected = True
                 if not result.hit_fasta() or os.path.getsize(result.hit_fasta()) == 0:
                     logging.info('No reads found in %s' % base)
-                    continue
+                    reads_detected = False
 
 
 
@@ -410,7 +411,7 @@ class Run:
                     continue
 
                 # Filter out decoys if specified
-                if doing_decoy_search:
+                if reads_detected and doing_decoy_search:
                     with tempfile.NamedTemporaryFile(prefix="graftm_decoy", suffix='.fa') as f:
                         tmpname = f.name
                     any_remaining = decoy_filter.filter(result.hit_fasta(),
@@ -426,18 +427,18 @@ class Run:
                     logging.info('aligning reads to reference package database')
                     hit_aligned_reads = self.gmf.aligned_fasta_output_path(base)
 
-                    aln_time, aln_result = self.ss.align(
-                                                        result.hit_fasta(),
-                                                        hit_aligned_reads,
-                                                        complement_information,
-                                                        self.args.type,
-                                                        filter_minimum
-                                                        )
-                    if aln_result:
-                        seqs_list.append(hit_aligned_reads)
-                    else:
-                        logging.info("No more aligned sequences to place!")
-                        continue
+                    if reads_detected:
+                        aln_time, aln_result = self.ss.align(
+                                                            result.hit_fasta(),
+                                                            hit_aligned_reads,
+                                                            complement_information,
+                                                            self.args.type,
+                                                            filter_minimum
+                                                            )
+                    if not os.path.exists(hit_aligned_reads): # If all were filtered out, or there just was none..
+                        with open(hit_aligned_reads,'w') as f:
+                            pass # just touch the file, nothing else
+                    seqs_list.append(hit_aligned_reads)
 
                 db_search_results.append(result)
                 base_list.append(base)
@@ -456,6 +457,7 @@ class Run:
 
 
         if self.args.merge_reads: # not run when diamond is the assignment mode- enforced by argparse grokking
+            logging.debug("Running merge reads output")
             base_list=base_list[0::2]
             merged_output=[GraftMFiles(base, self.args.output_directory, False).aligned_fasta_output_path(base) \
                            for base in base_list]

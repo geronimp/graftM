@@ -256,7 +256,6 @@ class SequenceSearcher:
                     new_dict[key] = record
             return new_dict
 
-
         for idx, (forward_path, reverse_path) in enumerate(zip(forward_aln_list, reverse_aln_list)):
             output_path = outputs[idx]
             logging.info('Merging pair %s, %s' % (os.path.basename(forward_path), os.path.basename(reverse_path)))

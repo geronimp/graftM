@@ -1263,7 +1263,106 @@ TLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA-
                 
                 jplace = json.load(open(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "placements.jplace")))
                 self.assertEqual(2, len(jplace['placements']))
-        
+
+    def test_forward_reverse_jplace_names_forward_winner(self):
+        with tempdir.TempDir() as tmp:
+            cmd = '{} graft --verbosity 5 --graftm_package {} --force \
+            --forward {} --reverse {} --output_directory {}'.format(
+                path_to_script,
+                os.path.join(path_to_data,'mcrA.gpkg'),
+                os.path.join(path_to_data,'mcrA.gpkg','mcrA_1.1.fna'),
+                os.path.join(path_to_data,'random_paired.fna'),
+                tmp)
+            extern.run(cmd)
+            observed_placements = json.load(open(
+                os.path.join(tmp,'mcrA_1.1','placements.jplace')))
+            self.assertEqual([
+                {
+                    "p": [
+                        [
+                            "Methanosarcina",
+                            0.00346122332952,
+                            91,
+                            1,
+                            -5828.80309816,
+                            0.0423611754415
+                        ]
+                    ],
+                    "nm": [
+                        [
+                            "example_partial_mcra_1_1_8",
+                            1
+                        ]
+                    ]
+                }
+            ], observed_placements['placements'])
+
+    def test_forward_reverse_jplace_names_forward_equals_reverse(self):
+        with tempdir.TempDir() as tmp:
+            cmd = '{} graft --verbosity 5 --graftm_package {} --force \
+            --forward {} --reverse {} --output_directory {}'.format(
+                path_to_script,
+                os.path.join(path_to_data,'mcrA.gpkg'),
+                os.path.join(path_to_data,'mcrA.gpkg','mcrA_1.1.fna'),
+                os.path.join(path_to_data,'mcrA.gpkg','mcrA_1.2.fna'),
+                tmp)
+            extern.run(cmd)
+            observed_placements = json.load(open(
+                os.path.join(tmp,'mcrA_1.1','placements.jplace')))
+            self.assertEqual([
+                {
+                    "p": [
+                        [
+                            "Methanosarcina",
+                            0.00346122332952,
+                            91,
+                            1,
+                            -5828.80309816,
+                            0.0423611754415
+                        ]
+                    ],
+                    "nm": [
+                        [
+                            "example_partial_mcra_1_1_8",
+                            1
+                        ]
+                    ]
+                }
+            ], observed_placements['placements'])
+
+    def test_forward_reverse_jplace_names_reverse_winner(self):
+        with tempdir.TempDir() as tmp:
+            cmd = '{} graft --verbosity 5 --graftm_package {} --force \
+            --forward {} --reverse {} --output_directory {}'.format(
+                path_to_script,
+                os.path.join(path_to_data,'mcrA.gpkg'),
+                os.path.join(path_to_data,'random_paired.fna'),
+                os.path.join(path_to_data,'mcrA.gpkg','mcrA_1.1.fna'),
+                tmp)
+            extern.run(cmd)
+            observed_placements = json.load(open(
+                os.path.join(tmp,'random_paired','placements.jplace')))
+            self.assertEqual([
+                {
+                    u"p": [
+                        [
+                            u"Methanosarcina",
+                            0.00346122332952,
+                            91,
+                            1,
+                            -5828.80309816,
+                            0.0423611754415
+                        ]
+                    ],
+                    u"nm": [
+                        [
+                            u"example_partial_mcra_1_1_8",
+                            1
+                        ]
+                    ]
+                }
+            ], observed_placements['placements'])
+
     def test_filter_minimum(self):
         testing = '''>NS500333:6:H1124BGXX:1:23310:10768:12778 1:N:0:GATCAG
 CGGGAGGAACACCAGTGGCGAAGGCGGCTTCCTGGCCTGTTCTTGACGCTGAGGCGCGAA

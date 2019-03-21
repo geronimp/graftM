@@ -297,7 +297,7 @@ class SequenceSearcher:
                         out.write('>%s\n' % forward_record.id)
                         out.write('%s\n' % (forward_sequence))
                 for record_id, record in reverse_reads.iteritems():
-                    out.write('>%s\n' % record_id)
+                    out.write('>%s\n' % record.id)
                     out.write('%s\n' % (str(record.seq)))
 
     def nhmmer(self, output_path, unpack, threads, evalue):

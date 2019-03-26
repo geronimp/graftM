@@ -67,7 +67,6 @@ class SequenceSearcher:
         -------
         Nothing.
         '''
-
         if pipeline == PIPELINE_AA:
             reverse_direction_reads_present=False
         else:
@@ -590,10 +589,12 @@ deal with these, so please remove/rename sequences with duplicate keys.")
             A dataframe (list of lists) containing readname, alignment direction
             and alignment start point information
         '''
+        
         if search_method == "hmmsearch":
             # Build and run command to extract ORF sequences:
             orfm_cmd = orfm.command_line()
             cmd = 'fxtract -H -X -f /dev/stdin <(%s %s) > %s' % (orfm_cmd, input_path, output_path)
+            import IPython ; IPython.embed()
             process = subprocess.Popen(["bash", "-c", cmd],
                                        stdin=subprocess.PIPE,
                                        stdout=subprocess.PIPE)
@@ -924,7 +925,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                                        hits
                                                        )
         
-
+        
         if not hit_readnames:
             hit_read_counts = [0, len(hit_readnames)]
             result = DBSearchResult(None,
@@ -950,7 +951,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                                            SequenceSearchResult.QUERY_TO_FIELD])
                                     )
                                )
-
+            
             hit_reads_fasta = hit_reads_orfs_fasta
         slash_endings=self._check_for_slash_endings(hit_readnames)
         result = DBSearchResult(hit_reads_fasta,

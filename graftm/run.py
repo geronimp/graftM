@@ -435,6 +435,8 @@ class Run:
                                                             self.args.type,
                                                             filter_minimum
                                                             )
+                    else:
+                        aln_time = 'n/a'
                     if not os.path.exists(hit_aligned_reads): # If all were filtered out, or there just was none..
                         with open(hit_aligned_reads,'w') as f:
                             pass # just touch the file, nothing else
@@ -503,9 +505,9 @@ class Run:
                         self.gmf)
             aln_time = 'n/a'
         else: raise Exception("Unexpected assignment method encountered: %s" % self.args.placement_method)
-
+        
         self.summarise(base_list, assignments, REVERSE_PIPE,
-                       [search_time,aln_time,taxonomic_assignment_time],
+                       [search_time, aln_time, taxonomic_assignment_time],
                        hit_read_count_list, self.args.max_samples_for_krona)
 
     @T.timeit

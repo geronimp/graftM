@@ -1588,6 +1588,23 @@ ACAGTCGAGACGGTCAAAGATATCGGTACAGAGGTA
                     extern.run(cmd)
 
 
+    def test_aa_split_orf_bug(self):
+        '''When an ORF matches as a split, which is reasonably rare but does happen.'''
+        with tempdir.TempDir() as tmp:
+            cmd = '{} graft --verbosity 5  --forward {} --output_directory {} --force\
+            --graftm_package {}'.format(
+                path_to_script,
+                os.path.join(path_to_data,'aa_orf_split_bug.fna'),
+                tmp,
+                os.path.join(path_to_data, 'S1.2.ribosomal_protein_L3_rplC'))
+
+            extern.run(cmd)
+
+            self.assertEqual(
+                '''>NODE_2954_length_28206_cov_124.606657_32_5_17 [matched=8] [unmatched=1] [degenerate=0] [unbinned=0]_chopped_8300-9500
+KRWKFHAPNMGARKRHSPRRGSLAYSPRARAKSMEARIRAWPEVDEAQEPRILAHCGFKAGCVQIVSIDDRGKVPNAGKQLVSLGTVLATPPVLILGIRGYARDAARGLYAAFDVYAEDMPREMAKVVKLKNGDENALKNAEASLGRISELYAILAVSPRQAGLEQKNPYIFEGMVGGGTIAQQFEYLSGMLGKQVSISDTFEAGSSVDVAAITKGKGWQGVLKRWNVKKKQHKSRKTVREVGSLGPISPQSVMYTVPRAGQFGFHQRTEYNKRIMIVGDATAEEEQRRQEMEAQSAAAAGSKKSDGIKRRRGAGSQSAQLQQQNKGINPAGGYKHFGLVKGEYVILKGSVPGTYRRLVKLRSQVRNKPAKVSKPNILEVVV'''+"\n",
+                open(os.path.join(tmp,'aa_orf_split_bug','aa_orf_split_bug_orf.fa')).read())
+
 
 
 if __name__ == "__main__":

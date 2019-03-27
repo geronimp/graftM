@@ -30,6 +30,7 @@ import extern
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
+path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'bin', 'graftM')
 
 class Tests(unittest.TestCase):
     
@@ -53,9 +54,10 @@ CGGGGTATCTAATCCCGTTCGCTCCCCTAGCTTTCGTGCCTCAGCGTCAGAAAAGACCCAGTGAGCCGCTTTCGCCCCCG
             tf.flush()
             
             with tempdir.TempDir() as tmp:
-                cmd = "graftM graft --forward %s --graftm_package %s --output_directory %s --force" % (tf.name,
-                                                                                                       gpkg,
-                                                                                                       tmp)
+                cmd = "%s graft --forward %s --graftm_package %s --output_directory %s --force" % (path_to_script,
+                                                                                                   tf.name,
+                                                                                                   gpkg,
+                                                                                                   tmp)
                 extern.run(cmd)
                 
                 filename=os.path.splitext(os.path.basename(tf.name))[0]

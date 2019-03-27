@@ -594,7 +594,6 @@ deal with these, so please remove/rename sequences with duplicate keys.")
             # Build and run command to extract ORF sequences:
             orfm_cmd = orfm.command_line()
             cmd = 'fxtract -H -X -f /dev/stdin <(%s %s) > %s' % (orfm_cmd, input_path, output_path)
-            import IPython ; IPython.embed()
             process = subprocess.Popen(["bash", "-c", cmd],
                                        stdin=subprocess.PIPE,
                                        stdout=subprocess.PIPE)
@@ -902,18 +901,12 @@ deal with these, so please remove/rename sequences with duplicate keys.")
 
         orfm_regex = OrfM.regular_expression()
         
-        if maximum_range:
-            hits = self._get_read_names(
-                                        search_result,  # define the span of hits
-                                        maximum_range
-                                        )
-        else:   
-            hits = self._get_sequence_directions(search_result)
+        hits = self._get_sequence_directions(search_result)
     
         orf_hit_readnames = hits.keys() # Orf read hit names
         if unpack.sequence_type() == 'nucleotide':
             hits={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) else key): item for key, item in hits.iteritems()}
-            hit_readnames = hits.keys() # Store raw read hit names 
+            hit_readnames = hits.keys() # Store raw read hit names   
         else:
             hit_readnames=orf_hit_readnames
         
@@ -924,7 +917,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                                        unpack.format(),
                                                        hits
                                                        )
-        
+
         
         if not hit_readnames:
             hit_read_counts = [0, len(hit_readnames)]
@@ -938,7 +931,6 @@ deal with these, so please remove/rename sequences with duplicate keys.")
 
         if unpack.sequence_type() == 'nucleotide':
             # Extract the orfs of these reads that hit the original search
-
             self._extract_orfs(
                                hit_reads_fasta,
                                extracting_orfm,

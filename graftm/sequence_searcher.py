@@ -228,10 +228,14 @@ class SequenceSearcher:
 
         Parameters
         ----------
-        aln_list : array
-            List of the forward and reverse alignments for each of the runs
-            given to graftM. **MUST** be the following pattern:
-            [forward_run1, reverse_run1, forward_run2, reverse_run2 ...]
+        forward_aln_list : array
+            List of the forward or interleaved alignments for each of the runs
+            given to graftM. 
+        reverse_aln_list : array
+            List of the reverse alignments for each of the runs
+            given to graftM. 
+            **MUST** be the the same length as forward_aln_list or empty (if
+            interleaved)
         outputs : array
             List of paths to output file to which the merged alignments from the
             aln_list will go into. Must be exactly half the size of the aln_list
@@ -243,23 +247,42 @@ class SequenceSearcher:
         '''
 
         orfm_regex = OrfM.regular_expression()
-        def remove_orfm_end(records):
+        def remove_orfm_end(id):
+            """ remove the orfm suffix from a read id """
+            try:
+                return orfm_regex.match(id).group(1)
+            except AttributeError:
+                return id
 
-            new_dict = {}
+        def remove_orfm_ends(record_iter):
+            """ remove orfm suffix from keys in dict records """
+            return {remove_orfm_end(r.id):r for r in record_iter}
 
-            for key, record in records.iteritems():
-                orfmregex = orfm_regex.match(key)
-                if orfmregex:
-                    new_dict[orfmregex.groups(0)[0]] = record
+        def split_interleaved_reads(records):
+            """ return list of fwd records and dict of reverse """
+            fwd = []
+            rev = {}
+            for record in records:
+                id = remove_orfm_end(record.id)
+                if id.endswith('1'):
+                    fwd.append(record)
                 else:
-                    new_dict[key] = record
-            return new_dict
+                    rev[id] = record
+            return fwd, rev
+
+        if not reverse_aln_list:
+            # create dummy array for interleaved
+            reverse_aln_list = [False,]*len(forward_aln_list)
 
         for idx, (forward_path, reverse_path) in enumerate(zip(forward_aln_list, reverse_aln_list)):
             output_path = outputs[idx]
             logging.info('Merging pair %s, %s' % (os.path.basename(forward_path), os.path.basename(reverse_path)))
-            forward_reads = SeqIO.parse(forward_path, 'fasta')
-            reverse_reads = remove_orfm_end(SeqIO.to_dict(SeqIO.parse(reverse_path, 'fasta')))
+            if reverse_path:
+                forward_reads = SeqIO.parse(forward_path, 'fasta')
+                reverse_reads = remove_orfm_ends(SeqIO.parse(reverse_path, 'fasta'))
+            else:
+                forward_reads, reverse_reads = \
+                        split_interleaved_reads(SeqIO.parse(forward_path))
 
             with open(output_path, 'w') as out:
                 for forward_record in forward_reads:

@@ -465,10 +465,16 @@ class Run:
 
         if self.args.merge_reads: # not run when diamond is the assignment mode- enforced by argparse grokking
             logging.debug("Running merge reads output")
-            base_list=base_list[0::2]
+            if self.args.interleaved:
+                fwd_seqs = seqs_list
+                rev_seqs = []
+            else:
+                base_list=base_list[0::2]
+                fwd_seqs = seqs_list[0::2]
+                rev_seqs = seqs_list[1::2]
             merged_output=[GraftMFiles(base, self.args.output_directory, False).aligned_fasta_output_path(base) \
                            for base in base_list]
-            self.ss.merge_forev_aln(seqs_list[0::2], seqs_list[1::2], merged_output)
+            self.ss.merge_forev_aln(fwd_seqs, rev_seqs, merged_output)
             seqs_list=merged_output
             REVERSE_PIPE = False
 

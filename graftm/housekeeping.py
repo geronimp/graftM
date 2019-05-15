@@ -165,7 +165,7 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
         if args.no_merge_reads:
             setattr(args, 'merge_reads', False)
         else:
-            if args.reverse:
+            if args.reverse or args.interleaved:
                 setattr(args, 'merge_reads', True)
             else:
                 setattr(args, 'merge_reads', False)

@@ -121,7 +121,7 @@ class UnpackRawReads:
     def get_interleaved_cmd(self):
         """ return cmd snippet to make sure interleaved reads have unique
         names """
-        return r""" | perl -pe 'if (m/^>/) {$i++; if ($i % 2 == 1) { if (m/^(\S+)(?<![-:\/]1)(\s+\S.*)?(\s*)$/) { $_ = "$1/1$2$3" }} elsif ($i % 2 == 0) { if (m/^(\S+)(?<![-:\/]2)(\s+\S.*)?(\s*)$/) { $_ = "$1/2$2$3" }}}'"""
+        return r""" | perl -pe 'if (m/^>/) {$i++; if ($i % 2 == 1) { if (m/^(\S+)(?<!\/1)(\s+\S.*)?(\s*)$/) { $_ = "$1/1$2$3" }} elsif ($i % 2 == 0) { if (m/^(\S+)(?<!\/2)(\s+\S.*)?(\s*)$/) { $_ = "$1/2$2$3" }}}'"""
 
     def command_line(self):
         '''Return a string to open read files with'''

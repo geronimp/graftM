@@ -33,7 +33,7 @@ class UnpackRawReads:
                                '.fasta.gz': FORMAT_FASTA_GZ,
                                }
 
-    def __init__(self, read_file, known_sequence_type=None):
+    def __init__(self, read_file, known_sequence_type=None, interleaved=False):
         '''New object from a read file.
 
         read_file: str
@@ -44,8 +44,11 @@ class UnpackRawReads:
         peeking at the input sequence file.
 
         '''
+        logging.debug("Loading %s, type %s, interleaved %s", read_file,
+                      known_sequence_type, interleaved)
         self.read_file = read_file
         self.known_sequence_type = known_sequence_type
+        self.interleaved = interleaved
 
     def _guess_sequence_type_from_string(self, seq):
         '''Return 'protein' if there is >10% amino acid residues in the
@@ -115,6 +118,11 @@ class UnpackRawReads:
             if sequence_file_path.endswith(ext): return ext
         raise self.UnexpectedFileFormatException("Unable to guess file format of sequence file: %s" % sequence_file_path)
 
+    def get_interleaved_cmd(self):
+        """ return cmd snippet to make sure interleaved reads have unique
+        names """
+        return r""" | perl -pe 'if (m/^>/) {$i++; if ($i % 2 == 1) { if (m/^(\S+)(?<![-:\/]1)(\s+\S.*)?(\s*)$/) { $_ = "$1/1$2$3" }} elsif ($i % 2 == 0) { if (m/^(\S+)(?<![-:\/]2)(\s+\S.*)?(\s*)$/) { $_ = "$1/2$2$3" }}}'"""
+
     def command_line(self):
         '''Return a string to open read files with'''
         file_format=self.guess_sequence_input_file_format(self.read_file)
@@ -127,5 +135,10 @@ class UnpackRawReads:
             cmd="""zcat %s""" % (self.read_file)
         elif file_format == self.FORMAT_FASTQ:
             cmd="""awk '{print ">" substr($0,2);getline;print;getline;getline}' %s""" % (self.read_file)
+        if self.interleaved:
+            cmd+=self.get_interleaved_cmd()
         logging.debug("raw read unpacking command chunk: %s" % cmd)
         return cmd
+
+    def get_file_as_process(self):
+        return "<(%s)" % (self.command_line())

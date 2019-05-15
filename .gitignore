@@ -2,3 +2,5 @@
 .pydevproject
 virtualenv
 build
+*.pyc
+*.sw[op]

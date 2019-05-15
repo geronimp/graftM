@@ -98,9 +98,21 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
                 logging.info('Please specify a confidence level (-d) between 0.5 and 1.0! Found: %s' % args.placements_cutoff)
                 exit(1)
 
-            self._check_file_existence(args.forward)
+            if args.interleaved and args.forward:
+                logging.info('Please specify either reads with either'
+                             '--forward or --interleaved, not both')
+                exit(1)
+            if (not args.interleaved) and (not args.forward):
+                logging.info('Please specify either reads with either'
+                             '--forward or --interleaved')
+                exit(1)
+            if args.interleaved:
+                self._check_file_existence(args.interleaved)
+            if args.forward:
+                self._check_file_existence(args.forward)
             if args.reverse:
                 self._check_file_existence(args.reverse)
+
 
             # Determine the File format based on the suffix
 
@@ -110,8 +122,10 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
                     logging.error('Confusing input. There appears to be different numbers of forward and reverse files specified')
                 for i, forward_file in enumerate(args.forward):
                     sequence_file_list.append([forward_file, args.reverse[i]])
-            else:
-                sequence_file_list = [[f] for f in args.forward]
+            elif args.forward:
+                sequence_file_list = [[f, None] for f in args.forward]
+            if args.interleaved:
+                sequence_file_list.extend([[f] for f in args.interleaved])
 
             return sequence_file_list
 

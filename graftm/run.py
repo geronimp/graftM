@@ -197,6 +197,7 @@ class Run:
             gpkg = None
 
         REVERSE_PIPE        = (True if self.args.reverse else False)
+        INTERLEAVED         = (True if self.args.interleaved else False)
         base_list           = []
         seqs_list           = []
         search_results      = []
@@ -326,7 +327,9 @@ class Run:
         logging.debug('Working with %i file(s)' % len(self.sequence_pair_list))
         for pair in self.sequence_pair_list:
             # Guess the sequence file type, if not already specified to GraftM
-            unpack = UnpackRawReads(pair[0], self.args.input_sequence_type)
+            unpack = UnpackRawReads(pair[0],
+                                    self.args.input_sequence_type,
+                                    INTERLEAVED)
 
             # Set the basename, and make an entry to the summary table.
             base = unpack.basename()
@@ -340,7 +343,9 @@ class Run:
 
             # for each of the paired end read files
             for read_file in pair:
-                unpack = UnpackRawReads(read_file, self.args.input_sequence_type)
+                unpack = UnpackRawReads(read_file,
+                                        self.args.input_sequence_type,
+                                        INTERLEAVED)
                 if not os.path.isfile(read_file): # Check file exists
                     logging.info('%s does not exist! Skipping this file..' % read_file)
                     continue

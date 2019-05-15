@@ -875,7 +875,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
             # run hmmsearch
             search_result = self.hmmsearch(
                                            output_search_file,
-                                           unpack.read_file,
+                                           unpack.get_file_as_process(),
                                            unpack,
                                            unpack.sequence_type(),
                                            threads,
@@ -890,7 +890,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                      threads=threads,
                                      evalue=evalue,
                                      ).run(
-                                           unpack.read_file,
+                                           unpack.get_file_as_process(),
                                            unpack.sequence_type(),
                                            daa_file_basename=output_search_file
                                            )
@@ -913,7 +913,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         hit_reads_fasta, direction_information = self._extract_from_raw_reads(
                                                        hit_reads_fasta,
                                                        hit_readnames,
-                                                       unpack.read_file,
+                                                       unpack.get_file_as_process(),
                                                        unpack.format(),
                                                        hits
                                                        )
@@ -1082,7 +1082,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         hit_reads_fasta, direction_information = self._extract_from_raw_reads(
                                                        hit_reads_fasta,
                                                        hit_readnames,
-                                                       unpack.read_file,
+                                                       unpack.get_file_as_process(),
                                                        unpack.format(),
                                                        hits
                                                        )

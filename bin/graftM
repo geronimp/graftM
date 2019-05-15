@@ -151,8 +151,9 @@ Using an assembly to create a "expand_search" database:
 
 ''')
     input_options = graft_parser.add_argument_group('input options')
-    input_options.add_argument('--forward', nargs='+', metavar='forward_read', help='Path to the reads you wish to run through GraftM, either in fasta (.fa) or fastq (.fq), optionally gzip-compressed (.gz). If you would like to run multiple samples at once, provide a space separated list of the file paths', required=True)
+    input_options.add_argument('--forward', nargs='+', metavar='forward_read', help='Path to the reads you wish to run through GraftM, either in fasta (.fa) or fastq (.fq), optionally gzip-compressed (.gz). If you would like to run multiple samples at once, provide a space separated list of the file paths', required=False)
     input_options.add_argument('--reverse', nargs='+',metavar='reverse read', help='If you have paired end data, you may wish to provide the reverse reads. If you are running more than one dataset, please ensure that the order of the files passed to the --forward and --reverse flags is consistent.', default=None)
+    input_options.add_argument('--interleaved', nargs='+', metavar='interleaved_read', help='Path to the reads you wish to run through GraftM, either in fasta (.fa) or fastq (.fq), optionally gzip-compressed (.gz). If you would like to run multiple samples at once, provide a space separated list of the file paths', required=False)
     input_options.add_argument('--graftm_package', metavar='reference_package', help='Path to the gene specific GraftM package (gpkg).')
     running_options = graft_parser.add_argument_group('running options')
     running_options.add_argument('--threads', type=int, metavar='threads', help='The number of threads to be used when running hmmsearch and pplacer', default=5)

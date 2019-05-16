@@ -128,13 +128,13 @@ class UnpackRawReads:
         file_format=self.guess_sequence_input_file_format(self.read_file)
         logging.debug("Detected file format %s" % file_format)
         if file_format == self.FORMAT_FASTA:
-            cmd="""cat %s""" % (self.read_file)
+            cmd="""cat '%s'""" % (self.read_file)
         elif file_format == self.FORMAT_FASTQ_GZ:
-            cmd="""zcat %s | awk '{print ">" substr($0,2);getline;print;getline;getline}' -""" % (self.read_file)
+            cmd="""zcat '%s' | awk '{print ">" substr($0,2);getline;print;getline;getline}' -""" % (self.read_file)
         elif file_format == self.FORMAT_FASTA_GZ:
-            cmd="""zcat %s""" % (self.read_file)
+            cmd="""zcat '%s'""" % (self.read_file)
         elif file_format == self.FORMAT_FASTQ:
-            cmd="""awk '{print ">" substr($0,2);getline;print;getline;getline}' %s""" % (self.read_file)
+            cmd="""awk '{print ">" substr($0,2);getline;print;getline;getline}' '%s'""" % (self.read_file)
         if self.interleaved:
             cmd+=self.get_interleaved_cmd()
         logging.debug("raw read unpacking command chunk: %s" % cmd)

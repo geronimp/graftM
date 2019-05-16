@@ -1,6 +1,7 @@
 
 import extern
 import os
+import re
 import itertools
 import logging
 import tempfile
@@ -254,17 +255,25 @@ class SequenceSearcher:
             except AttributeError:
                 return id
 
-        def remove_orfm_ends(record_iter):
+        dir_regex = re.compile(r'/[12]$')
+        def trim_direction(id):
+            """ remove fwd/rev suffix if present """
+            return dir_regex.sub('',id)
+
+        def get_read_base(id):
+            return trim_direction(remove_orfm_end(id))
+
+        def get_read_bases(record_iter):
             """ remove orfm suffix from keys in dict records """
-            return {remove_orfm_end(r.id):r for r in record_iter}
+            return {get_read_base(r.id):r for r in record_iter}
 
         def split_interleaved_reads(records):
             """ return list of fwd records and dict of reverse """
             fwd = []
             rev = {}
             for record in records:
-                id = remove_orfm_end(record.id)
-                if id.endswith('1'):
+                id = get_read_base(record.id)
+                if remove_orfm_end(record.id).endswith('1'):
                     fwd.append(record)
                 else:
                     rev[id] = record
@@ -276,22 +285,29 @@ class SequenceSearcher:
 
         for idx, (forward_path, reverse_path) in enumerate(zip(forward_aln_list, reverse_aln_list)):
             output_path = outputs[idx]
-            logging.info('Merging pair %s, %s' % (os.path.basename(forward_path), os.path.basename(reverse_path)))
+            logging.info('Merging pair %s, %s' %
+                         (os.path.basename(forward_path),
+                          os.path.basename(reverse_path) \
+                          if reverse_path else None))
             if reverse_path:
                 forward_reads = SeqIO.parse(forward_path, 'fasta')
-                reverse_reads = remove_orfm_ends(SeqIO.parse(reverse_path, 'fasta'))
+                reverse_reads = get_read_bases(SeqIO.parse(reverse_path, 'fasta'))
             else:
                 forward_reads, reverse_reads = \
-                        split_interleaved_reads(SeqIO.parse(forward_path))
+                        split_interleaved_reads(SeqIO.parse(forward_path,
+                                                            'fasta'))
+                logging.debug("Loaded %d fwd (EG %s) and %d rev (EG %s)",
+                              len(forward_reads),
+                              get_read_base(next(iter(forward_reads)).id),
+                              len(reverse_reads),
+                              next(iter(reverse_reads)))
 
             with open(output_path, 'w') as out:
                 for forward_record in forward_reads:
-                    regex_match = orfm_regex.match(forward_record.id)
-                    if regex_match:
-                        id = regex_match.groups(0)[0]
-                    else:
-                        id = forward_record.id
+                    id = get_read_base(forward_record.id)
                     forward_sequence = str(forward_record.seq)
+                    logging.debug("Fwd id %s is %s in reverse dict",
+                                  id, "" if id in reverse_reads else "not")
                     try:
                         reverse_sequence = str(reverse_reads[id].seq)
                         new_seq = ''

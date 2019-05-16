@@ -3,7 +3,7 @@ import os
 class GraftMFiles:
     
     def __init__(self, old_title, outdir, direction):
-        if direction == 'forward' or direction == 'reverse':
+        if direction in ['forward', 'reverse', 'interleaved']:
             self.basename = os.path.join(direction, old_title + '_' + direction)
         elif direction == False:
             self.basename = old_title

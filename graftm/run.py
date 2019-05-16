@@ -346,12 +346,18 @@ class Run:
                 unpack = UnpackRawReads(read_file,
                                         self.args.input_sequence_type,
                                         INTERLEAVED)
+                if read_file is None:
+                    # placeholder for interleaved (second file is None)
+                    continue
+
                 if not os.path.isfile(read_file): # Check file exists
                     logging.info('%s does not exist! Skipping this file..' % read_file)
                     continue
+
                 # Set the output file_name
-                if REVERSE_PIPE:
-                    direction = pair_direction.pop(0)
+                if len(pair) == 2:
+                    direction = 'interleaved' if pair[1] is None \
+                                              else pair_direction.pop(0)
                     logging.info("Working on %s reads" % direction)
                     self.gmf = GraftMFiles(base,
                                            self.args.output_directory,
@@ -474,6 +480,7 @@ class Run:
                 rev_seqs = seqs_list[1::2]
             merged_output=[GraftMFiles(base, self.args.output_directory, False).aligned_fasta_output_path(base) \
                            for base in base_list]
+            logging.debug("merged reads to %s", merged_output)
             self.ss.merge_forev_aln(fwd_seqs, rev_seqs, merged_output)
             seqs_list=merged_output
             REVERSE_PIPE = False

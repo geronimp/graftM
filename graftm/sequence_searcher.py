@@ -13,7 +13,7 @@ from StringIO import StringIO
 
 from graftm.timeit import Timer
 from graftm.hmmsearcher import HmmSearcher, NhmmerSearcher
-from graftm.orfm import OrfM, ZcatOrfM
+from graftm.orfm import OrfM
 from graftm.diamond import Diamond
 from graftm.sequence_search_results import SequenceSearchResult, HMMSearchResult
 from graftm.readHmmTable import HMMreader
@@ -893,12 +893,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         
         '''
 
-        # Define method of opening sequence files to stdout
-        if unpack.is_zcattable():
-            clazz = ZcatOrfM
-        else:
-            clazz = OrfM
-        orfm = clazz(min_orf_length=min_orf_length,
+        orfm = OrfM(min_orf_length=min_orf_length,
                      restrict_read_length=restrict_read_length)
         extracting_orfm = OrfM(min_orf_length=min_orf_length,
                       restrict_read_length=restrict_read_length)

@@ -38,13 +38,3 @@ class OrfM:
         with the originalName, startPosition, frameNumber, orfNumber being
         the contents of the regular expression'''
         return re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
-
-class ZcatOrfM(OrfM):
-    '''Like OrfM, except separate the zcat and the orfm commands into two
-    parts of a shell pipeline'''
-    
-    def command_line(self, input_path=None):
-        if input_path is None:
-            raise Exception("input_path required for ZcatOrfM")
-        original = OrfM.command_line(self, input_path=None)
-        return "zcat '%s' | %s" % (input_path, original)

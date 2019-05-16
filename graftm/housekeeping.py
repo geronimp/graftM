@@ -98,6 +98,10 @@ following extensions: %s" % ' '.join(valid_extensions.keys()))
                 logging.info('Please specify a confidence level (-d) between 0.5 and 1.0! Found: %s' % args.placements_cutoff)
                 exit(1)
 
+            if args.interleaved and args.forward:
+                logging.info('Please specify either reads with one of'
+                             '--forward or --interleaved, not both')
+                exit(1)
             if (not args.interleaved) and (not args.forward):
                 logging.info('Please specify either reads with either'
                              '--forward or --interleaved')

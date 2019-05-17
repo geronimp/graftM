@@ -20,6 +20,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #=======================================================================
 
+import re
 import unittest
 import subprocess
 import os.path
@@ -606,7 +607,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
 
     def test_interleaved_read_run_McrA(self):
         data_for1 = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.1.fna')
-        data_for2 = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_2.1.fna')
+        data_rev1 = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.2.fna')
         with tempfile.NamedTemporaryFile(suffix='.fna') as data_int1:
             for fwd, rev in zip(SeqIO.parse(data_for1, 'fasta'),
                                 SeqIO.parse(data_rev1, 'fasta')):
@@ -623,33 +624,24 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                                                                                                                tmp)
                 subprocess.check_output(cmd, shell=True)
 
-            self.assertTrue(os.path.isdir(os.path.join(tmp, re.sub('\.fna$', '', os.path.basename(data_int1.name)), 'interleaved')))
-
 
     def test_multiple_paired_read_run_McrA(self):
         data_for1 = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.1.fna')
         data_for2 = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_2.1.fna')
         data_rev1 = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.2.fna')
         data_rev2 = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_2.2.fna')
-        with tempfile.NamedTemporaryFile(suffix='.fna') as data_int1:
-            for fwd, rev in zip(SeqIO.parse(data_for1, 'fasta'),
-                                SeqIO.parse(data_rev1, 'fasta')):
-                data_int1.write(fwd.format('fasta'))
-                data_int1.write(rev.format('fasta'))
-            data_int1.flush()
 
-            package = os.path.join(path_to_data,'mcrA.gpkg')
+        package = os.path.join(path_to_data,'mcrA.gpkg')
 
-            with tempdir.TempDir() as tmp:
-                cmd = '%s graft --verbosity 2  --forward %s %s --reverse %s %s --interleaved %s --graftm_package %s --output_directory %s --force' % (path_to_script,
-                                                                                                               data_for1,
-                                                                                                               data_for2,
-                                                                                                               data_rev1,
-                                                                                                               data_rev2,
-                                                                                                               data_int1.name,
-                                                                                                               package,
-                                                                                                               tmp)
-                subprocess.check_output(cmd, shell=True)
+        with tempdir.TempDir() as tmp:
+            cmd = '%s graft --verbosity 2  --forward %s %s --reverse %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
+                                                                                                           data_for1,
+                                                                                                           data_for2,
+                                                                                                           data_rev1,
+                                                                                                           data_rev2,
+                                                                                                           package,
+                                                                                                           tmp)
+            subprocess.check_output(cmd, shell=True)
             otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
             lines = ("\t".join(('#ID','mcrA_1.1','mcrA_2.1','ConsensusLineage')),
                      "\t".join(('1','1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
@@ -664,7 +656,6 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
             self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_1.1', 'reverse')))
             self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_2.1', 'forward'))) # Check forward and reverse reads exist.
             self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_2.1', 'reverse')))
-            self.assertTrue(os.path.isdir(os.path.join(tmp, re.sub('\.fna$', '', os.path.basename(data_int1.name)), 'interleaved')))
 
     # tests on searching amino acid sequence....
     def test_multiple_forward_read_run_McrA_aa(self):

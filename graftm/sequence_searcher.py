@@ -296,11 +296,11 @@ class SequenceSearcher:
                 forward_reads, reverse_reads = \
                         split_interleaved_reads(SeqIO.parse(forward_path,
                                                             'fasta'))
-                logging.debug("Loaded %d fwd (EG %s) and %d rev (EG %s)",
-                              len(forward_reads),
-                              get_read_base(next(iter(forward_reads)).id),
-                              len(reverse_reads),
-                              next(iter(reverse_reads)))
+                #logging.debug("Loaded %d fwd (EG %s) and %d rev (EG %s)",
+                #              len(forward_reads),
+                #              get_read_base(next(iter(forward_reads)).id),
+                #              len(reverse_reads),
+                #              next(iter(reverse_reads)))
 
             with open(output_path, 'w') as out:
                 for forward_record in forward_reads:

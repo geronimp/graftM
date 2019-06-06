@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #=======================================================================
 # Authors: Ben Woodcroft, Joel Boyd
@@ -61,18 +61,18 @@ RCPAPLVPEAIERLLRQYLATRLRDENLRAWFSRHSNDELRAHLAGE
     def test_hello_world(self):
         with tempfile.NamedTemporaryFile(prefix='graftm_decoy_test') as f1:
             with tempfile.NamedTemporaryFile(prefix='graftm_decoy_test') as f2:
-                f1.write(self.eg1)
+                f1.write(self.eg1.encode())
                 f1.flush()
                 extern.run("diamond makedb --in %s --db %s.dmnd" %\
                            (f1.name, f1.name))
-                f2.write(self.eg1)
-                f2.write(self.eg2)
+                f2.write(self.eg1.encode())
+                f2.write(self.eg2.encode())
                 f2.flush()
                 extern.run("diamond makedb --in %s --db %s.dmnd" %\
                            (f2.name, f2.name))
                 with tempfile.NamedTemporaryFile(prefix='graftm_decoy_test') as f3:
                     with tempfile.NamedTemporaryFile(prefix='graftm_decoy_test') as f4:
-                        f3.write(self.eg1)
+                        f3.write(self.eg1.encode())
                         f3.flush()
                         ret = DecoyFilter(
                             Diamond(f2.name+".dmnd"),
@@ -87,13 +87,13 @@ RCPAPLVPEAIERLLRQYLATRLRDENLRAWFSRHSNDELRAHLAGE
 
     def test_no_decoys(self):
         with tempfile.NamedTemporaryFile(prefix='graftm_decoy_test') as f1:
-            f1.write(self.eg1)
+            f1.write(self.eg1.encode())
             f1.flush()
             extern.run("diamond makedb --in %s --db %s.dmnd" %\
                        (f1.name, f1.name))
             with tempfile.NamedTemporaryFile(prefix='graftm_decoy_test') as f3:
                 with tempfile.NamedTemporaryFile(prefix='graftm_decoy_test') as f4:
-                    f3.write(self.eg1)
+                    f3.write(self.eg1.encode())
                     f3.flush()
                     ret = DecoyFilter(Diamond(f1.name+".dmnd")).filter(f1.name, f4.name)
                     self.assertEqual(True, ret)

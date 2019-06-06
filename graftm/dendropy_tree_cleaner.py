@@ -17,8 +17,8 @@ class DendropyTreeCleaner:
                                 suppress_internal_node_labels=True,
                                 suppress_internal_taxon_labels=True,
                                 preserve_spaces=False) # Labels must not be quoted.
-        output_file_io.write(newick.replace("'",'').replace(' ','_'))
-            
+        output_file_io.write(newick.replace("'",'').replace(' ','_').encode())
+
     def match_alignment_and_tree_sequence_ids(self, sequence_names, tree):
         '''Check to make sure that the sequences specified in the alignment
         and the tree are the same, otherwise raise an Exception detailing
@@ -32,7 +32,7 @@ class DendropyTreeCleaner:
             tree to find names in
 
         '''
-        
+
         tip_names_count = {}
         for t in tree.leaf_node_iter():
             # replace spaces with underscores as this is how they are given to FastTree.
@@ -48,7 +48,7 @@ class DendropyTreeCleaner:
                 raise Exception("Found duplicate sequence name '%s'" % name)
             else:
                 tip_names_count[name] += 1
-        for name, count in tip_names_count.iteritems():
+        for name, count in tip_names_count.items():
             if count < 2:
                 raise Exception("Sequence '%s' was found in the tree but not the alignment" % name)
 

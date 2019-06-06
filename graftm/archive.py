@@ -5,7 +5,7 @@ import os
 import tempdir
 import shutil
 
-from graftm_package import GraftMPackage
+from .graftm_package import GraftMPackage
 
 class ArchiveDefaultOptions:
     force=False

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #=======================================================================
 # Authors: Ben Woodcroft, Joel Boyd
@@ -24,7 +24,7 @@
 import unittest
 import os.path
 import sys
-from StringIO import StringIO
+from io import StringIO
 import tempfile
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
@@ -85,7 +85,7 @@ class Tests(unittest.TestCase):
 
     def test_input_file(self):
         with tempfile.NamedTemporaryFile(prefix='graftm_greengenes_tax_testing') as tf:
-            tf.write('seq1\tbacteria;cyanobacteria')
+            tf.write('seq1\tbacteria;cyanobacteria'.encode())
             tf.flush()
             self.assertEqual({'seq1': ['bacteria','cyanobacteria']},\
                       GreenGenesTaxonomy.read_file(tf.name).taxonomy)

@@ -34,7 +34,7 @@ class Clusterer:
             each cluster
         '''
         output_annotations = {}
-        for placed_alignment_file_path, clusters in self.seq_library.iteritems():
+        for placed_alignment_file_path, clusters in self.seq_library.items():
 
             if reverse_pipe and placed_alignment_file_path.endswith("_reverse_clustered.fa"): continue
             placed_alignment_file = os.path.basename(placed_alignment_file_path)
@@ -45,11 +45,11 @@ class Clusterer:
             else:
                 placed_alignment_base = placed_alignment_file.replace('_clustered.fa', '')
             output_annotations[placed_alignment_base] = {}
-            for rep_read_name, rep_read_taxonomy in cluster_classifications.iteritems():
+            for rep_read_name, rep_read_taxonomy in cluster_classifications.items():
 
                 if reverse_pipe:
                     orfm_regex = OrfM.regular_expression()
-                    clusters={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) else key): item for key, item in clusters.iteritems()}
+                    clusters={(orfm_regex.match(key).groups(0)[0] if orfm_regex.match(key) else key): item for key, item in iter(clusters.items())}
                 for read in clusters[rep_read_name]:
                     output_annotations[placed_alignment_base][read.name] = rep_read_taxonomy
 

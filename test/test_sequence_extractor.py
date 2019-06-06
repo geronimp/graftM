@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #=======================================================================
 # Authors: Ben Woodcroft
@@ -35,15 +35,17 @@ ATG
 AAAAA
 '''
         with tempfile.NamedTemporaryFile() as f:
-            f.write(fasta)
+            f.write(fasta.encode())
             f.flush()
             with tempfile.NamedTemporaryFile() as g:
                 SequenceExtractor().extract(['1'], f.name, g.name)
-                self.assertEqual(['>1','ATG',''],
-                                 open(g.name).read().split("\n"))
+                with open(g.name) as f2:
+                    self.assertEqual(['>1','ATG',''],
+                                     f2.read().split("\n"))
                 SequenceExtractor().extract(['1','2'], f.name, g.name)
-                self.assertEqual(['>1','ATG','>2 comment','AAAAA',''],
-                                 open(g.name).read().split("\n"))
+                with open(g.name) as f2:
+                    self.assertEqual(['>1','ATG','>2 comment','AAAAA',''],
+                                     f2.read().split("\n"))
 
     def test_extract_fwd_and_revcom(self):
         fasta = '''>1
@@ -52,15 +54,16 @@ ATG
 AAAAA
 '''
         with tempfile.NamedTemporaryFile() as f:
-            f.write(fasta)
+            f.write(fasta.encode())
             f.flush()
             with tempfile.NamedTemporaryFile() as g:
                 SequenceExtractor().extract_forward_and_reverse_complement(
                     ['1'],['1','2'], f.name, g.name)
-                self.assertEqual(['>1','ATG','>1','CAT','>2 comment','TTTTT',''],
-                                 open(g.name).read().split("\n"))
+                with open(g.name) as f2:
+                    self.assertEqual(['>1','ATG','>1','CAT','>2 comment','TTTTT',''],
+                                     f2.read().split("\n"))
 
-                            
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.ERROR)
     unittest.main()

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #=======================================================================
 # Authors: Ben Woodcroft, Joel Boyd
@@ -25,10 +25,10 @@ import unittest
 import sys
 import os
 import tempfile
-from graftm.unpack_sequences import UnpackRawReads
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 from graftm.diamond import Diamond
+from graftm.unpack_sequences import UnpackRawReads
 
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
 
@@ -56,7 +56,7 @@ VAFATGNSNAGINGWYLSQILHKEYHSRLGFYGYDLQDQCGAANSLSIRSDEGLLHECRG'''
 
     def test_blastp(self):
         with tempfile.NamedTemporaryFile() as f:
-            f.write(self._protein_query)
+            f.write(self._protein_query.encode())
             f.flush()
             d = Diamond(os.path.join(path_to_data,'diamond','mcra.faa.dmnd'))
             res = d.run(f.name, UnpackRawReads.PROTEIN_SEQUENCE_TYPE)
@@ -72,7 +72,7 @@ VAFATGNSNAGINGWYLSQILHKEYHSRLGFYGYDLQDQCGAANSLSIRSDEGLLHECRG'''
 
     def test_basename(self):
         with tempfile.NamedTemporaryFile() as f:
-            f.write(self._protein_query)
+            f.write(self._protein_query.encode())
             f.flush()
             d = Diamond(os.path.join(path_to_data,'diamond','mcra.faa.dmnd'))
             base = 'mybase'

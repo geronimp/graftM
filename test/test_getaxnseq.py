@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #=======================================================================
 # Authors: Ben Woodcroft, Joel Boyd
@@ -25,14 +25,13 @@ import unittest
 import os.path
 import sys
 import tempfile
-from StringIO import StringIO
-import string
+from io import StringIO
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 from graftm.getaxnseq import Getaxnseq
 
 class Tests(unittest.TestCase):
-    
+
     def test_hello_world(self):
         with tempfile.NamedTemporaryFile(prefix='graftm_test_getaxnseq') as tmp_seq:
             with tempfile.NamedTemporaryFile(prefix='graftm_test_getaxnseq') as tmp_tax:
@@ -40,17 +39,19 @@ class Tests(unittest.TestCase):
                                                               'seq2': []},
                                                              tmp_tax.name,
                                                              tmp_seq.name)
-                expected = "\n".join([','.join(p) for p in [['seqname','tax_id'],
+                expected = sorted([','.join(p)+'\n' for p in [['seqname','tax_id'],
                     ['seq2','Root'],
-                    ['seq1','p__you']]])+"\n"
-                self.assertEqual(expected, open(tmp_seq.name).read())
+                    ['seq1','p__you']]])
+                with open(tmp_seq.name) as f:
+                    self.assertEqual(expected, sorted(f.readlines()))
                 expected = '\n'.join(["tax_id,parent_id,rank,tax_name,root,rank_0,rank_1",
                                       "Root,Root,root,Root,Root,,",
                                       "k__me,Root,rank_0,k__me,Root,k__me,",
                                       "p__you,k__me,rank_1,p__you,Root,k__me,p__you"])+"\n"
-                self.assertEqual(expected, open(tmp_tax.name).read())
+                with open(tmp_tax.name) as f:
+                    self.assertEqual(expected, f.read())
 
-                
+
     def test_read_taxtastic_taxonomy_and_seqinfo(self):
         tax = StringIO('\n'.join(['tax_id,parent_id,rank,tax_name,root,kingdom,phylum,class,order,family,genus,species',
                                       'Root,Root,root,Root,Root,,,,,,,',
@@ -62,20 +63,21 @@ class Tests(unittest.TestCase):
         self.assertEqual({'seq1': ['k__me','p__you'],
                           'seq2': []},
                          Getaxnseq().read_taxtastic_taxonomy_and_seqinfo(tax, seq))
-        
+
     def test_more_than_seven_levels(self):
         with tempfile.NamedTemporaryFile(prefix='graftm_test_getaxnseq') as tmp_seq:
             with tempfile.NamedTemporaryFile(prefix='graftm_test_getaxnseq') as tmp_tax:
-                Getaxnseq().write_taxonomy_and_seqinfo_files({'seq1': string.split('k__me p__you c__came over for great spaghetti extra'),
-                                                              'seq1.5': string.split('k__me p__you c__came over for great spaghetti'),
+                Getaxnseq().write_taxonomy_and_seqinfo_files({'seq1': str.split('k__me p__you c__came over for great spaghetti extra'),
+                                                              'seq1.5': str.split('k__me p__you c__came over for great spaghetti'),
                                                               'seq2': []},
                                                              tmp_tax.name,
                                                              tmp_seq.name)
-                expected = "\n".join([','.join(p) for p in [['seqname','tax_id'],
+                expected = sorted([','.join(p)+'\n' for p in [['seqname','tax_id'],
                     ['seq2','Root'],
                     ['seq1','extra'],
-                    ['seq1.5','spaghetti']]])+"\n"
-                self.assertEqual(expected, open(tmp_seq.name).read())
+                    ['seq1.5','spaghetti']]])
+                with open(tmp_seq.name) as f:
+                    self.assertEqual(expected, sorted(f.readlines()))
                 expected = '\n'.join(["tax_id,parent_id,rank,tax_name,root,rank_0,rank_1,rank_2,rank_3,rank_4,rank_5,rank_6,rank_7",
                                       "Root,Root,root,Root,Root,,,,,,,,",
                                       "k__me,Root,rank_0,k__me,Root,k__me,,,,,,,",
@@ -87,7 +89,8 @@ class Tests(unittest.TestCase):
                                       "spaghetti,great,rank_6,spaghetti,Root,k__me,p__you,c__came,over,for,great,spaghetti,",
                                       "extra,spaghetti,rank_7,extra,Root,k__me,p__you,c__came,over,for,great,spaghetti,extra"])+"\n"
 
-                self.assertEqual(expected, open(tmp_tax.name).read())
+                with open(tmp_tax.name) as f:
+                    self.assertEqual(expected, f.read())
 
 
 

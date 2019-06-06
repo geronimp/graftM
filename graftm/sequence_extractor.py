@@ -1,6 +1,6 @@
 import extern
 from Bio import SeqIO
-from StringIO import StringIO
+from io import StringIO
 
 class SequenceExtractor:
     def extract(self, reads_to_extract, database_fasta_file, output_file):

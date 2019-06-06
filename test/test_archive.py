@@ -1,5 +1,5 @@
 
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #=======================================================================
 # Authors: Ben Woodcroft, Joel Boyd
@@ -61,7 +61,7 @@ class Tests(unittest.TestCase):
             # Do not test actual equality of diamond DB because this changes
             # dependant on diamond version.
             self.assertTrue(os.path.exists(os.path.join(out, dmnd)))
-            self.assertEquals(
+            self.assertEqual(
                 sorted(file_list+[dmnd, refpkg]),
                 sorted(os.listdir(out)))
 

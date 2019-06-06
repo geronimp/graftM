@@ -1,10 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import shutil
 import tempfile
 import logging
-import subprocess32
 import subprocess
 import extern
 import tempdir
@@ -15,7 +14,7 @@ import itertools
 from dendropy import Tree
 
 from Bio import SeqIO
-from StringIO import StringIO
+from io import StringIO
 
 from graftm.sequence_searcher import SequenceSearcher
 from graftm.dendropy_tree_cleaner import DendropyTreeCleaner
@@ -183,7 +182,8 @@ class Create:
 
     def _pipe_type(self, hmm):
         logging.debug("Setting pipeline type.")
-        hmm_type=[x.split() for x in open(hmm).readlines() if x.startswith('ALPH') or x.startswith('LENG')]
+        with open(hmm) as f:
+            hmm_type=[x.split() for x in f.readlines() if x.startswith('ALPH') or x.startswith('LENG')]
         for item in hmm_type:
             if item[0]=='ALPH':
                 if item[1]=='amino':
@@ -275,20 +275,20 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
 
 
             try:
-                process = subprocess32.Popen(['bash','-c',cmd],
-                                           stdout=subprocess32.PIPE,
-                                           stderr=subprocess32.PIPE,
+                process = subprocess.Popen(['bash','-c',cmd],
+                                           stdout=subprocess.PIPE,
+                                           stderr=subprocess.PIPE,
                                            preexec_fn=os.setsid)
                 stdout, stderr = process.communicate(timeout=60)
                 logging.debug("taxit create STDOUT was: %s" % stdout)
                 logging.debug("taxit create STDERR was: %s" % stderr)
 
-                if process.returncode != 0 or re.match(r'^Error: ',stdout):
+                if process.returncode != 0 or re.match(r'^Error: ',stdout.decode()):
                     raise extern.ExternCalledProcessError(cmd,
                                                           process.returncode,
                                                           stderr,
                                                           stdout)
-            except subprocess32.TimeoutExpired:
+            except subprocess.TimeoutExpired:
                 os.killpg(process.pid, signal.SIGTERM)
                 exit_gracefully(base)
             except extern.ExternCalledProcessError:
@@ -526,11 +526,12 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         pkg = GraftMPackage.acquire(package_path)
         with tempdir.TempDir() as graftM_graft_test_dir_name:
             # Take a subset of sequences for testing
-            with tempfile.NamedTemporaryFile(suffix=".fa") as tf:
+            with tempfile.NamedTemporaryFile(suffix=".fa",mode='w') as tf:
                 seqio = SequenceIO()
-                seqio.write_fasta(
-                    itertools.islice(seqio.each_sequence(open(pkg.unaligned_sequence_database_path())), 10),
-                    tf)
+                with open(pkg.unaligned_sequence_database_path()) as f:
+                    seqio.write_fasta(
+                        itertools.islice(seqio.each_sequence(f), 10),
+                        tf)
                 tf.flush()
                 cmd = "graftM graft --forward %s --graftm_package %s --output_directory %s --force" %(
                     tf.name, package_path, graftM_graft_test_dir_name)
@@ -626,8 +627,9 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
                                                align_hmm, output_alignment, threads)
 
         logging.info("Checking for incorrect or fragmented reads")
-        insufficiently_aligned_sequences = self._check_reads_hit(open(output_alignment),
-                                                                 min_aligned_percent)
+        with open(output_alignment) as f:
+            insufficiently_aligned_sequences = self._check_reads_hit(
+                f, min_aligned_percent)
         while len(insufficiently_aligned_sequences) > 0:
             logging.warn("One or more alignments do not span > %.2f %% of HMM" % (min_aligned_percent*100))
             for s in insufficiently_aligned_sequences:

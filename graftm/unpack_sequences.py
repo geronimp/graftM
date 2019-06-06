@@ -1,9 +1,8 @@
 import logging
 import subprocess
-from signal import signal, SIGPIPE, SIG_DFL
 import os
 import itertools
-from string import lower
+import extern
 
 class UnpackRawReads:
     class UnexpectedFileFormatException(Exception): pass
@@ -56,9 +55,9 @@ class UnpackRawReads:
         non-standard character is encountered'''
         # Define expected residues for each sequence type
         aa_chars = ['P','V','L','I','M','F','Y','W','H','K','R','Q','N','E','D','S','X','*']
-        aas = set(itertools.chain(aa_chars, [lower(a) for a in aa_chars]))
+        aas = set(itertools.chain(aa_chars, [str.lower(a) for a in aa_chars]))
         na_chars = ['A', 'T', 'G', 'C', 'N', 'U']
-        nas = set(itertools.chain(na_chars, [lower(a) for a in na_chars]))
+        nas = set(itertools.chain(na_chars, [str.lower(a) for a in na_chars]))
 
         num_nucleotide = 0
         num_protein = 0
@@ -86,12 +85,8 @@ class UnpackRawReads:
             # If its Gzipped and fastq make a small sample of the sequence to be
             # read
             cmd='%s | head -n 2' % (self.command_line())
-            first_seq = subprocess.check_output(
-                                                cmd,
-                                                shell=True,
-                                                preexec_fn=lambda:signal(SIGPIPE, SIG_DFL)
-                                                )
-            _, seq = tuple(first_seq.strip().split('\n'))
+            first_seq = extern.run(cmd)
+            seq = first_seq.split('\n')[1]
             self.type = self._guess_sequence_type_from_string(seq)
             logging.debug("Detected sequence type as %s" % self.type)
             return self.type
@@ -114,7 +109,7 @@ class UnpackRawReads:
         return os.path.basename(self.read_file)[:-len(self._get_extension(self.read_file))]
 
     def _get_extension(self, sequence_file_path):
-        for ext in self._EXTENSION_TO_FILE_TYPE.keys():
+        for ext in list(self._EXTENSION_TO_FILE_TYPE.keys()):
             if sequence_file_path.endswith(ext): return ext
         raise self.UnexpectedFileFormatException("Unable to guess file format of sequence file: %s" % sequence_file_path)
 

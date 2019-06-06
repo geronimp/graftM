@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #=======================================================================
 # Authors: Ben Woodcroft, Joel Boyd
@@ -50,12 +50,13 @@ class Tests(unittest.TestCase):
                                 [os.path.join(path_to_data,'bootstrapper','contigs.fna')],
                                 tf.name,
                                 "hmmsearch"))
-
-            self.assertTrue(subprocess.check_output("head -n1 %s" % tf.name,
-                                        shell=True) in
-                ["HMMER3/f [3.1b2 | February 2015]\n",
-                 "HMMER3/f [3.2.1 | June 2018]\n"])
-            self.assertEqual('NSEQ  2\n', open(tf.name).readlines()[10])
+            with open(tf.name) as tf2:
+                lines = list(tf2.readlines())
+                first_line = lines[0]
+                self.assertTrue(first_line in
+                                ["HMMER3/f [3.1b2 | February 2015]\n",
+                                 "HMMER3/f [3.2.1 | June 2018]\n"], msg=f'first_line was {first_line}')
+                self.assertEqual('NSEQ  2\n', lines[10])
 
     def test_hello_world_diamond(self):
         gpkg=os.path.join(path_to_data, "bootstrapper", "D1_gpkg_for_diamond.gpkg")
@@ -77,8 +78,8 @@ class Tests(unittest.TestCase):
                              maximum_range=1000,
                              threads=1)
         with tempfile.NamedTemporaryFile(suffix=".fasta") as contigs:
-            contigs.write(">contig\n")
-            contigs.write('A'*300+"\n")
+            contigs.write(">contig\n".encode())
+            contigs.write(('A'*300+"\n").encode())
             contigs.flush()
             with tempfile.NamedTemporaryFile() as tf:
                 self.assertEqual(False,

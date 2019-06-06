@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #=======================================================================
 # Authors: Ben Woodcroft, Joel Boyd
@@ -193,7 +193,7 @@ r6\td__Archaea;p__Euryarchaeota;c__Methanomicrobia;o__Halobacteriales;f__Halobac
                 sequences_file = fasta.name
                 taxonomy_file  = tax.name
                 expected_list = [7, 2 ,3, 4, 5, 6, 7]
-                for expected, i in zip( expected_list, range(0,6) ):
+                for expected, i in zip( expected_list, list(range(0,6)) ):
 
                     with tempdir.TempDir() as package:
                         Create(prerequisites).main(sequences = sequences_file,

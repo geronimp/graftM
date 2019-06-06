@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #=======================================================================
 # Authors: Ben Woodcroft, Joel Boyd
@@ -38,16 +38,16 @@ class Tests(unittest.TestCase):
         self.assertEqual(
                          [(1, ['ab','c'], [1])],
                          list(s._iterate_otu_table_rows([{'readname': ['ab','c']}]))
-                         )  
-        
+                         )
+
     def test_iterate_otu_table_rows_two_samples_same_tax(self):
         s = Stats_And_Summary()
         self.assertEqual(
                          [(1, ['ab','c'], [1,1])],
                          list(s._iterate_otu_table_rows(({'readname': ['ab','c']},
                                                          {'readname2': ['ab','c']})))
-                         )  
-        
+                         )
+
     def test_iterate_otu_table_rows_two_samples_different_counts(self):
         s = Stats_And_Summary()
         self.assertEqual(
@@ -56,28 +56,32 @@ class Tests(unittest.TestCase):
                                                          {'readname': ['ab','c'], 'readname23': ['ab','c']},
                                                          {'readname2': ['ab','c']}
                                                          ]))
-                         )  
-        
+                         )
+
     def test_iterate_otu_table_rows_two_samples_different_counts_twotax(self):
         s = Stats_And_Summary()
-        self.assertEqual(
-                         [(1, ['ab','d'], [1,0]), (2, ['ab','c'], [1,1])],
+        self.assertTrue(
                          list(s._iterate_otu_table_rows([
                                                          {'readname': ['ab','c'], 'readname23': ['ab','d']},
                                                          {'readname2': ['ab','c']}
-                                                         ]))
-                         )
-        
+                                                         ])) in
+            ([(1, ['ab','d'], [1,0]), (2, ['ab','c'], [1,1])],
+             [(1, ['ab','c'], [1,1]), (2, ['ab','d'], [1,0])])
+        )
+
     def test_iterate_otu_table_rows_two_samples_second_new_tax(self):
         s = Stats_And_Summary()
-        self.assertEqual(
-                         [(1, ['ab','e'], [0,1]), (2, ['ab','c'], [2,0])],
+        self.assertTrue(
                          list(s._iterate_otu_table_rows([
                                                          {'readname': ['ab','c'], 'readname23': ['ab','c']},
                                                          {'readname2': ['ab','e']}
-                                                         ]))
-                         )
-        
+                                                         ])) in
+            (
+                [(1, ['ab','e'], [0,1]), (2, ['ab','c'], [2,0])],
+                [(1, ['ab','c'], [2,0]), (2, ['ab','e'], [0,1])]
+            )
+        )
+
     def test_write_otu_table(self):
         string = io.StringIO()
         s = Stats_And_Summary()
@@ -87,8 +91,8 @@ class Tests(unittest.TestCase):
                                                          {'readname2': ['ab','c']}
                                                          ],
                                   string)
-        self.assertEqual(u'#ID\tsample1\tsample2\tConsensusLineage\n1\t1\t1\tab; c\n', string.getvalue())
-        
+        self.assertEqual('#ID\tsample1\tsample2\tConsensusLineage\n1\t1\t1\tab; c\n', string.getvalue())
+
     def test_write_biom(self):
         with tempfile.NamedTemporaryFile(suffix='biom') as biom:
             with biom_open(biom.name,'w') as f:
@@ -105,12 +109,19 @@ class Tests(unittest.TestCase):
                 subprocess.check_call("biom convert -i %s -o %s --table-type 'OTU table' --to-tsv --header-key taxonomy" %
                                                    (biom.name, biom_out.name), shell=True)
                 observed = open(biom_out.name).read()
-                self.assertEqual('''# Constructed from biom file
+                self.assertTrue(observed in
+                                ('''# Constructed from biom file
 #OTU ID\tsample1\tsample2\ttaxonomy
 1\t1.0\t0.0\tab; d
-2\t1.0\t1.0\tab; c''', observed)
-        
-        
+2\t1.0\t1.0\tab; c''',
+
+                                 '''# Constructed from biom file
+#OTU ID\tsample1\tsample2\ttaxonomy
+1\t1.0\t1.0\tab; c
+2\t1.0\t0.0\tab; d'''),
+                                msg=observed)
+
+
 
 if __name__ == "__main__":
     unittest.main()

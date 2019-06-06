@@ -19,26 +19,26 @@ class SequenceSearchResult:
     PERCENT_ID_FIELD = 'percent_id'
     MISMATCH_FIELD = "mismatch"
     EVALUE_FIELD = "evalue"
-    
-    
-    
+
+
+
     def __init__(self):
         self.fields = []
         self.results = []
-        
+
     def each(self, field_names):
         """Iterate over the results, yielding a list for each result, where
         each element corresponds to the field given in the field_name parameters
-        
+
         Parameters
         ----------
         field_names: list of str
             The names of the fields to be returned during iteration
-            
+
         Returns
         -------
         None
-        
+
         Exceptions
         ----------
         raises something when a field name is not in self.fields
@@ -48,15 +48,15 @@ class SequenceSearchResult:
             # below raises error if the field name is not found, so
             # don't need to account for that.
             field_ids.append(self.fields.index(f))
-        
+
         for r in self.results:
             yield([r[i] for i in field_ids])
-        
+
 class DiamondSearchResult(SequenceSearchResult):
     @staticmethod
     def import_from_daa_file(daa_filename):
         '''Generate new results object from the output of diamond blastx/p'''
-        
+
         # blast m8 format is
         # 'qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore
         res = DiamondSearchResult()
@@ -77,16 +77,16 @@ class DiamondSearchResult(SequenceSearchResult):
                        SequenceSearchResult.ALIGNMENT_DIRECTION,
                        SequenceSearchResult.HMM_NAME_FIELD
                        ]
-        
+
         cmd = "diamond view -a '%s'" % daa_filename
         logging.debug("Running cmd: %s" % cmd)
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
         stdout, stderr = process.communicate()
-        
+
         reader = csv.reader(stdout.decode('ascii').splitlines(),
                                 delimiter='\t')
         if process.returncode != 0:
-            raise Exception("Problem running diamond view with cmd: '%s'," 
+            raise Exception("Problem running diamond view with cmd: '%s',"
                             "stderr was %s" % (cmd, stderr))
 
         for row in reader:
@@ -116,7 +116,7 @@ class HMMSearchResult(SequenceSearchResult):
         '''Generate new results object from the output of nhmmer search'''
         # nhmmer format is
         # qseqid queryname hmmfrom hmmto alifrom alito envfrom envto sqlen strand evalue bitscore bias description
-        #   0        2        4      5      6      7      8      9    10     11     12      13     14     15     
+        #   0        2        4      5      6      7      8      9    10     11     12      13     14     15
         res=HMMSearchResult()
         res.fields = [
                        SequenceSearchResult.QUERY_ID_FIELD,
@@ -129,7 +129,7 @@ class HMMSearchResult(SequenceSearchResult):
                        SequenceSearchResult.ALIGNMENT_BIT_SCORE,
                        SequenceSearchResult.ALIGNMENT_DIRECTION,
                        ]
-        
+
         for row in [x.rstrip().split() for x in open(hmmout_path) if not x.startswith('#')]:
             alifrom    = int(row[6])
             alito      = int(row[7])
@@ -165,31 +165,23 @@ class HMMSearchResult(SequenceSearchResult):
                        SequenceSearchResult.ALIGNMENT_BIT_SCORE,
                        SequenceSearchResult.ALIGNMENT_DIRECTION,
                        ]
-        
-        for row in [x.rstrip().split() for x in open(hmmout_path) if not x.startswith('#')]:
-            alifrom    = int(row[17])
-            alito      = int(row[18])
-            aln_length = (alito-alifrom if alito-alifrom>0 else alifrom-alito)
-            if alito != alifrom: #this actually happens..
-                res.results.append([row[0],
-                                    row[3],
-                                    row[4],
-                                    row[5],
-                                    aln_length,
-                                    int(row[15]),
-                                    int(row[16]),
-                                    alifrom,
-                                    alito,
-                                    row[7],
-                                    True
-                                    ])
+
+        with open(hmmout_path) as f:
+            for row in [x.rstrip().split() for x in f if not x.startswith('#')]:
+                alifrom    = int(row[17])
+                alito      = int(row[18])
+                aln_length = (alito-alifrom if alito-alifrom>0 else alifrom-alito)
+                if alito != alifrom: #this actually happens..
+                    res.results.append([row[0],
+                                        row[3],
+                                        row[4],
+                                        row[5],
+                                        aln_length,
+                                        int(row[15]),
+                                        int(row[16]),
+                                        alifrom,
+                                        alito,
+                                        row[7],
+                                        True
+                                        ])
         return res
-        
-        
-        
-        
-        
-        
-        
-        
-         

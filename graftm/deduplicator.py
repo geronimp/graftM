@@ -22,7 +22,7 @@ class Deduplicator:
                 sequence_to_groups[s.seq].append(s)
             except KeyError:
                 sequence_to_groups[s.seq] = [s]
-        return sequence_to_groups.values()
+        return list(sequence_to_groups.values())
     
     def lca_taxonomy(self, deduplicated_sequences, taxonomy_hash):
         r'''Given a set of deduplicated sequences and a taxonomy hash,

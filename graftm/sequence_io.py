@@ -46,10 +46,11 @@ class SequenceIO:
 
     def read_fasta_file(self, path_to_fasta_file):
         seqs = []
-        for name, seq, _ in self.each(open(path_to_fasta_file)):
-            seqs.append(Sequence(name, seq))
+        with open(path_to_fasta_file) as f:
+            for name, seq, _ in self.each(f):
+                seqs.append(Sequence(name, seq))
         return seqs
-    
+
     def write_fasta_file(self, sequence_objects, path_to_fasta_file):
         with open(path_to_fasta_file,'w') as f:
             self.write_fasta(sequence_objects, f)

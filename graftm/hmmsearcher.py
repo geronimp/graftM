@@ -62,8 +62,8 @@ class HmmSearcher:
 
             try:
                 extern.run(cmd)
-            except extern.ExternCalledProcessError, e:
-                if e.stderr == '\nError: Sequence file - is empty or misformatted\n\n':
+            except extern.ExternCalledProcessError as e:
+                if e.stderr == b'\nError: Sequence file - is empty or misformatted\n\n':
                     raise NoInputSequencesException(cmd)
                 else:
                     raise e

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import logging
@@ -387,7 +387,7 @@ class Run:
                             self.args.restrict_read_length,
                             diamond_db
                         )
-                    except NoInputSequencesException, e:
+                    except NoInputSequencesException as e:
                         logging.error("No sufficiently long open reading frames were found, indicating"
                                       " either the input sequences are too short or the min orf length"
                                       " cutoff is too high. Cannot continue sorry. Alternatively, there"
@@ -593,7 +593,7 @@ class Run:
     def main(self):
 
         if self.args.subparser_name == 'graft':
-            if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART: print '''
+            if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART: print('''
                                 GRAFT
 
                        Joel Boyd, Ben Woodcroft
@@ -606,11 +606,11 @@ class Run:
           - _-  -         -             |      ______
              - _                        |_____|
            -                                  |______
-            '''
+            ''')
             self.graft()
 
         elif self.args.subparser_name == 'create':
-            if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART: print '''
+            if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART: print('''
                             CREATE
 
                    Joel Boyd, Ben Woodcroft
@@ -622,7 +622,7 @@ class Run:
               --------          >>>     |  GPKG  |
               >c                        |________|
               ----------
-'''
+''')
             if self.args.dereplication_level < 0:
                 logging.error("Invalid dereplication level selected! please enter a positive integer")
                 exit(1)
@@ -654,9 +654,9 @@ class Run:
                 if self.args.alignment and self.args.hmm:
                     logging.error("--alignment and --hmm cannot both be set")
                     exit(1)
-                if len(filter(None, [self.args.rerooted_tree,
+                if len([_f for _f in [self.args.rerooted_tree,
                                      self.args.rerooted_annotated_tree,
-                                     self.args.tree])) > 1:
+                                     self.args.tree] if _f]) > 1:
                     logging.error("Only 1 input tree can be specified")
                     exit(1)
 
@@ -787,7 +787,7 @@ If you're unsure see graftM tree -h")
 
         elif self.args.subparser_name == 'archive':
             # Back slashes in the ASCII art are escaped.
-            if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART: print """
+            if self.args.verbosity >= self._MIN_VERBOSITY_FOR_ART: print("""
                                ARCHIVE
 
                         Joel Boyd, Ben Woodcroft
@@ -818,7 +818,7 @@ If you're unsure see graftM tree -h")
                `-.     |           __..--'
                   `-.  |      __.-'
                      `-|__.--'
-            """
+            """)
             if self.args.create:
                 if self.args.extract:
                     logging.error("Please specify whether to either create or export a GraftM package")

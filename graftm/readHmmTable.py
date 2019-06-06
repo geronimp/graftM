@@ -21,7 +21,7 @@ class HMMreader:
                 self.entries[entry[0]]=entry
         
     def names(self):
-        return self.entries.keys()
+        return list(self.entries.keys())
 
     def evalue(self, entry):
         if self.type == "nhmmer":

@@ -8,10 +8,10 @@ from graftm.unpack_sequences import UnpackRawReads
 from graftm.sequence_io import SequenceIO
 
 class ExpandSearcher:
-    
+
     # Define constants.
     DIAMOND_SEARCH_METHOD = "diamond"
-    HMM_SEARCH_METHOD = "hmmsearch"    
+    HMM_SEARCH_METHOD = "hmmsearch"
 
     def __init__(self, **kwargs):
         '''
@@ -33,7 +33,7 @@ class ExpandSearcher:
         graftm_package = kwargs.pop('graftm_package',None)
         if len(kwargs) > 0:
             raise Exception("Unexpected arguments detected: %s" % kwargs)
-        
+
         if graftm_package:
             self.diamond_database = graftm_package.diamond_database_path()
             self.unaligned_sequence_database = graftm_package.unaligned_sequence_database_path()
@@ -47,17 +47,17 @@ class ExpandSearcher:
         else:
             self.diamond_database = None
             self.unaligned_sequence_database = None
-            
+
         if len(kwargs) > 0:
             raise Exception("Unexpected arguments detected: %s" % kwargs)
-                    
-        
-    def generate_expand_search_database_from_contigs(self, contig_files, output_database_file, 
+
+
+    def generate_expand_search_database_from_contigs(self, contig_files, output_database_file,
                                                  search_method):
-        '''Given a collection of search_hmm_files, search the contigs in 
+        '''Given a collection of search_hmm_files, search the contigs in
         contig_files, and generate an HMM from the resulting hits, outputting
         it as output_database_file.
-        
+
         Parameters
         ----------
         contig_files: list of str
@@ -66,25 +66,25 @@ class ExpandSearcher:
             path to output file
         search_method: str
             "diamond" or "hmmsearch", to specify search method to use and what
-            type of database to build. 
-        
+            type of database to build.
+
         Returns
         -------
         True if genes were recovered, else False'''
-        
+
         ss = SequenceSearcher(self.search_hmm_files)
         seqio = SequenceIO()
         if search_method == self.DIAMOND_SEARCH_METHOD:
             if self.diamond_database == None or self.unaligned_sequence_database == None:
-                logging.warning("Cannot expand_search continue with no diamond database or unaligned sequences.") 
+                logging.warning("Cannot expand_search continue with no diamond database or unaligned sequences.")
                 return False
-        
+
         with tempfile.NamedTemporaryFile(prefix='graftm_expand_search_orfs') as orfs:
             logging.info("Finding expand_search hits in provided contigs..")
             for contig_file in contig_files:
                 logging.debug("Finding expand_search hits in %s.." % contig_file)
                 unpack = UnpackRawReads(contig_file)
-                
+
                 with tempfile.NamedTemporaryFile(prefix='graftm_expand_search') as \
                                                         hit_reads_orfs_fasta:
                     # search and extract matching ORFs
@@ -105,54 +105,53 @@ class ExpandSearcher:
                                     hit_reads_fasta.name,
                                     hit_reads_orfs_fasta.name)
                     # Append to the file
-                    shutil.copyfileobj(open(hit_reads_orfs_fasta.name), orfs)
-            
+                    with open(hit_reads_orfs_fasta.name, 'rb') as f:
+                        orfs.write(f.read())
+
             # Now have a fasta file of ORFs.
             # Check to make sure the file is not zero-length
             orfs.flush()
-            
 
-            
+
+
             with tempfile.NamedTemporaryFile(prefix="graftm_expand_search_aln") as aln:
-                    
+
                 if search_method == self.HMM_SEARCH_METHOD:
-                    
+
                     # Check that there is more than one sequence to align.
                     if len(seqio.read_fasta_file(orfs.name)) <= 1:# Just to build on this, you need to check if there is > 1 hit
-                                                                  # otherwise mafft will fail to align, causing a crash when hmmbuild is 
+                                                                  # otherwise mafft will fail to align, causing a crash when hmmbuild is
                                                                   # run on an empty file.
                         logging.warn("Failed to find two or more matching ORFs in the expand_search contigs")
                         return False
-                    
+
                     # Run mafft to align them
                     cmd = "mafft --auto %s >%s" % (orfs.name, aln.name)
                     logging.info("Aligning expand_search hits..")
                     extern.run(cmd)
-                
+
                     # Run hmmbuild to create an HMM
                     cmd = "hmmbuild --amino %s %s >/dev/null" % (output_database_file, aln.name)
                     logging.info("Building HMM from expand_search hits..")
 
                     extern.run(cmd)
-                
+
                 elif search_method == self.DIAMOND_SEARCH_METHOD:
 
                     # Concatenate database with existing database
                     with tempfile.NamedTemporaryFile(prefix="concatenated_database") as databasefile:
                         for f in [orfs.name, self.unaligned_sequence_database]:
-                            for line in open(f):
+                            for line in open(f,'rb'):
                                 databasefile.write(line)
                         databasefile.flush()
-                                
+
                         # Run diamond make to create a diamond database
                         cmd = "diamond makedb --in '%s' -d '%s'" % (databasefile.name, output_database_file)
                         logging.info("Building a diamond database from expand_search hits..")
                         extern.run(cmd)
-                
+
                 else:
                     raise Exception("Search method not recognised: %s" % search_method)
                     return False
-                
+
                 return True
-            
-                

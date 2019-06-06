@@ -49,8 +49,7 @@ class ExternalProgramSuite:
 Arbitrarily selecting %s" % (' '.join(program_list), check[0]))
 
                 for key, item in ExternalProgramSuite\
-                                        .programs_to_possibilities\
-                                        .iteritems():
+                                        .programs_to_possibilities.items():
                     if program in item:
                         program = key
 

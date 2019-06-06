@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #=======================================================================
 # Authors: Ben Woodcroft, Joel Boyd
@@ -47,7 +47,7 @@ class Tests(unittest.TestCase):
 # [ok]
 '''
         with tempfile.NamedTemporaryFile(prefix='graftm_test_sequence_search_result') as f:
-            f.write(hmmout)
+            f.write(hmmout.encode())
             f.flush()
             
             res = HMMSearchResult.import_from_hmmsearch_table(f.name)

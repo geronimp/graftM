@@ -61,8 +61,8 @@ class Pplacer:
         '''
         output_dict = {}
         directory_to_index_dict = {os.path.split(item["output_path"])[0] : key
-                            for key, item in alias_hash.iteritems()}
-        for key, item in cluster_dict.iteritems():
+                            for key, item in iter(alias_hash.items())}
+        for key, item in cluster_dict.items():
             cluster_file_directory = os.path.split(key)[0]
             cluster_idx = directory_to_index_dict[cluster_file_directory]
             output_dict[cluster_idx] = item
@@ -121,7 +121,7 @@ class Pplacer:
                 else:
                     nm_dict[read_alias_idx] += nm_entry
 
-            for alias_idx, nm_list in nm_dict.iteritems():
+            for alias_idx, nm_list in nm_dict.items():
                 placement_hash = {'p': p,
                                   'nm': nm_list}
                 if alias_idx not in output_hash:
@@ -233,8 +233,8 @@ class Pplacer:
         for file_alias, placement_entries_list in hash_with_placements.items():
             alias_hash[file_alias]['place'] = placement_entries_list
 
-        for k in alias_hash.keys():
-            if 'place' not in alias_hash[k]:
+        for k, v in alias_hash.items():
+            if 'place' not in v:
                 alias_hash[k]['place'] = []
         self.write_jplace(jplace_json,
                           alias_hash)
@@ -293,8 +293,8 @@ class Compare:
         ## the placement, and make a call as to which is to be trusted. Return
         ## a list of trusted reads for use by the summary step in GraftM
         # Report and record trusted placements
-        crossover, for_dict, rev_dict = self._compare_hits(forward_gup.keys(),
-                                                           reverse_gup.keys(),
+        crossover, for_dict, rev_dict = self._compare_hits(list(forward_gup.keys()),
+                                                           list(reverse_gup.keys()),
                                                            base_file,
                                                            slash_endings)
 

@@ -169,7 +169,8 @@ class Rerooter:
         max_length = -1
         max_edge = None
         while node and not node.edge.rootedge:
-            if node.edge.length > max_length:
+            l = node.edge.length
+            if l is not None and l > max_length:
                 max_edge = node.edge
                 max_length = max_edge.length
             node = node.parent_node

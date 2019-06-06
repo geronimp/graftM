@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 ###############################################################################
 #                                                                             #
 #    This program is free software: you can redistribute it and/or modify     #
@@ -70,7 +70,7 @@ class CustomHelpFormatter(argparse.HelpFormatter):
         return ''.join([indent + line for line in text.splitlines(True)])
 
 def phelp():
-    print """
+    print("""
                                   GraftM  %s
 
                             Joel Boyd, Ben Woodcroft
@@ -104,11 +104,11 @@ def phelp():
   Utilities
     tree          ->  Decorate or reroot phylogenetic trees for graft packages.
     archive       ->  Compress or decompress a graftm package.
-""" % (graftm.__version__)
+""" % (graftm.__version__))
 
 def print_header():
-    print """
-                             GraftM %s""" %(graftm.__version__)
+    print("""
+                             GraftM %s""" %(graftm.__version__))
 
 debug={1:logging.CRITICAL,
        2:logging.ERROR,

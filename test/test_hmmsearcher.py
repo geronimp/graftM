@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #=======================================================================
 # Authors: Ben Woodcroft, Joel Boyd
@@ -33,22 +33,22 @@ from graftm.hmmsearcher import NoInputSequencesException
 
 class HmmsearcherTests(unittest.TestCase):
     path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
-    
+
     def test_generates_correct_cmd_single_hmm(self):
         searcher = graftm.hmmsearcher.HmmSearcher(1)
         cmd = searcher._hmm_command('orfm some', [(['hmm1','out1'],1)])
         self.assertEqual('orfm some | hmmsearch  --cpu 1 -o /dev/null --noali --domtblout out1 hmm1 -', cmd)
-        
+
     def test_generates_correct_cmd_extra_args(self):
         searcher = graftm.hmmsearcher.HmmSearcher(1, extra_args='-E 1e-99')
         cmd = searcher._hmm_command('orfm some', [(['hmm1','out1'],1)])
         self.assertEqual('orfm some | hmmsearch -E 1e-99 --cpu 1 -o /dev/null --noali --domtblout out1 hmm1 -', cmd)
-        
+
     def test_generates_multi_hmms(self):
         searcher = graftm.hmmsearcher.HmmSearcher(1)
         cmd = searcher._hmm_command('orfm some', [(['hmm1','out1'],1), (['hmm2','out2'],2)])
         self.assertEqual('orfm some | tee >(hmmsearch  --cpu 1 -o /dev/null --noali --domtblout out1 hmm1 -) | hmmsearch  --cpu 2 -o /dev/null --noali --domtblout out2 hmm2 -', cmd)
-        
+
     def test_munch_off_batch_single_cpu(self):
         searcher = graftm.hmmsearcher.HmmSearcher(1)
         queue = [['hmm1','out1'],['hmm2','out2']]
@@ -56,13 +56,13 @@ class HmmsearcherTests(unittest.TestCase):
         self.assertEqual([[['hmm1','out1'],1]], pairs_to_run)
         pairs_to_run = searcher._munch_off_batch(queue)
         self.assertEqual([[['hmm2','out2'],1]], pairs_to_run)
-        
+
     def test_munch_off_batch_single_hmm(self):
         searcher = graftm.hmmsearcher.HmmSearcher(10)
         queue = [['hmm1','out1']]
         pairs_to_run = searcher._munch_off_batch(queue)
         self.assertEqual([[['hmm1','out1'],10]], pairs_to_run)
-        
+
     def test_munch_off_batch_multi_cpu(self):
         searcher = graftm.hmmsearcher.HmmSearcher(2)
         queue = [['hmm1','out1'],['hmm2','out2'],['hmm3','out3']]
@@ -70,19 +70,19 @@ class HmmsearcherTests(unittest.TestCase):
         self.assertEqual([[['hmm1','out1'],1], [['hmm2','out2'],1]], pairs_to_run)
         pairs_to_run = searcher._munch_off_batch(queue)
         self.assertEqual([[['hmm3','out3'],2]], pairs_to_run)
-        
+
     def test_munch_off_batch_multi_cpu_heterogenous(self):
         searcher = graftm.hmmsearcher.HmmSearcher(5)
         queue = [['hmm1','out1'],['hmm2','out2']]
         pairs_to_run = searcher._munch_off_batch(queue)
         self.assertEqual([[['hmm1','out1'],3], [['hmm2','out2'],2]], pairs_to_run)
-        
+
     def test_actually_runs(self):
         searcher = graftm.hmmsearcher.HmmSearcher(5)
         faa_file = os.path.join(self.path_to_data, 'mcrA.gpkg/mcrA_1.1.faa')
         hmm_file = os.path.join(self.path_to_data, 'mcrA.gpkg/mcrA.hmm')
         with tempfile.NamedTemporaryFile(suffix='.fa') as output:
-            searcher.hmmsearch('cat %s' % faa_file, 
+            searcher.hmmsearch('cat %s' % faa_file,
                                [hmm_file],
                                [output.name])
             expected = '''#                                                                             --- full sequence --- -------------- this domain -------------   hmm coord   ali coord   env coord
@@ -92,11 +92,11 @@ example_partial_mcra8 -            162 mcrA.fasta           -            557    
 #'''.split('\n')
             observed = re.sub(r'\t', ' ', open(output.name).read()).split("\n")
             self.assertEqual(expected, observed[:5])
-        
+
     def test_nhmmer_searcher(self):
         searcher = graftm.hmmsearcher.NhmmerSearcher(20)
         cmd = searcher._hmm_command('cat some', [(['hmm1','out1'],10)])
-        self.assertEqual('cat some | nhmmer  --cpu 10 -o /dev/null --noali --tblout out1 hmm1 -', cmd)        
+        self.assertEqual('cat some | nhmmer  --cpu 10 -o /dev/null --noali --tblout out1 hmm1 -', cmd)
 
     def test_no_input_exception(self):
         searcher = graftm.hmmsearcher.HmmSearcher(2)
@@ -104,7 +104,7 @@ example_partial_mcra8 -            162 mcrA.fasta           -            557    
         hmm_file = os.path.join(self.path_to_data, 'mcrA.gpkg/mcrA.hmm')
         with tempfile.NamedTemporaryFile(suffix='.fa') as output:
             with self.assertRaises(NoInputSequencesException):
-                searcher.hmmsearch('orfm -m 3000 %s' % fna_file, 
+                searcher.hmmsearch('orfm -m 3000 %s' % fna_file,
                                [hmm_file],
                                [output.name])
 

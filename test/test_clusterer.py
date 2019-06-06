@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #=======================================================================
 # Authors: Ben Woodcroft, Joel Boyd
@@ -33,7 +33,7 @@ path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'bin', 'graftM')
 
 class Tests(unittest.TestCase):
-    
+
     def test_alignment_rereplication(self):
         gpkg = os.path.join(path_to_data,'61_otus.gpkg')
         test_sequences=""">FCC0WM1ACXX:2:2208:12709:74426#GTCCAGAA_2/1
@@ -50,20 +50,20 @@ CGGGGTATCTAATCCCGTTCGCTCCCCTAGCTTTCGTGCCTCAGCGTCAGAAAAGACCCAGTGAGCCGCTTTCGCCCCCG
 >FCC0WM1ACXX:2:2208:12709:74426#GTCCAGAA/1
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ACACTGCCCAGACACCTACGGGTGGCTGCAGTCGAGGATCTTCGGCAATGGGCGAAAGCCTGACCGAGCGACGCCGCGTGTGGGATGAAGGCCCTCGGG-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------""".split()
         with tempfile.NamedTemporaryFile(suffix=".fa") as tf:
-            tf.write(test_sequences)
+            tf.write(test_sequences.encode())
             tf.flush()
-            
+
             with tempdir.TempDir() as tmp:
                 cmd = "%s graft --forward %s --graftm_package %s --output_directory %s --force" % (path_to_script,
                                                                                                    tf.name,
                                                                                                    gpkg,
                                                                                                    tmp)
                 extern.run(cmd)
-                
+
                 filename=os.path.splitext(os.path.basename(tf.name))[0]
                 observed_rereplicated_alignment = [x.strip() for x in open(os.path.join(tmp, filename, "%s_hits.aln.fa" % filename))]
-                
-                self.assertEquals(expected_rereplicated_alignment, 
+
+                self.assertEqual(expected_rereplicated_alignment,
                                   observed_rereplicated_alignment)
 
 

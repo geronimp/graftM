@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #=======================================================================
 # Authors: Ben Woodcroft, Joel Boyd
@@ -55,7 +55,7 @@ GTTGAAACTCAAAGGAATTGACGGGGGCCCGCACAAGCGGTGGAGCATGTGGTTTAATTCGACGCAACGCGAAGAACCTT
 CTTGTGCGGGGACCCGTCAATTCCTTTGAGTTTTAACCTTGCGGCCGTAGTCCCCAGGCGGTGAACTTATCGCGTTAGCTTCGGCACCGACGGCTTTGAA
 >bac4
 CCCCGCCTTCCTCCCCTTTGTCAGAGGCAGTTCTGCTAGAGTGCGCCCCGATTGCTCGGGGGTAGCAACTAACCGTAAGGGTTGCGCTCGTTGCGGGACT"""
-        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+        with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(reads)
             fasta.flush()
             data = fasta.name
@@ -78,9 +78,10 @@ CCCCGCCTTCCTCCCCTTTGTCAGAGGCAGTTCTGCTAGAGTGCGCCCCGATTGCTCGGGGGTAGCAACTAACCGTAAGG
                          )
 
                 count = 0
-                for line in open(otuTableFile):
-                    self.assertEqual(lines[count], line.strip())
-                    count += 1
+                with open(otuTableFile) as f:
+                    for line in f:
+                        self.assertEqual(lines[count], line.strip())
+                        count += 1
 
     def test_cluster(self):
         reads = """>HWI-ST1243:121:D1AF9ACXX:8:1101:12684:12444
@@ -93,12 +94,12 @@ GGCCGATATGGTCCAGTCTTCGAGGAAGTACCCGAACGACCCCGCCAGGCAAGCGCTTGAGACAGTAGCACTTGGTGCGG
 GTCAACAACCCCGCAATGCAACAGATGTGGGATGAGATCAGACGTACAGTTATCGTCGGTCTCGACCAGGCCCACGAGACGCTGACCAGAAGACTCGGTAAGGAAGTTACCCCTGAGACCATCAACGGCTATCTTGAGGCGTTGAACCAC
 >HWI-ST1243:121:D1AF9ACXX:8:1101:14973:25766_2
 CATGACGTCAGTCCCGGAGACGTTGTACGGCATAAGTTGCCGCTGACCAAGCGTCATACCGCCGAGGTGCACGTTGACGTTGTATGCGGGAATTCCTCGGTCCTTGGCGATCTTTGCGCCCCATTCCTGGAACTCGCGCTTGTCCTTGGA"""
-        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+        with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(reads)
             fasta.flush()
             data = fasta.name
             package = os.path.join(path_to_data,'mcrA_with_dmnd.gpkg/')
-            with tempdir.TempDir() as tmp:                
+            with tempdir.TempDir() as tmp:
                 cmd = '%s graft --verbosity 2 --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                                  data,
                                                                                                                  package,
@@ -106,26 +107,34 @@ CATGACGTCAGTCCCGGAGACGTTGTACGGCATAAGTTGCCGCTGACCAAGCGTCATACCGCCGAGGTGCACGTTGACGT
                 subprocess.check_output(cmd, shell=True)
                 sample_name = os.path.basename(fasta.name[:-3])
                 otuTableFile = os.path.join(tmp, 'combined_count_table.txt')
-                lines = ("\t".join(('#ID',sample_name,'ConsensusLineage')),
-                         "\t".join(('1','4','Root; p__Euryarchaeota')),
-                         "\t".join(('2','1','Root; p__Euryarchaeota; c__Methanomicrobia_2; o__[Methanomassiliicoccus]; f__[Methanomassiliicoccus]; g__Methanomassiliicoccus')),
-                         )
-                count = 0
-                for line in open(otuTableFile):
-                    self.assertEqual(lines[count], line.strip())
-                    count += 1
-                self.assertEqual(count, 3)
-                
+                possible_lines = (
+                    ["\t".join(('#ID',sample_name,'ConsensusLineage')),
+                     "\t".join(('1','4','Root; p__Euryarchaeota')),
+                     "\t".join(('2','1','Root; p__Euryarchaeota; c__Methanomicrobia_2; o__[Methanomassiliicoccus]; f__[Methanomassiliicoccus]; g__Methanomassiliicoccus'))],
+                    ["\t".join(('#ID',sample_name,'ConsensusLineage')),
+                     "\t".join(('1','1','Root; p__Euryarchaeota; c__Methanomicrobia_2; o__[Methanomassiliicoccus]; f__[Methanomassiliicoccus]; g__Methanomassiliicoccus')),
+                     "\t".join(('2','4','Root; p__Euryarchaeota'))]
+                )
+                with open(otuTableFile) as f:
+                    observed_lines = list([l.strip() for l in f.readlines()])
+                    self.assertTrue(observed_lines in possible_lines)
+
                 placements_file = os.path.join(tmp, sample_name, "placements.jplace")
-                open_placements_file = json.load(open(placements_file))
+                with open(placements_file) as f:
+                    open_placements_file = json.load(f)
                 self.assertEqual(len(open_placements_file["placements"]), 3)
-                placements = sorted((u'HWI-ST1243:121:D1AF9ACXX:8:1101:4414:35570_2_2_3', 
-                                     u'HWI-ST1243:121:D1AF9ACXX:8:1101:12684:12444_2_1_1_2',
-                                     u'HWI-ST1243:121:D1AF9ACXX:8:1101:14973:25766_1_4_3'))
-                for idx, placed_read_name in enumerate(sorted(tuple([y[0] for y in [x['nm'][0] for x in open_placements_file["placements"]]]))):
-                    self.assertEqual(placements[idx], placed_read_name)
-                                                
-    
+                read_names = sorted([
+                    ['HWI-ST1243:121:D1AF9ACXX:8:1101:4414:35570_2_2_3'],
+                    ['HWI-ST1243:121:D1AF9ACXX:8:1101:12684:12444_1_1_2',
+                     'HWI-ST1243:121:D1AF9ACXX:8:1101:12684:12444_2_1_1_2'],
+                    ['HWI-ST1243:121:D1AF9ACXX:8:1101:14973:25766_1_4_3',
+                     'HWI-ST1243:121:D1AF9ACXX:8:1101:14973:25766_2_1_4_3']])
+                self.assertEqual(read_names, sorted(
+                    [[z[0] for z in y] for y in [x['nm'] for x in open_placements_file["placements"]]]))
+                # for idx, placed_read_name in enumerate(sorted(tuple([y[0] for y in [x['nm'][0] for x in ]]))):
+                #     self.assertEqual(placements[idx], placed_read_name)
+
+
     def test_diamond_translate(self):
         reads='''>HWI-ST1243:121:D1AF9ACXX:8:1101:12684:12444
 GTCAACAACCCCGCAATGCAACAGATGTGGGATGAGATCAGACGTACAGTTATCGTCGGTCTCGACCAGGCCCACGAGACGCTGACCAGAAGACTCGGTAAGGAAGTTACCCCTGAGACCATCAACGGCTATCTTGAGGCGTTGAACCAC
@@ -147,12 +156,12 @@ CGCTTGGTCAGCGGCAACTTATGCCGTACAACGTCTCCGGGACTGACGTCATGTGTGAAGGCGATGACCTCCACTACGTC
 TCCCGGCAAAGAGTGCAGCAGCACTGAAGGCCACAGTCGGCAAGTCGATGTACCAGGCAGTGCACATCCCCACAACCGTCAGCAGGACCTGCGACGGCGGAACCACCTCCCGGTGGTCTGCAATGCAGATCGGTATGTCCTTCATTGGAG
 >HWI-ST1243:121:D1AF9ACXX:8:1102:6995:2759
 GATCGTATATGTCAGGCGGTGTCGGTTTCACGCAGTACGCAACTGCAGCATACACCGATAACATCCTCGACGACTACAGCTACTACGGCAACGACTACGCCAAGAAGTACGGAGCGGACGGAGCGGCGCCAGCGACGATGGACGGCGTTC'''
-        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+        with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(reads)
             fasta.flush()
             data = fasta.name
             package = os.path.join(path_to_data,'mcrA_with_dmnd.gpkg/')
-            with tempdir.TempDir() as tmp:                
+            with tempdir.TempDir() as tmp:
                 cmd = '%s graft --verbosity 2 --search_method diamond --forward %s --graftm_package %s --output_directory %s --force --search_and_align_only' % (path_to_script,
                                                                                                                  data,
                                                                                                                  package,
@@ -160,7 +169,7 @@ GATCGTATATGTCAGGCGGTGTCGGTTTCACGCAGTACGCAACTGCAGCATACACCGATAACATCCTCGACGACTACAGC
                 subprocess.check_output(cmd, shell=True)
                 sample_name = os.path.basename(fasta.name[:-3])
                 orfFile = os.path.join(tmp, sample_name, '%s_orf.fa' % sample_name)
-                expected_aln = '''>HWI-ST1243:121:D1AF9ACXX:8:1101:4036:46970
+                expected_aln = sorted('''>HWI-ST1243:121:D1AF9ACXX:8:1101:4036:46970
 NKLFPAKQAGQLKKAIGKTLWQGVHIPTIVSRTCDGGKTSRWVAWQTCM
 >HWI-ST1243:121:D1AF9ACXX:8:1101:6810:63372
 SKDKREFQELGAKIAKDRGIPAYNVNVHLGGMTLGQRQLMPYNVSGTDVM
@@ -180,15 +189,12 @@ ADMVQSSRKYPNDPARQALETVALGAVIFDQIYLGSCMSGGVGFTQYAT
 VNNPAMQQMWDEIRRTVIVGLDQAHETLTRRLGKEVTPETINGYLEALNH
 >HWI-ST1243:121:D1AF9ACXX:8:1102:6995:2759
 SYMSGGVGFTQYATAAYTDNILDDYSYYGNDYAKKYGADGAAPATMDGV
-'''.split()
-                count = 0
-                for line in open(orfFile):
-                    self.assertEqual(expected_aln[count], line.strip())
-                    count += 1
-                self.assertEqual(count, len(open(orfFile).readlines()))
-                
+'''.split())
+                with open(orfFile) as f:
+                    self.assertEqual(expected_aln, sorted([l.strip() for l in f.readlines()]))
+
                 self.assertTrue(os.path.exists(os.path.join(tmp, sample_name, '%s_diamond_search.daa' % sample_name)), "should keep the diamond daa file")
-                
+
 
 
 
@@ -206,7 +212,7 @@ GATGGAAACCAATGCGGGGAAACCCGGAACCTGGTGATTCATAATAACTTTCGGATCGATTTATTCGATGCATCATTCAA
 GGCCTACCATGGCTTTGACGGGTAACGGAGAATTAGGGTTCGATTCCGGAGAGGGAGCCTGAGAAACGGCTACCACATCCAAGGAAGGCAGCAGGCGCGTAAATTACCCAATCCT
 GACACAGGGAGGTAGTGACAATAAATAACAATGCCGGGCTTTCTAGTCTGGCACTTGGAATGAGAACAATTTAAATCCCTTATCGAGGATCAATTGGAGGGCAAGTCTGGTGCCA
 GCAGCCGCGGTAATTC'''
-        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+        with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(read)
             fasta.flush()
             data = fasta.name
@@ -225,14 +231,14 @@ GCAGCCGCGGTAATTC'''
                     self.assertEqual(expected_reads[count], line.strip())
                     count += 1
                 self.assertEqual(count, len(open(hits_file).readlines()))
-        
-            
+
+
     def test_finds_reverse_complement(self):
         reads='''>NS500333:16:H16F3BGXX:1:11101:11211:1402 1:N:0:CGAGGCTG+CTCCTTAC
 GAGCGCAACCCTCGCCTTCAGTTGCCATCAGGTTTGGCTGGGCACTCTGAAGGAACTGCCGGTGACAAGCCGGAGGAAGGTGGGGATGACGTCAAGTCCTCATGGCCCTTATGTCCTGGGCTACACACGTGCTACAATGGCGGTGACAGTG
 >NS500333:16:H16F3BGXX:1:11101:25587:3521 1:N:0:CGAGGCTG+CTCCTTAC
 GAGTCCGGACCGTGTCTCAGTTCCGGTGTGGCTGGTCGTCCTCTCAGACCAGCTACGGATTGTCGCCTTGGTGAGCCATTACCTCACCAACTAGCTAATCCGACTTTGGCTCATCCAATAGCGCGAGGTCTTACGATCCCCCGCTTTCT'''
-        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+        with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(reads)
             fasta.flush()
             data = fasta.name
@@ -251,11 +257,13 @@ GAGTCCGGACCGTGTCTCAGTTCCGGTGTGGCTGGTCGTCCTCTCAGACCAGCTACGGATTGTCGCCTTGGTGAGCCATT
     -----------------------------------------------------------------------------------------------------------------------------------------------------------CGCTATTGGATGAGCCAAAGTCGGATTAGCTAGTTGGTGAGGTAATGGCTCACCAAGGCGACAATCCGTAGCTGGTCTGAGAGGACGACCAGCCACACCGGAACTGAGACACGGTCCGGACT--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 '''.split()
                 count = 0
-                for line in open(alnFile):
-                    self.assertEqual(expected_aln[count], line.strip())
-                    count += 1
-                self.assertEqual(count, len(open(alnFile).readlines()))
-                
+                with open(alnFile) as f:
+                    lines = f.readlines()
+                    for line in lines:
+                        self.assertEqual(expected_aln[count], line.strip())
+                        count += 1
+                self.assertEqual(count, len(lines))
+
     def test_reverse_complement_protein_db(self):
         reads='''>example_partial_mcra_revcom
 TTCATTGCGTAGTTAGGATAGTTTGGACCACGGAGTTCGTCTGGGAGACCTTCGTCGCCCTGGTAGGACAGAACAT
@@ -266,7 +274,7 @@ AGATTGTGGACTCGGTTGCGATGTCCTTTACGACTTCGAGAGTTGCTTTTACCTTGTTGTCCGTGCCGATGTTTGC
 AGCACCCTTGTACTTGTCGTTGATGTAGTCGATGTTGTAGTACACGTTATTGTCGAGGATATCATCAGTGTATGCA
 GCTGTAGCATACTGTGTGAATCCGACACCACC
 '''
-        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+        with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(reads)
             fasta.flush()
 
@@ -299,21 +307,21 @@ GCTGTAGCATACTGTGTGAATCCGACACCACC
                 for line in open(alnFile):
                     self.assertEqual(expected_aln[count], line.strip())
                     count += 1
-                self.assertEqual(count, len(open(alnFile).readlines()))        
-        
+                self.assertEqual(count, len(open(alnFile).readlines()))
+
 
     def test_two_files_one_no_sequences_hit_nucleotide(self):
         reads='''>NS500333:16:H16F3BGXX:1:11101:11211:1402 1:N:0:CGAGGCTG+CTCCTTAC
 GAGCGCAACCCTCGCCTTCAGTTGCCATCAGGTTTGGCTGGGCACTCTGAAGGAACTGCCGGTGACAAGCCGGAGGAAGGTGGGGATGACGTCAAGTCCTCATGGCCCTTATGTCCTGGGCTACACACGTGCTACAATGGCGGTGACAGTG
 >NS500333:16:H16F3BGXX:1:11101:25587:3521 1:N:0:CGAGGCTG+CTCCTTAC
 GAGTCCGGACCGTGTCTCAGTTCCGGTGTGGCTGGTCGTCCTCTCAGACCAGCTACGGATTGTCGCCTTGGTGAGCCATTACCTCACCAACTAGCTAATCCGACTTTGGCTCATCCAATAGCGCGAGGTCTTACGATCCCCCGCTTTCT'''
-        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+        with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(reads)
             fasta.flush()
             data = fasta.name
             package = os.path.join(path_to_data,'61_otus.gpkg')
             with tempdir.TempDir() as tmp:
-                with tempfile.NamedTemporaryFile(suffix='.fa') as empty_fasta:
+                with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as empty_fasta:
                     empty_fasta.write('>seq\n')
                     empty_fasta.write('A'*1000+"\n")
                     empty_fasta.flush()
@@ -350,7 +358,7 @@ AGAGAGACCAGCATTTGCGTTTGCGGTTGCAAGAGCACATGCGACACCGGCTGCAGCTGC
 GAGCACGGTTGCTCTCTGGGATCCACCGAAGTGGTCTTCAAGGGCAGTCGGGAACTTCTC
 GTAGGTCTCGATACCATAGATTGTGGACTCGGTTGCGATGTCCTTTACGACTTCGAGAGT
 TGCTTTTACCTTGTTG'''
-        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+        with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(contig)
             fasta.flush()
 
@@ -370,9 +378,10 @@ TGCTTTTACCTTGTTG'''
                          "\t".join(('1','2','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                          )
                 count = 0
-                for line in open(otuTableFile):
-                    self.assertEqual(lines[count], line.strip())
-                    count += 1
+                with open(otuTableFile) as f:
+                    for line in f:
+                        self.assertEqual(lines[count], line.strip())
+                        count += 1
                 self.assertEqual(count, 2)
 
                 alnFile = os.path.join(tmp, sample_name, '%s_hits.aln.fa' % sample_name)
@@ -380,17 +389,15 @@ TGCTTTTACCTTGTTG'''
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------KVKATLEVVKDIATESTIYGIETYEKFPTALEDHFGGSQRATVLAAAAGVACALATANANAGLSGWYLSMYLHKEAWGRLGFFGYDLQDQCGATNVLSYQGDEGLPDELRGPNYPNYAMNVGHQGGYAGIAQAXX------------------------------------------------------
 >AB11.qc.1_(paired)_contig_360665_87_6_1
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------XXRGDAFTVNPLIKACFADDLMPFNFAEPRREFGRGAMREFVPAGERSLIIPAK
-'''.split()
+'''
                 count = 0
-                for line in open(alnFile):
-                    self.assertEqual(expected_aln[count], line.strip())
-                    count += 1
-                self.assertEqual(count, len(open(alnFile).readlines()))
+                self.assertEqualFastaUnsorted(expected_aln, alnFile)
+
     # Tests on searching for rRNA sequence in nucleic acid sequence
     def test_single_forward_read_run_16S(self):
         data = os.path.join(path_to_data,'16S_inputs','16S_1.1.fa')
         package = os.path.join(path_to_data,'61_otus.gpkg')
-        
+
         with tempdir.TempDir() as tmp:
             cmd = '%s graft --verbosity 2  --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                data,
@@ -406,7 +413,7 @@ TGCTTTTACCTTGTTG'''
                 self.assertEqual(lines[count], line.strip())
                 count += 1
             self.assertEqual(count, len(lines))
-            
+
     def test_multiple_hsps_in_same_orf_of_fastq_sequence(self):
         fq = '''@NS500333:6:H1124BGXX:2:11107:13774:3316 1:N:0:GATCAG
 CGCTTCCAGGTCGTCACCGGCCAACTCGCGAACCCGTCGCGGATCAAACTCGTGCGGCGCAACATCGCCCGTGTCCGCACGCAGATCAGTAAGTTGCAGATCGACCGTGTCCGCGCTGACCTGAAGAACGAGTACCAGACGCTGATCCAGG
@@ -419,18 +426,19 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
             fastq.flush()
             fastq_gz = '%s.gz' % fastq.name
             subprocess.check_call('gzip %s' % fastq.name, shell=True)
-            
+
             with tempdir.TempDir() as tmp:
                 cmd = '%s graft --verbosity 2  --forward %s --search_hmm_files %s --search_and_align_only --output_directory %s/out' % (path_to_script,
                                                                                                    fastq_gz,
                                                                                                    hmm,
                                                                                                    tmp)
-                
+
                 subprocess.check_call(cmd, shell=True)
-                self.assertEqual(open(os.path.join(tmp,'out','a','a_hits.aln.fa')).read(),
-                                 "\n".join(['>NS500333:6:H1124BGXX:2:11107:13774:3316_1_1_2',
-                                  '---------------------------RFQVVTGQLANPSRIKLVRRNIARVRTQISK----',''])
-                                 )
+                with open(os.path.join(tmp,'out','a','a_hits.aln.fa')) as f:
+                    self.assertEqual(f.read(),
+                                     "\n".join(['>NS500333:6:H1124BGXX:2:11107:13774:3316_1_1_2',
+                                      '---------------------------RFQVVTGQLANPSRIKLVRRNIARVRTQISK----',''])
+                                     )
 
 
 
@@ -474,9 +482,10 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                      "\t".join(('1','2','2','Root; k__Bacteria')),
                     )
             count = 0
-            for line in open(otuTableFile):
-                self.assertEqual(lines[count], line.strip())
-                count += 1
+            with open(otuTableFile) as f:
+                for line in f:
+                    self.assertEqual(lines[count], line.strip())
+                    count += 1
             self.assertEqual(count, len(lines))
 
     def test_multiple_paired_read_run_16S(self):
@@ -499,9 +508,10 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                      "\t".join(('1','2','2','Root; k__Bacteria')),
                     )
             count = 0
-            for line in open(otuTableFile):
-                self.assertEqual(lines[count], line.strip())
-                count += 1
+            with open(otuTableFile) as f:
+                for line in f:
+                    self.assertEqual(lines[count], line.strip())
+                    count += 1
             self.assertEqual(count, len(lines))
 
             self.assertTrue(os.path.isdir(os.path.join(tmp, '16S_1.1', 'forward'))) # Check forward and reverse reads exist.
@@ -529,18 +539,18 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                 self.assertEqual(lines[count], line.strip())
                 count += 1
             self.assertEqual(count, 2)
-            
+
     # Tests on searching for proteins in nucelic acid sequence
     def test_two_files_one_no_sequences_hit_protein(self):
         data = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.1.fna')
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
         with tempdir.TempDir() as tmp:
-            with tempfile.NamedTemporaryFile(suffix='.fa') as empty_fasta:
+            with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as empty_fasta:
                 empty_fasta.write('>seq\n')
                 empty_fasta.write('A'*1000+"\n")
                 empty_fasta.flush()
-                
+
                 cmd = '%s graft --verbosity 2  --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                    empty_fasta.name,
                                                                                                    data,
@@ -599,9 +609,10 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                      "\t".join(('1','1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
-            for line in open(otuTableFile):
-                self.assertEqual(lines[count], line.strip())
-                count += 1
+            with open(otuTableFile) as f:
+                for line in f:
+                    self.assertEqual(lines[count], line.strip())
+                    count += 1
             self.assertEqual(count, 2)
 
 
@@ -647,9 +658,10 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                      "\t".join(('1','1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                      )
             count = 0
-            for line in open(otuTableFile):
-                self.assertEqual(lines[count], line.strip())
-                count += 1
+            with open(otuTableFile) as f:
+                for line in f:
+                    self.assertEqual(lines[count], line.strip())
+                    count += 1
             self.assertEqual(count, 2)
 
             self.assertTrue(os.path.isdir(os.path.join(tmp, 'mcrA_1.1', 'forward'))) # Check forward and reverse reads exist.
@@ -841,14 +853,14 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                 self.assertEqual(expected[count], line.strip())
                 count += 1
             self.assertEqual(count, len(expected))
-            
+
     def test_search_and_align_only_specifying_hmm_files_and_aln_file(self):
-        
+
         data = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.1.fna')
         hmm = os.path.join(path_to_data,'mcrA.gpkg','mcrA.hmm')
         hmm2 = os.path.join(path_to_data,'mcrA_second_half.gpkg','mcrA.300-557.aln.fasta.hmm')
-    
-        with tempfile.NamedTemporaryFile(suffix='.txt') as hmms:
+
+        with tempfile.NamedTemporaryFile(suffix='.txt',mode='w') as hmms:
             hmms.write(hmm)
             hmms.write("\n")
             hmms.write(hmm2)
@@ -868,9 +880,9 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
                             '-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GGVGFTQYATAAYTDDILDNNVYYNIDYINDKYKTDNKVKATLEVVKDIATESTIYGIETYEKFPTALEDHFGXSQRATVLAAAAGVXSALATANANAGLSGWYLSMYLHKEAWGRLGFFGYDLQDQCGATNVLSYQGDEGLPDELRGPNYPNYAM----------------------------------------------------------------------']
                 count = 0
                 alnFile = os.path.join(tmp, 'mcrA_1.1', 'mcrA_1.1_hits.aln.fa')
-                
+
                 for line in open(alnFile):
-                    
+
                     self.assertEqual(expected[count], line.strip())
                     count += 1
                 self.assertEqual(count, len(expected))
@@ -890,7 +902,7 @@ ACAACATCGACTACATCAACGACAAGTACAAGGGTGCTGCAAACATCGGCACGGACAACAAGGTAAAAGC
 AACTCTCGAAGTCGTAAAGGACATCGCAACCGAGTCCACAATCTATGGTATCGAGACCTACGAGAAGTTC
 CCGACTGCCCTTGAAGACCACTTCG
 '''
-        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+        with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(fa)
             fasta.flush()
 
@@ -910,9 +922,10 @@ CCGACTGCCCTTGAAGACCACTTCG
                          "\t".join(('1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanosarcinales; Methanosarcinaceae; Methanosarcina')),
                          )
                 count = 0
-                for line in open(otuTableFile):
-                    self.assertEqual(lines[count], line.strip())
-                    count += 1
+                with open(otuTableFile) as f:
+                    for line in f:
+                        self.assertEqual(lines[count], line.strip())
+                        count += 1
                 self.assertEqual(count, 2)
 
                 alnFile = os.path.join(tmp, sample_name, '%s_hits.aln.fa' % sample_name)
@@ -920,10 +933,12 @@ CCGACTGCCCTTGAAGACCACTTCG
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GGVGFTQYATAAYTDDILDNNVYYNIDYINDKYKTDNKVKATLEVVKDIATESTIYGIETYEKFPTALEDHFGXSQRATVLAAAAGVXSALATANANAGLSGWYLSMYLHKEAWGRLGFFGYDLQDQCGATNVLSYQGDEGLPDELRGPNYPNYAM----------------------------------------------------------------------
 '''.split()
                 count = 0
-                for line in open(alnFile):
-                    self.assertEqual(expected_aln[count], line.strip())
-                    count += 1
-                self.assertEqual(count, len(open(alnFile).readlines()))
+                with open(alnFile) as f:
+                    lines = f.readlines()
+                    for line in lines:
+                        self.assertEqual(expected_aln[count], line.strip())
+                        count += 1
+                    self.assertEqual(count, len(lines))
 
     def test_restrict_read_length(self):
         fa = '''>long_partial_mcra_488bp_with_As
@@ -941,7 +956,7 @@ ACAACATCGACTACATCAACGACAAGTACAAGGGTGCTGCAAACATCGGCACGGACAACAAGGTAAAAGC
 AACTCTCGAAGTCGTAAAGGACATCGCAACCGAGTCCACAATCTATGGTATCGAGACCTACGAGAAGTTC
 CCGACTGCCCTTGAAGACCACTTCG
 '''
-        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+        with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(fa)
             fasta.flush()
 
@@ -981,7 +996,7 @@ CCGACTGCCCTTGAAGACCACTTCG
         reads_1=os.path.join(path_to_samples, "sample_16S_1.1.fa")
         reads_2=os.path.join(path_to_samples, "sample_16S_2.1.fa")
         gpkg=os.path.join(path_to_data, "61_otus.gpkg")
-        
+
         with tempdir.TempDir() as tmp:
             cmd = '%s graft --verbosity 5  --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                   reads_1,
@@ -990,25 +1005,27 @@ CCGACTGCCCTTGAAGACCACTTCG
                                                                                                   tmp)
             extern.run(cmd)
             comb_otu_table=os.path.join(tmp, "combined_count_table.txt")
-            
-            expected=('\t'.join(('#ID', 'sample_16S_1.1', 'sample_16S_2.1', 'ConsensusLineage')),
-                      '\t'.join(('1','1','1','Root; k__Bacteria; p__Cyanobacteria; c__Chloroplast')),
-                      '\t'.join(('2','9','36','Root; k__Bacteria; p__Proteobacteria')),
-                      '\t'.join(('3','0','2','Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria; o__Rickettsiales; f__mitochondria')),
-                      '\t'.join(('4','18','106','Root; k__Bacteria')),
-                      '\t'.join(('5','5','6','Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria; o__Rickettsiales')),
-                      '\t'.join(('6','1','18','Root')),
-                      '\t'.join(('7','2','9','Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria'))
-            )
-            count=0
-            for line in open(comb_otu_table):
-                self.assertEqual(expected[count], line.strip())
-                count+=1
-            self.assertEqual(count, len(open(comb_otu_table).readlines()))
-            
-                                                                                                                          
 
-        
+            expected=(['#ID', 'sample_16S_1.1', 'sample_16S_2.1', 'ConsensusLineage'],
+                      ['1','1','Root; k__Bacteria; p__Cyanobacteria; c__Chloroplast'],
+                      ['9','36','Root; k__Bacteria; p__Proteobacteria'],
+                      ['0','2','Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria; o__Rickettsiales; f__mitochondria'],
+                      ['18','106','Root; k__Bacteria'],
+                      ['5','6','Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria; o__Rickettsiales'],
+                      ['1','18','Root'],
+                      ['2','9','Root; k__Bacteria; p__Proteobacteria; c__Alphaproteobacteria'])
+            count=0
+            with open(comb_otu_table) as f:
+                observed = f.readlines()
+                self.assertEqual(expected[0],observed[0].strip().split('\t'))
+                self.assertEqual(
+                    sorted(expected[1:]),
+                    sorted([o.strip().split('\t')[1:] for o in observed[1:]])
+                )
+
+
+
+
     def test_fastq_gz_input(self):
         reads='''@NS500333:16:H16F3BGXX:1:11101:11211:1402 1:N:0:CGAGGCTG+CTCCTTAC
 GAGCGCAACCCTCGCCTTCAGTTGCCATCAGGTTTGGCTGGGCACTCTGAAGGAACTGCCGGTGACAAGCCGGAGGAAGGTGGGGATGACGTCAAGTCCTCATGGCCCTTATGTCCTGGGCTACACACGTGCTACAATGGCGGTGACAGTG
@@ -1019,8 +1036,8 @@ GAGTCCGGACCGTGTCTCAGTTCCGGTGTGGCTGGTCGTCCTCTCAGACCAGCTACGGATTGTCGCCTTGGTGAGCCATT
 +
 DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
 '''
-        with tempfile.NamedTemporaryFile(suffix='.fq.gz') as fastq_gz:
-            with tempfile.NamedTemporaryFile(suffix='.fq') as fastq:
+        with tempfile.NamedTemporaryFile(suffix='.fq.gz',mode='w') as fastq_gz:
+            with tempfile.NamedTemporaryFile(suffix='.fq',mode='w') as fastq:
                 fastq.write(reads)
                 fastq.flush()
                 cmd = 'gzip -c %s > %s' % (fastq.name, fastq_gz.name)
@@ -1038,14 +1055,23 @@ DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
                     expected_aln = '''>NS500333:16:H16F3BGXX:1:11101:11211:1402
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GAGCGCAACCCTCGCCTTCAGTTGCCATCTGAAGGAACTGCCGGTGACAAGCCGGAGGAAGGTGGGGATGACGTCAAGTCCTCATGGCCCTTATGTCCTGGGCTACACACGTGCTACAATGGCGGT----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     >NS500333:16:H16F3BGXX:1:11101:25587:3521
-    -----------------------------------------------------------------------------------------------------------------------------------------------------------CGCTATTGGATGAGCCAAAGTCGGATTAGCTAGTTGGTGAGGTAATGGCTCACCAAGGCGACAATCCGTAGCTGGTCTGAGAGGACGACCAGCCACACCGGAACTGAGACACGGTCCGGACT--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    '''.split()
-                    count = 0
-                    for line in open(alnFile):
-                        self.assertEqual(expected_aln[count], line.strip())
-                        count += 1
-                    self.assertEqual(count, len(open(alnFile).readlines()))
-                    
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------CGCTATTGGATGAGCCAAAGTCGGATTAGCTAGTTGGTGAGGTAATGGCTCACCAAGGCGACAATCCGTAGCTGGTCTGAGAGGACGACCAGCCACACCGGAACTGAGACACGGTCCGGACT--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------'''
+                    self.assertEqualFastaUnsorted(expected_aln, alnFile)
+
+    def assertEqualFastaUnsorted(self, expected_str, observed_file_path):
+        expected_splits = []
+        expected_lines = list([s.strip() for s in expected_str.split('\n') if s != ''])
+        for i, l in enumerate(expected_lines):
+            if i % 2 == 0 and l.strip() != '':
+                expected_splits.append([expected_lines[i].strip(), expected_lines[i+1].strip()])
+        observed_splits = []
+        with open(observed_file_path) as f:
+            lines = list([l.strip() for l in f.readlines()])
+            for i, line in enumerate(lines):
+                if i % 2 == 0:
+                    observed_splits.append([lines[i], lines[i+1]])
+        self.assertEqual(sorted(expected_splits), sorted(observed_splits))
+
     def test_expand_search_contigs(self):
         # this read is picked up by bootstrap but not regular graftm at the evalue
         testing_read = '''>196339_2
@@ -1055,7 +1081,7 @@ TGATGCGGCGTGTCTGTATCTACAAGCGCCACCACGGGTA
 ATCTACAAGCGCCACCACGGGTATCCCCATCTTGGCCGCCTCGGCGACGGCTTGGGAGTC
 TAGTCTCGGGTCTACTACGAATAGCAAGTCTACCTCAAGG
 '''
-        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+        with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(testing_read)
             fasta.flush()
             original_hmm = os.path.join(path_to_data,'bootstrapper','DNGNGWU00001.hmm')
@@ -1065,30 +1091,33 @@ TAGTCTCGGGTCTACTACGAATAGCAAGTCTACCTCAAGG
                                                                                                                  original_hmm,
                                                                                                                  original_hmm,
                                                                                                                  tmp)
-                
+
                 subprocess.check_output(cmd, shell=True)
                 sample_name = os.path.basename(fasta.name[:-3])
-                self.assertEqual('', open(os.path.join(tmp, sample_name, '%s_hits.fa' % sample_name)).read())
-                
-                cmd = "%s --expand_search_contigs %s" % (cmd, 
+                with open(os.path.join(tmp, sample_name, '%s_hits.fa' % sample_name)) as f:
+                    self.assertEqual('', f.read())
+
+                cmd = "%s --expand_search_contigs %s" % (cmd,
                                                      os.path.join(path_to_data,'bootstrapper','contigs.fna'))
 
                 subprocess.check_output(cmd, shell=True)
-                self.assertEqual(testing_read, open(os.path.join(tmp, sample_name, '%s_hits.fa' % sample_name)).read())
+                with open(os.path.join(tmp, sample_name, '%s_hits.fa' % sample_name)) as f:
+                    self.assertEqual(testing_read, f.read())
 
                 bootstrap_hmm_path = os.path.join(tmp, 'expand_search.hmm')
                 self.assertTrue(os.path.isfile(bootstrap_hmm_path))
-                self.assertTrue(open(bootstrap_hmm_path).readlines()[0] in
-                                ["HMMER3/f [3.1b2 | February 2015]\n",
-                                 "HMMER3/f [3.2.1 | June 2018]\n"])
+                with open(bootstrap_hmm_path) as f:
+                    self.assertTrue(f.readlines()[0] in
+                                    ["HMMER3/f [3.1b2 | February 2015]\n",
+                                     "HMMER3/f [3.2.1 | June 2018]\n"])
 
     def test_diamond_search_with_pplacer(self):
         testing_read = '''>Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040
 ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGACGACCTATAAGCGCGAGGGGTGGACTCAGTCCAAGGACAAGCGCGAGTTCCAGGAATGGGGCGCAAAAATCGCCAAGGACCGTGGAATACCGGCGTACAACGTCAACGTCCACCTCGGCGGTATGACCCTCGGCCAGCGGCAACTCATGCCGTACAATGTCTCTGGGACCGACGTGATGTGTGAAGGCGATGACCTCCACTACGTCAACAACCCCGCAATGCAACAGATGTGGGATGAGATCAGGCGTACGGTTATCGTAGGTCTTGACACCGCTCACGAGACGCTGACCAGGAGACTCGGCAAGGAGGTTACCCCCGAGACCATCAACGGCTATCTCGAGGCATTGAACCACACGATGCCCGGTGCGGCCATTGTCCAAGAACACATGGTGGAAACCCACCCTGCGCTCGTTGAAGACTGCTTCGTAAAAGTCTTCACCGGCGACGATGACCTCGCC'''
-        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+        with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(testing_read)
             fasta.flush()
-            
+
             with tempdir.TempDir() as tmp:
                 cmd = '%s graft --verbosity 2 --search_method diamond --forward %s --output_directory %s --force --graftm_package %s' % (path_to_script,
                                                                                                                  fasta.name,
@@ -1098,17 +1127,18 @@ ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGAC
                 expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
                             ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales']]
                 expected = ['\t'.join(l) + '\n' for l in expected]
-                self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
-                
+                with open(os.path.join(tmp,'combined_count_table.txt')) as f:
+                    self.assertEqual(expected, f.readlines())
+
     def test_diamond_search_with_pplacer_protein_input(self):
         testing_read = '''>2518787893 METHANOFLORENS STORDALENMIRENSIS MCRA
 MATEKTQKMFLEAMKKKFAEDPTSNKTTYKREGWTQSKDKREFQEWGAKIAKDRGIPAY
 NVNVHLGMTLGQRQLMPYNVSGTDVMCEGDDLHYVNNPAMQQMWDEIRRTVIVGLDTAH
 ETLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA'''
-        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+        with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(testing_read)
             fasta.flush()
-            
+
             with tempdir.TempDir() as tmp:
                 cmd = '%s graft --verbosity 2 --search_method diamond --forward %s --output_directory %s --force --graftm_package %s' % (path_to_script,
                                                                                                                  fasta.name,
@@ -1118,12 +1148,13 @@ ETLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA'''
                 expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
                             ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales']]
                 expected = ['\t'.join(l) + '\n' for l in expected]
-                self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
-                
+                with open(os.path.join(tmp,'combined_count_table.txt')) as f:
+                    self.assertEqual(expected, f.readlines())
+
     def test_diamond_placement_method(self):
         testing_read = '''>Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040
 ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGACGACCTATAAGCGCGAGGGGTGGACTCAGTCCAAGGACAAGCGCGAGTTCCAGGAATGGGGCGCAAAAATCGCCAAGGACCGTGGAATACCGGCGTACAACGTCAACGTCCACCTCGGCGGTATGACCCTCGGCCAGCGGCAACTCATGCCGTACAATGTCTCTGGGACCGACGTGATGTGTGAAGGCGATGACCTCCACTACGTCAACAACCCCGCAATGCAACAGATGTGGGATGAGATCAGGCGTACGGTTATCGTAGGTCTTGACACCGCTCACGAGACGCTGACCAGGAGACTCGGCAAGGAGGTTACCCCCGAGACCATCAACGGCTATCTCGAGGCATTGAACCACACGATGCCCGGTGCGGCCATTGTCCAAGAACACATGGTGGAAACCCACCCTGCGCTCGTTGAAGACTGCTTCGTAAAAGTCTTCACCGGCGACGATGACCTCGCC'''
-        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+        with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(testing_read)
             fasta.flush()
             sample_name = os.path.basename(fasta.name[:-3])
@@ -1136,15 +1167,16 @@ ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGAC
                 expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
                             ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales; Methanoflorentaceae; Methanoflorens']]
                 expected = ['\t'.join(l) + '\n' for l in expected]
-                self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
+                with open(os.path.join(tmp,'combined_count_table.txt')) as f:
+                    self.assertEqual(expected, f.readlines())
                 self.assertTrue(os.path.exists(os.path.join(tmp, sample_name, '%s.hmmout.txt' % sample_name)), "should keep the hmmer search file")
-                
+
     def test_diamond_placement_method_protein_input(self):
         testing_read = '''>2518787893 METHANOFLORENS STORDALENMIRENSIS MCRA
 MATEKTQKMFLEAMKKKFAEDPTSNKTTYKREGWTQSKDKREFQEWGAKIAKDRGIPAY
 NVNVHLGMTLGQRQLMPYNVSGTDVMCEGDDLHYVNNPAMQQMWDEIRRTVIVGLDTAH
 ETLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA'''
-        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+        with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(testing_read)
             fasta.flush()
             with tempdir.TempDir() as tmp:
@@ -1156,12 +1188,13 @@ ETLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA'''
                 expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
                             ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales; Methanoflorentaceae; Methanoflorens']]
                 expected = ['\t'.join(l) + '\n' for l in expected]
-                self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
-                
+                with open(os.path.join(tmp,'combined_count_table.txt')) as f:
+                    self.assertEqual(expected, f.readlines())
+
     def test_diamond_search_and_place_method(self):
         testing_read = '''>Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040
 ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGACGACCTATAAGCGCGAGGGGTGGACTCAGTCCAAGGACAAGCGCGAGTTCCAGGAATGGGGCGCAAAAATCGCCAAGGACCGTGGAATACCGGCGTACAACGTCAACGTCCACCTCGGCGGTATGACCCTCGGCCAGCGGCAACTCATGCCGTACAATGTCTCTGGGACCGACGTGATGTGTGAAGGCGATGACCTCCACTACGTCAACAACCCCGCAATGCAACAGATGTGGGATGAGATCAGGCGTACGGTTATCGTAGGTCTTGACACCGCTCACGAGACGCTGACCAGGAGACTCGGCAAGGAGGTTACCCCCGAGACCATCAACGGCTATCTCGAGGCATTGAACCACACGATGCCCGGTGCGGCCATTGTCCAAGAACACATGGTGGAAACCCACCCTGCGCTCGTTGAAGACTGCTTCGTAAAAGTCTTCACCGGCGACGATGACCTCGCC'''
-        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+        with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(testing_read)
             fasta.flush()
             sample_name = os.path.basename(fasta.name[:-3])
@@ -1174,18 +1207,20 @@ ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGAC
                 expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
                             ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales; Methanoflorentaceae; Methanoflorens']]
                 expected = ['\t'.join(l) + '\n' for l in expected]
-                self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
-                
-                
+                with open(os.path.join(tmp,'combined_count_table.txt')) as f:
+                    self.assertEqual(expected, f.readlines())
+
+
                 expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
                             ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales; Methanoflorentaceae; Methanoflorens']]
                 expected = ['\t'.join(l) + '\n' for l in expected]
-                self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
-                
+                with open(os.path.join(tmp,'combined_count_table.txt')) as f:
+                    self.assertEqual(expected, f.readlines())
+
                 self.assertTrue(os.path.exists(os.path.join(tmp, sample_name, '%s_diamond_search.daa' % sample_name)), "should keep the diamond search file")
                 self.assertTrue(os.path.exists(os.path.join(tmp, sample_name, '%s_diamond_assignment.daa' % sample_name)), "should keep the diamond assign file")
-    
-    
+
+
     def test_hit_where_sequence_evalue_is_good_but_individuals_bad(self):
         # the first one is a real hit, the second has several hits better but none better than 1e-5
         testing = '''>2509711280 Pleur7313DRAFT_05268 ribosomal protein S19, bacterial/organelle [Pleurocapsa sp. PCC 7319]
@@ -1193,8 +1228,8 @@ MSRSLKKGPFIADSLLKKIEKLNANNKKEVIKTWSRASTILPQMVGHTIAVHNGRQHIPVFISDQMVGHKLGEFAPTRTF
 >2509712449 Pleur7313DRAFT_06440 FOG: WD40 repeat [Pleurocapsa sp. PCC 7319]
 MSKSVVINLGSGDLYKGFPRVTAQLWAAGYPRPEQFIGSLPAAPALAESYRTWQSIYKALCSRLVLFSRGPDDDDDELEIDEGGITQVSEVSFDALGQQLHESLNAWLKSVEFLNIERQLRSQLDPSEEIRVIIETNDEQLRRLPWHCWDFVEDYYYSEAALSRPEYKRIKRSPSKINRKKVRILAVLGNSQGIDLEVERRFLKGLPDAETVFLVNPSRHEFNEQLWNSQGWDILFFAGHSQSEGKTGRIYLNENKTNNSLTVEQLKEALKEAIKNDLYLAIFNSCDGLGLANALGKLNLPQIIVMREPVPNRVAQEFFKHFLSAFASQRSPLYSAVRQARRQLQGLENEFPSASWLPVISQNPAVEPPTWLQLGGIPPCPYRGLSAFREEDAHLFCGREEFTANLLKEVKSKPLVAVVGASGSGKSSVVFAGLIPHLQQDTDLCWQIVSFRPGNNPVDSLAAALVPLWQQRENNQEDNLASRDNSIVELELFLALRRDELALSKLIKSLVESPKTRLLLIADQFEELYTLSNQAERQFFLTLLLNAVKFAPAFTLVLTLRADFYGYILGDRSWSDALQGAIQNLGSMSRSELQLVIEKPAALMQVKLEQGLTDKLINNVWEQPGRLPLLEFALTQLWSKQQHGLLTHQAYSEIGGVSSALANHAEAVYAQLSETDKQLVQQVFLQLVRLGEETEATRRLATRDEIKAENWDLVTRLASARLVVTNHRYSTGKETVEIVHESLIKSWGRLQQWLLLDGDFRRWQEQLRTAIGQWQWQGSSSNQDTLLRGKPLTDASNWLQKRFQELTDSERSFIQASLEQRNNHIKAEKRRQQWTILGLTLGSILAVSLMGVARWQWQKVRIGELYALTKSSEVLFADNDRLNALVKAIAAQEKLQKLGRVDTKLQNQVESILRRSIYGANESNRLSGHHGAVWGVAFSPDGQTIASTSWDNTIKLWSRNGKELKTITGHVEEVWGVAFSPDGQTIATASGDNTVKLWQHDGTLLKTLTGHGDIVYSVAFSPDGQAIATASGDNTVKLWQRDGTLVKTLTGHEASVWGVAFNPNGQTIASAGWDKKVKLWSRDGALLKTLESHQAPVNALAFSPDGQTIATASNDKTVKLWSRDGTLLKTLEGHDDDVWGISFSPDGQTFASVSGDKTVKLWSRDGTLLQTLEGHDDEVWGVSFSPDGQTLASAGDDKTIRLWQRDNKLLTTLSSHSAGVNGVAFSPDEQLIASAGWDKTVKLWNSNGSLLKTLIGHSAAINALAFEPGGNIIATASADNTVKFWQRDGTLLKTLIGHRAGVNAVVFSPDGEIVASASADTTVKLWSREGTLLKTLTGHRAGVNAVVFSPDGEMVASASADNTVKFWSRDGTELKTFKAHGDRLYALAFSFDGQMLATASADNTVKLWNRDGTELKTLNGHNGTVWGVAFSPDGQTIATASGDNTVNLWKLDGTLLTTLNAHNSAVNAIAFNSDGNRLTSASEDRTVIVWDLNRVRSLDEILAYSCDWVQHYLQNNANVNPEALLLCGKIENLNPQ
 '''
-        
-        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+
+        with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(testing)
             fasta.flush()
             with tempdir.TempDir() as tmp:
@@ -1208,9 +1243,9 @@ MSRSLKKGPFIADSLLKKIEKLNANNKKEVIKTWSRASTILPQMVGHTIAVHNGRQHIPV
 FISDQMVGHKLGEFAPTRTFRGHAKSDKKGRR
 '''
                 self.assertEqual(expected, open(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "%s_hits.fa" % os.path.basename(fasta.name)[:-3])).read())
-        
 
-    @unittest.skip("known failure")            
+
+    @unittest.skip("known failure")
     def test_forward_and_reverse_slash_type_fastq(self):
         fwd = '''@FCC0WM1ACXX:2:2208:12709:74426#GTCCAGAA/1
 ACACTGCCCAGACACCTACGGGTGGCTGCAGTCGAGGATCTTCGGCAATGGGCGAAAGCCTGACCGAGCGACGCCGCGTGTGGGATGAAGGCCCTCGGGT
@@ -1222,10 +1257,10 @@ CGGGGTATCTAATCCCGTTCGCTCCCCTAGCTTTCGTGCCTCAGCGTCAGAAAAGACCCAGTGAGCCGCTTTCGCCCCCG
 +
 \a_ccO_ceceeehdgaffZ^degfggfdefggib^ef^cecRafeefgdZecf_dd`gbcZ___b]aUZaa`aa__aaX__TT[]_bY]Y`]RG]`b_b
 '''
-        with tempfile.NamedTemporaryFile(suffix='.fq') as fwd_f:
+        with tempfile.NamedTemporaryFile(suffix='.fq',mode='w') as fwd_f:
             fwd_f.write(fwd)
             fwd_f.flush()
-            with tempfile.NamedTemporaryFile(suffix='.fq') as rev_f:
+            with tempfile.NamedTemporaryFile(suffix='.fq',mode='w') as rev_f:
                 rev_f.write(rev)
                 rev_f.flush()
 
@@ -1249,7 +1284,7 @@ ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGAC
 CGGCCAGCGGCAACTCATGCCGTACAATGTCTCTGGGACCGACGTGATGTGTGAAGGCGATGACCTCCACTACGTCAACAACCCCGCAATGCAACAGATGTGGGATGAGATCAGGCGTACGGTTATCGTAGGTCTTGACACCGCTCACGAGACGCTGACCAGGAGACTCGGCAAGGAGGTTACCCCCGAGACCATCAACGGCTATCTCGA
 GGCATTGAACCACACGATGCCCGGTGCGGCCATTGTCCAAGAACACATGGTGGAAACCCACCCTGCGCTCGTTGAAGACTGCTTCGTAAAAGTCTTCACCGGCGACGATGACCTCGCC
 '''
-        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+        with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(testing)
             fasta.flush()
             with tempdir.TempDir() as tmp:
@@ -1283,7 +1318,7 @@ TLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA-
 -----------------
 '''
                 self.assertEqual(expected, open(os.path.join(tmp, "combined_alignment.aln.fa")).read())
-                
+
                 jplace = json.load(open(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "placements.jplace")))
                 self.assertEqual(2, len(jplace['placements']))
 
@@ -1330,8 +1365,9 @@ TLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA-
                 os.path.join(path_to_data,'mcrA.gpkg','mcrA_1.2.fna'),
                 tmp)
             extern.run(cmd)
-            observed_placements = json.load(open(
-                os.path.join(tmp,'mcrA_1.1','placements.jplace')))
+            with open(
+                os.path.join(tmp,'mcrA_1.1','placements.jplace')) as f:
+                observed_placements = json.load(f)
             self.assertEqual([
                 {
                     "p": [
@@ -1363,13 +1399,14 @@ TLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA-
                 os.path.join(path_to_data,'mcrA.gpkg','mcrA_1.1.fna'),
                 tmp)
             extern.run(cmd)
-            observed_placements = json.load(open(
-                os.path.join(tmp,'random_paired','placements.jplace')))
+            with open(
+                os.path.join(tmp,'random_paired','placements.jplace')) as f:
+                observed_placements = json.load(f)
             self.assertEqual([
                 {
-                    u"p": [
+                    "p": [
                         [
-                            u"Methanosarcina",
+                            "Methanosarcina",
                             0.00346122332952,
                             91,
                             1,
@@ -1377,9 +1414,9 @@ TLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA-
                             0.0423611754415
                         ]
                     ],
-                    u"nm": [
+                    "nm": [
                         [
-                            u"example_partial_mcra_1_1_8",
+                            "example_partial_mcra_1_1_8",
                             1
                         ]
                     ]
@@ -1390,7 +1427,7 @@ TLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA-
         testing = '''>NS500333:6:H1124BGXX:1:23310:10768:12778 1:N:0:GATCAG
 CGGGAGGAACACCAGTGGCGAAGGCGGCTTCCTGGCCTGTTCTTGACGCTGAGGCGCGAA
 '''
-        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+        with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(testing)
             fasta.flush()
             with tempdir.TempDir() as tmp:
@@ -1400,7 +1437,8 @@ CGGGAGGAACACCAGTGGCGAAGGCGGCTTCCTGGCCTGTTCTTGACGCTGAGGCGCGAA
                                                                                                                  os.path.join(path_to_data,'61_otus.gpkg'))
                 extern.run(cmd)
                 expected = '>NS500333:6:H1124BGXX:1:23310:10768:12778\n--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------GGAGGAACACCAGTGGCGAAGGCGGCTTCCTGGCCTGCTTGACGCTGAGGCGCGAA-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n'
-                self.assertEqual(expected, open(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "%s_hits.aln.fa" % os.path.basename(fasta.name)[:-3])).read())
+                with open(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "%s_hits.aln.fa" % os.path.basename(fasta.name)[:-3])) as f:
+                    self.assertEqual(expected, f.read())
 
             with tempdir.TempDir() as tmp:
                 cmd = '%s graft --verbosity 5 --forward %s --output_directory %s --force --graftm_package %s --filter_minimum 150' % (
@@ -1441,7 +1479,7 @@ CGGGAGGAACACCAGTGGCGAAGGCGGCTTCCTGGCCTGTTCTTGACGCTGAGGCGCGAA
         reads_1=os.path.join(path_to_samples, "sample_16S_1.1.fa")
         reads_2=os.path.join(path_to_samples, "sample_16S_2.1.fa")
         gpkg=os.path.join(path_to_data, "61_otus.gpkg")
-        
+
         with tempdir.TempDir() as tmp:
             cmd = '%s graft --verbosity 5  --forward %s %s --graftm_package %s --output_directory %s --force --max_samples_for_krona 2' % (path_to_script,
                                                                                                   reads_1,
@@ -1451,7 +1489,7 @@ CGGGAGGAACACCAGTGGCGAAGGCGGCTTCCTGGCCTGTTCTTGACGCTGAGGCGCGAA
             extern.run(cmd)
             self.assertTrue(os.path.exists(os.path.join(tmp, "combined_count_table.txt")))
             self.assertTrue(os.path.exists(os.path.join(tmp, "krona.html")))
-            
+
             cmd = '%s graft --verbosity 5  --forward %s %s --graftm_package %s --output_directory %s --force --max_samples_for_krona 1' % (path_to_script,
                                                                                                   reads_1,
                                                                                                   reads_2,
@@ -1478,7 +1516,7 @@ PYLCSYRPEEGNFAELRGYNTPYASFTAGHGVIREVAGYAAMVGRGDAWVASPVVKAA
 FADPHLVFDFREPKMCIAKATLRQFMPAGERDPTLPPH
 '''
         gpkg=os.path.join(path_to_data, "mcrA.gpkg")
-        with tempfile.NamedTemporaryFile(prefix='graftmdec', suffix='.fa') as f:
+        with tempfile.NamedTemporaryFile(prefix='graftmdec', suffix='.fa',mode='w') as f:
             f.write(decoy_sequence)
             f.flush()
             extern.run("diamond makedb --in %s --db %s.dmnd" %\
@@ -1523,7 +1561,7 @@ FADPHLVFDFREPKMCIAKATLRQFMPAGERDPTLPPH
             with self.assertRaises(extern.ExternCalledProcessError):
                 try:
                     extern.run(cmd)
-                except extern.ExternCalledProcessError, e:
+                except extern.ExternCalledProcessError as e:
                     self.assertEqual(128, e.returncode)
                     raise e
 
@@ -1539,7 +1577,7 @@ KKYGEDGKAPSTMDVVNDLGTEVTLYGIEQYEKYPTTLEDHFGGSQRATVLAAASGVTVA
 IATGNSNAGLSGWYLSMLLHKDAWGRLGFYGYDLQDQCGSTNTFSVRSDEGAPDELRGAN
 YPNYAMNVGHQGGYAGIAKAAHVGRRDAFAVSPLVKVCFADPNLWFDFAAPRKEFARGAL
 REFQPAGERTIVSPGRKF*'''
-        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+        with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(testing_read)
             fasta.flush()
             with tempdir.TempDir() as tmp:
@@ -1553,7 +1591,8 @@ REFQPAGERTIVSPGRKF*'''
                 expected = [['#ID',os.path.basename(fasta.name)[:-3],'ConsensusLineage'],
                             ['1','1','Root; mcrA; Euryarchaeota_mcrA; Methanomicrobia; Methanocellales']]
                 expected = ['\t'.join(l) + '\n' for l in expected]
-                self.assertEqual(expected, open(os.path.join(tmp,'combined_count_table.txt')).readlines())
+                with open(os.path.join(tmp,'combined_count_table.txt')) as f:
+                    self.assertEqual(expected, f.readlines())
 
     @unittest.skip("known failure")
     def test_protein_input_for_pplacer_with_gaps(self):
@@ -1568,7 +1607,7 @@ KKYGEDGKAPSTMDVVNDLGTEVTLYGIEQYEKYPTTLEDHFGGSQRATVLAAASGVTVA
 IATGNSNAGLSGWYLSMLLHKDAWGRLGFYGYDLQDQCGSTNTFSVRSDEGAPDELRGAN
 YPNYAMNVGHQGGYAGIAKAAHVGRRDAFAVSPLVKVCFADPNLWFDFAAPRKEFARGAL
 REFQPAGERTIVSPGRKF*'''
-        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+        with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(testing_read)
             fasta.flush()
             with tempdir.TempDir() as tmp:
@@ -1593,8 +1632,8 @@ ATTTATTGTCTTTCTATGTTCTTCATGCATTAAAGC
 TGCTACTGGGGCGCTGACTATGCACAGAAGAAGTACGGCAAGTTCGGAAGCGCAAAGCCG
 ACAGTCGAGACGGTCAAAGATATCGGTACAGAGGTA
 '''
-        with tempfile.NamedTemporaryFile(suffix='.fa') as r1:
-            with tempfile.NamedTemporaryFile(suffix='.fa') as r2:
+        with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as r1:
+            with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as r2:
                 r1.write(mcr_read)
                 r1.flush()
                 r2.write(other_read)
@@ -1623,10 +1662,11 @@ ACAGTCGAGACGGTCAAAGATATCGGTACAGAGGTA
 
             extern.run(cmd)
 
-            self.assertEqual(
-                '''>NODE_2954_length_28206_cov_124.606657_32_5_17 [matched=8] [unmatched=1] [degenerate=0] [unbinned=0]_chopped_8300-9500
+            with open(os.path.join(tmp,'aa_orf_split_bug','aa_orf_split_bug_orf.fa')) as f:
+                self.assertEqual(
+                    '''>NODE_2954_length_28206_cov_124.606657_32_5_17 [matched=8] [unmatched=1] [degenerate=0] [unbinned=0]_chopped_8300-9500
 KRWKFHAPNMGARKRHSPRRGSLAYSPRARAKSMEARIRAWPEVDEAQEPRILAHCGFKAGCVQIVSIDDRGKVPNAGKQLVSLGTVLATPPVLILGIRGYARDAARGLYAAFDVYAEDMPREMAKVVKLKNGDENALKNAEASLGRISELYAILAVSPRQAGLEQKNPYIFEGMVGGGTIAQQFEYLSGMLGKQVSISDTFEAGSSVDVAAITKGKGWQGVLKRWNVKKKQHKSRKTVREVGSLGPISPQSVMYTVPRAGQFGFHQRTEYNKRIMIVGDATAEEEQRRQEMEAQSAAAAGSKKSDGIKRRRGAGSQSAQLQQQNKGINPAGGYKHFGLVKGEYVILKGSVPGTYRRLVKLRSQVRNKPAKVSKPNILEVVV'''+"\n",
-                open(os.path.join(tmp,'aa_orf_split_bug','aa_orf_split_bug_orf.fa')).read())
+                    f.read())
 
 
 

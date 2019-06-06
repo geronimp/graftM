@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #=======================================================================
 # Authors: Ben Woodcroft, Joel Boyd
@@ -24,10 +24,10 @@
 import unittest
 import os
 import sys
-from graftm.pplacer import Pplacer
-from graftm.sequence_io import Sequence
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
+from graftm.pplacer import Pplacer
+from graftm.sequence_io import Sequence
 
 class Tests(unittest.TestCase):
     path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #=======================================================================
 # Authors: Ben Woodcroft, Joel Boyd
@@ -57,7 +57,7 @@ class Tests(unittest.TestCase):
             self.fail("No version of fasttree is installed that graftM can recognise!")
 
         if fasttree_original_path:
-            for orig, possibility in fasttree_possibilities.iteritems():
+            for orig, possibility in fasttree_possibilities.items():
                 with tempdir.TempDir() as tmp_file:
                     os.symlink(os.path.join(fasttree_original_path,
                                             orig),

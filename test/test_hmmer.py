@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #=======================================================================
 # Authors: Ben Woodcroft, Joel Boyd
@@ -70,8 +70,8 @@ class Tests(unittest.TestCase):
         with tempfile.NamedTemporaryFile(suffix='_forward.fa') as forward_file:
             with tempfile.NamedTemporaryFile(suffix='_reverse.fa') as reverse_file:
                 with tempfile.NamedTemporaryFile(suffix='.fa') as output_file:
-                    forward_file.write(forward_reads)
-                    reverse_file.write(reverse_reads)
+                    forward_file.write(forward_reads.encode())
+                    reverse_file.write(reverse_reads.encode())
                     forward_file.flush()
                     reverse_file.flush()
                     SequenceSearcher(None).merge_forev_aln([forward_file.name],[reverse_file.name],[output_file.name])
@@ -79,7 +79,8 @@ class Tests(unittest.TestCase):
                     for line in open(output_file.name):
                         self.assertEqual(expected_aln[count], line.strip())
                         count += 1
-                    self.assertEqual(count, len(open(output_file.name).readlines()))
+                    with open(output_file.name) as f:
+                        self.assertEqual(count, len(f.readlines()))
 
 if __name__ == "__main__":
     unittest.main()

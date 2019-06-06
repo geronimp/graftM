@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ################################################################################
 #                                                                              #
 #     This program is free software: you can redistribute it and/or modify     #
@@ -16,17 +16,15 @@
 #                                                                              #
 ################################################################################
 
-import sets
-
 class TaxonomyCleaner:
-    
-    meaningless_taxonomic_names = sets.Set(['k__', 'd__', 'p__', 'c__', 'o__', 
-                                            'f__', 'g__', 's__'])
-    
+
+    meaningless_taxonomic_names = set([
+        'k__', 'd__', 'p__', 'c__', 'o__','f__', 'g__', 's__'])
+
     def remove_empty_ranks(self, tax_list):
         '''
         Removes empty rank prefixes
-        
+
         Parameters
         ----------
         tax_list    : list
@@ -40,4 +38,3 @@ class TaxonomyCleaner:
             if rank not in self.meaningless_taxonomic_names:
                 new_tax_list.append(rank)
         return new_tax_list
-        

@@ -66,7 +66,7 @@ class Tests(unittest.TestCase):
     def test_rerooted_tree_with_node_names(self):
         with tempdir.TempDir() as tmp:
             with tempdir.TempDir() as tmp2:
-                
+
                 cmd1 = "%s create --verbosity 2 --sequences %s --alignment %s --taxonomy %s --rerooted_tree %s --output %s" \
                     %(path_to_script,
                       os.path.join(path_to_data,'create','homologs.trimmed.unaligned.faa'),
@@ -80,9 +80,9 @@ class Tests(unittest.TestCase):
                        "%s.gpkg" % tmp,
                        os.path.join(path_to_data,'create','test.faa'),
                        tmp2+"_")
-                
+
                 extern.run(cmd2)
-        
+
     def test_min_aligned_percent(self):
         # test it doesn't raise with a lower check limit
         with tempdir.TempDir() as tmp:
@@ -99,13 +99,13 @@ class Tests(unittest.TestCase):
             Create(prerequisites).main(alignment=os.path.join(path_to_data,'create','homologs.trimmed.aligned.faa'),
                       taxonomy=os.path.join(path_to_data,'create','homologs.tax2tree.rerooted.decorated.tree-consensus-strings'),
                       sequences=os.path.join(path_to_data,'create','homologs.trimmed.unaligned.faa'),
-                      #rerooted_tree=os.path.join(path_to_data,'create','decorated.tree'), 
+                      #rerooted_tree=os.path.join(path_to_data,'create','decorated.tree'),
                       min_aligned_percent=0.9,
                       prefix=tmp+".gpkg",
                       threads=5)
             self.assertEqual(original_alignment_length-4, # 2 sequences get removed
                              len(open(os.path.join(tmp+'.gpkg',os.path.basename(tmp)+'.gpkg.refpkg','homologs_deduplicated_aligned.fasta')).readlines()))
-            
+
     def test_hmm_input(self):
         with tempdir.TempDir() as tmp:
             gpkg = tmp+".gpkg"
@@ -115,7 +115,7 @@ class Tests(unittest.TestCase):
                           prefix=gpkg,
                           threads=5)
             self.assertEqual('NAME  first10\n', open(GraftMPackageVersion2.acquire(gpkg).alignment_hmm_path()).readlines()[1])
-            
+
     def test_search_hmms_input(self):
         with tempdir.TempDir() as tmp:
             gpkg = tmp+".gpkg"
@@ -128,7 +128,7 @@ class Tests(unittest.TestCase):
             self.assertEqual('NAME  first10\n', open(GraftMPackageVersion2.acquire(gpkg).alignment_hmm_path()).readlines()[1])
             self.assertEqual(1, len(GraftMPackageVersion2.acquire(gpkg).search_hmm_paths()))
             self.assertEqual('NAME  homologs.trimmed.aligned\n', open(GraftMPackageVersion2.acquire(gpkg).search_hmm_paths()[0]).readlines()[1])
-            
+
     def test_dna_package(self):
         with tempdir.TempDir() as tmp:
             gpkg = tmp+".gpkg"
@@ -141,9 +141,9 @@ class Tests(unittest.TestCase):
             pkg = GraftMPackageVersion2.acquire(gpkg)
             self.assertEqual('NAME  61_otus.aln\n', open(pkg.alignment_hmm_path()).readlines()[1])
             self.assertEqual(pkg.diamond_database_path(), None)
-            
-                
-                
+
+
+
     def test_create_no_alignment(self):
         with tempdir.TempDir() as tmp:
             gpkg = tmp+".gpkg"
@@ -183,15 +183,15 @@ r4\td__Bacteria;p__Proteobacteria;c__Betaproteobacteria;o__Rhodocyclales;f__Rhod
 r5\td__Bacteria;p__Proteobacteria;c__Gammaproteobacteria;o__Pasteurellales;f__Pasteurellaceae;g__Basfia;s__
 r7\td__Bacteria;p__Chloroflexi;c__Caldilineae;o__Caldilineales;f__Caldilineaceae;g__Caldilinea;s__aerophila
 r6\td__Archaea;p__Euryarchaeota;c__Methanomicrobia;o__Halobacteriales;f__Halobacteriaceae;g__Halogeometricum;s__\n'''
-    
-        with tempfile.NamedTemporaryFile(suffix='.fa') as fasta:
+
+        with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(reads)
             fasta.flush()
-            with tempfile.NamedTemporaryFile(suffix='.tsv') as tax:
+            with tempfile.NamedTemporaryFile(suffix='.tsv',mode='w') as tax:
                 tax.write(taxonomy)
                 tax.flush()
                 sequences_file = fasta.name
-                taxonomy_file  = tax.name
+                taxonomy_file = tax.name
                 expected_list = [7, 2 ,3, 4, 5, 6, 7]
                 for expected, i in zip( expected_list, list(range(0,6)) ):
 
@@ -204,45 +204,45 @@ r6\td__Archaea;p__Euryarchaeota;c__Methanomicrobia;o__Halobacteriales;f__Halobac
                                       threads = 5)
                         base = os.path.basename(package)
                         gpkg = GraftMPackageVersion2.acquire(package)
-                        seqinfo = open(gpkg.taxtastic_seqinfo_path())\
-                                                                .readlines()
+                        with open(gpkg.taxtastic_seqinfo_path()) as f:
+                            seqinfo = f.readlines()
 
-                        hmm = gpkg.search_hmm_paths()[0]
-                        nseq = [int(x.strip().split()[1]) 
-                                for x in open(hmm).readlines()
-                                if x.startswith("NSEQ")][0]
+                        with open(gpkg.search_hmm_paths()[0]) as hmm:
+                            nseq = [int(x.strip().split()[1])
+                                    for x in hmm.readlines()
+                                    if x.startswith("NSEQ")][0]
 
                         self.assertEqual(nseq, expected)
-                        
+
     def test_strange_character_replace(self):
         create = Create(prerequisites)
         seqs = [Sequence('namer','SEQWENCE')]
         create._mask_strange_sequence_letters(seqs, Create._PROTEIN_PACKAGE_TYPE)
         self.assertEqual(1, len(seqs))
         self.assertEqual('SEQWENCE', str(seqs[0].seq))
-        
+
         seqs = [Sequence('namer','SEQUENCE')]
         create._mask_strange_sequence_letters(seqs, Create._PROTEIN_PACKAGE_TYPE)
         self.assertEqual(1, len(seqs))
         self.assertEqual('SEQXENCE', str(seqs[0].seq))
-        
+
     def test_dna_strange_character_replace(self):
         create = Create(prerequisites)
         seqs = [Sequence('namer','ATGC')]
         create._mask_strange_sequence_letters(seqs, Create._NUCLEOTIDE_PACKAGE_TYPE)
         self.assertEqual(1, len(seqs))
         self.assertEqual('ATGC', str(seqs[0].seq))
-        
+
         seqs = [Sequence('namer','ATGCRTWU')]
         create._mask_strange_sequence_letters(seqs, Create._NUCLEOTIDE_PACKAGE_TYPE)
         self.assertEqual(1, len(seqs))
         self.assertEqual('ATGCNTNT', str(seqs[0].seq))
-        
+
     def test_remove_strange_characters_integration_test(self):
         with tempdir.TempDir() as tmp:
             gpkg = tmp+".gpkg"
             first_seq = None
-            with tempfile.NamedTemporaryFile(suffix='61_otus.Rs.fasta') as f:
+            with tempfile.NamedTemporaryFile(suffix='61_otus.Rs.fasta',mode='w') as f:
                 for record in SeqIO.parse(open(os.path.join(path_to_data,'create','61_otus.fasta')), 'fasta'):
                     if not first_seq:
                         first_seq = str(record.seq)
@@ -292,18 +292,20 @@ r6\td__Archaea;p__Euryarchaeota;c__Methanomicrobia;o__Halobacteriales;f__Halobac
     def test_input_unrooted_tree(self):
         otu61 = os.path.join(path_to_data, '61_otus.gpkg','61_otus.refpkg')
         with tempfile.NamedTemporaryFile(suffix='.fa') as bad_alignment:
-            with tempdir.TempDir() as tmp:
-                Create(prerequisites).main(
-                    taxtastic_taxonomy=os.path.join(otu61,'61_otus_taxonomy.csv'),
-                    taxtastic_seqinfo=os.path.join(otu61,'61_otus_seqinfo.csv'),
-                    # created with newick_utils:
-                    # nw_prune test/data/61_otus.gpkg/61_otus.refpkg/61_otus.tre 4459468 >test/data/61_otus.without_4459468.tre
-                    unrooted_tree=os.path.join(path_to_data,'create','61_otus.without_4459468.tre'),
-                    sequences=os.path.join(path_to_data,'create','61_otus.without_4459468.fasta'),
-                    alignment=os.path.join(path_to_data,'create','61_otus.without_4459468.aln.fasta'),
-                    prefix=tmp, force=True)
-                gpkg = GraftMPackage.acquire(tmp)
-                tree=Tree.get(schema='newick', data=open(gpkg.reference_package_tree_path()).readline())
+            with tempdir.TempDir() as tmp1:
+                tmp = tmp1
+            Create(prerequisites).main(
+                taxtastic_taxonomy=os.path.join(otu61,'61_otus_taxonomy.csv'),
+                taxtastic_seqinfo=os.path.join(otu61,'61_otus_seqinfo.csv'),
+                # created with newick_utils:
+                # nw_prune test/data/61_otus.gpkg/61_otus.refpkg/61_otus.tre 4459468 >test/data/61_otus.without_4459468.tre
+                unrooted_tree=os.path.join(path_to_data,'create','61_otus.without_4459468.tre'),
+                sequences=os.path.join(path_to_data,'create','61_otus.without_4459468.fasta'),
+                alignment=os.path.join(path_to_data,'create','61_otus.without_4459468.aln.fasta'),
+                prefix=tmp, force=True)
+            gpkg = GraftMPackage.acquire(tmp)
+            with open(gpkg.reference_package_tree_path()) as f:
+                tree = Tree.get(schema='newick', data=f.read())
                 self.assertEqual(21, len(tree.leaf_nodes()))
 
 

@@ -378,4 +378,7 @@ class GraftMPackageVersion3(GraftMPackageVersion2):
                                                                     if unaligned_sequence_database else None),
                     GraftMPackage.DIAMOND_DATABASE_KEY: diamond_database_file_in_gpkg}
 
-        json.dump(contents, open(os.path.join(output_package_path, GraftMPackage._CONTENTS_FILE_NAME), 'w'))
+        with open(os.path.join(
+                output_package_path, GraftMPackage._CONTENTS_FILE_NAME),
+                  'w') as f:
+            json.dump(contents, f)

@@ -135,19 +135,12 @@ class Create:
         '''
         logging.info("Building HMM from alignment")
 
-        with tempfile.NamedTemporaryFile(suffix='.fasta',prefix='graftm') as tempaln:
+        with tempfile.NamedTemporaryFile(
+                suffix='.fasta',prefix='graftm',mode='w') as tempaln:
+
             cmd = "hmmbuild -O /dev/stdout -o /dev/stderr '%s' '%s'" % (
                 hmm_filename, alignment)
-            process = subprocess.Popen(["bash", "-c", cmd],
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE)
-            output, error = process.communicate()
-            logging.debug("Got STDERR from hmmbuild: %s" % error)
-            if process.returncode != 0:
-                logging.error(
-                    "hmmbuild exitstatus was non-zero, likely indicating an error of "
-                    "some description")
-                logging.error("Got STDERR from hmmbuild: %s" % error)
+            output = extern.run(cmd)
 
             SeqIO.write(SeqIO.parse(StringIO(output), 'stockholm'), tempaln, 'fasta')
             tempaln.flush()
@@ -324,9 +317,10 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         sequence_count = 0
         total_sequence = 0
 
-        for record in SeqIO.parse(open(sequences), 'fasta'): # For every sequence in the output
-            total_sequence+=1 # increment the total sequence count
-            sequence_count+=len(record.seq) # add the length of that sequence to the total string count
+        with open(sequences) as f:
+            for record in SeqIO.parse(f, 'fasta'): # For every sequence in the output
+                total_sequence += 1 # increment the total sequence count
+                sequence_count += len(record.seq) # add the length of that sequence to the total string count
 
         # Get the average, multiply by 1.5, and return
         max_range = (sequence_count/total_sequence)*1.5
@@ -369,11 +363,12 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         int: number of sequences written to file'''
         nameset = set(sequence_names)
         num_written = 0
-        with open(output_alignment_file, 'w') as f:
-            for s in SeqIO.parse(open(input_alignment_file), "fasta"):
-                if s.name not in nameset:
-                    SeqIO.write(s, f, "fasta")
-                    num_written += 1
+        with open(output_alignment_file, 'w') as output:
+            with open(input_alignment_file) as input_f:
+                for s in SeqIO.parse(input_f, "fasta"):
+                    if s.name not in nameset:
+                        SeqIO.write(s, output, "fasta")
+                        num_written += 1
         logging.debug("After removing sequences from alignment, %i remain" % num_written)
         return num_written
 
@@ -486,8 +481,10 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
             newseq = s.seq
             m = search_re.search(newseq)
             while m:
-                logging.warn("Found a non-standard character in the sequence of %s: e.g. '%s'"\
-                             % (s.name, m.group()))
+                logging.warning(
+                    "Found a non-standard character in the "
+                    "sequence of %s: e.g. '%s'" % (
+                        s.name, m.group()))
                 newseq = newseq[:m.start()] + replace_char + newseq[(m.start()+1):]
                 m = search_re.search(newseq)
             s.seq = newseq
@@ -576,7 +573,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
 
         if os.path.exists(output_gpkg_path):
             if force_overwrite:
-                logging.warn("Deleting previous directory %s" % output_gpkg_path)
+                logging.warning("Deleting previous directory %s" % output_gpkg_path)
                 shutil.rmtree(output_gpkg_path)
             else:
                 raise Exception("Cowardly refusing to overwrite gpkg to already existing %s" % output_gpkg_path)
@@ -593,9 +590,10 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
             taxonomy_definition = GreenGenesTaxonomy.read_file(taxonomy).taxonomy
         elif taxtastic_seqinfo and taxtastic_taxonomy:
             logging.info("Reading taxonomy from taxtastic taxonomy and seqinfo files")
-            taxonomy_definition = gtns.read_taxtastic_taxonomy_and_seqinfo\
-                (open(taxtastic_taxonomy),
-                 open(taxtastic_seqinfo))
+            with open(taxtastic_taxonomy) as taxf:
+                with open(taxtastic_seqinfo) as seqf:
+                    taxonomy_definition = \
+                        gtns.read_taxtastic_taxonomy_and_seqinfo(taxf, seqf)
         else:
             raise Exception("Taxonomy is required somehow e.g. by --taxonomy or --rerooted_annotated_tree")
 
@@ -631,9 +629,9 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
             insufficiently_aligned_sequences = self._check_reads_hit(
                 f, min_aligned_percent)
         while len(insufficiently_aligned_sequences) > 0:
-            logging.warn("One or more alignments do not span > %.2f %% of HMM" % (min_aligned_percent*100))
+            logging.warning("One or more alignments do not span > %.2f %% of HMM" % (min_aligned_percent*100))
             for s in insufficiently_aligned_sequences:
-                logging.warn("Insufficient alignment of %s, not including this sequence" % s)
+                logging.warning("Insufficient alignment of %s, not including this sequence" % s)
 
             sequences2_fh = tempfile.NamedTemporaryFile(prefix='graftm', suffix='.faa')
             tempfiles_to_close.append(sequences2_fh)

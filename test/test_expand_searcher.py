@@ -95,12 +95,14 @@ class Tests(unittest.TestCase):
                                                                                               tf.name,
                                                                                               os.path.join(path_to_data,'bootstrapper','DNGNGWU00001.hmm'))
             extern.run(cmd)
-            self.assertTrue(
-                subprocess.check_output("head -n1 %s" % tf.name,
-                                        shell=True) in
-                ["HMMER3/f [3.1b2 | February 2015]\n",
-                 "HMMER3/f [3.2.1 | June 2018]\n"])
-            self.assertEqual('NSEQ  2\n', open(tf.name).readlines()[10])
+            with open(tf.name) as tf2:
+                lines = tf2.readlines()
+                first_line = lines[0]
+                self.assertTrue(
+                    first_line in
+                    ["HMMER3/f [3.1b2 | February 2015]\n",
+                     "HMMER3/f [3.2.1 | June 2018]\n"], msg=first_line)
+                self.assertEqual('NSEQ  2\n', lines[10])
 
 
 if __name__ == "__main__":

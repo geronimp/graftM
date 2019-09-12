@@ -35,6 +35,9 @@ import logging
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 
+# Increase recursion limit so bigger trees can be read in
+sys.setrecursionlimit(10000)
+
 import graftm
 from graftm.run import Run
 from graftm.housekeeping import HouseKeeping

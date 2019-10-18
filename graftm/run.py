@@ -652,8 +652,7 @@ class Run:
                     logging.error("Both or neither of --taxtastic_taxonomy and --taxtastic_seqinfo must be defined")
                     exit(1)
                 if self.args.alignment and self.args.hmm:
-                    logging.error("--alignment and --hmm cannot both be set")
-                    exit(1)
+                    logging.warn("Using both --alignment and --hmm is rarely useful, but proceding on the assumption you understand.")
                 if len([_f for _f in [self.args.rerooted_tree,
                                      self.args.rerooted_annotated_tree,
                                      self.args.tree] if _f]) > 1:

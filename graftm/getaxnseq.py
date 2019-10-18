@@ -156,11 +156,11 @@ class Getaxnseq:
 
                         # fix the current one
                         new_name_id = 1
-                        new_name = "%se%s" % (tax, new_name_id)
+                        new_name = "%s_graftm_%s" % (tax, new_name_id)
 
                         while new_name in parents and parents[new_name] != ancestry:
                             new_name_id += 1
-                            new_name = "%se%s" % (tax, new_name_id)
+                            new_name = "%s_graftm_%s" % (tax, new_name_id)
 
                         first_pass_id_and_taxonomies[j][i+1] = new_name
                         taxonomy[i] = new_name
@@ -176,7 +176,6 @@ class Getaxnseq:
             seqout.write('seqname,tax_id\n')
             # write each taxonomic association
             for array in first_pass_id_and_taxonomies:
-                sequence_id = array[0]
                 if len(array)==1:
                     most_specific_taxonomic_affiliation = 'Root'
                 else:

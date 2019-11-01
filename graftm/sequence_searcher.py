@@ -524,7 +524,6 @@ deal with these, so please remove/rename sequences with duplicate keys.")
 
         with tempfile.NamedTemporaryFile(prefix='_raw_extracted_reads.fa') as tmp:
             # Run fxtract to obtain reads form original sequence file
-<<<<<<< HEAD
             fxtract_cmd = "fxtract -H -X -f /dev/stdin " 
             cmd = "%s %s > %s" % (fxtract_cmd, raw_sequences_path, tmp.name)
     
@@ -533,22 +532,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
             process = subprocess.Popen(["bash", "-c", cmd], 
                                        stdin=subprocess.PIPE,
                                        stdout=subprocess.PIPE)
-            process.communicate('\n'.join(input_reads))
-=======
-            fxtract_cmd = "fxtract -H -X -f /dev/stdin "
-            if input_file_format == FORMAT_FASTA:
-                cmd = "%s %s > %s" % (fxtract_cmd, raw_sequences_path, tmp.name)
-            elif input_file_format == FORMAT_FASTQ_GZ:
-                cmd = "%s -z %s | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > %s" % (fxtract_cmd, raw_sequences_path, tmp.name)
-            elif input_file_format == FORMAT_FASTA_GZ:
-                cmd = "%s -z %s > %s" % (fxtract_cmd, raw_sequences_path, tmp.name)
-            elif input_file_format == FORMAT_FASTQ:
-                cmd = "%s %s | awk '{print \">\" substr($0,2);getline;print;getline;getline}' > %s" % (fxtract_cmd, raw_sequences_path, tmp.name)
-            else:
-                raise Exception("Programming error")
-
-            extern.run(cmd, stdin='\n'.join(input_reads))
->>>>>>> python3: Most tests pass. Drop python2 support.
+            process.communicate('\n'.join(input_reads).encode())
             complement_info = self._extract_multiple_hits(hits, tmp.name, output_path)  # split them into multiple reads
 
         return output_path, complement_info

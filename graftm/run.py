@@ -61,7 +61,7 @@ class Run:
         self.s = Stats_And_Summary()
         if args.subparser_name == 'graft':
             commands = ExternalProgramSuite(['orfm', 'nhmmer', 'hmmsearch',
-                                             'fxtract', 'pplacer',
+                                             'mfqe', 'pplacer',
                                              'ktImportText', 'diamond'])
             self.hk.set_attributes(self.args)
             self.hk.set_euk_hmm(self.args)

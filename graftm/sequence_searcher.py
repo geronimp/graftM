@@ -489,9 +489,9 @@ deal with these, so please remove/rename sequences with duplicate keys.")
 
     def _extract_from_raw_reads(self, output_path, input_reads, raw_sequences_path, input_file_format, hits):
         '''
-        _extract_from_raw_reads - call fxtract to extract the hit sequences
-        of the hmm/diamond search from the raw sequences file. Output into
-        specified file
+        _extract_from_raw_reads - Extract hit sequences of the hmm/diamond
+        search from a command which generates uncompressed FASTA sequences from
+        the raw sequences file. Output into specified file
 
         Parameters
         ----------
@@ -523,16 +523,15 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         '''
 
         with tempfile.NamedTemporaryFile(prefix='_raw_extracted_reads.fa') as tmp:
-            # Run fxtract to obtain reads form original sequence file
-            fxtract_cmd = "fxtract -H -X -f /dev/stdin " 
-            cmd = "%s %s > %s" % (fxtract_cmd, raw_sequences_path, tmp.name)
-    
-            logging.debug("Running fxtract: %s", cmd)
-            
-            process = subprocess.Popen(["bash", "-c", cmd], 
-                                       stdin=subprocess.PIPE,
-                                       stdout=subprocess.PIPE)
-            process.communicate('\n'.join(input_reads).encode())
+            # Extract reads from original sequence file
+            extract_cmd = "mfqe --output-uncompressed"
+            if input_file_format in (FORMAT_FASTA, FORMAT_FASTA_GZ, FORMAT_FASTQ, FORMAT_FASTQ_GZ):
+                extract_cmd += " --fasta-read-name-lists /dev/stdin --input-fasta {} --output-fasta-files '{}'".format(
+                    raw_sequences_path, tmp.name)
+            else:
+                raise Exception("Programming error: Unexpected input file format {}".format(input_file_format))
+
+            extern.run(extract_cmd, stdin='\n'.join(input_reads))
             complement_info = self._extract_multiple_hits(hits, tmp.name, output_path)  # split them into multiple reads
 
         return output_path, complement_info
@@ -626,7 +625,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         if search_method == "hmmsearch":
             # Build and run command to extract ORF sequences:
             orfm_cmd = orfm.command_line()
-            cmd = 'fxtract -H -X -f /dev/stdin <(%s %s) > %s' % (orfm_cmd, input_path, output_path)
+            cmd = "mfqe --output-uncompressed --fasta-read-name-lists /dev/stdin --input-fasta <({} {}) --output-fasta-files {}".format(
+                orfm_cmd, input_path, output_path)
             extern.run(cmd, stdin='\n'.join(hit_readnames))
 
         elif search_method == "diamond":

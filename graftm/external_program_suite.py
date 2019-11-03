@@ -8,7 +8,7 @@ class ExternalProgramSuite:
     package_urls = {'taxit': 'https://github.com/fhcrc/taxtastic',
              'FastTree': 'http://www.microbesonline.org/fasttree/',
              'orfm': 'https://github.com/wwood/OrfM',
-            'fxtract': 'https://github.com/ctSkennerton/fxtract',
+            'mfqe': 'https://github.com/wwood/mfqe',
             'pplacer': 'http://matsen.fhcrc.org/pplacer/',
             'krona': 'http://sourceforge.net/p/krona/home/krona/',
             'mafft': 'http://mafft.cbrc.jp/alignment/software/',

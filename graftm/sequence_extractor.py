@@ -19,9 +19,8 @@ class SequenceExtractor:
         Returns
         -------
         Nothing'''
-        cmd = "fxtract -XH -f /dev/stdin '%s' > %s" % (
+        cmd = "mfqe --fasta-read-name-lists /dev/stdin --input-fasta '{}' --output-fasta-files '{}' --output-uncompressed".format(
             database_fasta_file, output_file)
-
         extern.run(cmd, stdin='\n'.join(reads_to_extract))
 
     def extract_forward_and_reverse_complement(
@@ -29,7 +28,8 @@ class SequenceExtractor:
             output_file):
         '''As per extract except also reverse complement the sequences.'''
         self.extract(forward_reads_to_extract, database_fasta_file, output_file)
-        cmd_rev = "fxtract -XH -f /dev/stdin '%s'" % database_fasta_file
+        cmd_rev = "mfqe --fasta-read-name-lists /dev/stdin --input-fasta '{}' --output-fasta-files /dev/stdout --output-uncompressed".format(
+            database_fasta_file)
 
         output = extern.run(cmd_rev, stdin='\n'.join(reverse_reads_to_extract))
 

@@ -617,7 +617,11 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
 
         if alignment:
             dup = self._check_for_duplicate_sequence_names(alignment)
-            output_alignment = alignment
+            
+            output_alignment_tmpfile = tempfile.NamedTemporaryFile(prefix='graftm-create-align',suffix='.fa')
+            tempfiles_to_close.append(output_alignment_tmpfile)
+            output_alignment = output_alignment_tmpfile.name
+
             if dup:
                 raise Exception("Found duplicate sequence name '%s' in alignment input file" % dup)
             if user_hmm:

@@ -87,7 +87,7 @@ class UnpackRawReads:
             cmd='%s | head -n 2' % (self.command_line())
             # We cannot use extern here because the zcat has non-zero
             # exitstatus because it is head'd and extern uses bash -o pipefail
-            first_seq = subprocess.run(['bash','-c',cmd], capture_output=True).stdout.decode('UTF-8')
+            first_seq = subprocess.run(['bash','-c',cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.decode('UTF-8')
             seq = first_seq.split('\n')[1]
             self.type = self._guess_sequence_type_from_string(seq)
             logging.debug("Detected sequence type as %s" % self.type)

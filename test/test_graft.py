@@ -624,8 +624,8 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         with tempfile.NamedTemporaryFile(suffix='.fna') as data_int1:
             for fwd, rev in zip(SeqIO.parse(data_for1, 'fasta'),
                                 SeqIO.parse(data_rev1, 'fasta')):
-                data_int1.write(fwd.format('fasta'))
-                data_int1.write(rev.format('fasta'))
+                data_int1.write(fwd.format('fasta').encode())
+                data_int1.write(rev.format('fasta').encode())
             data_int1.flush()
 
             package = os.path.join(path_to_data,'mcrA.gpkg')

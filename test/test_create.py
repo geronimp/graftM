@@ -139,7 +139,8 @@ class Tests(unittest.TestCase):
                           prefix=gpkg,
                           threads=5)
             pkg = GraftMPackageVersion2.acquire(gpkg)
-            self.assertEqual('NAME  61_otus.aln\n', open(pkg.alignment_hmm_path()).readlines()[1])
+            with open(pkg.alignment_hmm_path()) as f:
+                self.assertEqual('NAME  61_otus.aln\n', f.readlines()[1])
             self.assertEqual(pkg.diamond_database_path(), None)
 
 

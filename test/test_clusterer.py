@@ -28,7 +28,7 @@ import sys
 import tempfile
 import extern
 
-from utils import T
+from test_running_utils import T
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')

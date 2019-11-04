@@ -31,7 +31,7 @@ import json
 import shutil
 from Bio import SeqIO
 
-from utils import T
+from test_running_utils import T
 
 path_to_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','bin','graftM')
 path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')

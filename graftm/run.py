@@ -561,31 +561,34 @@ class Run:
 
         # For each of the search results,
         for i, search_result in enumerate(db_search_results):
-            sequence_id_to_hit = {}
-            # Run diamond
-            logging.debug("Running diamond on %s" % search_result.hit_fasta())
-            diamond_result = runner.run(search_result.hit_fasta(),
-                                        UnpackRawReads.PROTEIN_SEQUENCE_TYPE,
-                                        daa_file_basename=graftm_files.diamond_assignment_output_basename(base_list[i]))
-            for res in diamond_result.each([SequenceSearchResult.QUERY_ID_FIELD,
-                                            SequenceSearchResult.HIT_ID_FIELD]):
-                if res[0] in sequence_id_to_hit:
-                    # do not accept duplicates
-                    if sequence_id_to_hit[res[0]] != res[1]:
-                        raise Exception("Diamond unexpectedly gave two hits for a single query sequence for %s" % res[0])
-                else:
-                    sequence_id_to_hit[res[0]] = res[1]
+            if search_result.hit_fasta() is None:
+                sequence_id_to_taxonomy = {}
+            else:
+                sequence_id_to_hit = {}
+                # Run diamond
+                logging.debug("Running diamond on %s" % search_result.hit_fasta())
+                diamond_result = runner.run(search_result.hit_fasta(),
+                                            UnpackRawReads.PROTEIN_SEQUENCE_TYPE,
+                                            daa_file_basename=graftm_files.diamond_assignment_output_basename(base_list[i]))
+                for res in diamond_result.each([SequenceSearchResult.QUERY_ID_FIELD,
+                                                SequenceSearchResult.HIT_ID_FIELD]):
+                    if res[0] in sequence_id_to_hit:
+                        # do not accept duplicates
+                        if sequence_id_to_hit[res[0]] != res[1]:
+                            raise Exception("Diamond unexpectedly gave two hits for a single query sequence for %s" % res[0])
+                    else:
+                        sequence_id_to_hit[res[0]] = res[1]
 
-            # Extract taxonomy of the best hit, and add in the no hits
-            sequence_id_to_taxonomy = {}
-            for seqio in SequenceIO().read_fasta_file(search_result.hit_fasta()):
-                name = seqio.name
-                if name in sequence_id_to_hit:
-                    # Add Root; to be in line with pplacer assignment method
-                    sequence_id_to_taxonomy[name] = ['Root']+taxonomy_definition[sequence_id_to_hit[name]]
-                else:
-                    # picked up in the initial search (by hmmsearch, say), but diamond misses it
-                    sequence_id_to_taxonomy[name] = ['Root']
+                # Extract taxonomy of the best hit, and add in the no hits
+                sequence_id_to_taxonomy = {}
+                for seqio in SequenceIO().read_fasta_file(search_result.hit_fasta()):
+                    name = seqio.name
+                    if name in sequence_id_to_hit:
+                        # Add Root; to be in line with pplacer assignment method
+                        sequence_id_to_taxonomy[name] = ['Root']+taxonomy_definition[sequence_id_to_hit[name]]
+                    else:
+                        # picked up in the initial search (by hmmsearch, say), but diamond misses it
+                        sequence_id_to_taxonomy[name] = ['Root']
 
             results[base_list[i]] = sequence_id_to_taxonomy
         return results

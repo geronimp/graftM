@@ -80,7 +80,7 @@ class DiamondSearchResult(SequenceSearchResult):
 
         cmd = "diamond view -a '%s'" % daa_filename
         logging.debug("Running cmd: %s" % cmd)
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         stdout, stderr = process.communicate()
 
         reader = csv.reader(stdout.decode('ascii').splitlines(),

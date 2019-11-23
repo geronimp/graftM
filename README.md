@@ -9,7 +9,7 @@ Head over to the [GraftM page](http://geronimp.github.io/graftM/) for more gener
 
 ### Installation
 #### pip installation
-GraftM can be installed via pip:
+GraftM can be installed via pip. As of version 0.13.0, GraftM is now Python-3 only.
 ```
 pip install graftm
 ```

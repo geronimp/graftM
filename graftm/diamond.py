@@ -10,7 +10,7 @@ class Diamond:
         self._threads = threads
         self._evalue = evalue
 
-    def run(self, input_sequence_file, input_sequence_type, daa_file_basename=None):
+    def run(self, input_sequence_file, input_sequence_type, daa_file_basename=None, extra_args=''):
         '''Run input sequences in either blastp or blastx mode against the
         database specified in __init__.
 
@@ -46,7 +46,8 @@ class Diamond:
                     "-q",
                     "%s" % input_sequence_file,
                     "-a",
-                    basename]:
+                    basename,
+                    extra_args]:
             cmd_list.append(c)
         if self._threads:
             cmd_list.append("--threads")

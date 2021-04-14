@@ -187,6 +187,8 @@ Using an assembly to create a "expand_search" database:
     pplacer_options.add_argument('--placements_cutoff', metavar='confidence', help='This flag allows you to change the likelihood cutoff for phylogenetic placement of reads.',  default=0.75, type=float)
     pplacer_options.add_argument('--resolve_placements', action="store_true", help='Ignore the placements cutoff and simply use the best placement assigned to the read.', default=False)
     pplacer_options.add_argument('--no_merge_reads',  action="store_true", help='When this flag is specified, the alignment of the forward and reverse reads will not be merged before placement. If paired reads are provided, pair with the most confident placement will be used for classification.', default=False)
+    diamond_options = graft_parser.add_argument_group('DIAMOND assignment options')
+    diamond_options.add_argument('--diamond_performance_parameters', metavar='params', help='Use these extra arguments when calling DIAMOND',  default='')
     nucleotide_options = graft_parser.add_argument_group('nucleotide search-specific options')
     nucleotide_options.add_argument('--euk_hmm_file', help='Use this flag to specify the HMM that is used in the Eukaryotic contamination screen', default=argparse.SUPPRESS) #TODO: decoy HMMs
     protein_options = graft_parser.add_argument_group('protein search-specific options')

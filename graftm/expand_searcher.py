@@ -103,7 +103,8 @@ class ExpandSearcher:
                                     (self.diamond_database if self.diamond_database else None),
                                     hmmsearch_output_table.name,
                                     hit_reads_fasta.name,
-                                    hit_reads_orfs_fasta.name)
+                                    hit_reads_orfs_fasta.name,
+                                    '')
                     # Append to the file
                     with open(hit_reads_orfs_fasta.name, 'rb') as f:
                         orfs.write(f.read())

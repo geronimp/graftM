@@ -385,7 +385,8 @@ class Run:
                             self.args.evalue,
                             self.args.min_orf_length,
                             self.args.restrict_read_length,
-                            diamond_db
+                            diamond_db,
+                            self.args.diamond_performance_parameters,
                         )
                     except NoInputSequencesException as e:
                         logging.error("No sufficiently long open reading frames were found, indicating"
@@ -520,7 +521,8 @@ class Run:
                         base_list,
                         db_search_results,
                         gpkg,
-                        self.gmf)
+                        self.gmf,
+                        self.args.diamond_performance_parameters)
             aln_time = 'n/a'
         else: raise Exception("Unexpected assignment method encountered: %s" % self.args.placement_method)
         
@@ -530,7 +532,8 @@ class Run:
 
     @T.timeit
     def _assign_taxonomy_with_diamond(self, base_list, db_search_results,
-                                      graftm_package, graftm_files):
+                                      graftm_package, graftm_files,
+                                      diamond_performance_parameters):
         '''Run diamond to assign taxonomy
 
         Parameters
@@ -543,6 +546,8 @@ class Run:
             Diamond is run against this database
         graftm_files: GraftMFiles object
             Result files are written here
+        diamond_performance_parameters : str
+            extra args for DIAMOND
 
         Returns
         -------
@@ -569,7 +574,8 @@ class Run:
                 logging.debug("Running diamond on %s" % search_result.hit_fasta())
                 diamond_result = runner.run(search_result.hit_fasta(),
                                             UnpackRawReads.PROTEIN_SEQUENCE_TYPE,
-                                            daa_file_basename=graftm_files.diamond_assignment_output_basename(base_list[i]))
+                                            daa_file_basename=graftm_files.diamond_assignment_output_basename(base_list[i]),
+                                            extra_args=diamond_performance_parameters)
                 for res in diamond_result.each([SequenceSearchResult.QUERY_ID_FIELD,
                                                 SequenceSearchResult.HIT_ID_FIELD]):
                     if res[0] in sequence_id_to_hit:

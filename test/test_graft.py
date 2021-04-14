@@ -1095,9 +1095,11 @@ TAGTCTCGGGTCTACTACGAATAGCAAGTCTACCTCAAGG
                 bootstrap_hmm_path = os.path.join(tmp, 'expand_search.hmm')
                 self.assertTrue(os.path.isfile(bootstrap_hmm_path))
                 with open(bootstrap_hmm_path) as f:
-                    self.assertTrue(f.readlines()[0] in
+                    hmmer = f.readlines()[0]
+                    self.assertTrue(hmmer in
                                     ["HMMER3/f [3.1b2 | February 2015]\n",
-                                     "HMMER3/f [3.2.1 | June 2018]\n"])
+                                     "HMMER3/f [3.2.1 | June 2018]\n",
+                                     "HMMER3/f [3.3.1 | Jul 2020]\n"], hmmer)
 
     def test_diamond_search_with_pplacer(self):
         testing_read = '''>Methanoflorens_stordalmirensis_v4.3_scaffold3_chopped_215504-216040

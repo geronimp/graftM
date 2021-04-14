@@ -789,7 +789,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
     @T.timeit
     def aa_db_search(self, files, base, unpack, search_method,
                      maximum_range, threads, evalue, min_orf_length,
-                     restrict_read_length, diamond_database):
+                     restrict_read_length, diamond_database,
+                     diamond_performance_parameters):
         '''
         Amino acid database search pipeline - pipeline where reads are searched
         as amino acids, and hits are identified using hmmsearch or diamond
@@ -825,6 +826,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         diamond_database : str
             Path to diamond database to use when searching. Set to 'None' if not
             using diamond pipeline
+        diamond_performance_parameters : str
+            Extra arguments to provide to DIAMOND
         Returns
         -------
         String path to amino acid fasta file of reads that hit
@@ -848,7 +851,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                                     diamond_database,
                                                     output_search_file,
                                                     hit_reads_fasta,
-                                                    hit_reads_orfs_fasta)
+                                                    hit_reads_orfs_fasta,
+                                                    diamond_performance_parameters)
 
     def search_and_extract_orfs_matching_protein_database(self,
                                                       unpack,
@@ -861,7 +865,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                                       diamond_database,
                                                       output_search_file,
                                                       hit_reads_fasta,
-                                                      hit_reads_orfs_fasta):
+                                                      hit_reads_orfs_fasta,
+                                                      diamond_performance_parameters):
         '''As per aa_db_search() except slightly lower level. Search an
         input read set (unpack) and then extract the proteins that hit together
         with their containing nucleotide sequences.
@@ -917,7 +922,8 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                      ).run(
                                            unpack.get_file_as_process(),
                                            unpack.sequence_type(),
-                                           daa_file_basename=output_search_file
+                                           daa_file_basename=output_search_file,
+                                           extra_args=diamond_performance_parameters,
                                            )
             search_result = [search_result]
 

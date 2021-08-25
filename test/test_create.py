@@ -310,6 +310,19 @@ r6\td__Archaea;p__Euryarchaeota;c__Methanomicrobia;o__Halobacteriales;f__Halobac
                 self.assertEqual(21, len(tree.leaf_nodes()))
 
 
+    def test_create_no_tree(self):
+        with tempdir.TempDir() as tmp:
+            gpkg = tmp+".gpkg"
+            Create(prerequisites).main(sequences=os.path.join(path_to_data,'create','homologs.trimmed.unaligned.faa'),
+                          taxonomy=os.path.join(path_to_data,'create','homologs.tax2tree.rerooted.decorated.tree-consensus-strings'),
+                          prefix=gpkg,
+                          no_tree = True,
+                          threads=5)
+            pkg = GraftMPackage.acquire(gpkg)
+            with self.assertRaises(KeyError) as context:
+                pkg.reference_package_tree_path()
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.ERROR)
     unittest.main()

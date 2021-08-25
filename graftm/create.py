@@ -286,6 +286,15 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
                 exit_gracefully(base)
 
         return refpkg
+    
+    def _taxit_create_no_tree(self, base, aln_file, tax, seq, refpkg):
+        cmd = "taxit create -f %s -P %s -c -l  %s -T %s -i %s"\
+            % (aln_file, refpkg, base, tax, seq)
+
+        logging.debug("Calling command without tree: %s" % cmd)
+        extern.run(cmd)
+
+        return refpkg
 
     def _cleanup(self, the_trashcan):
         for every_piece_of_junk in the_trashcan:
@@ -545,6 +554,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         rerooted_tree = kwargs.pop('rerooted_tree',None)
         unrooted_tree = kwargs.pop('unrooted_tree',None)
         tree_log = kwargs.pop('tree_log', None)
+        no_tree = kwargs.pop('no_tree', False)
         prefix = kwargs.pop('prefix', None)
         rerooted_annotated_tree = kwargs.pop('rerooted_annotated_tree', None)
         user_hmm = kwargs.pop('hmm', None)
@@ -733,13 +743,15 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
 
 
         # Create tree unless one was provided
-        if not rerooted_tree and not rerooted_annotated_tree and not unrooted_tree:
+        if not rerooted_tree and not rerooted_annotated_tree and not unrooted_tree and not no_tree:
             logging.debug("No tree provided")
             logging.info("Building tree")
             log_file, tre_file = self._build_tree(deduplicated_alignment_file,
                                                   base, ptype,
                                                   self.fasttree)
             no_reroot = False
+        elif no_tree:
+            logging.info("Tree-less package requested")
         else:
             if rerooted_tree:
                 logging.debug("Found unannotated pre-rerooted tree file %s" % rerooted_tree)
@@ -797,9 +809,14 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
         self.the_trash.append(refpkg)
         if taxtastic_taxonomy and taxtastic_seqinfo:
             logging.info("Creating reference package")
-            refpkg = self._taxit_create(base, deduplicated_alignment_file,
-                                        tre_file, log_file, taxtastic_taxonomy,
-                                        taxtastic_seqinfo, refpkg, no_reroot)
+            if no_tree:
+                refpkg = self._taxit_create_no_tree(base, deduplicated_alignment_file,
+                                            taxtastic_taxonomy, taxtastic_seqinfo,
+                                            refpkg)
+            else:
+                refpkg = self._taxit_create(base, deduplicated_alignment_file,
+                                            tre_file, log_file, taxtastic_taxonomy,
+                                            taxtastic_seqinfo, refpkg, no_reroot)
         else:
             gtns = Getaxnseq()
             seq = base+"_seqinfo.csv"
@@ -825,9 +842,13 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
 
             # Create the reference package
             logging.info("Creating reference package")
-            refpkg = self._taxit_create(base, deduplicated_alignment_file,
-                                        tre_file, log_file, tax, seq, refpkg,
-                                        no_reroot)
+            if no_tree:
+                refpkg = self._taxit_create_no_tree(base, deduplicated_alignment_file,
+                                                    tax, seq, refpkg)
+            else:
+                refpkg = self._taxit_create(base, deduplicated_alignment_file,
+                                            tre_file, log_file, tax, seq, refpkg,
+                                            no_reroot)
         if sequences:
             # Run diamond makedb
             logging.info("Creating diamond database")
@@ -863,7 +884,8 @@ in the final GraftM package. If you are sure these sequences are correct, turn o
         # TODO: Use graftM through internal means rather than via extern. This
         # requires some refactoring so that graft() can be called easily with
         # sane defaults.
-        logging.info("Testing gpkg package works")
-        self._test_package(output_gpkg_path)
+        if not no_tree:
+            logging.info("Testing gpkg package works")
+            self._test_package(output_gpkg_path)
 
         logging.info("Finished\n")

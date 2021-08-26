@@ -38,6 +38,20 @@ GUIX_PACKAGE_PATH=ace-guix guix package --install graftm
 #### Conda
 Although not officially supported as an installation method, GraftM can be installed through [conda / bioconda](https://anaconda.org/bioconda/graftm).
 
+#### Github with conda environment dependencies
+GraftM can be installed from source together with its conda dependencies as follows.
+
+```
+git clone https://github.com/geronimp/graftM
+cd graftM
+conda env create -n graftM -f graftm.yml
+conda activate graftM
+cd bin
+export PATH=$PWD:$PATH
+graftM -h
+```
+
+
 ### Manual
 A [manual](https://github.com/geronimp/graftM/wiki) is available in the form of the wiki here on GitHub.
 

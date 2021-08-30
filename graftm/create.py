@@ -6,7 +6,6 @@ import tempfile
 import logging
 import subprocess
 import extern
-import tempdir
 import json
 import signal
 import re
@@ -533,7 +532,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
             path to graftm_package to be tested
         '''
         pkg = GraftMPackage.acquire(package_path)
-        with tempdir.TempDir() as graftM_graft_test_dir_name:
+        with tempfile.TemporaryDirectory() as graftM_graft_test_dir_name:
             # Take a subset of sequences for testing
             with tempfile.NamedTemporaryFile(suffix=".fa",mode='w') as tf:
                 seqio = SequenceIO()
@@ -573,7 +572,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         locus_name = (os.path.basename(sequences).split('.')[0]
                       if sequences
                       else os.path.basename(alignment).split('.')[0])
-        tmp = tempdir.TempDir()
+        tmp = tempfile.TemporaryDirectory()
         base = os.path.join(tmp.name, locus_name)
         insufficiently_aligned_sequences = [None]
         removed_sequence_names = []

@@ -24,12 +24,12 @@
 
 import unittest
 import os.path
-import tempdir
 import sys
 import extern
 import logging
 import tempfile
 import filecmp
+from bird_tool_utils import in_tempdir
 
 sys.path = [os.path.join(os.path.dirname(os.path.realpath(__file__)),'..')]+sys.path
 from graftm.archive import Archive
@@ -41,7 +41,7 @@ path_to_data = os.path.join(os.path.dirname(os.path.realpath(__file__)),'data')
 class Tests(unittest.TestCase):
 
     def test_round_trip(self):
-        with tempdir.in_tempdir():
+        with in_tempdir():
             archiver = Archive()
             ingpkg = os.path.join(path_to_data, 'mcrA.gpkg')
             arc = 'compressed.gpkg.tar.gz'

@@ -23,7 +23,6 @@
 
 import unittest
 import os.path
-import tempdir
 import sys
 import extern
 import logging
@@ -58,7 +57,7 @@ class Tests(unittest.TestCase):
 
         if fasttree_original_path:
             for orig, possibility in fasttree_possibilities.items():
-                with tempdir.TempDir() as tmp_file:
+                with tempfile.TemporaryDirectory() as tmp_file:
                     os.symlink(os.path.join(fasttree_original_path,
                                             orig),
                                os.path.join(tmp_file,

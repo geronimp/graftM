@@ -24,7 +24,6 @@ import re
 import unittest
 import subprocess
 import os.path
-import tempdir
 import tempfile
 import extern
 import json
@@ -63,7 +62,7 @@ CCCCGCCTTCCTCCCCTTTGTCAGAGGCAGTTCTGCTAGAGTGCGCCCCGATTGCTCGGGGGTAGCAACTAACCGTAAGG
             data = fasta.name
             package = os.path.join(path_to_data,'61_otus.gpkg')
 
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 5 --forward %s --graftm_package %s --output_directory %s --force --euk_check' % (path_to_script,
                                                                                                    data,
                                                                                                    package,
@@ -101,7 +100,7 @@ CATGACGTCAGTCCCGGAGACGTTGTACGGCATAAGTTGCCGCTGACCAAGCGTCATACCGCCGAGGTGCACGTTGACGT
             fasta.flush()
             data = fasta.name
             package = os.path.join(path_to_data,'mcrA_with_dmnd.gpkg/')
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 2 --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                                  data,
                                                                                                                  package,
@@ -163,7 +162,7 @@ GATCGTATATGTCAGGCGGTGTCGGTTTCACGCAGTACGCAACTGCAGCATACACCGATAACATCCTCGACGACTACAGC
             fasta.flush()
             data = fasta.name
             package = os.path.join(path_to_data,'mcrA_with_dmnd.gpkg/')
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 2 --search_method diamond --forward %s --graftm_package %s --output_directory %s --force --search_and_align_only' % (path_to_script,
                                                                                                                  data,
                                                                                                                  package,
@@ -219,7 +218,7 @@ GCAGCCGCGGTAATTC'''
             fasta.flush()
             data = fasta.name
             package = os.path.join(path_to_data,'61_otus.gpkg')
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 2  --forward %s --graftm_package %s --output_directory %s --force --search_and_align_only' % (path_to_script,
                                                                                                                  data,
                                                                                                                  package,
@@ -245,7 +244,7 @@ GAGTCCGGACCGTGTCTCAGTTCCGGTGTGGCTGGTCGTCCTCTCAGACCAGCTACGGATTGTCGCCTTGGTGAGCCATT
             fasta.flush()
             data = fasta.name
             package = os.path.join(path_to_data,'61_otus.gpkg')
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 2  --forward %s --graftm_package %s --output_directory %s --force --search_and_align_only' % (path_to_script,
                                                                                                                  data,
                                                                                                                  package,
@@ -283,7 +282,7 @@ GCTGTAGCATACTGTGTGAATCCGACACCACC
             data = fasta.name
             package = os.path.join(path_to_data,'mcrA.gpkg')
 
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 2 --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                    data,
                                                                                                    package,
@@ -322,7 +321,7 @@ GAGTCCGGACCGTGTCTCAGTTCCGGTGTGGCTGGTCGTCCTCTCAGACCAGCTACGGATTGTCGCCTTGGTGAGCCATT
             fasta.flush()
             data = fasta.name
             package = os.path.join(path_to_data,'61_otus.gpkg')
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as empty_fasta:
                     empty_fasta.write('>seq\n')
                     empty_fasta.write('A'*1000+"\n")
@@ -367,7 +366,7 @@ TGCTTTTACCTTGTTG'''
             data = fasta.name
             package = os.path.join(path_to_data,'mcrA.gpkg')
 
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 2 --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                    data,
                                                                                                    package,
@@ -400,7 +399,7 @@ TGCTTTTACCTTGTTG'''
         data = os.path.join(path_to_data,'16S_inputs','16S_1.1.fa')
         package = os.path.join(path_to_data,'61_otus.gpkg')
 
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             cmd = '%s graft --verbosity 2  --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                data,
                                                                                                package,
@@ -422,14 +421,14 @@ CGCTTCCAGGTCGTCACCGGCCAACTCGCGAACCCGTCGCGGATCAAACTCGTGCGGCGCAACATCGCCCGTGTCCGCAC
 +
 AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFFFFFFFFFFFFFFF<FFFFFFAFFAFFFFFFFFFFFFFF.AFFFAFFF<FFAFFFFF<FFFFAF<A.FFF7F'''
         hmm = os.path.join(path_to_data,'hmms','DNGNGWU00027.hmm')
-        with tempdir.TempDir() as tmp_in:
+        with tempfile.TemporaryDirectory() as tmp_in:
             fastq = open(os.path.join(tmp_in, 'a.fq'),'w')
             fastq.write(fq)
             fastq.flush()
             fastq_gz = '%s.gz' % fastq.name
             subprocess.check_call('gzip %s' % fastq.name, shell=True)
 
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 2  --forward %s --search_hmm_files %s --search_and_align_only --output_directory %s/out' % (path_to_script,
                                                                                                    fastq_gz,
                                                                                                    hmm,
@@ -448,7 +447,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         data_for = os.path.join(path_to_data,'16S_inputs','16S_1.1.fa')
         data_rev = os.path.join(path_to_data,'16S_inputs','16S_1.2.fa')
         package = os.path.join(path_to_data,'61_otus.gpkg')
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             cmd = '%s graft --verbosity 2  --forward %s --reverse %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                data_for,
                                                                                                data_rev,
@@ -472,7 +471,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         data_for1 = os.path.join(path_to_data,'16S_inputs', '16S_1.1.fa')
         data_for2 = os.path.join(path_to_data,'16S_inputs', '16S_2.1.fa')
         package = os.path.join(path_to_data,'61_otus.gpkg')
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             cmd = '%s graft --verbosity 2  --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                data_for1,
                                                                                                data_for2,
@@ -496,7 +495,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         data_rev1 = os.path.join(path_to_data,'16S_inputs','16S_1.2.fa')
         data_rev2 = os.path.join(path_to_data,'16S_inputs','16S_2.2.fa')
         package = os.path.join(path_to_data,'61_otus.gpkg')
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             cmd = '%s graft --verbosity 2  --forward %s %s --reverse %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                data_for1,
                                                                                                data_for2,
@@ -526,7 +525,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         data = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.1.fna')
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             cmd = '%s graft --verbosity 2  --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                data,
                                                                                                package,
@@ -547,7 +546,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         data = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.1.fna')
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as empty_fasta:
                 empty_fasta.write('>seq\n')
                 empty_fasta.write('A'*1000+"\n")
@@ -574,7 +573,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         data_rev = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.2.fna')
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             cmd = '%s graft --verbosity 2  --forward %s --reverse %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                            data_for,
                                                                                                            data_rev,
@@ -599,7 +598,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         data_for2 = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_2.1.fna')
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             cmd = '%s graft --verbosity 2  --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                            data_for1,
                                                                                                            data_for2,
@@ -630,7 +629,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
 
             package = os.path.join(path_to_data,'mcrA.gpkg')
 
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 2 --interleaved %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                                data_int1.name,
                                                                                                                package,
@@ -646,7 +645,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
 
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             cmd = '%s graft --verbosity 2  --forward %s %s --reverse %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                            data_for1,
                                                                                                            data_for2,
@@ -677,7 +676,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         data_for2 = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_2.1.faa')
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             cmd = '%s graft --verbosity 2  --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                            data_for1,
                                                                                                            data_for2,
@@ -701,7 +700,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         data_rev2 = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_2.2.faa')
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             cmd = '%s graft --verbosity 2  --forward %s %s --reverse %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                            data_for1,
                                                                                                            data_for2,
@@ -731,7 +730,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         data = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.1.faa')
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             cmd = '%s graft --verbosity 2  --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                data,
                                                                                                package,
@@ -752,7 +751,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         data_rev = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.2.faa')
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             cmd = '%s graft --verbosity 2  --forward %s --reverse %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                            data_for,
                                                                                                            data_rev,
@@ -776,7 +775,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         data = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.1.fna')
         package = os.path.join(path_to_data,'mcrA.gpkg')
 
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             cmd = '%s graft --verbosity 2 --search_and_align_only --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                data,
                                                                                                package,
@@ -799,7 +798,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         data = os.path.join(path_to_data,'mcrA.gpkg', 'mcrA_1.1.fna')
         hmm = os.path.join(path_to_data,'mcrA.gpkg','mcrA.hmm')
 
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             cmd = '%s graft --verbosity 2 --search_and_align_only --forward %s --search_hmm_files %s --output_directory %s --force' % (path_to_script,
                                                                                                data,
                                                                                                hmm,
@@ -823,7 +822,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         hmm = os.path.join(path_to_data,'mcrA.gpkg','mcrA.hmm')
         hmm2 = os.path.join(path_to_data,'mcrA_second_half.gpkg','mcrA.300-557.aln.fasta.hmm')
 
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             cmd = '%s graft --verbosity 2 --search_and_align_only --forward %s --search_hmm_files %s %s --output_directory %s --force 2>/dev/null' % (path_to_script,
                                                                                                data,
                                                                                                hmm, hmm2,
@@ -836,7 +835,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
         hmm = os.path.join(path_to_data,'mcrA.gpkg','mcrA.hmm')
         hmm2 = os.path.join(path_to_data,'mcrA_second_half.gpkg','mcrA.300-557.aln.fasta.hmm')
 
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             cmd = '%s graft --verbosity 2  --search_and_align_only --forward %s --search_hmm_files %s %s --aln_hmm_file %s --output_directory %s --force' % (path_to_script,
                                                                                                data,
                                                                                                hmm2,hmm,
@@ -868,7 +867,7 @@ AAAAAFFFAFFFFFF<FFFFFFAAFFFFFF)FFFFAFFFFFFFFFFFFFFFFFFFFFFFF7FF7FFFFFFFF<FFFFFFF
             hmms.write(hmm2)
             hmms.write("\n")
             hmms.flush()
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 2  --search_and_align_only --forward %s --search_hmm_list_file %s --aln_hmm_file %s --output_directory %s --force' % (path_to_script,
                                                                                                    data,
                                                                                                    hmms.name,
@@ -911,7 +910,7 @@ CCGACTGCCCTTGAAGACCACTTCG
             data = fasta.name
             package = os.path.join(path_to_data,'mcrA.gpkg')
 
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 2 --min_orf_length 300 --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                    data,
                                                                                                    package,
@@ -965,7 +964,7 @@ CCGACTGCCCTTGAAGACCACTTCG
             data = fasta.name
             package = os.path.join(path_to_data,'mcrA.gpkg')
 
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 2  --restrict_read_length 102 --forward %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                    data,
                                                                                                    package,
@@ -999,7 +998,7 @@ CCGACTGCCCTTGAAGACCACTTCG
         reads_2=os.path.join(path_to_samples, "sample_16S_2.1.fa")
         gpkg=os.path.join(path_to_data, "61_otus.gpkg")
 
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             cmd = '%s graft --verbosity 5  --forward %s %s --graftm_package %s --output_directory %s --force' % (path_to_script,
                                                                                                   reads_1,
                                                                                                   reads_2,
@@ -1046,7 +1045,7 @@ DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
                 subprocess.check_output(cmd, shell=True)
                 data = fastq_gz.name
                 package = os.path.join(path_to_data,'61_otus.gpkg')
-                with tempdir.TempDir() as tmp:
+                with tempfile.TemporaryDirectory() as tmp:
                     cmd = '%s graft --verbosity 2  --forward %s --graftm_package %s --output_directory %s --force --search_and_align_only' % (path_to_script,
                                                                                                                      data,
                                                                                                                      package,
@@ -1073,7 +1072,7 @@ TAGTCTCGGGTCTACTACGAATAGCAAGTCTACCTCAAGG
             fasta.write(testing_read)
             fasta.flush()
             original_hmm = os.path.join(path_to_data,'bootstrapper','DNGNGWU00001.hmm')
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 2  --forward %s --search_hmm_files %s --aln_hmm %s --evalue 1e-14 --output_directory %s --force --search_and_align_only' % (path_to_script,
                                                                                                                  fasta.name,
                                                                                                                  original_hmm,
@@ -1108,7 +1107,7 @@ ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGAC
             fasta.write(testing_read)
             fasta.flush()
 
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 2 --search_method diamond --forward %s --output_directory %s --force --graftm_package %s' % (path_to_script,
                                                                                                                  fasta.name,
                                                                                                                  tmp,
@@ -1129,7 +1128,7 @@ ETLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA'''
             fasta.write(testing_read)
             fasta.flush()
 
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 2 --search_method diamond --forward %s --output_directory %s --force --graftm_package %s' % (path_to_script,
                                                                                                                  fasta.name,
                                                                                                                  tmp,
@@ -1148,7 +1147,7 @@ ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGAC
             fasta.write(testing_read)
             fasta.flush()
             sample_name = os.path.basename(fasta.name[:-3])
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 2  --forward %s --output_directory %s --force --assignment_method diamond --graftm_package %s' % (path_to_script,
                                                                                                                  fasta.name,
                                                                                                                  tmp,
@@ -1169,7 +1168,7 @@ ETLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA'''
         with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(testing_read)
             fasta.flush()
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 2  --forward %s --output_directory %s --force --assignment_method diamond --graftm_package %s' % (path_to_script,
                                                                                                                  fasta.name,
                                                                                                                  tmp,
@@ -1188,7 +1187,7 @@ ATGGCTACTGAAAAAACACAAAAGATGTTCCTCGAGGCGATGAAAAAGAAGTTCGCAGAGGACCCTACTTCAAACAAGAC
             fasta.write(testing_read)
             fasta.flush()
             sample_name = os.path.basename(fasta.name[:-3])
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 5 --search_method diamond --forward %s --output_directory %s --force --assignment_method diamond --graftm_package %s' % (path_to_script,
                                                                                                                  fasta.name,
                                                                                                                  tmp,
@@ -1222,7 +1221,7 @@ MSKSVVINLGSGDLYKGFPRVTAQLWAAGYPRPEQFIGSLPAAPALAESYRTWQSIYKALCSRLVLFSRGPDDDDDELEI
         with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(testing)
             fasta.flush()
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 2 --search_and_align_only --forward %s --output_directory %s --force --search_hmm_files %s' % (path_to_script,
                                                                                                                  fasta.name,
                                                                                                                  tmp,
@@ -1254,7 +1253,7 @@ CGGGGTATCTAATCCCGTTCGCTCCCCTAGCTTTCGTGCCTCAGCGTCAGAAAAGACCCAGTGAGCCGCTTTCGCCCCCG
                 rev_f.write(rev)
                 rev_f.flush()
 
-                with tempdir.TempDir() as tmp:
+                with tempfile.TemporaryDirectory() as tmp:
                     cmd = '%s graft --verbosity 5 --forward %s --reverse %s --output_directory %s --force --graftm_package %s' % (path_to_script,
                                                                                                                      fwd_f.name,
                                                                                                                      rev_f.name,
@@ -1277,7 +1276,7 @@ GGCATTGAACCACACGATGCCCGGTGCGGCCATTGTCCAAGAACACATGGTGGAAACCCACCCTGCGCTCGTTGAAGACT
         with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(testing)
             fasta.flush()
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 5 --forward %s --output_directory %s --force --graftm_package %s' % (path_to_script,
                                                                                                                  fasta.name,
                                                                                                                  tmp,
@@ -1313,7 +1312,7 @@ TLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA-
                 self.assertEqual(2, len(jplace['placements']))
 
     def test_forward_reverse_jplace_names_forward_winner(self):
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             cmd = '{} graft --verbosity 5 --graftm_package {} --force \
             --forward {} --reverse {} --output_directory {}'.format(
                 path_to_script,
@@ -1346,7 +1345,7 @@ TLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA-
             ], observed_placements['placements'])
 
     def test_forward_reverse_jplace_names_forward_equals_reverse(self):
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             cmd = '{} graft --verbosity 5 --graftm_package {} --force \
             --forward {} --reverse {} --output_directory {}'.format(
                 path_to_script,
@@ -1380,7 +1379,7 @@ TLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA-
             ], observed_placements['placements'])
 
     def test_forward_reverse_jplace_names_reverse_winner(self):
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             cmd = '{} graft --verbosity 5 --graftm_package {} --force \
             --forward {} --reverse {} --output_directory {}'.format(
                 path_to_script,
@@ -1420,7 +1419,7 @@ CGGGAGGAACACCAGTGGCGAAGGCGGCTTCCTGGCCTGTTCTTGACGCTGAGGCGCGAA
         with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(testing)
             fasta.flush()
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 5 --forward %s --output_directory %s --force --graftm_package %s --filter_minimum 0' % (path_to_script,
                                                                                                                  fasta.name,
                                                                                                                  tmp,
@@ -1430,7 +1429,7 @@ CGGGAGGAACACCAGTGGCGAAGGCGGCTTCCTGGCCTGTTCTTGACGCTGAGGCGCGAA
                 with open(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "%s_hits.aln.fa" % os.path.basename(fasta.name)[:-3])) as f:
                     self.assertEqual(expected, f.read())
 
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 5 --forward %s --output_directory %s --force --graftm_package %s --filter_minimum 150' % (
                     path_to_script,
                     fasta.name,
@@ -1443,7 +1442,7 @@ CGGGAGGAACACCAGTGGCGAAGGCGGCTTCCTGGCCTGTTCTTGACGCTGAGGCGCGAA
                     "{}_hits.aln.fa".format(os.path.basename(fasta.name)[:-3]))
                 self.assertTrue(os.path.getsize(aln_file)==0)
 
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 5 --forward %s --output_directory %s --force --graftm_package %s --filter_minimum 56' % (
                     path_to_script,
                     fasta.name,
@@ -1452,7 +1451,7 @@ CGGGAGGAACACCAGTGGCGAAGGCGGCTTCCTGGCCTGTTCTTGACGCTGAGGCGCGAA
                 extern.run(cmd)
                 self.assertTrue(os.path.exists(os.path.join(tmp, os.path.basename(fasta.name)[:-3], "%s_hits.aln.fa" % os.path.basename(fasta.name)[:-3])))
 
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 5 --forward %s --output_directory %s --force --graftm_package %s --filter_minimum 57' % (
                     path_to_script,
                     fasta.name,
@@ -1470,7 +1469,7 @@ CGGGAGGAACACCAGTGGCGAAGGCGGCTTCCTGGCCTGTTCTTGACGCTGAGGCGCGAA
         reads_2=os.path.join(path_to_samples, "sample_16S_2.1.fa")
         gpkg=os.path.join(path_to_data, "61_otus.gpkg")
 
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             cmd = '%s graft --verbosity 5  --forward %s %s --graftm_package %s --output_directory %s --force --max_samples_for_krona 2' % (path_to_script,
                                                                                                   reads_1,
                                                                                                   reads_2,
@@ -1512,7 +1511,7 @@ FADPHLVFDFREPKMCIAKATLRQFMPAGERDPTLPPH
             extern.run("diamond makedb --in %s --db %s.dmnd" %\
                        (f.name, f.name))
 
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 # without decoy
                 cmd = '%s graft --verbosity 5 --forward %s --graftm_package '\
                       '%s --output_directory %s --force' %\
@@ -1541,7 +1540,7 @@ FADPHLVFDFREPKMCIAKATLRQFMPAGERDPTLPPH
     def test_too_short_orfs(self):
         fna_file = os.path.join(path_to_data, 'mcrA.gpkg/mcrA_1.1.fna')
         gpkg=os.path.join(path_to_data, "mcrA.gpkg")
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             cmd = '%s graft --verbosity 5 --forward %s --graftm_package '\
                   '%s --output_directory %s --force --min_orf_length 900' %\
                   (path_to_script,
@@ -1570,7 +1569,7 @@ REFQPAGERTIVSPGRKF*'''
         with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(testing_read)
             fasta.flush()
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 5  --forward %s --output_directory %s --force\
                 --assignment_method pplacer --graftm_package %s --input_sequence_type aminoacid' % (
                     path_to_script,
@@ -1600,7 +1599,7 @@ REFQPAGERTIVSPGRKF*'''
         with tempfile.NamedTemporaryFile(suffix='.fa',mode='w') as fasta:
             fasta.write(testing_read)
             fasta.flush()
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = '%s graft --verbosity 5  --forward %s --output_directory %s --force\
                 --assignment_method pplacer --graftm_package %s --input_sequence_type aminoacid' % (
                     path_to_script,
@@ -1628,7 +1627,7 @@ ACAGTCGAGACGGTCAAAGATATCGGTACAGAGGTA
                 r1.flush()
                 r2.write(other_read)
                 r2.flush()
-                with tempdir.TempDir() as tmp:
+                with tempfile.TemporaryDirectory() as tmp:
                     cmd = '{} graft --verbosity 5  --forward {} --reverse {} --output_directory {} --force\
                     --graftm_package {}'.format(
                         path_to_script,
@@ -1642,7 +1641,7 @@ ACAGTCGAGACGGTCAAAGATATCGGTACAGAGGTA
 
     def test_aa_split_orf_bug(self):
         '''When an ORF matches as a split, which is reasonably rare but does happen.'''
-        with tempdir.TempDir() as tmp:
+        with tempfile.TemporaryDirectory() as tmp:
             cmd = '{} graft --verbosity 5  --forward {} --output_directory {} --force\
             --graftm_package {}'.format(
                 path_to_script,

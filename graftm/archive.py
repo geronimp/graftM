@@ -2,8 +2,8 @@ import tarfile
 import logging
 import itertools
 import os
-import tempdir
 import shutil
+from bird_tool_utils import in_tempdir
 
 from .graftm_package import GraftMPackage
 
@@ -73,7 +73,7 @@ class Archive:
         
         self._setup_output(output, force)
         
-        with tempdir.in_tempdir():
+        with in_tempdir():
             with tarfile.open(archive) as tar:
                 tar.extractall()
                 for tarinfo in tar:

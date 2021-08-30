@@ -21,7 +21,6 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #=======================================================================
 
-import tempdir
 import unittest
 import os.path
 import sys
@@ -55,7 +54,7 @@ CGGGGTATCTAATCCCGTTCGCTCCCCTAGCTTTCGTGCCTCAGCGTCAGAAAAGACCCAGTGAGCCGCTTTCGCCCCCG
             tf.write(test_sequences.encode())
             tf.flush()
 
-            with tempdir.TempDir() as tmp:
+            with tempfile.TemporaryDirectory() as tmp:
                 cmd = "%s graft --forward %s --graftm_package %s --output_directory %s --force" % (path_to_script,
                                                                                                    tf.name,
                                                                                                    gpkg,

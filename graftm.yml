@@ -16,7 +16,6 @@ dependencies:
   - biom-format>=2.1.4
   - extern
   - taxtastic>=0.5.4
-  - tempdir
   - backports.tempfile
   - dendropy>= 4.1.0
   - nose
@@ -25,3 +24,6 @@ dependencies:
   - pyyaml
   - fastalite
   - jinja2
+  - pip
+  - pip:
+    - bird_tool_utils

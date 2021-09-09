@@ -676,6 +676,7 @@ class Run:
                               rerooted_tree = self.args.rerooted_tree,
                               unrooted_tree = self.args.tree,
                               tree_log = self.args.tree_log,
+                              no_tree = self.args.no_tree,
                               prefix = self.args.output,
                               rerooted_annotated_tree = self.args.rerooted_annotated_tree,
                               min_aligned_percent = float(self.args.min_aligned_percent)/100,

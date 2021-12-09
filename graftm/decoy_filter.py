@@ -76,8 +76,10 @@ class DecoyFilter:
                          " sequences which hit the decoy sequences better"
                          " than the non-decoy sequences" %\
                          (num_before_decoy_removal-len(seq_ids_and_bitscores)))
-            if len(seq_ids_and_bitscores) == 0:
-                return False
+
+        # Either all non-decoy hits were removed as decoys or no non-decoy hits were found
+        if len(seq_ids_and_bitscores) == 0:
+            return False
 
         # Extract the found sequences into the output file
         logging.debug("Extracting query sequences")

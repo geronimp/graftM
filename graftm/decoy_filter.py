@@ -77,7 +77,7 @@ class DecoyFilter:
                          " than the non-decoy sequences" %\
                          (num_before_decoy_removal-len(seq_ids_and_bitscores)))
 
-        # Either all non-decoy hits were removed as decoys or no non-decoy hits were found
+        # Either all candidate hits were removed as decoys or no candidate hits were found
         if len(seq_ids_and_bitscores) == 0:
             return False
 

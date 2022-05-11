@@ -24,6 +24,4 @@ dependencies:
   - pyyaml
   - fastalite
   - jinja2
-  - pip
-  - pip:
-    - bird_tool_utils
+  - bird_tool_utils_python

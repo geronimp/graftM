@@ -1,5 +1,5 @@
 name: Test GraftM with Setup-Miniconda From Marketplace
-on: [push]
+on: [push, pull_request]
 
 jobs:
   miniconda:
@@ -25,4 +25,4 @@ jobs:
           conda list
       - name: Run tests
         run: |
-            PATH=bin:$PATH nosetests
+            PATH=bin:$PATH nosetests -v

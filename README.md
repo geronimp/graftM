@@ -25,18 +25,8 @@ However, to use all features of GraftM a few extra binary applications are requi
 To create new GraftM packages, you'll also need
 * FastTreeMP (http://www.microbesonline.org/fasttree/)
 
-#### Docker images
-Versions of graftM on pip now have matching docker images as of GraftM v0.9.2. GraftM docker images are portable containers that contain the graftM code and all its python and non-python dependancies, allowing GraftM to be run on any platform with docker installed. Details on how to download and run a GraftM docker image can be found on the [graftm-docker](https://github.com/geronimp/graftM-docker) GitHub page or the [docker hub page](https://hub.docker.com/u/geronimp/).
-
-#### GNU Guix
-GraftM and all its Python and non-Python dependencies can be installed using the ACE package repository. After installing [GNU Guix](https://www.gnu.org/software/guix/)
-```
-git clone https://github.com/Ecogenomics/ace-guix
-GUIX_PACKAGE_PATH=ace-guix guix package --install graftm
-```
-
 #### Conda
-Although not officially supported as an installation method, GraftM can be installed through [conda / bioconda](https://anaconda.org/bioconda/graftm).
+GraftM can be installed through [conda / bioconda](https://anaconda.org/bioconda/graftm).
 
 #### Github with conda environment dependencies
 GraftM can be installed from source together with its conda dependencies as follows.
@@ -50,6 +40,11 @@ cd bin
 export PATH=$PWD:$PATH
 graftM -h
 ```
+
+#### Docker images
+Docker images are now **no longer** officially supported, but can be made using conda.
+
+Versions of graftM on pip now have matching docker images as of GraftM v0.9.2. GraftM docker images are portable containers that contain the graftM code and all its python and non-python dependancies, allowing GraftM to be run on any platform with docker installed. Details on how to download and run a GraftM docker image can be found on the [graftm-docker](https://github.com/geronimp/graftM-docker) GitHub page or the [docker hub page](https://hub.docker.com/u/geronimp/).
 
 
 ### Manual

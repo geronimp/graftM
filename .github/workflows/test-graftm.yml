@@ -24,7 +24,6 @@ jobs:
           conda info
           conda list
       - run: |
-            echo "::add-path::bin"
             echo $PATH
             echo $GITHUB_PATH
             ls

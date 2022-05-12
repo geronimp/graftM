@@ -23,6 +23,8 @@ jobs:
       - run: |
           conda info
           conda list
+      - run: |
+            echo bin >> $GITHUB_PATH
       - name: Run tests
         run: |
-            PATH=bin:$PATH nosetests -v
+            nosetests -v

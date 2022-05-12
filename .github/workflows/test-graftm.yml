@@ -24,10 +24,9 @@ jobs:
           conda info
           conda list
       - run: |
-            echo $PATH
-            echo $GITHUB_PATH
+            echo "$PATH"
             echo "bin" >> $GITHUB_PATH
-            echo $GITHUB_PATH
+            echo "$PATH"
             ls
             graftM -h
       - name: Run tests

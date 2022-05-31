@@ -19,8 +19,6 @@ dependencies:
   - backports.tempfile
   - dendropy>= 4.1.0
   - nose
-  - sqlite
-  - curl
   - pyyaml
   - fastalite
   - jinja2

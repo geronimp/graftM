@@ -5,7 +5,6 @@ import re
 import itertools
 import logging
 import tempfile
-import subprocess
 
 from Bio import SeqIO
 from collections import OrderedDict
@@ -789,7 +788,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
     @T.timeit
     def aa_db_search(self, files, base, unpack, search_method,
                      maximum_range, threads, evalue, min_orf_length,
-                     restrict_read_length, diamond_database,
+                     restrict_read_length, translation_table, diamond_database,
                      diamond_performance_parameters):
         '''
         Amino acid database search pipeline - pipeline where reads are searched
@@ -848,6 +847,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                                     evalue,
                                                     min_orf_length,
                                                     restrict_read_length,
+                                                    translation_table,
                                                     diamond_database,
                                                     output_search_file,
                                                     hit_reads_fasta,
@@ -862,6 +862,7 @@ deal with these, so please remove/rename sequences with duplicate keys.")
                                                       evalue,
                                                       min_orf_length,
                                                       restrict_read_length,
+                                                      translation_table,
                                                       diamond_database,
                                                       output_search_file,
                                                       hit_reads_fasta,
@@ -897,9 +898,11 @@ deal with these, so please remove/rename sequences with duplicate keys.")
         '''
 
         orfm = OrfM(min_orf_length=min_orf_length,
-                     restrict_read_length=restrict_read_length)
+                     restrict_read_length=restrict_read_length,
+                     translation_table=translation_table)
         extracting_orfm = OrfM(min_orf_length=min_orf_length,
-                      restrict_read_length=restrict_read_length)
+                      restrict_read_length=restrict_read_length,
+                     translation_table=translation_table)
 
         if search_method == 'hmmsearch':
             # run hmmsearch

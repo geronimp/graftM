@@ -195,6 +195,7 @@ Using an assembly to create a "expand_search" database:
     min_orf_length_default = 96
     protein_options.add_argument('--min_orf_length', metavar='length', help='Minimum number of nucleotides in an open reading frame', default=min_orf_length_default, type=int)
     protein_options.add_argument('--restrict_read_length', metavar='length', help='Only use this many base pairs at the start of each sequence searched', type=int)
+    protein_options.add_argument('--translation_table', metavar='table', help='Translation table to use when searching nucleotide sequences', type=int, default=11)
 
     logging_options = graft_parser.add_argument_group('logging options')
     logging_options.add_argument('--verbosity', metavar='verbosity', help='1 - 5, 1 being silent, 5 being noisy indeed.', type=int, default=4)

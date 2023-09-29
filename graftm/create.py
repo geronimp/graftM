@@ -559,6 +559,7 @@ graftM create --taxtastic_taxonomy %s --taxtastic_seqinfo %s --alignment %s  --r
         user_hmm = kwargs.pop('hmm', None)
         search_hmm_files = kwargs.pop('search_hmm_files',None)
         min_aligned_percent = kwargs.pop('min_aligned_percent',0.01)
+        translation_table = kwargs.pop('translation_table', 11)
         taxtastic_taxonomy = kwargs.pop('taxtastic_taxonomy', None)
         taxtastic_seqinfo = kwargs.pop('taxtastic_seqinfo', None)
         force_overwrite = kwargs.pop('force',False)

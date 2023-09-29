@@ -385,6 +385,7 @@ class Run:
                             self.args.evalue,
                             self.args.min_orf_length,
                             self.args.restrict_read_length,
+                            self.args.translation_table,
                             diamond_db,
                             self.args.diamond_performance_parameters,
                         )
@@ -680,6 +681,7 @@ class Run:
                               prefix = self.args.output,
                               rerooted_annotated_tree = self.args.rerooted_annotated_tree,
                               min_aligned_percent = float(self.args.min_aligned_percent)/100,
+                              translation_table = self.args.translation_table,
                               taxtastic_taxonomy = self.args.taxtastic_taxonomy,
                               taxtastic_seqinfo = self.args.taxtastic_seqinfo,
                               hmm = self.args.hmm,

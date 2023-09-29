@@ -125,7 +125,7 @@ class ExpandSearcher:
                     if len(seqio.read_fasta_file(orfs.name)) <= 1:# Just to build on this, you need to check if there is > 1 hit
                                                                   # otherwise mafft will fail to align, causing a crash when hmmbuild is
                                                                   # run on an empty file.
-                        logging.warn("Failed to find two or more matching ORFs in the expand_search contigs")
+                        logging.warning("Failed to find two or more matching ORFs in the expand_search contigs")
                         return False
 
                     # Run mafft to align them

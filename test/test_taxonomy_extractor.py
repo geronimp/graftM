@@ -36,14 +36,14 @@ from graftm.taxonomy_extractor import TaxonomyExtractor
 class Tests(unittest.TestCase):
     
     def test_hello_world(self):
-        self.assertEquals({u'a': [],
+        self.assertEqual({u'a': [],
                            u'b': [u't1'],
                            u'c': [u't1']},
                           TaxonomyExtractor().taxonomy_from_annotated_tree(\
                             Tree.get(data="(a,(b,c)'t1':0.9)root;", schema='newick')))
         
     def test_bootstraps_in_annotated_tree(self):
-        self.assertEquals({u'a': [],
+        self.assertEqual({u'a': [],
                            u'b': [u't1'],
                            u'c': [u't1']},
                           TaxonomyExtractor().taxonomy_from_annotated_tree(\
@@ -51,7 +51,7 @@ class Tests(unittest.TestCase):
         
         
     def test_bootstraps_in_annotated_tree_alongside_empty_taxa(self):
-        self.assertEquals({u'a': [],
+        self.assertEqual({u'a': [],
                            u'b': [],
                            u'c': ['tax'],
                            u'd': ['tax']},

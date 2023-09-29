@@ -312,6 +312,7 @@ each:
     expand_search_parser.add_argument('--maximum_range', type=int, help='maximum range to use when searching for potentially linked reads when searching contigs', default=1000)
     expand_search_parser.add_argument('--evalue', type=float, help='evalue cutoff for the hmmsearch', default= '1e-5')
     expand_search_parser.add_argument('--min_orf_length', help='Minimum number of nucleotides in an open reading frame', default=min_orf_length_default, type=int)
+    expand_search_parser.add_argument('--translation_table', help='Translation table to use when searching nucleotide sequences', type=int, default=11)
     expand_search_parser.add_argument('--threads', type=int, metavar='threads', help='Number of threads to use', default=5)
 
 

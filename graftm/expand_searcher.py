@@ -30,6 +30,7 @@ class ExpandSearcher:
         self.threads = kwargs.pop('threads',None)
         self.evalue = kwargs.pop('evalue',None)
         self.min_orf_length = kwargs.pop('min_orf_length',None)
+        self.translation_table = kwargs.pop('translation_table',11)
         graftm_package = kwargs.pop('graftm_package',None)
         if len(kwargs) > 0:
             raise Exception("Unexpected arguments detected: %s" % kwargs)
@@ -100,6 +101,7 @@ class ExpandSearcher:
                                     self.evalue,
                                     self.min_orf_length,
                                     None,
+                                    self.translation_table,
                                     (self.diamond_database if self.diamond_database else None),
                                     hmmsearch_output_table.name,
                                     hit_reads_fasta.name,

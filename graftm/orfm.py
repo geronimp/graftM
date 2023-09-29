@@ -26,10 +26,10 @@ class OrfM:
             orfm_arg_l = ''
         
         if self.restrict_read_length:
-            orfm_arg_l = " -l %d" % self.restrict_read_length
+            orfm_arg_l += " -l %d" % self.restrict_read_length
 
         if self.translation_table:
-            orfm_arg_l = " -c %d" % self.translation_table
+            orfm_arg_l += " -c %d" % self.translation_table
             
         cmd = 'orfm %s ' % orfm_arg_l
         if input_path:

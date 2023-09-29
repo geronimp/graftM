@@ -681,7 +681,6 @@ class Run:
                               prefix = self.args.output,
                               rerooted_annotated_tree = self.args.rerooted_annotated_tree,
                               min_aligned_percent = float(self.args.min_aligned_percent)/100,
-                              translation_table = self.args.translation_table,
                               taxtastic_taxonomy = self.args.taxtastic_taxonomy,
                               taxtastic_seqinfo = self.args.taxtastic_seqinfo,
                               hmm = self.args.hmm,
@@ -731,6 +730,7 @@ class Run:
                 threads = args.threads,
                 evalue = args.evalue,
                 min_orf_length = args.min_orf_length,
+                translation_table = args.translation_table,
                 graftm_package = pkg)
             expandsearcher.generate_expand_search_database_from_contigs(args.contigs,
                                                               args.output_hmm,

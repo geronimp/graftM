@@ -59,6 +59,10 @@ We have a starter pack of graftM packages available including:
 
 All are available at the [ACE ftp GraftM package database store](https://data.ace.uq.edu.au/public/graftm).
 
+Some updated packages for the S3 and L10 are available at https://github.com/laxeye/graftm-add-gpkg. 
+
+Several packages are maintained as [SingleM](https://github.com/wwood/singlem) packages but these are SingleM-specific. They lack trees for phylogenetic tree placement-based taxonomy assignment, and target only a smaller conserved region of each gene. However, SingleM is an updated (recommended) way of assigning overall community composition compared to using GraftM with ribosomal proteins, when the task is determining overall community composition in a microbial community.
+
 Once you have downloaded the package you want, just decompress it as follows:
 
 ```

@@ -21,3 +21,4 @@ dependencies:
   - fastalite
   - jinja2
   - bird_tool_utils_python
+  - pytest # For testing

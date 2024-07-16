@@ -17,7 +17,6 @@ dependencies:
   - extern
   - taxtastic>=0.5.4
   - dendropy>= 4.1.0
-  - nose
   - pyyaml
   - fastalite
   - jinja2

@@ -27,4 +27,4 @@ jobs:
             echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
       - name: Run tests
         run: |
-            pytest
+            nosetests -v

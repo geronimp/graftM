@@ -87,7 +87,7 @@ class Tests(unittest.TestCase):
         tc  = DendropyTreeCleaner()
         tree = Tree.get(data="(((a,b),(c_yeh,L))d);", schema='newick')
         tc.remove_sequences(tree, ['c_yeh'])
-        self.assertEqual('((a,b),L)d', str(tree))
+        self.assertEqual('((a,b),L)d;', str(tree))
 
     def test_remove_sequences_with_named_internal_nodes(self):
         tc  = DendropyTreeCleaner()
@@ -96,7 +96,7 @@ class Tests(unittest.TestCase):
         tc.remove_sequences(tree,
                             ['CP006577_764~2588253768',
                              'Afulgi_764~2528311132'])
-        self.assertEqual("(Asulf_Archaeoglobus.1_2280~2522125074:7.17,AE000782_746~638154502:7.555):1.461",
+        self.assertEqual("(Asulf_Archaeoglobus.1_2280~2522125074:7.17,AE000782_746~638154502:7.555):1.461;",
                          str(tree))
 
 if __name__ == "__main__":

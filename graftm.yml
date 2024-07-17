@@ -21,4 +21,4 @@ dependencies:
   - fastalite
   - jinja2
   - bird_tool_utils_python
-  - nose # For testing
+  - pytest # For testing

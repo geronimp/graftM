@@ -1,0 +1,48 @@
+[workspace]
+authors = ["Ben Woodcroft <benjwoodcroft@gmail.com>"]
+channels = ["conda-forge", "bioconda"]
+name = "graftM"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[dependencies]
+python = ">3.7"
+orfm = ">=0.2.0"
+hmmer = "=3.2.1"
+mfqe = ">=0.5.0"
+pplacer = "*"
+krona = ">=2.4"
+mafft = ">=7.22"
+diamond = ">=2.1.9"
+fasttree = "*"
+biopython = ">=1.64"
+biom-format = ">=2.1.4"
+extern = "*"
+taxtastic = ">=0.5.4"
+dendropy = ">=4.1.0"
+pyyaml = "*"
+fastalite = "*"
+jinja2 = "*"
+bird_tool_utils_python = "*"
+
+[pypi-dependencies]
+graftm = {path = ".", editable = true}
+
+[feature.dev.dependencies]
+# Dev/test dependencies only (copied from singlem so there might be extras)
+pytest = "*"
+ipython = "*"
+toml = "*"
+python-build = "*"
+setuptools-scm = "*"
+
+[environments]
+dev = ["dev"]
+
+[tasks]
+test-base = "pytest test"
+
+[tasks.test]
+depends-on = [
+    {task = "test-base", environment = "dev"},
+]

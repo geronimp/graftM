@@ -4,3 +4,8 @@ virtualenv
 build
 *.pyc
 *.sw[op]
+# pixi environments
+.pixi/*
+!.pixi/config.toml
+graftm.egg-info
+.pixi

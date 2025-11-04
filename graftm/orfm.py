@@ -42,4 +42,4 @@ class OrfM:
         '''Return a compiled regular expression matching the OrfM output defline
         with the originalName, startPosition, frameNumber, orfNumber being
         the contents of the regular expression'''
-        return re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
+        return re.compile(r'^(\S+)_(\d+)_(\d)_(\d+)')

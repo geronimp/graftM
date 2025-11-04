@@ -122,7 +122,7 @@ class Getaxnseq:
         for taxon_id, tax_split in taxonomies.items():
             # Replace spaces with underscores e.g. 'Candidatus my_genus'
             for idx, item in enumerate(tax_split):
-                tax_split[idx] = re.sub('\s+', '_', item.strip())
+                tax_split[idx] = re.sub(r'\s+', '_', item.strip())
 
             # Remove 'empty' taxononomies e.g. 's__'
             tax_split = tc.remove_empty_ranks(tax_split)

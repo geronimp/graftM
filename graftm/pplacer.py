@@ -253,7 +253,7 @@ class Compare:
         ## number of hits each, the crossover, and a
 
         def remove_endings(read_list, slash_endings):
-            orfm_regex = re.compile('^(\S+)_(\d+)_(\d)_(\d+)')
+            orfm_regex = re.compile(r'^(\S+)_(\d+)_(\d)_(\d+)')
             d = {}
             for read in read_list:
                 orfm_match=orfm_regex.match(read)

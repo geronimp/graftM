@@ -62,7 +62,7 @@ class Tests(unittest.TestCase):
         '''https://github.com/geronimp/graftM/issues/192'''
         taxes = TaxonomyExtractor().taxonomy_from_annotated_tree(
             Tree.get(path=os.path.join(path_to_data, 'create', 'sulfitereductase.ben.tree'), schema='newick'))
-        self.assertEquals([u'Aanerobic sulfite reductase asrC',
+        self.assertEqual([u'Aanerobic sulfite reductase asrC',
                            u'Anaerobic sulfite reductase asrC Group 3',
                            u'Unknown alpha and beta subunits',
                            u'0.856_PFAM_NIR_SIR,NIR_SIR_ferr'], # number is actually in the clade name

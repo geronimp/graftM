@@ -64,7 +64,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(str(expected), str(observed_tree))
 
     def test_hello_world_backwards_compatible(self):
-        self.assert_tree_equal_no_labels_deprecated('((C,(D,E):2.0),(A,B):4.0);\n',
+        self.assert_tree_equal_no_labels_deprecated('[&R] ((C,(D,E):2.0),(A,B):4.0);\n',
              Reannotator()._reroot_tree_by_old_root(\
                 Tree.get(schema='newick', data='((A,B):1,(C,D):2);'),
                 Tree.get(schema='newick', data='((A,B):1,(C,(D,E):2):3);')))

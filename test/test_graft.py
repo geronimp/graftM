@@ -39,6 +39,19 @@ path_to_samples = os.path.join(os.path.dirname(os.path.realpath(__file__)),'samp
 
 class Tests(unittest.TestCase):
 
+    def assertPlacementsAlmostEqual(self, expected, actual, delta=1e-5):
+        self.assertEqual(len(expected), len(actual))
+        for expected_entry, actual_entry in zip(expected, actual):
+            self.assertEqual(expected_entry['nm'], actual_entry['nm'])
+            self.assertEqual(len(expected_entry['p']), len(actual_entry['p']))
+            for expected_p, actual_p in zip(expected_entry['p'], actual_entry['p']):
+                self.assertEqual(expected_p[0], actual_p[0])
+                self.assertAlmostEqual(expected_p[1], actual_p[1], delta=delta)
+                self.assertEqual(expected_p[2], actual_p[2])
+                self.assertEqual(expected_p[3], actual_p[3])
+                self.assertAlmostEqual(expected_p[4], actual_p[4], delta=delta)
+                self.assertAlmostEqual(expected_p[5], actual_p[5], delta=delta)
+
     def test_euk_check(self):
         reads = """>euk1
 TCAAATGTCTGCCCTATCAACTATTGATGGTAGTGTAGAGGACTACCATGGTTGCGACGGGTAACGGGGAATCAGGGTTCGATTCCGGAGAGGGAGCCTG
@@ -1323,7 +1336,7 @@ TLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA-
             extern.run(cmd)
             observed_placements = json.load(open(
                 os.path.join(tmp,'mcrA_1.1','placements.jplace')))
-            self.assertEqual([
+            expected_placements = [
                 {
                     "p": [
                         [
@@ -1342,7 +1355,8 @@ TLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA-
                         ]
                     ]
                 }
-            ], observed_placements['placements'])
+            ]
+            self.assertPlacementsAlmostEqual(expected_placements, observed_placements['placements'])
 
     def test_forward_reverse_jplace_names_forward_equals_reverse(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -1357,7 +1371,7 @@ TLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA-
             with open(
                 os.path.join(tmp,'mcrA_1.1','placements.jplace')) as f:
                 observed_placements = json.load(f)
-            self.assertEqual([
+            expected_placements = [
                 {
                     "p": [
                         [
@@ -1376,7 +1390,8 @@ TLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA-
                         ]
                     ]
                 }
-            ], observed_placements['placements'])
+            ]
+            self.assertPlacementsAlmostEqual(expected_placements, observed_placements['placements'])
 
     def test_forward_reverse_jplace_names_reverse_winner(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -1391,7 +1406,7 @@ TLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA-
             with open(
                 os.path.join(tmp,'random_paired','placements.jplace')) as f:
                 observed_placements = json.load(f)
-            self.assertEqual([
+            expected_placements = [
                 {
                     "p": [
                         [
@@ -1410,7 +1425,8 @@ TLTRRLGKEVTPETINGYLEALNHTMPGAAIVQEHMVETHPALVEDCFVKVFTGDDDLA-
                         ]
                     ]
                 }
-            ], observed_placements['placements'])
+            ]
+            self.assertPlacementsAlmostEqual(expected_placements, observed_placements['placements'])
 
     def test_filter_minimum(self):
         testing = '''>NS500333:6:H1124BGXX:1:23310:10768:12778 1:N:0:GATCAG

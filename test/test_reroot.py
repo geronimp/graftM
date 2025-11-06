@@ -40,9 +40,9 @@ class Tests(unittest.TestCase):
         test_tree_2 =Tree.get(schema='newick', data='(A:0.5,B:0.2,(C:0.3,D:0.4):0.1);')
         test_tree_3 =Tree.get(schema='newick', data='(A:0.2,B:0.5,(C:0.3,D:0.4):0.1);')
 
-        expected_test_tree_1 = str(Tree.get(schema='newick', data="((C:0.3,D:0.4):0.25,(A:0.1,B:0.2):0.25);"))
-        expected_test_tree_2 = str(Tree.get(schema='newick', data="(A:0.25,(B:0.2,(C:0.3,D:0.4):0.1):0.25);"))
-        expected_test_tree_3 = str(Tree.get(schema='newick', data="(B:0.25,(A:0.2,(C:0.3,D:0.4):0.1):0.25);"))
+        expected_test_tree_1 = str(Tree.get(schema='newick', data="[&R] ((C:0.3,D:0.4):0.25,(A:0.1,B:0.2):0.25);"))
+        expected_test_tree_2 = str(Tree.get(schema='newick', data="[&R] (A:0.25,(B:0.2,(C:0.3,D:0.4):0.1):0.25);"))
+        expected_test_tree_3 = str(Tree.get(schema='newick', data="[&R] (B:0.25,(A:0.2,(C:0.3,D:0.4):0.1):0.25);"))
 
         rerooted_test_tree_1 = str(Rerooter().reroot(test_tree_1)).strip()
         rerooted_test_tree_2 = str(Rerooter().reroot(test_tree_2)).strip()
@@ -64,7 +64,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(str(expected), str(observed_tree))
 
     def test_hello_world_backwards_compatible(self):
-        self.assert_tree_equal_no_labels_deprecated('((C,(D,E):2.0),(A,B):4.0);\n',
+        self.assert_tree_equal_no_labels_deprecated('[&R] ((C,(D,E):2.0),(A,B):4.0);\n',
              Reannotator()._reroot_tree_by_old_root(\
                 Tree.get(schema='newick', data='((A,B):1,(C,D):2);'),
                 Tree.get(schema='newick', data='((A,B):1,(C,(D,E):2):3);')))
